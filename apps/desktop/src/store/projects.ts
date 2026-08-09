@@ -5,8 +5,8 @@ import {
   NO_PROJECT_ID,
   type SidebarProjectTree
 } from '@/app/chat/sidebar/projects/workspace-groups'
-import type { HermesGitBaseBranch, HermesGitBranch } from '@/global'
-import { getHermesConfig, type HermesGateway } from '@/hermes'
+import type { SparkiiGitBaseBranch, SparkiiGitBranch } from '@/global'
+import { getSparkiiConfig, type SparkiiGateway } from '@/hermes'
 import { translateNow } from '@/i18n'
 import { desktopDefaultCwd, isDesktopFsRemoteMode, selectDesktopPaths, writeDesktopFileText } from '@/lib/desktop-fs'
 import { desktopGit } from '@/lib/desktop-git'
@@ -335,14 +335,14 @@ async function gatewayRequest<T>(method: string, params: Record<string, unknown>
   }
 
   if (!gateway) {
-    throw new Error('Hermes gateway is not connected')
+    throw new Error('Sparkii gateway is not connected')
   }
 
   return gateway.request<T>(method, params)
 }
 
 async function gatewayRequestOn<T>(
-  gateway: HermesGateway,
+  gateway: SparkiiGateway,
   method: string,
   params: Record<string, unknown> = {}
 ): Promise<T> {
@@ -350,7 +350,7 @@ async function gatewayRequestOn<T>(
 }
 
 interface ActiveProjectsContext {
-  gateway: HermesGateway
+  gateway: SparkiiGateway
   profile: string
 }
 
@@ -363,7 +363,7 @@ async function activeProjectsContext(): Promise<ActiveProjectsContext> {
   }
 
   if (!gateway || gateway !== activeGateway() || profile !== ($activeGatewayProfile.get() || 'default')) {
-    throw new Error('Active Hermes profile changed while connecting')
+    throw new Error('Active Sparkii profile changed while connecting')
   }
 
   return { gateway, profile }
@@ -394,7 +394,7 @@ interface ProjectTreePayload {
 
 let projectTreeRefreshGeneration = 0
 
-async function refreshProjectTreeOn(gateway: HermesGateway): Promise<void> {
+async function refreshProjectTreeOn(gateway: SparkiiGateway): Promise<void> {
   const generation = ++projectTreeRefreshGeneration
 
   if (activeGateway() === gateway) {
@@ -544,8 +544,8 @@ interface RepoScanState {
   runningSignature?: string
 }
 
-const repoScanStates = new WeakMap<HermesGateway, RepoScanState>()
-const scanningGatewayGenerations = new WeakMap<HermesGateway, number>()
+const repoScanStates = new WeakMap<SparkiiGateway, RepoScanState>()
+const scanningGatewayGenerations = new WeakMap<SparkiiGateway, number>()
 
 function syncReposScanning(): void {
   const gateway = activeGateway()
@@ -578,7 +578,7 @@ export async function scanAndRecordRepos(force = false): Promise<void> {
   let generation: number | undefined
 
   try {
-    const policy = repoDiscoveryPolicyFromConfig(await getHermesConfig(context.profile))
+    const policy = repoDiscoveryPolicyFromConfig(await getSparkiiConfig(context.profile))
     const signature = repoDiscoveryPolicySignature(policy)
 
     if (!force && (state.completedSignature === signature || state.runningSignature === signature)) {
@@ -1013,7 +1013,7 @@ export function refreshWorktrees(): void {
 }
 
 // Spin up a fresh worktree the lightest way (`git worktree add -b`) under the
-// repo, returning where Hermes should start working. Git is the source of
+// repo, returning where Sparkii should start working. Git is the source of
 // truth; the caller starts a session in the returned path.
 export async function startWorkInRepo(
   repoPath: string,
@@ -1036,7 +1036,7 @@ export async function startWorkInRepo(
 // teammate's branch is therefore reachable, and the user does not check it out
 // by hand first.
 // Empty on a remote backend or a non-repo, where the Electron probe cannot run.
-export async function listRepoBranches(repoPath: string): Promise<HermesGitBranch[]> {
+export async function listRepoBranches(repoPath: string): Promise<SparkiiGitBranch[]> {
   const git = desktopGit()
 
   if (!git?.branchList || !repoPath) {
@@ -1049,7 +1049,7 @@ export async function listRepoBranches(repoPath: string): Promise<HermesGitBranc
 // Local + remote-tracking branches for the base-branch picker in the
 // new-worktree dialog. The remote default (origin/HEAD) is flagged so the
 // UI can preselect it. Empty on a remote backend / non-repo.
-export async function listBaseBranches(repoPath: string): Promise<HermesGitBaseBranch[]> {
+export async function listBaseBranches(repoPath: string): Promise<SparkiiGitBaseBranch[]> {
   const git = desktopGit()
 
   if (!git?.baseBranchList || !repoPath) {
@@ -1144,14 +1144,14 @@ export async function removeWorktreePath(
 // Reveal a project/worktree path in the OS file manager (git-GUI standard).
 export async function revealPath(path: null | string): Promise<void> {
   if (path) {
-    await window.hermesDesktop?.revealPath?.(path)
+    await window.sparkiiDesktop?.revealPath?.(path)
   }
 }
 
 // Copy a path to the clipboard (git-GUI standard).
 export async function copyPath(path: null | string): Promise<void> {
   if (path) {
-    await window.hermesDesktop?.writeClipboard?.(path)
+    await window.sparkiiDesktop?.writeClipboard?.(path)
   }
 }
 

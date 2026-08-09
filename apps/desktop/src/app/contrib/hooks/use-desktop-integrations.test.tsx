@@ -13,8 +13,8 @@ import { useDesktopIntegrations } from './use-desktop-integrations'
 // We import the hook and drive it with explicit rx-stores/props to exercise the
 // profile-ready gate, ownership validation, and legacy-key discard.
 
-const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
-const initialHermesDesktop = desktopWindow.hermesDesktop
+const desktopWindow = window as unknown as { sparkiiDesktop?: Window['sparkiiDesktop'] }
+const initialSparkiiDesktop = desktopWindow.sparkiiDesktop
 
 const session = (over: Partial<SessionInfo> = {}): SessionInfo => ({
   archived: false,
@@ -45,8 +45,8 @@ describe('useDesktopIntegrations', () => {
 
     // Stub the desktop bridge so the hook's useEffect callbacks don't try to
     // reach real Electron IPC. The established desktop-test pattern assigns a
-    // plain object to window.hermesDesktop rather than using vi.spyOn.
-    desktopWindow.hermesDesktop = {
+    // plain object to window.sparkiiDesktop rather than using vi.spyOn.
+    desktopWindow.sparkiiDesktop = {
       setPreviewShortcutActive: vi.fn(),
       onOpenUpdatesRequested: vi.fn(),
       onFocusSession: vi.fn(),
@@ -55,12 +55,12 @@ describe('useDesktopIntegrations', () => {
       signalDeepLinkReady: vi.fn(),
       onClosePreviewRequested: vi.fn(),
       onOpenFolderRequested: vi.fn()
-    } as unknown as Window['hermesDesktop']
+    } as unknown as Window['sparkiiDesktop']
   })
 
   afterEach(() => {
-    if (initialHermesDesktop) {
-      desktopWindow.hermesDesktop = initialHermesDesktop
+    if (initialSparkiiDesktop) {
+      desktopWindow.sparkiiDesktop = initialSparkiiDesktop
     }
 
     vi.restoreAllMocks()

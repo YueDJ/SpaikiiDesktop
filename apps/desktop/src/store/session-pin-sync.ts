@@ -129,7 +129,7 @@ function pullRemotePins(): void {
 
 function reconcile(): void {
   // Config/session REST is only reachable through the Electron bridge.
-  if (!window.hermesDesktop) {
+  if (!window.sparkiiDesktop) {
     return
   }
 

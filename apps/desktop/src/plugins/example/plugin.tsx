@@ -1,6 +1,6 @@
 /**
  * Example plugin — the authoring + publishing reference. A folder under
- * `src/plugins/` with a `plugin.tsx` that default-exports a `HermesPlugin` is
+ * `src/plugins/` with a `plugin.tsx` that default-exports a `SparkiiPlugin` is
  * all it takes; `discoverBundledPlugins()` finds and registers it (no import,
  * no registry edit). Delete this folder and everything below is gone.
  *
@@ -22,7 +22,7 @@ import {
   atom,
   cn,
   haptic,
-  type HermesPlugin,
+  type SparkiiPlugin,
   host,
   type KeybindContribution,
   KEYBINDS_AREA,
@@ -69,7 +69,7 @@ function ClickCounter() {
   )
 }
 
-const plugin: HermesPlugin = {
+const plugin: SparkiiPlugin = {
   id: 'example',
   name: 'Example Plugin',
   defaultEnabled: false,

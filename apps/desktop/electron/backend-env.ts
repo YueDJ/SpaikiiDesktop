@@ -61,12 +61,12 @@ function appendUniquePathEntries(entries, { delimiter = path.delimiter } = {}) {
 }
 
 /**
- * Hermes-managed Node.js directories, in preferred lookup order.
+ * Sparkii-managed Node.js directories, in preferred lookup order.
  *
  * There are two on-disk layouts. `scripts/install.ps1` unpacks portable Node
  * straight into `%LOCALAPPDATA%\hermes\node` (node.exe at the root, no `bin\`);
  * `scripts/install.sh` and the node-bootstrap helper use the POSIX
- * `$HERMES_HOME/node/bin`. Emit BOTH on every platform so mixed and migrated
+ * `$SPARKII_HOME/node/bin`. Emit BOTH on every platform so mixed and migrated
  * installs resolve, leading with the layout native to the current platform.
  *
  * This is the single source of truth for the ordering rule on the Node side —
@@ -74,41 +74,41 @@ function appendUniquePathEntries(entries, { delimiter = path.delimiter } = {}) {
  * `iter_hermes_node_dirs()` in hermes_constants.py, which the Electron main
  * process cannot import.
  */
-function hermesManagedNodePathEntries(
-  hermesHome,
+function sparkiiManagedNodePathEntries(
+  sparkiiHome,
   { platform = process.platform, pathModule = pathModuleForPlatform(platform) }: any = {}
 ) {
-  if (!hermesHome) {
+  if (!sparkiiHome) {
     return []
   }
 
-  const root = pathModule.join(hermesHome, 'node')
+  const root = pathModule.join(sparkiiHome, 'node')
   const bin = pathModule.join(root, 'bin')
 
   return platform === 'win32' ? [root, bin] : [bin, root]
 }
 
 function buildDesktopBackendPath({
-  hermesHome,
+  sparkiiHome,
   venvRoot,
   currentPath = '',
   platform = process.platform,
   pathModule = pathModuleForPlatform(platform)
 }: any = {}) {
   const delimiter = delimiterForPlatform(platform)
-  const hermesNodeDirs = hermesManagedNodePathEntries(hermesHome, { platform, pathModule })
+  const hermesNodeDirs = sparkiiManagedNodePathEntries(sparkiiHome, { platform, pathModule })
   const venvBin = venvRoot ? pathModule.join(venvRoot, platform === 'win32' ? 'Scripts' : 'bin') : null
   const saneEntries = platform === 'win32' ? [] : POSIX_SANE_PATH_ENTRIES
 
   return appendUniquePathEntries([hermesNodeDirs, venvBin, currentPath, saneEntries], { delimiter })
 }
 
-function normalizeHermesHomeRoot(hermesHome, { pathModule = pathModuleForPlatform(process.platform) }: any = {}) {
-  if (!hermesHome) {
-    return hermesHome
+function normalizeSparkiiHomeRoot(sparkiiHome, { pathModule = pathModuleForPlatform(process.platform) }: any = {}) {
+  if (!sparkiiHome) {
+    return sparkiiHome
   }
 
-  const resolved = pathModule.resolve(String(hermesHome))
+  const resolved = pathModule.resolve(String(sparkiiHome))
   const parent = pathModule.dirname(resolved)
 
   if (pathModule.basename(parent).toLowerCase() === 'profiles') {
@@ -119,7 +119,7 @@ function normalizeHermesHomeRoot(hermesHome, { pathModule = pathModuleForPlatfor
 }
 
 function buildDesktopBackendEnv({
-  hermesHome,
+  sparkiiHome,
   pythonPathEntries = [],
   venvRoot,
   currentEnv = process.env,
@@ -140,7 +140,7 @@ function buildDesktopBackendEnv({
     // this. User's explicit setting wins. Re-port of PR #56499 (echoriver89).
     PYTHONUTF8: currentEnv?.PYTHONUTF8 ?? '1',
     [key]: buildDesktopBackendPath({
-      hermesHome,
+      sparkiiHome,
       venvRoot,
       currentPath: currentPathValue(currentEnv, platform),
       platform,
@@ -154,8 +154,8 @@ export {
   buildDesktopBackendEnv,
   buildDesktopBackendPath,
   delimiterForPlatform,
-  hermesManagedNodePathEntries,
-  normalizeHermesHomeRoot,
+  sparkiiManagedNodePathEntries,
+  normalizeSparkiiHomeRoot,
   pathEnvKey,
   POSIX_SANE_PATH_ENTRIES
 }

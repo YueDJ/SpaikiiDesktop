@@ -42,14 +42,14 @@ const HIDDEN_KEY_PREFIXES = ['dashboard_auth/', 'model-providers/', 'platforms/'
 const isDesktopRelevant = (row: AgentPluginRow) => !HIDDEN_KEY_PREFIXES.some(prefix => row.key.startsWith(prefix))
 
 function reveal(file: string) {
-  void window.hermesDesktop?.revealPath?.(file)?.catch(() => undefined)
+  void window.sparkiiDesktop?.revealPath?.(file)?.catch(() => undefined)
 }
 
 async function revealPluginsDir() {
   try {
     // Electron owns the local plugin root — deriving it from the backend's
     // hermes_home breaks against a remote backend (#66899).
-    const dir = await window.hermesDesktop?.desktopPluginsRoot?.()
+    const dir = await window.sparkiiDesktop?.desktopPluginsRoot?.()
 
     if (!dir) {
       notifyError('Desktop plugins are unavailable', 'Could not resolve the plugins folder')
@@ -59,7 +59,7 @@ async function revealPluginsDir() {
 
     // openDir (not reveal): the door often doesn't exist on first use, and
     // showItemInFolder on a missing path silently no-ops (esp. Windows).
-    const result = await window.hermesDesktop?.openDir?.(dir)
+    const result = await window.sparkiiDesktop?.openDir?.(dir)
 
     if (result && !result.ok) {
       notifyError(result.error ?? 'unknown error', 'Could not open the plugins folder')
@@ -70,7 +70,7 @@ async function revealPluginsDir() {
 }
 
 // Agent plugins live under the BACKEND's hermes home (profile-aware), so the
-// path comes from the gateway — not from the renderer's local HERMES_HOME.
+// path comes from the gateway — not from the renderer's local SPARKII_HOME.
 // Callers gate on a local connection: openDir mkdir-creates the path, which
 // must never happen for a directory that belongs to a remote box.
 async function revealAgentPluginsDir(request: GatewayRequest) {
@@ -84,7 +84,7 @@ async function revealAgentPluginsDir(request: GatewayRequest) {
       return
     }
 
-    const opened = await window.hermesDesktop?.openDir?.(`${home}/plugins`)
+    const opened = await window.sparkiiDesktop?.openDir?.(`${home}/plugins`)
 
     if (opened && !opened.ok) {
       notifyError(opened.error ?? 'unknown error', 'Could not open the plugins folder')

@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const api = vi.fn().mockResolvedValue({ ok: true })
 
-vi.stubGlobal('window', { hermesDesktop: { api } })
+vi.stubGlobal('window', { sparkiiDesktop: { api } })
 
 describe('pairing requests carry the active profile', () => {
   beforeEach(() => api.mockClear())

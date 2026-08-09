@@ -17,8 +17,8 @@ import { cn } from '@/lib/utils'
 
 import { referenceKind, referenceRe, referenceStyle, WIRE_REFERENCE_KINDS } from './reference-kinds'
 
-const HERMES_REF_TYPES = WIRE_REFERENCE_KINDS
-type HermesRefType = (typeof HERMES_REF_TYPES)[number]
+const SPARKII_REF_TYPES = WIRE_REFERENCE_KINDS
+type SparkiiRefType = (typeof SPARKII_REF_TYPES)[number]
 
 /** Icon glyphs come from the shared reference vocabulary, so the popover row
  *  and the chip can never drift apart. */
@@ -329,7 +329,7 @@ function safeDirectiveSegments(text: string): Unstable_DirectiveSegment[] {
 }
 
 /**
- * Renders text containing Hermes directives (`@file:...`, `@image:...`) as
+ * Renders text containing Sparkii directives (`@file:...`, `@image:...`) as
  * inline chips. Embedded MEDIA images render below as a thumbnail row.
  */
 export function DirectiveContent({ text }: { text: string }) {
@@ -405,7 +405,7 @@ const DirectiveImage: FC<{ id: string; label: string }> = ({ id, label }) => {
     // Remote gateway: the image lives on the gateway's disk, not ours — fetch
     // it over the authenticated API. Local: read it straight off this disk.
     const load =
-      window.hermesDesktop && isRemoteGateway() ? gatewayMediaDataUrl(id) : window.hermesDesktop?.readFileDataUrl(id)
+      window.sparkiiDesktop && isRemoteGateway() ? gatewayMediaDataUrl(id) : window.sparkiiDesktop?.readFileDataUrl(id)
 
     void Promise.resolve(load)
       .then(url => alive && url && setSrc(url))

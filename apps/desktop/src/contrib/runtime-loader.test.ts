@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { HermesReadDirResult } from '@/global'
-import type * as HermesModule from '@/hermes'
+import type { SparkiiReadDirResult } from '@/global'
+import type * as SparkiiModule from '@/hermes'
 
 import { discoverRuntimePlugins, watchRuntimePlugins } from './runtime-loader'
 
@@ -10,12 +10,12 @@ import { discoverRuntimePlugins, watchRuntimePlugins } from './runtime-loader'
 const getStatus = vi.fn(async () => ({ hermes_home: '/remote/box/.hermes' }))
 
 vi.mock('@/hermes', async importActual => ({
-  ...(await importActual<typeof HermesModule>()),
+  ...(await importActual<typeof SparkiiModule>()),
   getStatus: () => getStatus()
 }))
 
 const desktopPluginsRoot = vi.fn<() => Promise<string>>()
-const readDir = vi.fn<(path: string) => Promise<HermesReadDirResult>>()
+const readDir = vi.fn<(path: string) => Promise<SparkiiReadDirResult>>()
 const watchDirectory = vi.fn<(path: string) => Promise<{ id: string }>>()
 const onPreviewFileChanged = vi.fn()
 
@@ -25,7 +25,7 @@ beforeEach(() => {
   watchDirectory.mockReset()
   onPreviewFileChanged.mockReset()
   getStatus.mockClear()
-  ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+  ;(window as unknown as { sparkiiDesktop: unknown }).sparkiiDesktop = {
     desktopPluginsRoot,
     onPreviewFileChanged,
     readDir,
@@ -34,7 +34,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+  delete (window as unknown as { sparkiiDesktop?: unknown }).sparkiiDesktop
 })
 
 describe('scanDiskPlugins (#66899)', () => {

@@ -43,7 +43,7 @@ describe('PreviewPane console state', () => {
     $connection.set({ mode: 'remote' } as never)
     vi.stubGlobal('window', {
       ...window,
-      hermesDesktop: {
+      sparkiiDesktop: {
         onPreviewFileChanged,
         watchPreviewFile
       }
@@ -158,7 +158,7 @@ describe('PreviewPane console state', () => {
     $connection.set({ mode: 'local' } as never)
     vi.stubGlobal('window', {
       ...window,
-      hermesDesktop: {
+      sparkiiDesktop: {
         readFileDataUrl
       }
     })
@@ -221,7 +221,7 @@ describe('PreviewPane console state', () => {
     $connection.set({ mode: 'local' } as never)
     vi.stubGlobal('window', {
       ...window,
-      hermesDesktop: {
+      sparkiiDesktop: {
         readFileDataUrl
       }
     })
@@ -258,7 +258,7 @@ describe('PreviewPane console state', () => {
     $connection.set({ mode: 'local' } as never)
     vi.stubGlobal('window', {
       ...window,
-      hermesDesktop: {
+      sparkiiDesktop: {
         readFileDataUrl
       }
     })
@@ -299,7 +299,7 @@ describe('PreviewPane console state', () => {
     $connection.set({ mode: 'local' } as never)
     vi.stubGlobal('window', {
       ...window,
-      hermesDesktop: {
+      sparkiiDesktop: {
         api,
         readFileDataUrl
       }

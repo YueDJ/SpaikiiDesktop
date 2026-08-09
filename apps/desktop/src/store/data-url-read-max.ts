@@ -28,7 +28,7 @@ export function clampDataUrlReadMaxMb(value: unknown): number {
 export const $dataUrlReadMaxMb = atom<number>(DATA_URL_READ_DEFAULT_MAX_MB)
 
 export async function refreshDataUrlReadMaxMb(): Promise<number> {
-  const api = window.hermesDesktop?.dataUrlReadMax
+  const api = window.sparkiiDesktop?.dataUrlReadMax
 
   if (!api) {
     return $dataUrlReadMaxMb.get()
@@ -47,7 +47,7 @@ export async function refreshDataUrlReadMaxMb(): Promise<number> {
 
 export async function setDataUrlReadMaxMb(maxMb: number): Promise<number> {
   const next = clampDataUrlReadMaxMb(maxMb)
-  const api = window.hermesDesktop?.dataUrlReadMax
+  const api = window.sparkiiDesktop?.dataUrlReadMax
 
   if (!api) {
     $dataUrlReadMaxMb.set(next)
@@ -71,6 +71,6 @@ export async function setDataUrlReadMaxMb(maxMb: number): Promise<number> {
   }
 }
 
-if (typeof window !== 'undefined' && window.hermesDesktop?.dataUrlReadMax) {
+if (typeof window !== 'undefined' && window.sparkiiDesktop?.dataUrlReadMax) {
   void refreshDataUrlReadMaxMb()
 }

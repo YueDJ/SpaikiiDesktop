@@ -11,8 +11,8 @@ import {
   getCronJobs,
   getGlobalModelInfo,
   getGlobalModelOptions,
-  getHermesConfig,
-  getHermesConfigDefaults,
+  getSparkiiConfig,
+  getSparkiiConfigDefaults,
   getProfiles,
   getSessionMessages,
   getStatus,
@@ -33,13 +33,13 @@ const emptySessionsResponse = {
   total: 0
 }
 
-describe('Hermes REST helpers', () => {
+describe('Sparkii REST helpers', () => {
   let api: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
     resetSidebarBatchCapability()
     api = vi.fn().mockResolvedValue(emptySessionsResponse)
-    Object.defineProperty(window, 'hermesDesktop', {
+    Object.defineProperty(window, 'sparkiiDesktop', {
       configurable: true,
       value: { api }
     })
@@ -48,7 +48,7 @@ describe('Hermes REST helpers', () => {
   afterEach(() => {
     setApiRequestProfile(null)
     vi.restoreAllMocks()
-    Reflect.deleteProperty(window, 'hermesDesktop')
+    Reflect.deleteProperty(window, 'sparkiiDesktop')
   })
 
   it('uses a longer timeout for the single-profile session list', async () => {
@@ -296,8 +296,8 @@ describe('Hermes REST helpers', () => {
     api.mockResolvedValue({})
 
     const bootCalls: [() => Promise<unknown>, string][] = [
-      [getHermesConfig, '/api/config'],
-      [getHermesConfigDefaults, '/api/config/defaults'],
+      [getSparkiiConfig, '/api/config'],
+      [getSparkiiConfigDefaults, '/api/config/defaults'],
       [getGlobalModelInfo, '/api/model/info'],
       [() => getGlobalModelOptions(), '/api/model/options?explicit_only=1'],
       [getCronJobs, '/api/cron/jobs']
