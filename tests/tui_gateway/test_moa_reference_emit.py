@@ -21,12 +21,12 @@ def server():
     with patch.dict(
         "sys.modules",
         {
-            "hermes_constants": MagicMock(
-                get_hermes_home=MagicMock(return_value="/tmp/hermes_test_moa_emit")
+            "sparkii_constants": MagicMock(
+                get_sparkii_home=MagicMock(return_value="/tmp/sparkii_test_moa_emit")
             ),
             "sparkii_cli.env_loader": MagicMock(),
             "sparkii_cli.banner": MagicMock(),
-            "hermes_state": MagicMock(),
+            "sparkii_state": MagicMock(),
         },
     ):
         import importlib

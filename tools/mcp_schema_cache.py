@@ -22,9 +22,9 @@ _cache_lock = threading.Lock()
 
 
 def _cache_path() -> Path:
-    from hermes_constants import get_hermes_home
+    from sparkii_constants import get_sparkii_home
 
-    return get_hermes_home() / "cache" / _CACHE_FILENAME
+    return get_sparkii_home() / "cache" / _CACHE_FILENAME
 
 
 def config_fingerprint(config: dict) -> str:

@@ -68,19 +68,19 @@ class TestBangContextGating:
     """Bang mode is CLI-only — gateway/cron users have their own shells."""
 
     def test_enabled_in_plain_cli(self, monkeypatch):
-        for var in ("HERMES_GATEWAY_SESSION", "HERMES_CRON_SESSION",
-                    "HERMES_SESSION_PLATFORM"):
+        for var in ("SPARKII_GATEWAY_SESSION", "SPARKII_CRON_SESSION",
+                    "SPARKII_SESSION_PLATFORM"):
             monkeypatch.delenv(var, raising=False)
         assert bang_shell_enabled() is True
 
     @pytest.mark.parametrize("var,value", [
-        ("HERMES_GATEWAY_SESSION", "1"),
-        ("HERMES_CRON_SESSION", "true"),
-        ("HERMES_SESSION_PLATFORM", "discord"),
+        ("SPARKII_GATEWAY_SESSION", "1"),
+        ("SPARKII_CRON_SESSION", "true"),
+        ("SPARKII_SESSION_PLATFORM", "discord"),
     ])
     def test_disabled_in_non_cli_contexts(self, monkeypatch, var, value):
-        for v in ("HERMES_GATEWAY_SESSION", "HERMES_CRON_SESSION",
-                  "HERMES_SESSION_PLATFORM"):
+        for v in ("SPARKII_GATEWAY_SESSION", "SPARKII_CRON_SESSION",
+                  "SPARKII_SESSION_PLATFORM"):
             monkeypatch.delenv(v, raising=False)
         monkeypatch.setenv(var, value)
         assert bang_shell_enabled() is False
@@ -180,7 +180,7 @@ class TestBangHandlerDispatch:
     def test_disabled_context_falls_through(self, monkeypatch):
         """Gateway sessions must not execute bang commands."""
         cli = _make_cli()
-        monkeypatch.setenv("HERMES_GATEWAY_SESSION", "1")
+        monkeypatch.setenv("SPARKII_GATEWAY_SESSION", "1")
         with patch("sparkii_cli.bang_shell.run_bang_command") as runner:
             assert cli.handle_bang_shell("!echo nope") is False
         runner.assert_not_called()

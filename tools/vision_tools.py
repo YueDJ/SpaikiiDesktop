@@ -62,7 +62,7 @@ def _load_auxiliary_client() -> None:
             extract_content_or_reasoning = _ecr
 
 
-from hermes_constants import get_hermes_dir
+from sparkii_constants import get_sparkii_dir
 from tools.debug_helpers import DebugSession
 from tools.website_policy import check_website_access
 import sys
@@ -340,7 +340,7 @@ def _normalize_to_supported_image(
     if detected_mime in _ANTHROPIC_SUPPORTED_MEDIA_TYPES:
         return image_path, detected_mime, None
 
-    out_dir = get_hermes_dir("cache/vision", "temp_vision_images")
+    out_dir = get_sparkii_dir("cache/vision", "temp_vision_images")
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / f"converted_{uuid.uuid4()}.png"
 
@@ -1118,7 +1118,7 @@ async def _vision_analyze_native(
 
         detected_mime_type = resolved.mime
         image_size_bytes = len(resolved.data)
-        temp_dir = get_hermes_dir("cache/vision", "temp_vision_images")
+        temp_dir = get_sparkii_dir("cache/vision", "temp_vision_images")
         temp_dir.mkdir(parents=True, exist_ok=True)
         temp_image_path = temp_dir / f"temp_image_{uuid.uuid4()}.img"
         await asyncio.to_thread(temp_image_path.write_bytes, resolved.data)
@@ -1258,7 +1258,7 @@ async def vision_analyze_tool(
         Exception: If download fails, analysis fails, or API key is not set
         
     Note:
-        - For URLs, temporary images are stored under $HERMES_HOME/cache/vision/ and cleaned up
+        - For URLs, temporary images are stored under $SPARKII_HOME/cache/vision/ and cleaned up
         - For local file paths, the file is used directly and NOT deleted
         - Supports common image formats (JPEG, PNG, GIF, WebP, etc.)
     """
@@ -1307,7 +1307,7 @@ async def vision_analyze_tool(
             raise ValueError(str(exc))
 
         detected_mime_type = resolved.mime
-        temp_dir = get_hermes_dir("cache/vision", "temp_vision_images")
+        temp_dir = get_sparkii_dir("cache/vision", "temp_vision_images")
         temp_dir.mkdir(parents=True, exist_ok=True)
         temp_image_path = temp_dir / f"temp_image_{uuid.uuid4()}.img"
         await asyncio.to_thread(temp_image_path.write_bytes, resolved.data)
@@ -1793,7 +1793,7 @@ async def _materialize_video_from_terminal_backend(video_source: str, task_id: O
     except ImageResolutionError as exc:
         raise ValueError(f"Could not read video from terminal backend: {exc}") from exc
 
-    temp_dir = get_hermes_dir("cache/video", "temp_video_files")
+    temp_dir = get_sparkii_dir("cache/video", "temp_video_files")
     temp_dir.mkdir(parents=True, exist_ok=True)
     temp_path = temp_dir / f"terminal_video_{uuid.uuid4()}{suffix}"
     temp_path.write_bytes(resolved.data)
@@ -1913,7 +1913,7 @@ async def video_analyze_tool(
             blocked = check_website_access(video_url)
             if blocked:
                 raise PermissionError(blocked["message"])
-            temp_dir = get_hermes_dir("cache/video", "temp_video_files")
+            temp_dir = get_sparkii_dir("cache/video", "temp_video_files")
             temp_video_path = temp_dir / f"temp_video_{uuid.uuid4()}.mp4"
             await _download_video(video_url, temp_video_path)
             should_cleanup = True

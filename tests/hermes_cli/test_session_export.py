@@ -97,7 +97,7 @@ def test_export_record_count_switches_unit_for_prompt_only_exports():
 
 def test_sessions_export_cli_prompt_only_stdout(monkeypatch, capsys):
     import sparkii_cli.main as main_mod
-    import hermes_state
+    import sparkii_state
 
     captured = {}
 
@@ -113,11 +113,11 @@ def test_sessions_export_cli_prompt_only_stdout(monkeypatch, capsys):
         def close(self):
             captured["closed"] = True
 
-    monkeypatch.setattr(hermes_state, "SessionDB", lambda: FakeDB())
+    monkeypatch.setattr(sparkii_state, "SessionDB", lambda: FakeDB())
     monkeypatch.setattr(
         sys,
         "argv",
-        ["hermes", "sessions", "export", "-", "--session-id", "sess", "--only", "user-prompts"],
+        ["sparkii", "sessions", "export", "-", "--session-id", "sess", "--only", "user-prompts"],
     )
 
     main_mod.main()

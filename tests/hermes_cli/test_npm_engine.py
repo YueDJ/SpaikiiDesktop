@@ -24,8 +24,8 @@ from sparkii_cli.npm_engine import (
 EBADENGINE_OUTPUT = """
 npm error code EBADENGINE
 npm error engine Unsupported engine
-npm error engine Not compatible with your version of node/npm: hermes-agent@1.0.0
-npm error notsup Not compatible with your version of node/npm: hermes-agent@1.0.0
+npm error engine Not compatible with your version of node/npm: sparkii-agent@1.0.0
+npm error notsup Not compatible with your version of node/npm: sparkii-agent@1.0.0
 npm error notsup Required: {"node":">=20.0.0","npm":"<11.10.0 || >=12.0.0"}
 npm error notsup Actual:   {"npm":"11.10.0","node":"v22.23.1"}
 """
@@ -91,14 +91,14 @@ class TestManagedDetection:
 
     @pytest.fixture
     def managed_tree(self, tmp_path, monkeypatch):
-        home = tmp_path / ".hermes"
+        home = tmp_path / ".sparkii"
         node = home / "node"
         (node / "bin").mkdir(parents=True)
         (node / "lib" / "node_modules" / "npm" / "bin").mkdir(parents=True)
         cli = node / "lib" / "node_modules" / "npm" / "bin" / "npm-cli.js"
         cli.write_text("#!/usr/bin/env node\n", encoding="utf-8")
         (node / "bin" / "npm").symlink_to(cli)
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("SPARKII_HOME", str(home))
         return home
 
     def test_direct_managed_bin_is_managed(self, managed_tree):
@@ -132,13 +132,13 @@ class TestRepairDecision:
 
     @pytest.fixture
     def managed_npm(self, tmp_path, monkeypatch):
-        home = tmp_path / ".hermes"
+        home = tmp_path / ".sparkii"
         bin_dir = home / "node" / "bin"
         bin_dir.mkdir(parents=True)
         npm = bin_dir / "npm"
         npm.write_text("#!/bin/sh\n", encoding="utf-8")
         npm.chmod(0o755)
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("SPARKII_HOME", str(home))
         return npm
 
     def test_upgrades_managed_npm_with_the_range_npm_asked_for(
@@ -195,8 +195,8 @@ class TestRepairDecision:
     ):
         """A system/nvm/brew/Nix npm is never modified — Hermes provisions its
         own managed tree, upgrades THAT npm into range, and returns it."""
-        home = tmp_path / ".hermes"
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        home = tmp_path / ".sparkii"
+        monkeypatch.setenv("SPARKII_HOME", str(home))
         system_npm = tmp_path / "usr-bin-npm"
         system_npm.write_text("#!/bin/sh\n", encoding="utf-8")
 
@@ -212,7 +212,7 @@ class TestRepairDecision:
 
         upgrades = []
         monkeypatch.setattr(
-            npm_engine, "bootstrap_hermes_managed_node", fake_bootstrap
+            npm_engine, "bootstrap_sparkii_managed_node", fake_bootstrap
         )
         monkeypatch.setattr(
             npm_engine,
@@ -232,15 +232,15 @@ class TestRepairDecision:
     def test_foreign_npm_failed_bootstrap_prints_manual_fix(
         self, tmp_path, monkeypatch, capsys
     ):
-        home = tmp_path / ".hermes"
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        home = tmp_path / ".sparkii"
+        monkeypatch.setenv("SPARKII_HOME", str(home))
         system_npm = tmp_path / "usr-bin-npm"
         system_npm.write_text("#!/bin/sh\n", encoding="utf-8")
 
         import sparkii_cli.npm_engine as npm_engine
 
         monkeypatch.setattr(
-            npm_engine, "bootstrap_hermes_managed_node", lambda: None
+            npm_engine, "bootstrap_sparkii_managed_node", lambda: None
         )
         assert not maybe_repair_npm_engine(str(system_npm), EBADENGINE_OUTPUT)
 
@@ -261,8 +261,8 @@ class TestRepairDecision:
         """A too-old system NODE can't be fixed by any npm upgrade, but the
         managed tree ships a supported Node — provisioning covers it. The
         managed npm is still upgraded to the repo's own engines.npm range."""
-        home = tmp_path / ".hermes"
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        home = tmp_path / ".sparkii"
+        monkeypatch.setenv("SPARKII_HOME", str(home))
         system_npm = tmp_path / "usr-bin-npm"
         system_npm.write_text("#!/bin/sh\n", encoding="utf-8")
 
@@ -284,7 +284,7 @@ class TestRepairDecision:
 
         upgrades = []
         monkeypatch.setattr(
-            npm_engine, "bootstrap_hermes_managed_node", fake_bootstrap
+            npm_engine, "bootstrap_sparkii_managed_node", fake_bootstrap
         )
         monkeypatch.setattr(
             npm_engine,

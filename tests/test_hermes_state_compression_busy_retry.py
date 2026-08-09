@@ -21,7 +21,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_state import CompressionSessionBusyError, SessionDB
+from sparkii_state import CompressionSessionBusyError, SessionDB
 
 
 @pytest.fixture
@@ -95,7 +95,7 @@ def test_the_lock_owner_is_never_delayed_by_its_own_lock(db: SessionDB) -> None:
 
 def test_transient_error_is_a_subclass_of_the_original(db: SessionDB) -> None:
     """Existing `except CompressionSessionBusyError` handlers must still catch."""
-    from hermes_state import SessionCompressionInProgressError
+    from sparkii_state import SessionCompressionInProgressError
 
     assert issubclass(SessionCompressionInProgressError, CompressionSessionBusyError)
 

@@ -31,7 +31,7 @@ import pytest
 
 from agent.memory_manager import build_memory_context_block
 from agent.turn_context import build_turn_context, compose_user_api_content
-from hermes_state import SessionDB
+from sparkii_state import SessionDB
 
 
 # ---------------------------------------------------------------------------
@@ -421,7 +421,7 @@ def _text_resp(text: str) -> dict:
 
 @pytest.fixture()
 def wire_env():
-    """Mock provider + isolated HERMES_HOME + a shared SessionDB.
+    """Mock provider + isolated SPARKII_HOME + a shared SessionDB.
 
     Yields (make_agent, handler, db, sid): ``make_agent()`` builds a fresh
     AIAgent bound to the shared DB/session, so a second call models a
@@ -434,10 +434,10 @@ def wire_env():
     t = threading.Thread(target=srv.serve_forever, daemon=True)
     t.start()
 
-    test_home = tempfile.mkdtemp(prefix="hermes_api_content_")
-    os.makedirs(os.path.join(test_home, ".hermes"))
-    prev_home = os.environ.get("HERMES_HOME")
-    os.environ["HERMES_HOME"] = os.path.join(test_home, ".hermes")
+    test_home = tempfile.mkdtemp(prefix="sparkii_api_content_")
+    os.makedirs(os.path.join(test_home, ".sparkii"))
+    prev_home = os.environ.get("SPARKII_HOME")
+    os.environ["SPARKII_HOME"] = os.path.join(test_home, ".sparkii")
 
     from run_agent import AIAgent
 
@@ -471,9 +471,9 @@ def wire_env():
         db.close()
         shutil.rmtree(test_home, ignore_errors=True)
         if prev_home is None:
-            os.environ.pop("HERMES_HOME", None)
+            os.environ.pop("SPARKII_HOME", None)
         else:
-            os.environ["HERMES_HOME"] = prev_home
+            os.environ["SPARKII_HOME"] = prev_home
 
 
 def _chat_requests(handler) -> list:

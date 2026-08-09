@@ -1,9 +1,9 @@
 """Sidecar runtime-record persistence tests (issue #69960).
 
 The sidecar token is generated at spawn and used to exist only in the
-gateway process memory + sidecar child env — so cron/`hermes send`
+gateway process memory + sidecar child env — so cron/`sparkii send`
 standalone sends structurally could not authenticate. The adapter now
-persists ``<hermes-home>/runtime/photon-sidecar.json`` after the sidecar
+persists ``<sparkii-home>/runtime/photon-sidecar.json`` after the sidecar
 passes its /healthz readiness check, deletes it on stop/failed-start, and
 ``_standalone_send`` falls back to it when PHOTON_SIDECAR_TOKEN is unset.
 No Node, no ports, no network.

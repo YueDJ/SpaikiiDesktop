@@ -22,8 +22,8 @@ from pathlib import Path
 
 import pytest
 
-import hermes_state
-from hermes_state import SessionDB, preflight_db_writability
+import sparkii_state
+from sparkii_state import SessionDB, preflight_db_writability
 
 pytestmark = [
     pytest.mark.skipif(sys.platform == "win32", reason="POSIX chmod semantics"),
@@ -35,11 +35,11 @@ pytestmark = [
 
 
 @pytest.fixture()
-def hermes_home(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME so the repair scope covers tmp DBs."""
-    home = tmp_path / ".hermes"
+def sparkii_home(tmp_path, monkeypatch):
+    """Isolated SPARKII_HOME so the repair scope covers tmp DBs."""
+    home = tmp_path / ".sparkii"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("SPARKII_HOME", str(home))
     return home
 
 
@@ -73,8 +73,8 @@ def _make_wal_db(path: Path) -> None:
 
 
 class TestRepairScope:
-    def test_repairs_readonly_db_inside_home(self, hermes_home):
-        db = hermes_home / "state.db"
+    def test_repairs_readonly_db_inside_home(self, sparkii_home):
+        db = sparkii_home / "state.db"
         _make_db(db)
         os.chmod(db, 0o444)
 
@@ -82,8 +82,8 @@ class TestRepairScope:
 
         assert os.access(db, os.W_OK)
 
-    def test_repairs_readonly_sidecars(self, hermes_home):
-        db = hermes_home / "state.db"
+    def test_repairs_readonly_sidecars(self, sparkii_home):
+        db = sparkii_home / "state.db"
         _make_wal_db(db)
         wal = db.with_name(db.name + "-wal")
         assert wal.is_file(), "fixture must leave a -wal behind"
@@ -96,8 +96,8 @@ class TestRepairScope:
         assert os.access(wal, os.W_OK)
 
 
-    def test_repairs_readonly_parent_directory(self, hermes_home):
-        sub = hermes_home / "kanban"
+    def test_repairs_readonly_parent_directory(self, sparkii_home):
+        sub = sparkii_home / "kanban"
         sub.mkdir()
         db = sub / "kanban.db"
         _make_db(db)
@@ -110,7 +110,7 @@ class TestRepairScope:
 
 
 class TestRefusalOutsideScope:
-    def test_actionable_error_names_file_and_chmod(self, hermes_home, tmp_path):
+    def test_actionable_error_names_file_and_chmod(self, sparkii_home, tmp_path):
         outside = tmp_path / "elsewhere"
         outside.mkdir()
         db = outside / "custom.db"
@@ -127,7 +127,7 @@ class TestRefusalOutsideScope:
         finally:
             os.chmod(db, 0o644)
 
-    def test_wal_error_warns_against_deletion(self, hermes_home, tmp_path):
+    def test_wal_error_warns_against_deletion(self, sparkii_home, tmp_path):
         outside = tmp_path / "elsewhere"
         outside.mkdir()
         db = outside / "custom.db"
@@ -148,8 +148,8 @@ class TestSkips:
 
 
 
-    def test_healthy_db_untouched(self, hermes_home):
-        db = hermes_home / "state.db"
+    def test_healthy_db_untouched(self, sparkii_home):
+        db = sparkii_home / "state.db"
         _make_db(db)
         before = stat.S_IMODE(db.stat().st_mode)
         preflight_db_writability(db)
@@ -157,8 +157,8 @@ class TestSkips:
 
 
 class TestSessionDBIntegration:
-    def test_sessiondb_selfheals_readonly_db_in_home(self, hermes_home):
-        db_path = hermes_home / "state.db"
+    def test_sessiondb_selfheals_readonly_db_in_home(self, sparkii_home):
+        db_path = sparkii_home / "state.db"
         first = SessionDB(db_path)
         first.close()
         for suffix in ("", "-wal", "-shm"):
@@ -173,7 +173,7 @@ class TestSessionDBIntegration:
             db.close()
 
     def test_sessiondb_actionable_error_outside_home(
-        self, hermes_home, tmp_path
+        self, sparkii_home, tmp_path
     ):
         outside = tmp_path / "custom-loc"
         outside.mkdir()
@@ -181,7 +181,7 @@ class TestSessionDBIntegration:
         first = SessionDB(db_path)
         first.close()
         os.chmod(db_path, 0o444)
-        hermes_state._set_last_init_error(None)
+        sparkii_state._set_last_init_error(None)
         try:
             with pytest.raises(sqlite3.OperationalError) as exc_info:
                 SessionDB(db_path)
@@ -190,4 +190,4 @@ class TestSessionDBIntegration:
             assert "chmod" in msg
         finally:
             os.chmod(db_path, 0o644)
-            hermes_state._set_last_init_error(None)
+            sparkii_state._set_last_init_error(None)

@@ -208,7 +208,7 @@ class InProcessCronScheduler(CronScheduler):
         # When profile_homes is set (multiplex_profiles on), tick EACH profile's
         # cron store on every tick cycle so secondary-profile jobs actually fire
         # instead of languishing in a store no ticker owns (#69377). Without this,
-        # only the process-global HERMES_HOME (the default profile) is ticked.
+        # only the process-global SPARKII_HOME (the default profile) is ticked.
         # Heartbeats and recovery are also scoped per profile so `hermes cron
         # status` reflects liveness for every profile independently.
         if profile_homes:
@@ -282,7 +282,7 @@ class InProcessCronScheduler(CronScheduler):
     ):
         """Tick every served profile's cron store when multiplex_profiles is on.
 
-        Each profile uses ``set_hermes_home_override()`` + ``use_cron_store()``
+        Each profile uses ``set_sparkii_home_override()`` + ``use_cron_store()``
         to scope its tick, heartbeat, recovery, lock file, config/.env, and
         agent execution to that profile's home — mirroring how
         ``_profile_runtime_scope`` scopes the multiplexed inbound path and
@@ -296,7 +296,7 @@ class InProcessCronScheduler(CronScheduler):
             record_ticker_heartbeat,
             use_cron_store,
         )
-        from hermes_constants import set_hermes_home_override, reset_hermes_home_override
+        from sparkii_constants import set_sparkii_home_override, reset_sparkii_home_override
 
         logger = logging.getLogger("cron.scheduler_provider")
         logger.info(
@@ -308,7 +308,7 @@ class InProcessCronScheduler(CronScheduler):
         # Recovery + initial heartbeat for every profile.
         for entry in profile_homes:
             home = entry[1] if isinstance(entry, tuple) else entry
-            home_token = set_hermes_home_override(str(home))
+            home_token = set_sparkii_home_override(str(home))
             try:
                 with use_cron_store(home):
                     recovered = self.recover_interrupted()
@@ -320,7 +320,7 @@ class InProcessCronScheduler(CronScheduler):
                         )
                     record_ticker_heartbeat()
             finally:
-                reset_hermes_home_override(home_token)
+                reset_sparkii_home_override(home_token)
 
         while not stop_event.is_set():
             ok = False
@@ -330,7 +330,7 @@ class InProcessCronScheduler(CronScheduler):
                 else:
                     for entry in profile_homes:
                         home = entry[1] if isinstance(entry, tuple) else entry
-                        home_token = set_hermes_home_override(str(home))
+                        home_token = set_sparkii_home_override(str(home))
                         try:
                             with use_cron_store(home):
                                 cron_tick(
@@ -341,7 +341,7 @@ class InProcessCronScheduler(CronScheduler):
                                     can_dispatch=can_dispatch,
                                 )
                         finally:
-                            reset_hermes_home_override(home_token)
+                            reset_sparkii_home_override(home_token)
                 ok = True
             except BaseException as e:
                 logger.error("Cron tick error: %s", e, exc_info=True)
@@ -351,7 +351,7 @@ class InProcessCronScheduler(CronScheduler):
             # Record per-profile heartbeat after each tick cycle.
             for entry in profile_homes:
                 home = entry[1] if isinstance(entry, tuple) else entry
-                home_token = set_hermes_home_override(str(home))
+                home_token = set_sparkii_home_override(str(home))
                 try:
                     with use_cron_store(home):
                         record_ticker_heartbeat(success=ok)
@@ -363,5 +363,5 @@ class InProcessCronScheduler(CronScheduler):
                         elif _tick_error:
                             record_ticker_error(_tick_error)
                 finally:
-                    reset_hermes_home_override(home_token)
+                    reset_sparkii_home_override(home_token)
             stop_event.wait(interval)

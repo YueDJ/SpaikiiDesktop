@@ -106,7 +106,7 @@ def _active_profile_name() -> str:
         from sparkii_cli.profiles import get_active_profile_name
         return get_active_profile_name() or "default"
     except Exception:
-        return os.getenv("HERMES_PROFILE", "default") or "default"
+        return os.getenv("SPARKII_PROFILE", "default") or "default"
 
 
 def _profile_home(profile: str) -> Optional[str]:
@@ -116,8 +116,8 @@ def _profile_home(profile: str) -> Optional[str]:
     except Exception:
         if not profile or profile == "default":
             try:
-                from sparkii_cli.config import get_hermes_home
-                return str(get_hermes_home())
+                from sparkii_cli.config import get_sparkii_home
+                return str(get_sparkii_home())
             except Exception:
                 return None
         return os.path.expanduser(f"~/.hermes/profiles/{profile}")
@@ -871,8 +871,8 @@ class A2AAdapter(BasePlatformAdapter):
             env = os.environ.copy()
             home = _profile_home(profile)
             if home:
-                env["HERMES_HOME"] = home
-            env["HERMES_A2A_PEER"] = peer
+                env["SPARKII_HOME"] = home
+            env["SPARKII_A2A_PEER"] = peer
             start = time.time()
             try:
                 proc = subprocess.run(

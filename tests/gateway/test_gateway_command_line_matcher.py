@@ -1,6 +1,6 @@
 """Tests for the strict gateway command-line matcher.
 
-Regression guard for the Windows ``hermes gateway restart`` silent-outage bug:
+Regression guard for the Windows ``sparkii gateway restart`` silent-outage bug:
 the previous loose substring match (``"... gateway" in cmdline``) false-matched
 ``gateway status``/``dashboard`` siblings and unrelated processes such as
 ``python -m tui_gateway``, which let ``restart()`` race a still-draining old
@@ -19,24 +19,24 @@ from gateway.status import (
 
 ACCEPT = [
     "pythonw.exe -m sparkii_cli.main gateway run",
-    r"C:\Users\me\hermes\venv\Scripts\pythonw.exe -m sparkii_cli.main gateway run",
+    r"C:\Users\me\sparkii\venv\Scripts\pythonw.exe -m sparkii_cli.main gateway run",
     "python -m sparkii_cli.main --profile work gateway run",
     "python -m sparkii_cli.main gateway run --replace",
     "python -m sparkii_cli/main.py gateway run",
     "python gateway/run.py",
-    "hermes-gateway.exe",
-    "hermes gateway",          # bare `hermes gateway` defaults to run
-    "hermes gateway run",
+    "sparkii-gateway.exe",
+    "sparkii gateway",          # bare `sparkii gateway` defaults to run
+    "sparkii gateway run",
     # profile selector AFTER the `gateway` token (argv is profile-position
     # agnostic — _apply_profile_override strips --profile/-p anywhere)
-    "hermes gateway --profile work run",
+    "sparkii gateway --profile work run",
     "python -m sparkii_cli.main gateway -p work run",
-    "hermes gateway --profile=work run",
+    "sparkii gateway --profile=work run",
     # a profile literally NAMED "gateway"
-    "hermes -p gateway gateway run",
+    "sparkii -p gateway gateway run",
     "python -m sparkii_cli.main --profile gateway gateway run",
     # quoted Windows paths with spaces (shlex-aware tokenization)
-    r'"C:\Program Files\Hermes\hermes-gateway.exe"',
+    r'"C:\Program Files\Hermes\sparkii-gateway.exe"',
     r'"C:\Program Files\Hermes\gateway\run.py" run',
     r'"C:\Program Files\Py\pythonw.exe" -m sparkii_cli.main gateway run',
 ]

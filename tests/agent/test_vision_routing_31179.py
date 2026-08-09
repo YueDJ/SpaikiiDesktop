@@ -40,18 +40,18 @@ import pytest
 
 @pytest.fixture
 def isolated_home(monkeypatch):
-    """Temp HERMES_HOME with config + clean credential env vars."""
-    test_home = tempfile.mkdtemp(prefix="hermes_test_31179_")
-    hermes_home = os.path.join(test_home, ".hermes")
-    os.makedirs(hermes_home)
-    monkeypatch.setenv("HERMES_HOME", hermes_home)
+    """Temp SPARKII_HOME with config + clean credential env vars."""
+    test_home = tempfile.mkdtemp(prefix="sparkii_test_31179_")
+    sparkii_home = os.path.join(test_home, ".sparkii")
+    os.makedirs(sparkii_home)
+    monkeypatch.setenv("SPARKII_HOME", sparkii_home)
 
     # Strip all credential-shaped env vars so each scenario starts hermetic.
     for k in list(os.environ.keys()):
         if k.endswith("_API_KEY") or k.endswith("_TOKEN"):
             monkeypatch.delenv(k, raising=False)
 
-    yield hermes_home
+    yield sparkii_home
     shutil.rmtree(test_home, ignore_errors=True)
 
 
@@ -88,7 +88,7 @@ def _module_isolation():
 
 
 def _fresh_modules():
-    """Drop cached hermes modules so each test reloads against current env."""
+    """Drop cached sparkii modules so each test reloads against current env."""
     _drop_reload_targets()
 
 

@@ -1,5 +1,5 @@
 """Tests for sparkii_cli.session_filters — CLI time/filter parsing for
-`hermes sessions prune` / `hermes sessions archive`."""
+`sparkii sessions prune` / `sparkii sessions archive`."""
 
 import time
 from argparse import Namespace

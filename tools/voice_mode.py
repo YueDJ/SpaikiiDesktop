@@ -118,7 +118,7 @@ def _default_input_samplerate(sd) -> int:
     return SAMPLE_RATE
 
 
-from hermes_constants import is_termux as _is_termux_environment
+from sparkii_constants import is_termux as _is_termux_environment
 
 
 def _voice_capture_install_hint() -> str:
@@ -311,7 +311,7 @@ def detect_audio_environment() -> dict:
     # When the user mounts a PulseAudio/PipeWire socket into the container
     # and points PULSE_SERVER / PIPEWIRE_REMOTE at it, audio works fine
     # (issue #21203).  Only block when no forwarding is configured.
-    from hermes_constants import is_container
+    from sparkii_constants import is_container
     if is_container():
         if has_forwarded_audio:
             notices.append("Running inside container (Docker/Podman/LXC) with host audio forwarding")
@@ -1765,14 +1765,14 @@ def _play_audio_file_impl(file_path: str) -> bool:
             try:
                 # Sibling of TTS/STT credential scrub (#70342 / #56332): system
                 # audio players must not inherit gateway tokens / API keys.
-                from tools.environments.local import hermes_subprocess_env
+                from tools.environments.local import sparkii_subprocess_env
 
                 proc = subprocess.Popen(
                     cmd,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                     stdin=subprocess.DEVNULL,
-                    env=hermes_subprocess_env(inherit_credentials=False),
+                    env=sparkii_subprocess_env(inherit_credentials=False),
                 )
                 with _playback_lock:
                     _active_playback = proc

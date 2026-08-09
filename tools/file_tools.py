@@ -32,14 +32,14 @@ def _expand_tilde(path: str) -> str:
 
     In-process file tools share the gateway process's HOME, which may differ
     from the profile-specific HOME that interactive CLI sessions use.  This
-    mirrors ``hermes_constants.get_subprocess_home()`` so that ``~`` resolves
+    mirrors ``sparkii_constants.get_subprocess_home()`` so that ``~`` resolves
     consistently regardless of whether the tool runs interactively or inside a
     gateway-driven cron job (#48552).
     """
     if not path or "~" not in path:
         return path
     try:
-        from hermes_constants import get_subprocess_home
+        from sparkii_constants import get_subprocess_home
 
         home = get_subprocess_home()
     except Exception:
@@ -729,25 +729,25 @@ _PROTECTED_INSTRUCTION_BASENAMES = frozenset({
     "agents.md", "claude.md", "soul.md", ".cursorrules",
 })
 
-_real_hermes_home_cached: str | None = None
-_real_hermes_home_loaded = False
+_real_sparkii_home_cached: str | None = None
+_real_sparkii_home_loaded = False
 
 
-def _get_real_hermes_home() -> str | None:
+def _get_real_sparkii_home() -> str | None:
     """Return the realpath of the authoritative Hermes home (cached)."""
-    global _real_hermes_home_cached, _real_hermes_home_loaded
-    if _real_hermes_home_loaded:
-        return _real_hermes_home_cached
-    _real_hermes_home_loaded = True
+    global _real_sparkii_home_cached, _real_sparkii_home_loaded
+    if _real_sparkii_home_loaded:
+        return _real_sparkii_home_cached
+    _real_sparkii_home_loaded = True
     try:
-        from hermes_constants import get_hermes_home
-        _real_hermes_home_cached = os.path.realpath(str(get_hermes_home()))
+        from sparkii_constants import get_sparkii_home
+        _real_sparkii_home_cached = os.path.realpath(str(get_sparkii_home()))
     except Exception:
         try:
-            _real_hermes_home_cached = os.path.realpath(_expand_tilde("~/.hermes"))
+            _real_sparkii_home_cached = os.path.realpath(_expand_tilde("~/.hermes"))
         except Exception:
-            _real_hermes_home_cached = None
-    return _real_hermes_home_cached
+            _real_sparkii_home_cached = None
+    return _real_sparkii_home_cached
 
 
 def _protected_instruction_config() -> tuple[bool, list[str]]:
@@ -806,7 +806,7 @@ def _protected_instruction_reason(filepath: str, task_id: str = "default",
     # gate targets PROJECT-LOCAL instruction files only. Checked before the
     # ``.hermes`` component rule below, which would otherwise match the
     # home directory itself.
-    real_home = _get_real_hermes_home()
+    real_home = _get_real_sparkii_home()
     if real_home and (resolved == real_home
                       or resolved.startswith(real_home + os.sep)):
         return None
@@ -1641,9 +1641,9 @@ def read_file_tool(path: str, offset: int = 1, limit: int = 2000, task_id: str =
 
         # ── Hermes internal path guard ────────────────────────────────
         # Prevent prompt injection via catalog or hub metadata files,
-        # and block credential stores under HERMES_HOME.  Pass the
+        # and block credential stores under SPARKII_HOME.  Pass the
         # already-resolved path so a relative-path read against
-        # TERMINAL_CWD == HERMES_HOME (e.g. "auth.json") still hits the
+        # TERMINAL_CWD == SPARKII_HOME (e.g. "auth.json") still hits the
         # denylist — get_read_block_error's own resolve() runs against
         # the Python process cwd, which can differ.
         block_error = get_read_block_error(str(_resolved))

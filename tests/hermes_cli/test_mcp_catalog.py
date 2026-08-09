@@ -41,18 +41,18 @@ def catalog_dir(tmp_path, monkeypatch):
     """Provide an isolated optional-mcps/ directory."""
     cat = tmp_path / "optional-mcps"
     cat.mkdir()
-    monkeypatch.setenv("HERMES_OPTIONAL_MCPS", str(cat))
+    monkeypatch.setenv("SPARKII_OPTIONAL_MCPS", str(cat))
     return cat
 
 
 @pytest.fixture(autouse=True)
-def _isolate_hermes_home(tmp_path, monkeypatch):
-    """Redirect all config I/O to a temp HERMES_HOME."""
-    hh = tmp_path / "hermes-home"
+def _isolate_sparkii_home(tmp_path, monkeypatch):
+    """Redirect all config I/O to a temp SPARKII_HOME."""
+    hh = tmp_path / "sparkii-home"
     hh.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(hh))
+    monkeypatch.setenv("SPARKII_HOME", str(hh))
     monkeypatch.setattr(
-        "sparkii_cli.config.get_hermes_home", lambda: hh
+        "sparkii_cli.config.get_sparkii_home", lambda: hh
     )
     monkeypatch.setattr(
         "sparkii_cli.config.get_config_path", lambda: hh / "config.yaml"
@@ -60,9 +60,9 @@ def _isolate_hermes_home(tmp_path, monkeypatch):
     monkeypatch.setattr(
         "sparkii_cli.config.get_env_path", lambda: hh / ".env"
     )
-    # mcp_catalog grabs get_hermes_home() lazily through hermes_constants
+    # mcp_catalog grabs get_sparkii_home() lazily through sparkii_constants
     monkeypatch.setattr(
-        "hermes_constants.get_hermes_home", lambda: hh
+        "sparkii_constants.get_sparkii_home", lambda: hh
     )
     return hh
 
@@ -563,9 +563,9 @@ class TestShippedCatalog:
         manifest. Intentionally NOT a snapshot of catalog names (those are
         expected to change as PRs land).
         """
-        # Use the actual repo's optional-mcps directory (no HERMES_OPTIONAL_MCPS
+        # Use the actual repo's optional-mcps directory (no SPARKII_OPTIONAL_MCPS
         # override) so this test catches real manifests.
-        monkeypatch.delenv("HERMES_OPTIONAL_MCPS", raising=False)
+        monkeypatch.delenv("SPARKII_OPTIONAL_MCPS", raising=False)
         from sparkii_cli.mcp_catalog import _catalog_root, _parse_manifest
 
         root = _catalog_root()
@@ -596,7 +596,7 @@ class TestShippedCatalog:
         pin at the transport layer (the server runs elsewhere / comes from the
         SHA-pinned clone), so they're exempt.
         """
-        monkeypatch.delenv("HERMES_OPTIONAL_MCPS", raising=False)
+        monkeypatch.delenv("SPARKII_OPTIONAL_MCPS", raising=False)
         from sparkii_cli.mcp_catalog import _catalog_root, _parse_manifest
 
         root = _catalog_root()

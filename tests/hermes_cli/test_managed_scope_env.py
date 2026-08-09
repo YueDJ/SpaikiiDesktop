@@ -10,7 +10,7 @@ def env_homes(tmp_path, monkeypatch):
     home.mkdir()
     managed = tmp_path / "managed"
     managed.mkdir()
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
+    monkeypatch.setenv("SPARKII_MANAGED_DIR", str(managed))
     from sparkii_cli import managed_scope
 
     managed_scope.invalidate_managed_cache()
@@ -18,20 +18,20 @@ def env_homes(tmp_path, monkeypatch):
 
 
 def test_managed_env_beats_user_env(env_homes, monkeypatch):
-    from sparkii_cli.env_loader import load_hermes_dotenv
+    from sparkii_cli.env_loader import load_sparkii_dotenv
 
     home, managed = env_homes
     (home / ".env").write_text("OPENAI_API_BASE=https://user.example/v1\n", encoding="utf-8")
     (managed / ".env").write_text("OPENAI_API_BASE=https://org.example/v1\n", encoding="utf-8")
-    load_hermes_dotenv(hermes_home=str(home))
+    load_sparkii_dotenv(sparkii_home=str(home))
     assert os.environ["OPENAI_API_BASE"] == "https://org.example/v1"
 
 
 def test_no_managed_env_is_noop(env_homes, monkeypatch):
-    from sparkii_cli.env_loader import load_hermes_dotenv
+    from sparkii_cli.env_loader import load_sparkii_dotenv
 
     home, managed = env_homes  # managed dir exists but has no .env
     monkeypatch.setenv("SOME_VALUE", "from_shell")
     (home / ".env").write_text("SOME_VALUE=from_user\n", encoding="utf-8")
-    load_hermes_dotenv(hermes_home=str(home))
+    load_sparkii_dotenv(sparkii_home=str(home))
     assert os.environ["SOME_VALUE"] == "from_user"

@@ -1,4 +1,4 @@
-"""ACP tool-call helpers for mapping hermes tools to ACP ToolKind and building content."""
+"""ACP tool-call helpers for mapping sparkii tools to ACP ToolKind and building content."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ from acp.schema import (
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Map hermes tool names -> ACP ToolKind
+# Map sparkii tool names -> ACP ToolKind
 # ---------------------------------------------------------------------------
 
 TOOL_KIND_MAP: Dict[str, ToolKind] = {
@@ -82,7 +82,7 @@ _POLISHED_TOOLS = {
 
 
 def get_tool_kind(tool_name: str) -> ToolKind:
-    """Return the ACP ToolKind for a hermes tool, defaulting to 'other'."""
+    """Return the ACP ToolKind for a sparkii tool, defaulting to 'other'."""
     return TOOL_KIND_MAP.get(tool_name, "other")
 
 
@@ -1047,7 +1047,7 @@ def build_tool_start(
     *,
     edit_diff: Any = None,
 ) -> ToolCallStart:
-    """Create a ToolCallStart event for the given hermes tool invocation.
+    """Create a ToolCallStart event for the given sparkii tool invocation.
 
     A malformed tool argument (e.g. a non-string ``command``/``path`` from a
     model that ignores the schema) must never abort the ACP tool-call render —

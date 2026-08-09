@@ -23,33 +23,33 @@ from sparkii_cli.config import (
 
 @pytest.fixture
 def container_env(tmp_path, monkeypatch):
-    """Set up a fake HERMES_HOME with .container-mode file."""
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-    monkeypatch.delenv("HERMES_DEV", raising=False)
+    """Set up a fake SPARKII_HOME with .container-mode file."""
+    sparkii_home = tmp_path / ".sparkii"
+    sparkii_home.mkdir()
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.delenv("SPARKII_DEV", raising=False)
 
-    container_mode = hermes_home / ".container-mode"
+    container_mode = sparkii_home / ".container-mode"
     container_mode.write_text(
         "# Written by NixOS activation script. Do not edit manually.\n"
         "backend=podman\n"
-        "container_name=hermes-agent\n"
-        "exec_user=hermes\n"
-        "hermes_bin=/data/current-package/bin/hermes\n"
+        "container_name=sparkii-agent\n"
+        "exec_user=sparkii\n"
+        "sparkii_bin=/data/current-package/bin/sparkii\n"
     )
-    return hermes_home
+    return sparkii_home
 
 
 def test_get_container_exec_info_returns_metadata(container_env):
     """Reads .container-mode and returns all fields including exec_user."""
-    with patch("hermes_constants.is_container", return_value=False):
+    with patch("sparkii_constants.is_container", return_value=False):
         info = get_container_exec_info()
 
     assert info is not None
     assert info["backend"] == "podman"
-    assert info["container_name"] == "hermes-agent"
-    assert info["exec_user"] == "hermes"
-    assert info["hermes_bin"] == "/data/current-package/bin/hermes"
+    assert info["container_name"] == "sparkii-agent"
+    assert info["exec_user"] == "sparkii"
+    assert info["sparkii_bin"] == "/data/current-package/bin/sparkii"
 
 
 
@@ -67,9 +67,9 @@ def test_get_container_exec_info_returns_metadata(container_env):
 def docker_container_info():
     return {
         "backend": "docker",
-        "container_name": "hermes-agent",
-        "exec_user": "hermes",
-        "hermes_bin": "/data/current-package/bin/hermes",
+        "container_name": "sparkii-agent",
+        "exec_user": "sparkii",
+        "sparkii_bin": "/data/current-package/bin/sparkii",
     }
 
 
@@ -77,9 +77,9 @@ def docker_container_info():
 def podman_container_info():
     return {
         "backend": "podman",
-        "container_name": "hermes-agent",
-        "exec_user": "hermes",
-        "hermes_bin": "/data/current-package/bin/hermes",
+        "container_name": "sparkii-agent",
+        "exec_user": "sparkii",
+        "sparkii_bin": "/data/current-package/bin/sparkii",
     }
 
 
@@ -105,13 +105,13 @@ def test_exec_in_container_calls_execvp(docker_container_info):
     assert cmd[1] == "exec"
     assert "-it" in cmd
     idx_u = cmd.index("-u")
-    assert cmd[idx_u + 1] == "hermes"
+    assert cmd[idx_u + 1] == "sparkii"
     e_indices = [i for i, v in enumerate(cmd) if v == "-e"]
     e_values = [cmd[i + 1] for i in e_indices]
     assert "TERM=xterm-256color" in e_values
     assert "LANG=en_US.UTF-8" in e_values
-    assert "hermes-agent" in cmd
-    assert "/data/current-package/bin/hermes" in cmd
+    assert "sparkii-agent" in cmd
+    assert "/data/current-package/bin/sparkii" in cmd
     assert "chat" in cmd
 
 

@@ -18,7 +18,7 @@ import contextlib
 import io
 from pathlib import Path
 
-from hermes_state import SessionDB
+from sparkii_state import SessionDB
 from run_agent import AIAgent
 
 

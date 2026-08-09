@@ -3,7 +3,7 @@
 When the TUI backend is spawned by Node.js, the launch directory may shadow
 Hermes's own top-level modules (``utils``, ``proxy``, ``ui``).  entry.py must
 neutralize this before any non-stdlib import is resolved, by delegating to the
-shared ``hermes_bootstrap.harden_import_path`` guard.
+shared ``sparkii_bootstrap.harden_import_path`` guard.
 
 These tests assert the entry point wires up the real guard (rather than
 re-implementing it inline) and that the guard's behavior covers both the
@@ -14,7 +14,7 @@ failure.
 import ast
 import pathlib
 
-import hermes_bootstrap
+import sparkii_bootstrap
 
 
 def _entry_source() -> str:
@@ -24,7 +24,7 @@ def _entry_source() -> str:
 
 
 def test_entry_calls_shared_harden_guard_before_heavy_imports():
-    """entry.py must call hermes_bootstrap.harden_import_path() before it
+    """entry.py must call sparkii_bootstrap.harden_import_path() before it
     imports tui_gateway.server (which pulls ``from utils import ...``)."""
     source = _entry_source()
     tree = ast.parse(source)
@@ -45,7 +45,7 @@ def test_entry_calls_shared_harden_guard_before_heavy_imports():
                 server_import_line = node.lineno
 
     assert harden_call_line is not None, (
-        "entry.py must call hermes_bootstrap.harden_import_path()"
+        "entry.py must call sparkii_bootstrap.harden_import_path()"
     )
     assert server_import_line is not None, "entry.py must import from tui_gateway"
     assert harden_call_line < server_import_line, (
@@ -61,10 +61,10 @@ def test_guard_handles_absolute_cwd_path():
 
     original = sys.path[:]
     try:
-        sys.path[:] = ["/home/user/tg-ws-proxy", "/opt/hermes", "/usr/lib"]
-        hermes_bootstrap.harden_import_path(src_root="/opt/hermes")
-        assert sys.path[0] == "/opt/hermes"
-        assert sys.path.index("/opt/hermes") < sys.path.index(
+        sys.path[:] = ["/home/user/tg-ws-proxy", "/opt/sparkii", "/usr/lib"]
+        sparkii_bootstrap.harden_import_path(src_root="/opt/sparkii")
+        assert sys.path[0] == "/opt/sparkii"
+        assert sys.path.index("/opt/sparkii") < sys.path.index(
             "/home/user/tg-ws-proxy"
         )
     finally:

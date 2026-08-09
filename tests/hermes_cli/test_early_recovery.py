@@ -42,8 +42,8 @@ def _make_broken_dotenv_shadow(tmp_path: Path) -> Path:
 
 def _run_lifecycle_subprocess(tmp_path: Path, *, repair: bool) -> subprocess.CompletedProcess:
     shadow = _make_broken_dotenv_shadow(tmp_path)
-    hermes_home = tmp_path / "hermes_home"
-    hermes_home.mkdir()
+    sparkii_home = tmp_path / "sparkii_home"
+    sparkii_home.mkdir()
     script = tmp_path / "lifecycle.py"
     script.write_text(
         textwrap.dedent(
@@ -76,7 +76,7 @@ def _run_lifecycle_subprocess(tmp_path: Path, *, repair: bool) -> subprocess.Com
     env = {
         **os.environ,
         "PYTHONPATH": str(REPO_ROOT),
-        "HERMES_HOME": str(hermes_home),
+        "SPARKII_HOME": str(sparkii_home),
     }
     return subprocess.run(
         [sys.executable, str(script)],

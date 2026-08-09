@@ -134,7 +134,7 @@ class TestIndicatorRegistry(unittest.TestCase):
 
     def test_indicator_subcommands_match_handler(self):
         from sparkii_cli.commands import COMMAND_REGISTRY
-        from hermes_constants import INDICATOR_STYLES
+        from sparkii_constants import INDICATOR_STYLES
 
         indicator = next(c for c in COMMAND_REGISTRY if c.name == "indicator")
         self.assertEqual(indicator.category, "Configuration")

@@ -70,7 +70,7 @@ class TestLineMatchesComponent:
         # gateway prefixes (COMPONENT_PREFIXES["gateway"]) the CLI passes, not a
         # bare ("gateway",), since the logger name no longer literally starts
         # with "gateway".
-        from hermes_logging import COMPONENT_PREFIXES
+        from sparkii_logging import COMPONENT_PREFIXES
         line = "2026-04-11 10:23:45 INFO plugins.platforms.telegram.adapter: msg"
         assert _line_matches_component(line, COMPONENT_PREFIXES["gateway"])
 

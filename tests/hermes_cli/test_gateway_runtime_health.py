@@ -69,8 +69,8 @@ def test_runtime_status_running_pid_validates_live_gateway_record(monkeypatch):
 
     runtime = {
         "pid": 12345,
-        "kind": "hermes-gateway",
-        "argv": ["/opt/hermes/sparkii_cli/main.py", "gateway", "run", "--replace"],
+        "kind": "sparkii-gateway",
+        "argv": ["/opt/sparkii/sparkii_cli/main.py", "gateway", "run", "--replace"],
         "start_time": None,
         "gateway_state": "running",
     }

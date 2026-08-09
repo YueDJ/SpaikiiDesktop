@@ -16,7 +16,7 @@ import time
 
 import pytest
 
-from hermes_state import SessionDB
+from sparkii_state import SessionDB
 
 
 class TestHandoffStateDB:
@@ -24,9 +24,9 @@ class TestHandoffStateDB:
 
     @pytest.fixture
     def db(self, tmp_path, monkeypatch):
-        home = tmp_path / ".hermes"
+        home = tmp_path / ".sparkii"
         home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("SPARKII_HOME", str(home))
         return SessionDB(db_path=home / "state.db")
 
     def _make_session(self, db, session_id, source="cli", title=None):

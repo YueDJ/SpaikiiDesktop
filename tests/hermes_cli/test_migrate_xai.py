@@ -1,4 +1,4 @@
-"""Tests for ``hermes migrate xai`` — apply path with ruamel round-trip."""
+"""Tests for ``sparkii migrate xai`` — apply path with ruamel round-trip."""
 from __future__ import annotations
 
 import sys
@@ -252,7 +252,7 @@ class TestCrashDurability:
         """A config.yaml symlinked into a dotfiles repo must stay a symlink."""
         real_dir = tmp_path / "dotfiles"
         real_dir.mkdir()
-        real = real_dir / "hermes-config.yaml"
+        real = real_dir / "sparkii-config.yaml"
         real.write_text(
             "principal:\n"
             "  provider: xai\n"

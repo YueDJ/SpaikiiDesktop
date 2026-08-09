@@ -24,7 +24,7 @@ rate without preventing the actual foot-gun, which requires a real
 command shape.
 
 This is a defence-in-depth layer.  ``tools/terminal_tool.py`` blocks direct
-commands and shell scripts they reference when ``_HERMES_GATEWAY=1``. It also
+commands and shell scripts they reference when ``_SPARKII_GATEWAY=1``. It also
 rejects ``launchctl submit`` in gateway sessions because launchd treats that
 primitive as a persistent KeepAlive job, not a one-shot task. ``hermes gateway
 stop|restart`` separately refuse to self-target from inside the gateway.
@@ -618,7 +618,7 @@ def _resolve_script_path(script_path: str) -> Optional[Path]:
     """Resolve a cron ``script`` value the same way the scheduler does.
 
     The scheduler (``cron.scheduler``) resolves a bare/relative script path
-    under ``<HERMES_HOME>/scripts/`` and only accepts absolute paths as-is.
+    under ``<SPARKII_HOME>/scripts/`` and only accepts absolute paths as-is.
     We MUST mirror that here so the guard scans the file that will actually
     run — otherwise a job whose script lives at the scheduler's real location
     (``~/.hermes/scripts/restart.sh``) but is passed as the bare name
@@ -630,7 +630,7 @@ def _resolve_script_path(script_path: str) -> Optional[Path]:
     ``_expand_candidate_path``; such a value can never name a file the
     scheduler would execute, so there is nothing to scan.
     """
-    from hermes_constants import get_hermes_home
+    from sparkii_constants import get_sparkii_home
 
     raw = _expand_candidate_path(script_path)
     if raw is None:
@@ -638,10 +638,10 @@ def _resolve_script_path(script_path: str) -> Optional[Path]:
     if raw.is_absolute():
         return raw
     try:
-        return get_hermes_home() / "scripts" / raw
+        return get_sparkii_home() / "scripts" / raw
     except (RuntimeError, OSError):
-        # get_hermes_home() falls back to Path.home(), which raises when
-        # neither HERMES_HOME nor HOME is resolvable (launchd/systemd
+        # get_sparkii_home() falls back to Path.home(), which raises when
+        # neither SPARKII_HOME nor HOME is resolvable (launchd/systemd
         # environments) — same ingestion contract: nothing to scan.
         return None
 

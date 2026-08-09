@@ -169,7 +169,7 @@ def test_apply_nous_managed_defaults_writes_video_gen_config(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# ensure_nous_portal_access — inline login gate for `hermes tools`
+# ensure_nous_portal_access — inline login gate for `sparkii tools`
 # ---------------------------------------------------------------------------
 
 
@@ -207,7 +207,7 @@ def _stt_features_stub(*, account_info):
 
 
 
-def test_has_agent_browser_resolves_via_hermes_managed_node_path(monkeypatch, tmp_path):
+def test_has_agent_browser_resolves_via_sparkii_managed_node_path(monkeypatch, tmp_path):
     """The managed-Node rung: a runnable agent-browser under the Hermes Node
     dir must count even when it's absent from the probe process's PATH (the
     Windows installer shape — install succeeded, GUI still said needs setup)."""
@@ -221,10 +221,10 @@ def test_has_agent_browser_resolves_via_hermes_managed_node_path(monkeypatch, tm
 
     monkeypatch.setattr(_shutil, "which", lambda cmd, path=None: str(managed_bin) if path else None)
     monkeypatch.setattr(
-        "hermes_constants.with_hermes_node_path", lambda: {"PATH": str(managed_dir)}
+        "sparkii_constants.with_sparkii_node_path", lambda: {"PATH": str(managed_dir)}
     )
     monkeypatch.setattr(
-        "hermes_constants.agent_browser_runnable",
+        "sparkii_constants.agent_browser_runnable",
         lambda p: bool(p) and str(p) == str(managed_bin),
     )
 

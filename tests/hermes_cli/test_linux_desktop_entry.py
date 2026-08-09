@@ -1,4 +1,4 @@
-"""Tests for the Linux XDG desktop entry installed by ``hermes desktop``."""
+"""Tests for the Linux XDG desktop entry installed by ``sparkii desktop``."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ def xdg_home(tmp_path, monkeypatch) -> Path:
 
 
 def _make_project(tmp_path: Path) -> Path:
-    root = tmp_path / "hermes-agent"
+    root = tmp_path / "sparkii-agent"
     icon = root / "apps" / "desktop" / "assets" / "icon.png"
     icon.parent.mkdir(parents=True)
     icon.write_bytes(b"\x89PNG fake")
@@ -37,22 +37,22 @@ def _parse(entry_text: str) -> dict:
 
 def test_install_writes_entry_with_absolute_exec_and_icon(tmp_path, xdg_home, monkeypatch):
     root = _make_project(tmp_path)
-    hermes_bin = tmp_path / "bin" / "hermes"
-    hermes_bin.parent.mkdir()
-    hermes_bin.write_text("", encoding="utf-8")
+    sparkii_bin = tmp_path / "bin" / "sparkii"
+    sparkii_bin.parent.mkdir()
+    sparkii_bin.write_text("", encoding="utf-8")
     monkeypatch.setattr(
-        "sparkii_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
+        "sparkii_cli.relaunch.resolve_sparkii_bin", lambda: str(sparkii_bin)
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
 
-    assert entry == xdg_home / "applications" / "hermes.desktop"
+    assert entry == xdg_home / "applications" / "sparkii.desktop"
     values = _parse(entry.read_text(encoding="utf-8"))
 
     # Exec must be the absolute path of the resolved binary. The launcher
-    # runs with a minimal PATH, so a bare `hermes` would not resolve.
-    assert values["Exec"] == f"{hermes_bin} desktop"
+    # runs with a minimal PATH, so a bare `sparkii` would not resolve.
+    assert values["Exec"] == f"{sparkii_bin} desktop"
     assert Path(values["Exec"].split(" ")[0]).is_absolute()
 
     # Icon must be an absolute path to the real icon in the checkout.
@@ -68,7 +68,7 @@ def test_install_writes_entry_with_absolute_exec_and_icon(tmp_path, xdg_home, mo
 
 def test_installed_entry_is_executable(tmp_path, xdg_home, monkeypatch):
     root = _make_project(tmp_path)
-    monkeypatch.setattr("sparkii_cli.relaunch.resolve_hermes_bin", lambda: "/usr/bin/hermes")
+    monkeypatch.setattr("sparkii_cli.relaunch.resolve_sparkii_bin", lambda: "/usr/bin/sparkii")
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
@@ -78,7 +78,7 @@ def test_installed_entry_is_executable(tmp_path, xdg_home, monkeypatch):
 
 def test_exec_falls_back_to_interpreter_module(tmp_path, xdg_home, monkeypatch):
     root = _make_project(tmp_path)
-    monkeypatch.setattr("sparkii_cli.relaunch.resolve_hermes_bin", lambda: None)
+    monkeypatch.setattr("sparkii_cli.relaunch.resolve_sparkii_bin", lambda: None)
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
@@ -90,7 +90,7 @@ def test_exec_falls_back_to_interpreter_module(tmp_path, xdg_home, monkeypatch):
 
 def test_install_is_idempotent_and_skips_cache_refresh(tmp_path, xdg_home, monkeypatch):
     root = _make_project(tmp_path)
-    monkeypatch.setattr("sparkii_cli.relaunch.resolve_hermes_bin", lambda: "/usr/bin/hermes")
+    monkeypatch.setattr("sparkii_cli.relaunch.resolve_sparkii_bin", lambda: "/usr/bin/sparkii")
     calls: list[Path] = []
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda d: calls.append(d) or [])
 
@@ -103,16 +103,16 @@ def test_install_is_idempotent_and_skips_cache_refresh(tmp_path, xdg_home, monke
 
 
 def test_install_without_source_icon_uses_themed_name(tmp_path, xdg_home, monkeypatch):
-    root = tmp_path / "hermes-agent"
+    root = tmp_path / "sparkii-agent"
     root.mkdir()
-    monkeypatch.setattr("sparkii_cli.relaunch.resolve_hermes_bin", lambda: "/usr/bin/hermes")
+    monkeypatch.setattr("sparkii_cli.relaunch.resolve_sparkii_bin", lambda: "/usr/bin/sparkii")
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
 
     # A broken absolute path renders as no icon. The themed name resolves
     # when Hermes is installed some other way.
-    assert _parse(entry.read_text(encoding="utf-8"))["Icon"] == "hermes"
+    assert _parse(entry.read_text(encoding="utf-8"))["Icon"] == "sparkii"
 
 
 @pytest.mark.parametrize("platform", ["darwin", "win32"])
@@ -185,10 +185,10 @@ def test_run_quiet_swallows_missing_binary(tmp_path):
 
 def test_exec_arg_quoting_handles_spaces(tmp_path, xdg_home, monkeypatch):
     root = _make_project(tmp_path)
-    spaced = tmp_path / "my apps" / "hermes"
+    spaced = tmp_path / "my apps" / "sparkii"
     spaced.parent.mkdir()
     spaced.write_text("", encoding="utf-8")
-    monkeypatch.setattr("sparkii_cli.relaunch.resolve_hermes_bin", lambda: str(spaced))
+    monkeypatch.setattr("sparkii_cli.relaunch.resolve_sparkii_bin", lambda: str(spaced))
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)

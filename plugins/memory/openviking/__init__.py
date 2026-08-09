@@ -81,7 +81,7 @@ _SESSION_DRAIN_TIMEOUT = 10.0
 _DEFERRED_COMMIT_TIMEOUT = (_TIMEOUT * 2) + 5.0
 _SESSION_MESSAGE_BATCH_LIMIT = 100
 _REMOTE_RESOURCE_PREFIXES = ("http://", "https://", "git@", "ssh://", "git://")
-_SYNC_TRACE_ENV = "HERMES_OPENVIKING_SYNC_TRACE"
+_SYNC_TRACE_ENV = "SPARKII_OPENVIKING_SYNC_TRACE"
 _DEFAULT_RECALL_LIMIT = 6
 _DEFAULT_RECALL_SCORE_THRESHOLD = 0.15
 _DEFAULT_RECALL_MAX_INJECTED_CHARS = 4000
@@ -1405,10 +1405,10 @@ def _local_openviking_bind(endpoint: str) -> tuple[str, int]:
 
 def _openviking_server_log_path() -> Path:
     try:
-        from hermes_constants import get_hermes_home
-        home = get_hermes_home()
+        from sparkii_constants import get_sparkii_home
+        home = get_sparkii_home()
     except Exception:
-        home = Path(os.environ.get("HERMES_HOME", "")).expanduser() if os.environ.get("HERMES_HOME") else Path.home() / ".hermes"
+        home = Path(os.environ.get("SPARKII_HOME", "")).expanduser() if os.environ.get("SPARKII_HOME") else Path.home() / ".hermes"
     return home / _OPENVIKING_SERVER_LOG_RELATIVE_PATH
 
 
@@ -2181,7 +2181,7 @@ class OpenVikingMemoryProvider(MemoryProvider):
         self._agent = ""
         self._session_id = ""
         self._turn_count = 0
-        self._hermes_home = ""
+        self._sparkii_home = ""
         self._run_id = uuid.uuid4().hex
         self._run_lock_file: Optional[Any] = None
         self._run_lock_path: Optional[Path] = None
@@ -2371,7 +2371,7 @@ class OpenVikingMemoryProvider(MemoryProvider):
             },
         ]
 
-    def save_config(self, values: Dict[str, Any], hermes_home: str) -> None:
+    def save_config(self, values: Dict[str, Any], sparkii_home: str) -> None:
         """Validate and persist Dashboard configuration for the active profile."""
         normalized = dict(values or {})
         normalized.pop("api_key", None)
@@ -2428,13 +2428,13 @@ class OpenVikingMemoryProvider(MemoryProvider):
                 display[key] = "(set)"
         return display
 
-    def post_setup(self, hermes_home: str, config: dict) -> None:
+    def post_setup(self, sparkii_home: str, config: dict) -> None:
         """Custom setup that can reuse OpenViking's shared CLI config."""
         from sparkii_cli.config import save_config
         from sparkii_cli.memory_setup import _CANCELLED, _curses_select, _print_cancelled_setup, _prompt
 
-        hermes_home_path = Path(hermes_home)
-        env_path = hermes_home_path / ".env"
+        sparkii_home_path = Path(sparkii_home)
+        env_path = sparkii_home_path / ".env"
         if not isinstance(config.get("memory"), dict):
             config["memory"] = {}
         provider_config = config["memory"].get("openviking", {})
@@ -2691,14 +2691,14 @@ class OpenVikingMemoryProvider(MemoryProvider):
         self._env_refresh_enabled = True
         self._session_id = session_id
         self._turn_count = 0
-        hermes_home = str(kwargs.get("hermes_home") or "").strip()
-        if not hermes_home:
+        sparkii_home = str(kwargs.get("sparkii_home") or "").strip()
+        if not sparkii_home:
             try:
-                from hermes_constants import get_hermes_home
-                hermes_home = str(get_hermes_home())
+                from sparkii_constants import get_sparkii_home
+                sparkii_home = str(get_sparkii_home())
             except Exception:
-                hermes_home = str(Path.home() / ".hermes")
-        self._hermes_home = hermes_home
+                sparkii_home = str(Path.home() / ".hermes")
+        self._sparkii_home = sparkii_home
         self._acquire_run_lock()
         self._profile_prefetched_sessions.clear()
 
@@ -3145,9 +3145,9 @@ class OpenVikingMemoryProvider(MemoryProvider):
             self._committed_session_ids.discard(sid)
 
     def _pending_session_dir(self) -> Optional[Path]:
-        if not self._hermes_home:
+        if not self._sparkii_home:
             return None
-        return Path(self._hermes_home) / _PENDING_SESSIONS_RELATIVE_DIR
+        return Path(self._sparkii_home) / _PENDING_SESSIONS_RELATIVE_DIR
 
     def _pending_session_marker_path(self, sid: str) -> Optional[Path]:
         sid = str(sid or "").strip()
@@ -3157,9 +3157,9 @@ class OpenVikingMemoryProvider(MemoryProvider):
         return directory / f"{quote(sid, safe='')}.json"
 
     def _run_lock_dir(self) -> Optional[Path]:
-        if not self._hermes_home:
+        if not self._sparkii_home:
             return None
-        return Path(self._hermes_home) / _RUN_LOCKS_RELATIVE_DIR
+        return Path(self._sparkii_home) / _RUN_LOCKS_RELATIVE_DIR
 
     def _run_lock_path_for(self, run_id: str) -> Optional[Path]:
         run_id = str(run_id or "").strip()

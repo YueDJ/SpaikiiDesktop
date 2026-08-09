@@ -45,7 +45,7 @@ def _make_cli():
         "agent": {},
         "terminal": {"env_type": "local"},
     }
-    clean_env = {"LLM_MODEL": "", "HERMES_MAX_ITERATIONS": ""}
+    clean_env = {"LLM_MODEL": "", "SPARKII_MAX_ITERATIONS": ""}
     prompt_toolkit_stubs = {
         "prompt_toolkit": MagicMock(),
         "prompt_toolkit.history": MagicMock(),
@@ -243,10 +243,10 @@ def test_chat_preserves_clean_multimodal_input_when_note_changes_api_message():
 
 def test_chat_multimodal_note_persists_clean_input_once(tmp_path, monkeypatch):
     """The real CLI-to-agent path stores clean image parts, never the queued note."""
-    from hermes_state import SessionDB
+    from sparkii_state import SessionDB
     from run_agent import AIAgent
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("SPARKII_HOME", str(tmp_path / ".sparkii"))
     cli = _make_cli()
     session_id = cli.session_id
     db = SessionDB(db_path=tmp_path / "state.db")
@@ -418,10 +418,10 @@ def test_chat_clears_previous_turn_persistence_override_before_staging():
 
 def test_close_waits_for_atomic_cli_staging_before_snapshot(tmp_path, monkeypatch):
     """Close cannot retain the mutable pre-append history as its DB baseline."""
-    from hermes_state import SessionDB
+    from sparkii_state import SessionDB
     from run_agent import AIAgent
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("SPARKII_HOME", str(tmp_path / ".sparkii"))
     cli = _make_cli()
     session_id = cli.session_id
     db = SessionDB(db_path=tmp_path / "state.db")

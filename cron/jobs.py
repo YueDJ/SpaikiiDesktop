@@ -33,12 +33,12 @@ except ImportError:  # pragma: no cover - non-Windows
     msvcrt = None
 from datetime import datetime, timedelta
 from pathlib import Path
-from hermes_constants import get_hermes_home
+from sparkii_constants import get_sparkii_home
 from typing import Optional, Dict, List, Any, Set, Tuple, Union, Collection
 
 logger = logging.getLogger(__name__)
 
-from hermes_time import now as _hermes_now
+from sparkii_time import now as _hermes_now
 from utils import atomic_replace, atomic_write_text
 
 # ``croniter`` compiles ~15 ms of regexes at import and only matters for
@@ -66,22 +66,22 @@ def _ensure_croniter() -> bool:
 # =============================================================================
 
 # Cron is per-profile by design (issue #4707). Each profile owns its own cron
-# store under its own HERMES_HOME, and a profile-scoped gateway runs that
-# profile's jobs under that same HERMES_HOME — so a job authored in profile
+# store under its own SPARKII_HOME, and a profile-scoped gateway runs that
+# profile's jobs under that same SPARKII_HOME — so a job authored in profile
 # `coder` lives in `~/.hermes/profiles/coder/cron/jobs.json` and executes with
 # `coder`'s `.env`, `config.yaml`, and skills. We deliberately anchor on
-# `get_hermes_home()` (the active profile home), NOT `get_default_hermes_root()`
+# `get_sparkii_home()` (the active profile home), NOT `get_default_hermes_root()`
 # (the shared root). Anchoring at the root would funnel every profile's jobs
-# into one shared `jobs.json` and run them under whatever HERMES_HOME the
+# into one shared `jobs.json` and run them under whatever SPARKII_HOME the
 # ticker process happens to have — leaking config/credentials/skills across
 # profiles (the security boundary #4707 was filed for). Do NOT change this to
 # the default root: that re-breaks per-profile isolation. See also the dynamic
-# `_get_hermes_home()` / `_get_lock_paths()` resolution in cron/scheduler.py.
-HERMES_DIR = get_hermes_home().resolve()
+# `_get_sparkii_home()` / `_get_lock_paths()` resolution in cron/scheduler.py.
+SPARKII_DIR = get_sparkii_home().resolve()
 # These constants remain the default-profile fallback and a compatibility
 # surface for existing callers/tests. Cross-profile callers must scope paths
 # with use_cron_store() instead of mutating them process-wide.
-CRON_DIR = HERMES_DIR / "cron"
+CRON_DIR = SPARKII_DIR / "cron"
 JOBS_FILE = CRON_DIR / "jobs.json"
 # Heartbeat file the in-process ticker touches on every loop iteration. The
 # gateway process and the (separate) ``hermes cron status`` process share it
@@ -145,9 +145,9 @@ def _current_cron_store() -> _CronStorePaths:
     2. deliberately re-pointed module constants — if CRON_DIR/JOBS_FILE/
        OUTPUT_DIR no longer match their import-time values, someone chose
        the documented process-wide compatibility surface; honor it;
-    3. the ACTIVE profile home, resolved fresh via get_hermes_home()
-       (context-local override, then the HERMES_HOME env var) — so a test
-       or embedder that re-points HERMES_HOME after this module was
+    3. the ACTIVE profile home, resolved fresh via get_sparkii_home()
+       (context-local override, then the SPARKII_HOME env var) — so a test
+       or embedder that re-points SPARKII_HOME after this module was
        imported reads/writes ITS OWN store, not whatever jobs.json the
        import happened to freeze (the filed incident: fixtures that patched
        the env too late silently rewrote the user's real jobs file);
@@ -160,8 +160,8 @@ def _current_cron_store() -> _CronStorePaths:
     live_constants = _CronStorePaths(CRON_DIR, JOBS_FILE, OUTPUT_DIR)
     if live_constants != _IMPORT_STORE:
         return live_constants
-    home = get_hermes_home().resolve()
-    if home == HERMES_DIR:
+    home = get_sparkii_home().resolve()
+    if home == SPARKII_DIR:
         return live_constants
     cron_dir = home / "cron"
     return _CronStorePaths(cron_dir, cron_dir / "jobs.json", cron_dir / "output")
@@ -190,7 +190,7 @@ def get_cron_output_dir() -> Path:
 
 
 # Fallback stale-recovery window for a one-shot's running-claim (#59229) when
-# the cron inactivity timeout is disabled (HERMES_CRON_TIMEOUT=0 → unlimited),
+# the cron inactivity timeout is disabled (SPARKII_CRON_TIMEOUT=0 → unlimited),
 # in which case no finite run bound exists to derive from. Also acts as the
 # floor for the derived value so a very short configured timeout can't make the
 # claim expire mid-run.
@@ -198,7 +198,7 @@ ONESHOT_RUN_CLAIM_TTL_SECONDS = 1800
 
 # The derived TTL is the cron inactivity timeout times this headroom multiplier.
 # A healthy run clears its claim via mark_job_run() long before the TTL; the
-# TTL only recovers a claim left by a tick that DIED mid-run. HERMES_CRON_TIMEOUT
+# TTL only recovers a claim left by a tick that DIED mid-run. SPARKII_CRON_TIMEOUT
 # is an *inactivity* limit, not a wall-clock cap — a job that keeps producing
 # output legitimately runs past it — so the multiplier gives comfortable
 # headroom over any healthy run before we treat a claim as stale.
@@ -210,7 +210,7 @@ _DEFAULT_CRON_INACTIVITY_TIMEOUT = 600.0
 def _oneshot_run_claim_ttl_seconds() -> float:
     """Resolve the one-shot running-claim stale-recovery TTL.
 
-    Derived from ``HERMES_CRON_TIMEOUT`` (the cron inactivity timeout the
+    Derived from ``SPARKII_CRON_TIMEOUT`` (the cron inactivity timeout the
     scheduler enforces on each run) so the safety valve tracks how long a run
     is actually allowed to go quiet, instead of a magic constant:
 
@@ -220,7 +220,7 @@ def _oneshot_run_claim_ttl_seconds() -> float:
     - positive N → ``max(N * headroom, ONESHOT_RUN_CLAIM_TTL_SECONDS)`` so a
       tiny configured timeout can never expire a claim mid-run.
     """
-    raw = os.getenv("HERMES_CRON_TIMEOUT", "").strip()
+    raw = os.getenv("SPARKII_CRON_TIMEOUT", "").strip()
     timeout = _DEFAULT_CRON_INACTIVITY_TIMEOUT
     if raw:
         try:
@@ -670,7 +670,7 @@ def parse_schedule(schedule: str) -> Dict[str, Any]:
             #
             # Anchor to the CONFIGURED Hermes timezone, not the server's local
             # timezone. The due-check (`get_due_jobs`) compares `next_run_at`
-            # against `hermes_time.now()`, which uses the configured zone. If a
+            # against `sparkii_time.now()`, which uses the configured zone. If a
             # naive "20:07" were interpreted as server-local (e.g. UTC) while
             # now() runs in Asia/Kolkata, the stored instant would land hours
             # off from the user's wall-clock intent — far enough that one-shots
@@ -1443,7 +1443,7 @@ def _resolve_default_model_snapshot() -> Optional[str]:
     try:
         from sparkii_cli.config import _expand_env_vars, read_user_config_raw
 
-        cfg_path = get_hermes_home() / "config.yaml"
+        cfg_path = get_sparkii_home() / "config.yaml"
         if not cfg_path.exists():
             return None
         cfg = read_user_config_raw(cfg_path)
@@ -2441,10 +2441,10 @@ def advance_next_run(job_id: str) -> bool:
 def _machine_id() -> str:
     """Stable-ish identifier for claim attribution/debugging (NOT correctness).
 
-    Uses ``HERMES_MACHINE_ID`` if set, else hostname + pid. The CAS correctness
+    Uses ``SPARKII_MACHINE_ID`` if set, else hostname + pid. The CAS correctness
     comes from the file lock + the fresh-claim check, not from this value.
     """
-    explicit = os.getenv("HERMES_MACHINE_ID", "").strip()
+    explicit = os.getenv("SPARKII_MACHINE_ID", "").strip()
     if explicit:
         return explicit
     try:
@@ -2715,7 +2715,7 @@ def _get_due_jobs_locked() -> List[Dict[str, Any]]:
                 needs_save = True
 
     # Resolve the one-shot running-claim stale-recovery TTL once per scan
-    # (derived from HERMES_CRON_TIMEOUT). See _oneshot_run_claim_ttl_seconds.
+    # (derived from SPARKII_CRON_TIMEOUT). See _oneshot_run_claim_ttl_seconds.
     _run_claim_ttl = _oneshot_run_claim_ttl_seconds()
 
     # Retention sweep: completed one-shots are retained (so their final
@@ -2960,7 +2960,7 @@ def _get_due_jobs_locked() -> List[Dict[str, Any]]:
 
                 # Durably claim a one-shot for the DURATION of its run before
                 # returning it as due, so a second scheduler process (gateway +
-                # desktop both run in-process 60s tickers on one HERMES_HOME)
+                # desktop both run in-process 60s tickers on one SPARKII_HOME)
                 # cannot re-dispatch it while the first run is still in flight
                 # (#59229). A plain one-shot's due-state is not resolved until
                 # mark_job_run() completes it minutes later, so advancing
@@ -2972,7 +2972,7 @@ def _get_due_jobs_locked() -> List[Dict[str, Any]]:
                 # this loop). mark_job_run() clears the claim on completion. The TTL
                 # is only a safety valve: a claiming tick that DIES mid-run leaves a
                 # stale claim that expires after the resolved run-claim TTL
-                # (_oneshot_run_claim_ttl_seconds, derived from HERMES_CRON_TIMEOUT),
+                # (_oneshot_run_claim_ttl_seconds, derived from SPARKII_CRON_TIMEOUT),
                 # so the job is re-dispatched rather than wedged forever.
                 if kind == "once":
                     claim = {"at": now.isoformat(), "by": _machine_id()}
@@ -3083,7 +3083,7 @@ def save_job_output(job_id: str, output: str):
 def _canonical_skill_ref(raw: Any) -> str:
     """Reduce one job skill reference to the bare name the curator matches on.
 
-    A job may store an absolute path under ``HERMES_HOME/skills`` or an
+    A job may store an absolute path under ``SPARKII_HOME/skills`` or an
     external skills dir; the scheduler resolves those through
     ``normalize_skill_lookup_name`` before handing them to ``skill_view``.
     The curator compares this set against bare skill names, so it has to

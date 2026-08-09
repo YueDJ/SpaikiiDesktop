@@ -321,9 +321,9 @@ class TestAllowPrivateUrlsConfig:
         self, tmp_path, profile_order
     ):
         """The browser's independent guard must follow the active profile."""
-        from hermes_constants import (
-            reset_hermes_home_override,
-            set_hermes_home_override,
+        from sparkii_constants import (
+            reset_sparkii_home_override,
+            set_sparkii_home_override,
         )
 
         allowed_home = tmp_path / "allowed"
@@ -338,11 +338,11 @@ class TestAllowPrivateUrlsConfig:
         )
 
         def under_profile(home):
-            token = set_hermes_home_override(home)
+            token = set_sparkii_home_override(home)
             try:
                 return browser_tool._allow_private_urls()
             finally:
-                reset_hermes_home_override(token)
+                reset_sparkii_home_override(token)
 
         homes = {"allowed": allowed_home, "blocked": blocked_home}
         expected = {"allowed": True, "blocked": False}

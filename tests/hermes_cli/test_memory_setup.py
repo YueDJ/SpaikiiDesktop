@@ -32,7 +32,7 @@ def test_cmd_setup_generic_choice_cancel_writes_nothing(tmp_path, monkeypatch):
     monkeypatch.setattr(memory_setup, "_get_available_providers", lambda: [("fake", "local", provider)])
     monkeypatch.setattr(memory_setup, "_curses_select", lambda *args, **kwargs: next(selections))
     monkeypatch.setattr(memory_setup, "_install_dependencies", install_dependencies)
-    monkeypatch.setattr(memory_setup, "get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(memory_setup, "get_sparkii_home", lambda: tmp_path)
     monkeypatch.setattr("sparkii_cli.config.load_config", lambda: {"memory": {}})
     monkeypatch.setattr("sparkii_cli.config.save_config", save_config)
 
@@ -72,7 +72,7 @@ def test_write_env_vars_strips_line_separators_and_nul(tmp_path):
 
 def test_install_dependencies_force_reinstalls_versioned_specs(tmp_path, monkeypatch):
     """force=True hands every declared spec (version ranges intact) to pip,
-    so a downgraded/stripped bridge package is restored on hermes update."""
+    so a downgraded/stripped bridge package is restored on sparkii update."""
     import yaml as _yaml
 
     plugin_dir = tmp_path / "mem0"

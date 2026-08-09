@@ -5,7 +5,7 @@ import pytest
 
 def test_sessions_delete_accepts_unique_id_prefix(monkeypatch, capsys):
     import sparkii_cli.main as main_mod
-    import hermes_state
+    import sparkii_state
 
     captured = {}
 
@@ -21,11 +21,11 @@ def test_sessions_delete_accepts_unique_id_prefix(monkeypatch, capsys):
         def close(self):
             captured["closed"] = True
 
-    monkeypatch.setattr(hermes_state, "SessionDB", lambda: FakeDB())
+    monkeypatch.setattr(sparkii_state, "SessionDB", lambda: FakeDB())
     monkeypatch.setattr(
         sys,
         "argv",
-        ["hermes", "sessions", "delete", "20260315_092437_c9a6", "--yes"],
+        ["sparkii", "sessions", "delete", "20260315_092437_c9a6", "--yes"],
     )
 
     main_mod.main()
@@ -40,10 +40,10 @@ def test_sessions_delete_accepts_unique_id_prefix(monkeypatch, capsys):
 
 
 def _run_prune(monkeypatch, capsys, argv_tail, candidates=None):
-    """Run `hermes sessions prune <argv_tail>` against a FakeDB, capturing
+    """Run `sparkii sessions prune <argv_tail>` against a FakeDB, capturing
     the filter kwargs passed to list_prune_candidates. Auto-confirms."""
     import sparkii_cli.main as main_mod
-    import hermes_state
+    import sparkii_state
 
     seen = {}
     rows = candidates if candidates is not None else [
@@ -80,9 +80,9 @@ def _run_prune(monkeypatch, capsys, argv_tail, candidates=None):
         def close(self):
             pass
 
-    monkeypatch.setattr(hermes_state, "SessionDB", lambda: FakeDB())
+    monkeypatch.setattr(sparkii_state, "SessionDB", lambda: FakeDB())
     monkeypatch.setattr(
-        sys, "argv", ["hermes", "sessions", "prune", *argv_tail]
+        sys, "argv", ["sparkii", "sessions", "prune", *argv_tail]
     )
     monkeypatch.setattr("builtins.input", lambda _prompt="": "y")
     main_mod.main()
@@ -90,7 +90,7 @@ def _run_prune(monkeypatch, capsys, argv_tail, candidates=None):
 
 
 def test_sessions_prune_bare_keeps_90_day_default(monkeypatch, capsys):
-    """A truly bare `hermes sessions prune` keeps the implicit 90-day cutoff."""
+    """A truly bare `sparkii sessions prune` keeps the implicit 90-day cutoff."""
     import time as _time
 
     filters, _out = _run_prune(monkeypatch, capsys, [])

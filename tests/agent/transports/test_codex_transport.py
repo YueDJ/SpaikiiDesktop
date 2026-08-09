@@ -361,7 +361,7 @@ class TestCodexBuildKwargs:
         names = [t.get("name") for t in kw.get("tools", []) if t.get("type") == "function"]
         assert "read_file" in names
         assert "web_search" not in names
-        assert "hermes_web_search" not in names
+        assert "sparkii_web_search" not in names
 
     def test_xai_renames_client_web_search_when_firecrawl_configured(self, transport, monkeypatch):
         """Configured Firecrawl (or any non-xai backend) must keep Hermes
@@ -389,7 +389,7 @@ class TestCodexBuildKwargs:
         assert not any(t.get("type") == "web_search" for t in tools), tools
         names = [t.get("name") for t in tools if t.get("type") == "function"]
         assert "read_file" in names
-        assert "hermes_web_search" in names
+        assert "sparkii_web_search" in names
         assert "web_search" not in names
 
     def test_xai_normalize_maps_client_web_search_alias_back(self, transport, monkeypatch):
@@ -406,7 +406,7 @@ class TestCodexBuildKwargs:
                     response_item_id="fc_1",
                     function=SimpleNamespace(
                         name=codex_mod._XAI_CLIENT_WEB_SEARCH_ALIAS,
-                        arguments='{"query":"hermes"}',
+                        arguments='{"query":"sparkii"}',
                     ),
                 )
             ],

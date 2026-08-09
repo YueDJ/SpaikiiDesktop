@@ -104,7 +104,7 @@ class TestSeverityExtraction:
 class TestRunAudit:
     def test_no_components_returns_empty(self, tmp_path: Path):
         findings = sa.run_audit(
-            skip_venv=True, skip_plugins=True, skip_mcp=True, hermes_home=tmp_path
+            skip_venv=True, skip_plugins=True, skip_mcp=True, sparkii_home=tmp_path
         )
         assert findings == []
 
@@ -128,7 +128,7 @@ class TestRunAudit:
         with patch.object(sa, "_osv_query_batch", side_effect=fake_batch), \
              patch.object(sa, "_osv_fetch_details", side_effect=fake_details):
             findings = sa.run_audit(
-                skip_venv=True, skip_plugins=False, skip_mcp=True, hermes_home=tmp_path
+                skip_venv=True, skip_plugins=False, skip_mcp=True, sparkii_home=tmp_path
             )
         assert len(findings) == 2
         # CRITICAL must come first
@@ -159,7 +159,7 @@ class TestExitCodes:
         Regression for the double-scan noted in #75485: the component count
         and the audit each ran full discovery independently.
         """
-        monkeypatch.setattr(sa, "get_hermes_home", lambda: str(tmp_path))
+        monkeypatch.setattr(sa, "get_sparkii_home", lambda: str(tmp_path))
         calls = {"venv": 0}
 
         def counting_discover_venv():
@@ -176,14 +176,14 @@ class TestExitCodes:
 
 
     def test_unknown_fail_on_value_exits_two(self, tmp_path: Path, monkeypatch, capsys):
-        monkeypatch.setattr(sa, "get_hermes_home", lambda: str(tmp_path))
+        monkeypatch.setattr(sa, "get_sparkii_home", lambda: str(tmp_path))
         code = sa.cmd_security_audit(self._build_args(fail_on="garbage"))
         assert code == 2
         err = capsys.readouterr().err
         assert "fail-on" in err.lower()
 
     def test_json_output_shape(self, tmp_path: Path, monkeypatch, capsys):
-        monkeypatch.setattr(sa, "get_hermes_home", lambda: str(tmp_path))
+        monkeypatch.setattr(sa, "get_sparkii_home", lambda: str(tmp_path))
         fake_comp = sa.Component(
             name="pkg", version="1.0", ecosystem="PyPI", source="venv"
         )

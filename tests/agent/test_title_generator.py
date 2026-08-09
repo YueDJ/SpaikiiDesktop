@@ -10,7 +10,7 @@ from agent.title_generator import (
     maybe_auto_title,
     _title_language,
 )
-from hermes_state import SessionDB
+from sparkii_state import SessionDB
 
 
 class TestGenerateTitle:

@@ -67,7 +67,7 @@ def test_hosted_callback_bypasses_gated_cookie_auth(monkeypatch):
         flow_id="flow-gated",
         server_name="reports",
         profile=None,
-        hermes_home="/tmp/hermes-test",
+        sparkii_home="/tmp/sparkii-test",
         redirect_uri="https://agent.example/api/mcp/oauth/callback/reports",
     )
     asyncio.run(
@@ -98,7 +98,7 @@ def test_hosted_auth_allows_same_server_name_in_different_profiles(tmp_path, mon
         flow_id="existing-default",
         server_name="reports",
         profile=None,
-        hermes_home=str(tmp_path / "default"),
+        sparkii_home=str(tmp_path / "default"),
         redirect_uri="https://agent.example/callback/existing",
     )
     web_server._mcp_oauth_flows[existing.flow_id] = existing
@@ -125,7 +125,7 @@ def test_flow_status_does_not_expose_authorization_code():
         flow_id="flow-status",
         server_name="reports",
         profile=None,
-        hermes_home="/tmp/hermes-test",
+        sparkii_home="/tmp/sparkii-test",
         redirect_uri="https://agent.example/api/mcp/oauth/callback/flow-status",
     )
     flow.authorization_url = "https://idp.example/authorize"

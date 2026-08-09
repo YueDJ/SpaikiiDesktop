@@ -1,4 +1,4 @@
-"""Tests for ``hermes debug`` CLI command and debug utilities."""
+"""Tests for ``sparkii debug`` CLI command and debug utilities."""
 
 import os
 import urllib.error
@@ -11,11 +11,11 @@ import pytest
 # ---------------------------------------------------------------------------
 
 @pytest.fixture
-def hermes_home(tmp_path, monkeypatch):
-    """Set up an isolated HERMES_HOME with minimal logs."""
-    home = tmp_path / ".hermes"
+def sparkii_home(tmp_path, monkeypatch):
+    """Set up an isolated SPARKII_HOME with minimal logs."""
+    home = tmp_path / ".sparkii"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("SPARKII_HOME", str(home))
 
     # Create log files
     logs_dir = home / "logs"
@@ -112,9 +112,9 @@ class TestCaptureLogSnapshot:
 
 
 
-    def test_race_truncate_after_resolve_reports_empty(self, hermes_home, monkeypatch):
+    def test_race_truncate_after_resolve_reports_empty(self, sparkii_home, monkeypatch):
         """If the log is truncated between resolve and stat, say 'empty', not 'missing'."""
-        log_path = hermes_home / "logs" / "agent.log"
+        log_path = sparkii_home / "logs" / "agent.log"
         from sparkii_cli import debug
 
         monkeypatch.setattr(debug, "_resolve_log_path", lambda _name: log_path)
@@ -126,7 +126,7 @@ class TestCaptureLogSnapshot:
         assert snap.tail_text == "(file empty)"
 
 
-    def test_keeps_first_line_when_truncation_on_boundary(self, hermes_home):
+    def test_keeps_first_line_when_truncation_on_boundary(self, sparkii_home):
         """When truncation lands on a line boundary, keep the first full line."""
         from sparkii_cli.debug import _capture_log_snapshot
 
@@ -134,7 +134,7 @@ class TestCaptureLogSnapshot:
         # backward-reading loop so the truncation path actually fires.
         line = "A" * 99 + "\n"  # 100 bytes per line
         num_lines = 200  # 20000 bytes
-        (hermes_home / "logs" / "agent.log").write_text(line * num_lines)
+        (sparkii_home / "logs" / "agent.log").write_text(line * num_lines)
 
         # max_bytes = 1000 = 100 * 10 → cut at byte 20000 - 1000 = 19000,
         # and byte 19000 - 1 is '\n'.  Boundary hit → keep all 10 lines.
@@ -149,33 +149,33 @@ class TestCaptureLogSnapshot:
 class TestMissingLogNote:
     """A missing log explains itself when the writer isn't this backend.
 
-    `hermes debug share` runs on the backend, so a desktop connected to a
+    `sparkii debug share` runs on the backend, so a desktop connected to a
     remote/docker/SSH backend can never contribute desktop.log. Reporting a
     bare absence sends triage after a client-side bug it cannot see.
     """
 
-    def test_backend_written_log_reports_plain_absence(self, hermes_home):
+    def test_backend_written_log_reports_plain_absence(self, sparkii_home):
         from sparkii_cli.debug import _capture_log_snapshot
 
-        (hermes_home / "logs" / "agent.log").unlink()
+        (sparkii_home / "logs" / "agent.log").unlink()
 
         snap = _capture_log_snapshot("agent", tail_lines=10)
         assert snap.full_text is None
         assert snap.tail_text == "(file not found)"
 
-    def test_client_written_log_names_its_writer_and_path(self, hermes_home):
+    def test_client_written_log_names_its_writer_and_path(self, sparkii_home):
         from sparkii_cli.debug import _capture_log_snapshot
 
-        (hermes_home / "logs" / "desktop.log").unlink()
+        (sparkii_home / "logs" / "desktop.log").unlink()
 
         snap = _capture_log_snapshot("desktop", tail_lines=10)
         assert snap.full_text is None
         assert "not on this host" in snap.tail_text
         assert "Hermes Desktop" in snap.tail_text
         # The reader needs the path to collect by hand on the client machine.
-        assert str(hermes_home / "logs" / "desktop.log") in snap.tail_text
+        assert str(sparkii_home / "logs" / "desktop.log") in snap.tail_text
 
-    def test_present_client_log_is_captured_normally(self, hermes_home):
+    def test_present_client_log_is_captured_normally(self, sparkii_home):
         """A local backend still reads desktop.log — the note is only for a miss."""
         from sparkii_cli.debug import _capture_log_snapshot
 
@@ -183,20 +183,20 @@ class TestMissingLogNote:
         assert "backend spawned" in snap.tail_text
         assert "not on this host" not in snap.tail_text
 
-    def test_empty_client_log_is_empty_not_absent(self, hermes_home):
+    def test_empty_client_log_is_empty_not_absent(self, sparkii_home):
         """An empty file means the app ran and logged nothing — a different fact."""
         from sparkii_cli.debug import _capture_log_snapshot
 
-        (hermes_home / "logs" / "desktop.log").write_text("")
+        (sparkii_home / "logs" / "desktop.log").write_text("")
 
         snap = _capture_log_snapshot("desktop", tail_lines=10)
         assert snap.tail_text == "(file empty)"
 
-    def test_report_carries_the_note_for_a_remote_backend(self, hermes_home):
+    def test_report_carries_the_note_for_a_remote_backend(self, sparkii_home):
         """The uploaded report — what people paste into support — must explain it."""
         from sparkii_cli.debug import collect_debug_report
 
-        (hermes_home / "logs" / "desktop.log").unlink()
+        (sparkii_home / "logs" / "desktop.log").unlink()
 
         report = collect_debug_report(log_lines=10, dump_text="dump\n")
         assert "--- desktop.log" in report
@@ -206,7 +206,7 @@ class TestMissingLogNote:
 
 
 # ---------------------------------------------------------------------------
-# Capture log redaction (force=True applies regardless of HERMES_REDACT_SECRETS)
+# Capture log redaction (force=True applies regardless of SPARKII_REDACT_SECRETS)
 # ---------------------------------------------------------------------------
 
 # A vendor-prefixed token used across redaction tests. Long enough to clear
@@ -218,17 +218,17 @@ class TestCaptureLogSnapshotRedaction:
     """Pin upload-time redaction at the _capture_log_snapshot boundary."""
 
     @pytest.fixture
-    def hermes_home_with_secret(self, tmp_path, monkeypatch):
-        """Isolated HERMES_HOME whose agent.log contains a vendor-prefixed token."""
-        home = tmp_path / ".hermes"
+    def sparkii_home_with_secret(self, tmp_path, monkeypatch):
+        """Isolated SPARKII_HOME whose agent.log contains a vendor-prefixed token."""
+        home = tmp_path / ".sparkii"
         home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("SPARKII_HOME", str(home))
         # Baseline fixture: no explicit env-var opinion. With the post-#17691
         # default of ON, the default-path tests below exercise the
         # secure-default behaviour. The `force=True` regression test
         # setenvs to "false" inline to prove force=True works even when
         # the runtime flag is disabled.
-        monkeypatch.delenv("HERMES_REDACT_SECRETS", raising=False)
+        monkeypatch.delenv("SPARKII_REDACT_SECRETS", raising=False)
 
         logs_dir = home / "logs"
         logs_dir.mkdir()
@@ -239,7 +239,7 @@ class TestCaptureLogSnapshotRedaction:
         (logs_dir / "gateway.log").write_text("")
         return home
 
-    def test_default_redacts_tail_and_full_text(self, hermes_home_with_secret):
+    def test_default_redacts_tail_and_full_text(self, sparkii_home_with_secret):
         from sparkii_cli.debug import _capture_log_snapshot
 
         snap = _capture_log_snapshot("agent", tail_lines=10)
@@ -249,7 +249,7 @@ class TestCaptureLogSnapshotRedaction:
         assert snap.full_text is not None
         assert _REDACT_FIXTURE_TOKEN not in snap.full_text
 
-    def test_redact_false_passes_through(self, hermes_home_with_secret):
+    def test_redact_false_passes_through(self, sparkii_home_with_secret):
         from sparkii_cli.debug import _capture_log_snapshot
 
         snap = _capture_log_snapshot("agent", tail_lines=10, redact=False)
@@ -259,24 +259,24 @@ class TestCaptureLogSnapshotRedaction:
         assert _REDACT_FIXTURE_TOKEN in (snap.full_text or "")
 
     def test_force_true_works_when_redaction_disabled(
-        self, hermes_home_with_secret, monkeypatch
+        self, sparkii_home_with_secret, monkeypatch
     ):
         """Regression test: redact_sensitive_text short-circuits without force=True.
 
         If a future refactor drops `force=True` from `_redact_log_text`, this
         test fails immediately. Without `force=True`, the redactor returns the
-        input unchanged when HERMES_REDACT_SECRETS=false, and the share-time
+        input unchanged when SPARKII_REDACT_SECRETS=false, and the share-time
         redaction feature ships silently broken for users who opted out of
         runtime redaction (e.g. developers working on the redactor itself).
         """
 
         # Force the runtime flag off so we're exercising the force=True path,
         # not the default-on path.
-        monkeypatch.setenv("HERMES_REDACT_SECRETS", "false")
+        monkeypatch.setenv("SPARKII_REDACT_SECRETS", "false")
 
         from sparkii_cli.debug import _capture_log_snapshot
 
-        assert os.environ.get("HERMES_REDACT_SECRETS", "") == "false"
+        assert os.environ.get("SPARKII_REDACT_SECRETS", "") == "false"
 
         snap = _capture_log_snapshot("agent", tail_lines=10)
 
@@ -285,11 +285,11 @@ class TestCaptureLogSnapshotRedaction:
         assert _REDACT_FIXTURE_TOKEN not in snap.full_text
 
     def test_default_redacts_email_addresses_for_public_share(
-        self, hermes_home_with_secret
+        self, sparkii_home_with_secret
     ):
         from sparkii_cli.debug import _capture_log_snapshot
 
-        log_path = hermes_home_with_secret / "logs" / "agent.log"
+        log_path = sparkii_home_with_secret / "logs" / "agent.log"
         log_path.write_text(
             "2026-04-12 17:00:00 INFO gateway.run: "
             "inbound message: platform=bluebubbles "
@@ -303,10 +303,10 @@ class TestCaptureLogSnapshotRedaction:
         assert snap.full_text is not None
         assert "person@example.com" not in snap.full_text
 
-    def test_no_redact_preserves_email_addresses(self, hermes_home_with_secret):
+    def test_no_redact_preserves_email_addresses(self, sparkii_home_with_secret):
         from sparkii_cli.debug import _capture_log_snapshot
 
-        log_path = hermes_home_with_secret / "logs" / "agent.log"
+        log_path = sparkii_home_with_secret / "logs" / "agent.log"
         log_path.write_text(
             "2026-04-12 17:00:00 INFO gateway.run: "
             "inbound message: platform=bluebubbles "
@@ -319,7 +319,7 @@ class TestCaptureLogSnapshotRedaction:
         assert "person@example.com" in (snap.full_text or "")
 
     def test_capture_default_log_snapshots_threads_redact(
-        self, hermes_home_with_secret
+        self, sparkii_home_with_secret
     ):
         from sparkii_cli.debug import _capture_default_log_snapshots
 
@@ -330,7 +330,7 @@ class TestCaptureLogSnapshotRedaction:
         assert _REDACT_FIXTURE_TOKEN not in (snaps["agent"].full_text or "")
 
     def test_capture_default_log_snapshots_no_redact_passes_through(
-        self, hermes_home_with_secret
+        self, sparkii_home_with_secret
     ):
         from sparkii_cli.debug import _capture_default_log_snapshots
 
@@ -347,16 +347,16 @@ class TestCaptureLogSnapshotRedaction:
 class TestCollectDebugReport:
     """Test the debug report builder."""
 
-    def test_report_includes_dump_output(self, hermes_home):
+    def test_report_includes_dump_output(self, sparkii_home):
         from sparkii_cli.debug import collect_debug_report
 
         with patch("sparkii_cli.dump.run_dump") as mock_dump:
             mock_dump.side_effect = lambda args: print(
-                "--- hermes dump ---\nversion: 0.8.0\n--- end dump ---"
+                "--- sparkii dump ---\nversion: 0.8.0\n--- end dump ---"
             )
             report = collect_debug_report(log_lines=50)
 
-        assert "--- hermes dump ---" in report
+        assert "--- sparkii dump ---" in report
         assert "version: 0.8.0" in report
 
 
@@ -367,7 +367,7 @@ class TestCollectDebugReport:
 class TestRunDebugShare:
     """Test the run_debug_share CLI handler."""
 
-    def test_share_sweeps_expired_pastes(self, hermes_home, capsys):
+    def test_share_sweeps_expired_pastes(self, sparkii_home, capsys):
         """Slash-command path should sweep old pending deletes before uploading."""
         from sparkii_cli.debug import run_debug_share
 
@@ -388,7 +388,7 @@ class TestRunDebugShare:
 
 
 
-    def test_share_uploads_five_pastes(self, hermes_home, capsys):
+    def test_share_uploads_five_pastes(self, sparkii_home, capsys):
         """Successful share uploads report + agent.log + gateway.log + gui.log + desktop.log."""
         from sparkii_cli.debug import run_debug_share
 
@@ -408,7 +408,7 @@ class TestRunDebugShare:
         with patch("sparkii_cli.dump.run_dump") as mock_dump, \
              patch("sparkii_cli.debug.upload_to_pastebin",
                     side_effect=_mock_upload):
-            mock_dump.side_effect = lambda a: print("--- hermes dump ---\nversion: test\n--- end dump ---")
+            mock_dump.side_effect = lambda a: print("--- sparkii dump ---\nversion: test\n--- end dump ---")
             run_debug_share(args)
 
         out = capsys.readouterr().out
@@ -427,16 +427,16 @@ class TestRunDebugShare:
 
         # Each log paste should start with the dump header
         agent_paste = uploaded_content[1]
-        assert "--- hermes dump ---" in agent_paste
+        assert "--- sparkii dump ---" in agent_paste
         assert "--- full agent.log ---" in agent_paste
         gateway_paste = uploaded_content[2]
-        assert "--- hermes dump ---" in gateway_paste
+        assert "--- sparkii dump ---" in gateway_paste
         assert "--- full gateway.log ---" in gateway_paste
         gui_paste = uploaded_content[3]
-        assert "--- hermes dump ---" in gui_paste
+        assert "--- sparkii dump ---" in gui_paste
         assert "--- full gui.log ---" in gui_paste
         desktop_paste = uploaded_content[4]
-        assert "--- hermes dump ---" in desktop_paste
+        assert "--- sparkii dump ---" in desktop_paste
         assert "--- full desktop.log ---" in desktop_paste
 
 
@@ -450,12 +450,12 @@ class TestRunDebugShareRedaction:
     """End-to-end: --no-redact flag, banner injection, default behavior."""
 
     @pytest.fixture
-    def hermes_home_with_secret(self, tmp_path, monkeypatch):
-        """Isolated HERMES_HOME whose agent.log contains a vendor-prefixed token."""
-        home = tmp_path / ".hermes"
+    def sparkii_home_with_secret(self, tmp_path, monkeypatch):
+        """Isolated SPARKII_HOME whose agent.log contains a vendor-prefixed token."""
+        home = tmp_path / ".sparkii"
         home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(home))
-        monkeypatch.delenv("HERMES_REDACT_SECRETS", raising=False)
+        monkeypatch.setenv("SPARKII_HOME", str(home))
+        monkeypatch.delenv("SPARKII_REDACT_SECRETS", raising=False)
 
         logs_dir = home / "logs"
         logs_dir.mkdir()
@@ -469,7 +469,7 @@ class TestRunDebugShareRedaction:
         return home
 
     def test_default_share_redacts_uploaded_content(
-        self, hermes_home_with_secret, capsys
+        self, sparkii_home_with_secret, capsys
     ):
         """The uploaded report and full-log pastes do not contain the raw token."""
         from sparkii_cli.debug import run_debug_share
@@ -500,7 +500,7 @@ class TestRunDebugShareRedaction:
             )
 
     def test_default_share_includes_redaction_banner(
-        self, hermes_home_with_secret, capsys
+        self, sparkii_home_with_secret, capsys
     ):
         """Each upload-bound paste carries the visible redaction banner."""
         from sparkii_cli.debug import run_debug_share
@@ -529,7 +529,7 @@ class TestRunDebugShareRedaction:
             )
 
     def test_no_redact_flag_disables_redaction_and_banner(
-        self, hermes_home_with_secret, capsys
+        self, sparkii_home_with_secret, capsys
     ):
         """--no-redact preserves original log content and omits the banner."""
         from sparkii_cli.debug import run_debug_share
@@ -577,11 +577,11 @@ class TestRunDebug:
         run_debug(args)
 
         out = capsys.readouterr().out
-        assert "hermes debug" in out
+        assert "sparkii debug" in out
         assert "share" in out
         assert "delete" in out
 
-    def test_share_subcommand_routes(self, hermes_home):
+    def test_share_subcommand_routes(self, sparkii_home):
         from sparkii_cli.debug import run_debug
 
         args = MagicMock()
@@ -640,13 +640,13 @@ class TestScheduleAutoDelete:
     were observed in production.
 
     The new implementation is stateless: it records pending deletions to
-    ``~/.hermes/pastes/pending.json`` and lets ``_sweep_expired_pastes``
-    handle the DELETE requests synchronously on the next ``hermes debug``
+    ``~/.sparkii/pastes/pending.json`` and lets ``_sweep_expired_pastes``
+    handle the DELETE requests synchronously on the next ``sparkii debug``
     invocation.
     """
 
 
-    def test_records_pending_to_json(self, hermes_home):
+    def test_records_pending_to_json(self, sparkii_home):
         """Scheduled URLs are persisted to pending.json with expiration."""
         from sparkii_cli.debug import _schedule_auto_delete, _pending_file
         import json
@@ -672,7 +672,7 @@ class TestScheduleAutoDelete:
 
 
 
-    def test_dedupes_same_url(self, hermes_home):
+    def test_dedupes_same_url(self, sparkii_home):
         """Same URL recorded twice → one entry with the later expire_at."""
         from sparkii_cli.debug import _schedule_auto_delete, _load_pending
 
@@ -688,7 +688,7 @@ class TestSweepExpiredPastes:
     """Test the opportunistic sweep that replaces the sleeping subprocess."""
 
 
-    def test_sweep_deletes_expired_entries(self, hermes_home):
+    def test_sweep_deletes_expired_entries(self, sparkii_home):
         from sparkii_cli.debug import (
             _sweep_expired_pastes,
             _save_pending,
@@ -719,7 +719,7 @@ class TestSweepExpiredPastes:
         urls = {e["url"] for e in entries}
         assert urls == {"https://paste.rs/future"}
 
-    def test_sweep_leaves_future_entries_alone(self, hermes_home):
+    def test_sweep_leaves_future_entries_alone(self, sparkii_home):
         from sparkii_cli.debug import _sweep_expired_pastes, _save_pending
         import time
 
@@ -735,7 +735,7 @@ class TestSweepExpiredPastes:
         assert deleted == 0
         assert remaining == 2
 
-    def test_sweep_survives_network_failure(self, hermes_home):
+    def test_sweep_survives_network_failure(self, sparkii_home):
         """Failed DELETEs stay in pending.json until the 24h grace window."""
         from sparkii_cli.debug import (
             _sweep_expired_pastes,
@@ -763,7 +763,7 @@ class TestSweepExpiredPastes:
 class TestRunDebugSweepsOnInvocation:
     """``run_debug`` must sweep expired pastes on every invocation."""
 
-    def test_run_debug_calls_sweep(self, hermes_home):
+    def test_run_debug_calls_sweep(self, sparkii_home):
         from sparkii_cli.debug import run_debug
 
         args = MagicMock()
@@ -795,7 +795,7 @@ class TestShareIncludesAutoDelete:
     """Verify that run_debug_share schedules auto-deletion and prints TTL."""
 
 
-    def test_share_shows_privacy_notice(self, hermes_home, capsys):
+    def test_share_shows_privacy_notice(self, sparkii_home, capsys):
         from sparkii_cli.debug import run_debug_share
 
         args = MagicMock()
@@ -823,18 +823,18 @@ class TestShareIncludesAutoDelete:
 class TestBuildDebugShare:
     """The shared core that returns structured paste URLs (not printed text).
 
-    Backs both ``hermes debug share`` (CLI) and ``POST /api/ops/debug-share``
+    Backs both ``sparkii debug share`` (CLI) and ``POST /api/ops/debug-share``
     (dashboard). The dashboard renders ``urls`` as real, copyable links, so the
     contract here is the return value, not stdout.
     """
 
 
 
-    def test_redaction_keeps_secrets_out_of_payload(self, hermes_home):
+    def test_redaction_keeps_secrets_out_of_payload(self, sparkii_home):
         from sparkii_cli.debug import build_debug_share
 
         secret = "sk-proj-SUPERSECRETtoken1234567890"
-        (hermes_home / "logs" / "agent.log").write_text(
+        (sparkii_home / "logs" / "agent.log").write_text(
             f"line one\nauthorization token={secret}\nline three\n"
         )
 
@@ -853,7 +853,7 @@ class TestBuildDebugShare:
         joined = "\n".join(uploaded)
         assert secret not in joined, "secret leaked into upload payload"
 
-    def test_optional_log_failure_is_collected_not_raised(self, hermes_home):
+    def test_optional_log_failure_is_collected_not_raised(self, sparkii_home):
         from sparkii_cli.debug import build_debug_share
 
         count = [0]
@@ -882,7 +882,7 @@ class TestBuildDebugShare:
 
 class TestCollectShareBundle:
 
-    def test_no_redact_omits_banner(self, hermes_home):
+    def test_no_redact_omits_banner(self, sparkii_home):
         from sparkii_cli.debug import collect_share_bundle
 
         with patch("sparkii_cli.dump.run_dump"):
@@ -890,11 +890,11 @@ class TestCollectShareBundle:
 
         assert "redacted at upload time" not in bundle["report"]
 
-    def test_redaction_keeps_secrets_out(self, hermes_home):
+    def test_redaction_keeps_secrets_out(self, sparkii_home):
         from sparkii_cli.debug import collect_share_bundle
 
         secret = "sk-proj-abcdefghijklmnopqrstuvwxyz1234567890"
-        (hermes_home / "logs" / "agent.log").write_text(
+        (sparkii_home / "logs" / "agent.log").write_text(
             f"line one\nOPENAI_API_KEY={secret}\nline three\n"
         )
         with patch("sparkii_cli.dump.run_dump"):
@@ -910,7 +910,7 @@ class TestCollectShareBundle:
 
 
 class TestBuildNousBundle:
-    def test_envelope_shape_and_gzip(self, hermes_home):
+    def test_envelope_shape_and_gzip(self, sparkii_home):
         import gzip
         import json as _json
 
@@ -922,7 +922,7 @@ class TestBuildNousBundle:
         # It's gzip — magic bytes.
         assert blob[:2] == b"\x1f\x8b"
         envelope = _json.loads(gzip.decompress(blob).decode())
-        assert envelope["format"] == "hermes-debug-share/1"
+        assert envelope["format"] == "sparkii-debug-share/1"
         assert envelope["redacted"] is True
         assert envelope["files"] == files
         assert "created" in envelope
@@ -953,7 +953,7 @@ class TestRunDebugShareNous:
             setattr(a, k, v)
         return a
 
-    def test_nous_success_prints_view_url(self, hermes_home, capsys):
+    def test_nous_success_prints_view_url(self, sparkii_home, capsys):
         from sparkii_cli.debug import run_debug_share
 
         res = {
@@ -974,7 +974,7 @@ class TestRunDebugShareNous:
         blob = share.call_args[0][0]
         assert isinstance(blob, (bytes, bytearray)) and blob[:2] == b"\x1f\x8b"
 
-    def test_nous_failure_suggests_local(self, hermes_home, capsys):
+    def test_nous_failure_suggests_local(self, sparkii_home, capsys):
         from sparkii_cli.debug import run_debug_share
 
         with patch("sparkii_cli.dump.run_dump"), patch(
@@ -988,7 +988,7 @@ class TestRunDebugShareNous:
         assert "Nous upload failed" in err
         assert "--local" in err
 
-    def test_nous_does_not_touch_pastebin(self, hermes_home):
+    def test_nous_does_not_touch_pastebin(self, sparkii_home):
         from sparkii_cli.debug import run_debug_share
 
         res = {"id": "id-1", "viewUrl": "https://v"}
@@ -1047,7 +1047,7 @@ class TestDebugSlashCommand:
 
 
 class TestShareConsentGate:
-    """`hermes debug share` requires explicit consent before uploading.
+    """`sparkii debug share` requires explicit consent before uploading.
 
     Uses SimpleNamespace rather than MagicMock so ``args.yes`` is a real
     ``False`` — a MagicMock auto-provides a truthy ``.yes`` and would silently
@@ -1065,7 +1065,7 @@ class TestShareConsentGate:
 
 
 
-    def test_non_interactive_requires_yes(self, hermes_home, capsys, monkeypatch):
+    def test_non_interactive_requires_yes(self, sparkii_home, capsys, monkeypatch):
         """No TTY + no --yes → exit(1), never upload silently."""
         from sparkii_cli.debug import run_debug_share
 
@@ -1083,7 +1083,7 @@ class TestShareConsentGate:
         assert "personal data" in err
 
 
-    def test_local_never_prompts(self, hermes_home, capsys, monkeypatch):
+    def test_local_never_prompts(self, sparkii_home, capsys, monkeypatch):
         """--local renders to stdout and must not prompt or upload."""
         from sparkii_cli.debug import run_debug_share
 

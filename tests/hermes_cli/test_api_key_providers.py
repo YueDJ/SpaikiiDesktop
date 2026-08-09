@@ -140,8 +140,8 @@ _EXTRA_ENV_VARS = (
     # Base URLs / paths that influence detection but aren't api_key_env_vars.
     "LM_BASE_URL", "KIMI_BASE_URL", "STEPFUN_BASE_URL", "KILOCODE_BASE_URL",
     "GMI_BASE_URL", "OPENAI_BASE_URL",
-    "HERMES_COPILOT_ACP_COMMAND", "COPILOT_CLI_PATH",
-    "HERMES_COPILOT_ACP_ARGS", "COPILOT_ACP_BASE_URL",
+    "SPARKII_COPILOT_ACP_COMMAND", "COPILOT_CLI_PATH",
+    "SPARKII_COPILOT_ACP_ARGS", "COPILOT_ACP_BASE_URL",
 )
 
 PROVIDER_ENV_VARS = tuple(
@@ -488,7 +488,7 @@ class TestRuntimeProviderResolution:
 
     def test_runtime_copilot_acp_uses_process_runtime(self, monkeypatch):
         monkeypatch.setattr("sparkii_cli.auth.shutil.which", lambda command: f"/usr/local/bin/{command}")
-        monkeypatch.setenv("HERMES_COPILOT_ACP_ARGS", "--acp --stdio --debug")
+        monkeypatch.setenv("SPARKII_COPILOT_ACP_ARGS", "--acp --stdio --debug")
 
         from sparkii_cli.runtime_provider import resolve_runtime_provider
 
@@ -515,10 +515,10 @@ class TestHasAnyProviderConfigured:
         """Claude Code credentials should NOT skip the wizard when Hermes is unconfigured."""
         from sparkii_cli import config as config_module
         from sparkii_cli.auth import PROVIDER_REGISTRY
-        hermes_home = tmp_path / ".hermes"
-        hermes_home.mkdir()
-        monkeypatch.setattr(config_module, "get_env_path", lambda: hermes_home / ".env")
-        monkeypatch.setattr(config_module, "get_hermes_home", lambda: hermes_home)
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        monkeypatch.setattr(config_module, "get_env_path", lambda: sparkii_home / ".env")
+        monkeypatch.setattr(config_module, "get_sparkii_home", lambda: sparkii_home)
         monkeypatch.setattr("sparkii_cli.copilot_auth.resolve_copilot_token", lambda: ("", ""))
         # Clear all provider env vars so earlier checks don't short-circuit
         _all_vars = {"OPENROUTER_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY",
@@ -546,15 +546,15 @@ class TestHasAnyProviderConfigured:
         """config.yaml with model.provider set should count as configured."""
         import yaml
         from sparkii_cli import config as config_module
-        hermes_home = tmp_path / ".hermes"
-        hermes_home.mkdir()
-        config_file = hermes_home / "config.yaml"
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        config_file = sparkii_home / "config.yaml"
         config_file.write_text(yaml.dump({
             "model": {"default": "anthropic/claude-opus-4.6", "provider": "openrouter"},
         }))
-        monkeypatch.setattr(config_module, "get_env_path", lambda: hermes_home / ".env")
-        monkeypatch.setattr(config_module, "get_hermes_home", lambda: hermes_home)
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setattr(config_module, "get_env_path", lambda: sparkii_home / ".env")
+        monkeypatch.setattr(config_module, "get_sparkii_home", lambda: sparkii_home)
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
         # Clear all provider env vars
         for var in ("OPENROUTER_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY",
                      "ANTHROPIC_TOKEN", "OPENAI_BASE_URL"):
@@ -576,13 +576,13 @@ class TestHasAnyProviderConfigured:
 
     def _setup_home(self, monkeypatch, tmp_path):
         from sparkii_cli import config as config_module
-        hermes_home = tmp_path / ".hermes"
-        hermes_home.mkdir()
-        monkeypatch.setattr(config_module, "get_env_path", lambda: hermes_home / ".env")
-        monkeypatch.setattr(config_module, "get_hermes_home", lambda: hermes_home)
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        monkeypatch.setattr(config_module, "get_env_path", lambda: sparkii_home / ".env")
+        monkeypatch.setattr(config_module, "get_sparkii_home", lambda: sparkii_home)
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
         self._clear_provider_env(monkeypatch)
-        return hermes_home
+        return sparkii_home
 
     def test_config_provider_skips_registry_sweep(self, monkeypatch, tmp_path):
         """model.provider in config.yaml must short-circuit BEFORE the slow
@@ -594,8 +594,8 @@ class TestHasAnyProviderConfigured:
         recorded call proves the sweep ran even if the raise was swallowed.
         """
         import yaml
-        hermes_home = self._setup_home(monkeypatch, tmp_path)
-        (hermes_home / "config.yaml").write_text(yaml.dump({
+        sparkii_home = self._setup_home(monkeypatch, tmp_path)
+        (sparkii_home / "config.yaml").write_text(yaml.dump({
             "model": {"default": "anthropic/claude-opus-4.6", "provider": "openrouter"},
         }))
         sweep_calls = []
@@ -615,8 +615,8 @@ class TestHasAnyProviderConfigured:
         """Custom endpoint (base_url/api_key in config, no provider) must also
         short-circuit before the registry sweep."""
         import yaml
-        hermes_home = self._setup_home(monkeypatch, tmp_path)
-        (hermes_home / "config.yaml").write_text(yaml.dump({
+        sparkii_home = self._setup_home(monkeypatch, tmp_path)
+        (sparkii_home / "config.yaml").write_text(yaml.dump({
             "model": {
                 "default": "local/custom-model",
                 "base_url": "http://localhost:8000/v1",
@@ -642,8 +642,8 @@ class TestHasAnyProviderConfigured:
         provider from auth.json — any other provider id means the sweep ran.
         """
         import json
-        hermes_home = self._setup_home(monkeypatch, tmp_path)
-        (hermes_home / "auth.json").write_text(json.dumps({
+        sparkii_home = self._setup_home(monkeypatch, tmp_path)
+        (sparkii_home / "auth.json").write_text(json.dumps({
             "active_provider": "nous",
         }))
         calls = []

@@ -1,5 +1,5 @@
 """
-Tests for sparkii_cli.mcp_config — ``hermes mcp`` subcommands.
+Tests for sparkii_cli.mcp_config — ``sparkii mcp`` subcommands.
 
 These tests mock the MCP server connection layer so they run without
 any actual MCP servers or API keys.
@@ -27,9 +27,9 @@ def _set_interactive_stdin(monkeypatch, *, is_tty: bool = True) -> None:
 @pytest.fixture(autouse=True)
 def _isolate_config(tmp_path, monkeypatch):
     """Redirect all config I/O to a temp directory."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("SPARKII_HOME", str(tmp_path))
     monkeypatch.setattr(
-        "sparkii_cli.config.get_hermes_home", lambda: tmp_path
+        "sparkii_cli.config.get_sparkii_home", lambda: tmp_path
     )
     config_path = tmp_path / "config.yaml"
     env_path = tmp_path / ".env"
@@ -152,9 +152,9 @@ class TestMcpRemove:
             "oauth-srv": {"url": "https://example.com/mcp", "auth": "oauth"},
         })
         monkeypatch.setattr("builtins.input", lambda _: "y")
-        # Also patch get_hermes_home in the mcp_config module namespace
+        # Also patch get_sparkii_home in the mcp_config module namespace
         monkeypatch.setattr(
-            "sparkii_cli.mcp_config.get_hermes_home", lambda: tmp_path
+            "sparkii_cli.mcp_config.get_sparkii_home", lambda: tmp_path
         )
 
         # Create a fake token file
@@ -464,7 +464,7 @@ class TestContextVarInterpolation:
 class TestProbeEnvResolution:
     """The probe path must resolve ``${ENV}`` before connecting, so the
     discovery probe behaves like runtime tool loading. Regression for #37792
-    where `hermes mcp add --auth header` sent a literal
+    where `sparkii mcp add --auth header` sent a literal
     ``Authorization: Bearer ${MCP_X_API_KEY}`` and got 401."""
 
     def test_resolve_interpolates_header(self, monkeypatch):
@@ -692,9 +692,9 @@ class TestMcpRemoveEvictsManager:
         })
         monkeypatch.setattr("builtins.input", lambda _: "y")
         monkeypatch.setattr(
-            "sparkii_cli.mcp_config.get_hermes_home", lambda: tmp_path
+            "sparkii_cli.mcp_config.get_sparkii_home", lambda: tmp_path
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("SPARKII_HOME", str(tmp_path))
         _set_interactive_stdin(monkeypatch)
 
         from tools.mcp_oauth_manager import get_manager, reset_manager_for_tests

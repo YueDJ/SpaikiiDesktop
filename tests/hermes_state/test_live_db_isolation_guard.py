@@ -2,7 +2,7 @@
 
 Forensic background (Aug 2026): pytest fixture rows (chat-1 / wx-chat
 sessions, gateway_routing scopes under /tmp/pytest-of-*) were found in the
-developer's REAL ~/.hermes/state.db, and a pytest-spawned process flipped
+developer's REAL ~/.sparkii/state.db, and a pytest-spawned process flipped
 the journal mode under the WAL-mode gateway writer, destroying committed
 transcripts. The guard under test makes any pytest-context ``SessionDB``
 construction that resolves to a production state.db fail hard instead of
@@ -19,17 +19,17 @@ from pathlib import Path
 
 import pytest
 
-import hermes_state
+import sparkii_state
 from gateway.config import GatewayConfig
 from gateway.session import SessionStore
-from hermes_state import SessionDB
+from sparkii_state import SessionDB
 
-REAL_ROOT = (Path.home() / ".hermes").resolve()
+REAL_ROOT = (Path.home() / ".sparkii").resolve()
 
 
 class TestProductionPathRefused:
     def test_explicit_production_db_path_raises(self):
-        """SessionDB pointed at the real ~/.hermes/state.db must fail hard."""
+        """SessionDB pointed at the real ~/.sparkii/state.db must fail hard."""
         with pytest.raises(RuntimeError, match="live-system guard"):
             SessionDB(db_path=REAL_ROOT / "state.db")
 
@@ -45,23 +45,23 @@ class TestProductionPathRefused:
 
     def test_unnormalized_production_path_raises(self):
         """Symlink-free but unnormalized spellings still resolve and refuse."""
-        sneaky = Path.home() / "subdir" / ".." / ".hermes" / "state.db"
+        sneaky = Path.home() / "subdir" / ".." / ".sparkii" / "state.db"
         with pytest.raises(RuntimeError, match="live-system guard"):
             SessionDB(db_path=sneaky)
 
     def test_default_resolution_to_production_raises(self, monkeypatch):
         """The argless-construction path is guarded, not just explicit paths.
 
-        Simulates the escape vector: HERMES_HOME leaked/reset to the real
+        Simulates the escape vector: SPARKII_HOME leaked/reset to the real
         home (subprocess child, stale worktree, gateway-launched shell) so
         ``_default_db_path()`` resolves the production DB.
         """
-        monkeypatch.setenv("HERMES_HOME", str(REAL_ROOT))
+        monkeypatch.setenv("SPARKII_HOME", str(REAL_ROOT))
         # Neutralize the conftest's DEFAULT_DB_PATH re-pin so the default
         # resolver follows the (production-pointing) env, as it would in a
         # process that never imported the hermetic conftest.
         monkeypatch.setattr(
-            hermes_state, "DEFAULT_DB_PATH", hermes_state._IMPORT_DEFAULT_DB_PATH
+            sparkii_state, "DEFAULT_DB_PATH", sparkii_state._IMPORT_DEFAULT_DB_PATH
         )
         with pytest.raises(RuntimeError, match="live-system guard"):
             SessionDB()
@@ -76,11 +76,11 @@ class TestHermeticPathsAllowed:
         finally:
             db.close()
 
-    def test_tmp_hermes_home_default_resolution_works(self, tmp_path, monkeypatch):
-        """Argless SessionDB() under a hermetic HERMES_HOME must succeed."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermetic-home"))
+    def test_tmp_sparkii_home_default_resolution_works(self, tmp_path, monkeypatch):
+        """Argless SessionDB() under a hermetic SPARKII_HOME must succeed."""
+        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "hermetic-home"))
         monkeypatch.setattr(
-            hermes_state, "DEFAULT_DB_PATH", hermes_state._IMPORT_DEFAULT_DB_PATH
+            sparkii_state, "DEFAULT_DB_PATH", sparkii_state._IMPORT_DEFAULT_DB_PATH
         )
         db = SessionDB()
         try:
@@ -97,7 +97,7 @@ class TestBypassMarker:
         Drives the guard function directly (never actually opens the live
         DB) — with the bypass marker active it must not raise.
         """
-        hermes_state._ensure_test_isolation(REAL_ROOT / "state.db")
+        sparkii_state._ensure_test_isolation(REAL_ROOT / "state.db")
 
 
 class TestSessionStoreLoudFailure:
@@ -117,7 +117,7 @@ class TestSessionStoreLoudFailure:
                 "live-system guard: test attempted to open production state.db"
             )
 
-        monkeypatch.setattr(hermes_state, "SessionDB", _boom)
+        monkeypatch.setattr(sparkii_state, "SessionDB", _boom)
         with pytest.raises(RuntimeError, match="live-system guard"):
             SessionStore(sessions_dir=tmp_path, config=GatewayConfig())
 
@@ -129,14 +129,14 @@ class TestSessionStoreLoudFailure:
         def _boom(*args, **kwargs):
             raise RuntimeError("disk on fire")
 
-        monkeypatch.setattr(hermes_state, "SessionDB", _boom)
+        monkeypatch.setattr(sparkii_state, "SessionDB", _boom)
         store = SessionStore(sessions_dir=tmp_path, config=GatewayConfig())
         assert store._db is None
 
 
 class TestSubprocessChildCovered:
-    def test_child_without_hermes_home_is_refused(self, tmp_path):
-        """A subprocess child of a test (no HERMES_HOME) must be blocked.
+    def test_child_without_sparkii_home_is_refused(self, tmp_path):
+        """A subprocess child of a test (no SPARKII_HOME) must be blocked.
 
         This is the real leak vector: tests spawning ``python -m ...``
         children that never import the hermetic conftest. The guard is
@@ -147,12 +147,12 @@ class TestSubprocessChildCovered:
         env = {
             k: v
             for k, v in os.environ.items()
-            if k not in ("HERMES_HOME", "PYTEST_PLUGINS", "PYTHONPATH")
+            if k not in ("SPARKII_HOME", "PYTEST_PLUGINS", "PYTHONPATH")
         }
         env["PYTEST_CURRENT_TEST"] = "tests/fake.py::test_child (call)"
         env["PYTHONPATH"] = str(Path(__file__).resolve().parents[2])
         code = (
-            "from hermes_state import SessionDB\n"
+            "from sparkii_state import SessionDB\n"
             "SessionDB()\n"
         )
         proc = subprocess.run(
@@ -165,18 +165,18 @@ class TestSubprocessChildCovered:
         assert proc.returncode != 0
         assert "live-system guard" in proc.stderr
 
-    def test_child_with_tmp_hermes_home_succeeds(self, tmp_path):
-        """Same child, hermetic HERMES_HOME: must work — no false positive."""
+    def test_child_with_tmp_sparkii_home_succeeds(self, tmp_path):
+        """Same child, hermetic SPARKII_HOME: must work — no false positive."""
         env = {
             k: v
             for k, v in os.environ.items()
             if k not in ("PYTEST_PLUGINS", "PYTHONPATH")
         }
         env["PYTEST_CURRENT_TEST"] = "tests/fake.py::test_child (call)"
-        env["HERMES_HOME"] = str(tmp_path / "child-home")
+        env["SPARKII_HOME"] = str(tmp_path / "child-home")
         env["PYTHONPATH"] = str(Path(__file__).resolve().parents[2])
         code = (
-            "from hermes_state import SessionDB\n"
+            "from sparkii_state import SessionDB\n"
             "db = SessionDB()\n"
             "db.close()\n"
             "print('OK', db.db_path)\n"

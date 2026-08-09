@@ -1,7 +1,7 @@
 """Behavior tests for the Windows desktop-exe integrity gate (#69179).
 
-The desktop self-update chain (Desktop → hermes-setup --update →
-``hermes update`` → ``hermes desktop --build-only`` → relaunch) rebuilds
+The desktop self-update chain (Desktop → sparkii-setup --update →
+``sparkii update`` → ``sparkii desktop --build-only`` → relaunch) rebuilds
 Hermes.exe on the end user's machine. Before this gate, "build succeeded" was
 just "the file exists", so a truncated PE (corrupt cached Electron zip), a
 non-PE file, or a wrong-architecture tree shipped as the new app — Windows
@@ -243,7 +243,7 @@ def test_gate_fails_clearly_without_backup(tmp_path, monkeypatch, capsys):
     assert "No usable backup" in out
 
 
-# ─── end-to-end: `hermes desktop --build-only` exits nonzero on corrupt exe ─
+# ─── end-to-end: `sparkii desktop --build-only` exits nonzero on corrupt exe ─
 
 
 def _ns(**kw):
@@ -254,7 +254,7 @@ def _ns(**kw):
         source=False,
         fake_boot=False,
         ignore_existing=False,
-        hermes_root=None,
+        sparkii_root=None,
         cwd=None,
     )
     defaults.update(kw)
@@ -263,9 +263,9 @@ def _ns(**kw):
 
 def test_build_only_fails_when_pack_produces_corrupt_exe(tmp_path, monkeypatch, capsys):
     """The updater chain's contract: a rebuild whose Hermes.exe cannot launch
-    must exit nonzero (so hermes-setup's retry-once kicks in) and must restore
+    must exit nonzero (so sparkii-setup's retry-once kicks in) and must restore
     the previous working build instead of leaving the corrupt one."""
-    root = tmp_path / "hermes-agent"
+    root = tmp_path / "sparkii-agent"
     desktop_dir = root / "apps" / "desktop"
     desktop_dir.mkdir(parents=True)
     (desktop_dir / "package.json").write_text("{}", encoding="utf-8")

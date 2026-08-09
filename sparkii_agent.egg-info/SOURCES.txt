@@ -2,14 +2,6 @@ LICENSE
 README.md
 batch_runner.py
 cli.py
-hermes_bootstrap.py
-hermes_logging.py
-hermes_state.py
-hermes_state_common.py
-hermes_state_portability.py
-hermes_state_schema.py
-hermes_state_search.py
-hermes_time.py
 mcp_serve.py
 model_tools.py
 pyproject.toml
@@ -211,7 +203,7 @@ agent/transports/codex.py
 agent/transports/codex_app_server.py
 agent/transports/codex_app_server_session.py
 agent/transports/codex_event_projector.py
-agent/transports/hermes_tools_mcp_server.py
+agent/transports/sparkii_tools_mcp_server.py
 agent/transports/types.py
 agent/verify/__init__.py
 agent/verify/environment.py

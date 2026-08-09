@@ -19,18 +19,18 @@ import pytest
 
 @pytest.fixture()
 def isolated_kanban_home(monkeypatch):
-    """Spin up a fresh HERMES_HOME with a clean kanban DB."""
+    """Spin up a fresh SPARKII_HOME with a clean kanban DB."""
     test_home = tempfile.mkdtemp(prefix="kanban_cli_passthrough_")
     os.makedirs(os.path.join(test_home, "profiles", "default"), exist_ok=True)
-    monkeypatch.setenv("HERMES_HOME", test_home)
+    monkeypatch.setenv("SPARKII_HOME", test_home)
     for mod in list(sys.modules.keys()):
-        if mod.startswith("sparkii_cli") or mod.startswith("hermes_state") or mod == "hermes_constants":
+        if mod.startswith("sparkii_cli") or mod.startswith("sparkii_state") or mod == "sparkii_constants":
             del sys.modules[mod]
     yield test_home
 
 
 def test_cli_dispatch_passes_max_in_progress_from_config(isolated_kanban_home, monkeypatch):
-    """#33488: hermes kanban dispatch must pass kanban.max_in_progress from
+    """#33488: sparkii kanban dispatch must pass kanban.max_in_progress from
     config to dispatch_once. Without this, the global concurrency cap is
     unreachable from the CLI even though it works from the gateway."""
     from sparkii_cli import kanban as kb_cli

@@ -41,8 +41,8 @@ def test_slash_worker_popen_uses_utf8_replace():
     UnicodeDecodeError inside the drain threads (#53137).
     """
     with patch.dict("sys.modules", {
-        "hermes_constants": MagicMock(
-            get_hermes_home=MagicMock(return_value="/tmp/hermes_test")
+        "sparkii_constants": MagicMock(
+            get_sparkii_home=MagicMock(return_value="/tmp/sparkii_test")
         ),
     }):
         with patch("subprocess.Popen") as mock_popen:

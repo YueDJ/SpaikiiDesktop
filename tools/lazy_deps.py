@@ -736,12 +736,12 @@ def _venv_pip_install(specs: tuple[str, ...], *, timeout: int = 300) -> _Install
 
     try:
         venv_root = Path(sys.executable).parent.parent
-        from tools.environments.local import hermes_subprocess_env
-        uv_env = hermes_subprocess_env(inherit_credentials=False)
+        from tools.environments.local import sparkii_subprocess_env
+        uv_env = sparkii_subprocess_env(inherit_credentials=False)
         uv_env["VIRTUAL_ENV"] = str(venv_root)
 
         # Tier 1: uv (preferred — fast, doesn't need pip in the venv)
-        # Managed uv first: $HERMES_HOME/bin is never on PATH, so a bare
+        # Managed uv first: $SPARKII_HOME/bin is never on PATH, so a bare
         # which() misses the uv Hermes installed and falls through to the
         # slower pip tier. Deliberately a lookup and not ensure_uv(): this runs
         # mid-turn to install an optional dependency, and downloading uv +
@@ -986,7 +986,7 @@ def feature_install_command(feature: str, *, venv_pip: bool = False) -> Optional
 
     ``venv_pip=True`` targets the running interpreter's pip
     (``{sys.executable} -m pip install …``) — correct in every layout
-    (default install, ``HERMES_HOME`` overrides, profile installs) and
+    (default install, ``SPARKII_HOME`` overrides, profile installs) and
     immune to Ubuntu 24.04's PEP 668 ``externally-managed-environment``
     failure that a bare/system ``pip install`` hint invites.  The default
     ``uv pip install`` form is kept for contexts that document uv usage.

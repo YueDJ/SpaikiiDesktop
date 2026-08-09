@@ -5,8 +5,8 @@ from unittest.mock import patch
 
 import pytest
 
-from sparkii_cli import config as hermes_config
-from sparkii_cli import main as hermes_main
+from sparkii_cli import config as sparkii_config
+from sparkii_cli import main as sparkii_main
 
 
 # ---------------------------------------------------------------------------
@@ -58,15 +58,15 @@ def _patch_managed_uv(request):
 def _setup_update_mocks(monkeypatch, tmp_path):
     """Common setup for cmd_update tests."""
     (tmp_path / ".git").mkdir()
-    monkeypatch.setattr(hermes_main, "PROJECT_ROOT", tmp_path)
-    monkeypatch.setattr(hermes_main, "_stash_local_changes_if_needed", lambda *a, **kw: None)
-    monkeypatch.setattr(hermes_main, "_restore_stashed_changes", lambda *a, **kw: True)
-    monkeypatch.setattr(hermes_config, "get_missing_env_vars", lambda required_only=True: [])
-    monkeypatch.setattr(hermes_config, "get_missing_config_fields", lambda: [])
-    monkeypatch.setattr(hermes_config, "check_config_version", lambda: (5, 5))
-    monkeypatch.setattr(hermes_config, "migrate_config", lambda **kw: {"env_added": [], "config_added": []})
-    monkeypatch.setattr(hermes_main, "_upgrade_pip_before_lazy_refresh", lambda *a, **kw: None)
-    monkeypatch.setattr(hermes_main, "_refresh_active_lazy_features", lambda *a, **kw: True)
+    monkeypatch.setattr(sparkii_main, "PROJECT_ROOT", tmp_path)
+    monkeypatch.setattr(sparkii_main, "_stash_local_changes_if_needed", lambda *a, **kw: None)
+    monkeypatch.setattr(sparkii_main, "_restore_stashed_changes", lambda *a, **kw: True)
+    monkeypatch.setattr(sparkii_config, "get_missing_env_vars", lambda required_only=True: [])
+    monkeypatch.setattr(sparkii_config, "get_missing_config_fields", lambda: [])
+    monkeypatch.setattr(sparkii_config, "check_config_version", lambda: (5, 5))
+    monkeypatch.setattr(sparkii_config, "migrate_config", lambda **kw: {"env_added": [], "config_added": []})
+    monkeypatch.setattr(sparkii_main, "_upgrade_pip_before_lazy_refresh", lambda *a, **kw: None)
+    monkeypatch.setattr(sparkii_main, "_refresh_active_lazy_features", lambda *a, **kw: True)
 
 
 
@@ -84,23 +84,23 @@ def test_refresh_active_memory_provider_dependencies_reinstalls_active_provider(
         lambda provider_name, force=False: recorded.append((provider_name, force)),
     )
 
-    hermes_main._refresh_active_memory_provider_dependencies()
+    sparkii_main._refresh_active_memory_provider_dependencies()
 
     assert recorded == [("mem0", True)]
 
 
 
 
-def test_reload_updated_runtime_modules_restores_new_hermes_constants_symbol(monkeypatch):
+def test_reload_updated_runtime_modules_restores_new_sparkii_constants_symbol(monkeypatch):
     """A pre-pull module object missing a new helper is repaired by reload."""
-    import hermes_constants
+    import sparkii_constants
 
-    monkeypatch.delattr(hermes_constants, "apply_subprocess_home_env", raising=False)
-    assert not hasattr(hermes_constants, "apply_subprocess_home_env")
+    monkeypatch.delattr(sparkii_constants, "apply_subprocess_home_env", raising=False)
+    assert not hasattr(sparkii_constants, "apply_subprocess_home_env")
 
-    hermes_main._reload_updated_runtime_modules()
+    sparkii_main._reload_updated_runtime_modules()
 
-    assert callable(hermes_constants.apply_subprocess_home_env)
+    assert callable(sparkii_constants.apply_subprocess_home_env)
 
 
 
@@ -171,20 +171,20 @@ def test_cmd_update_skips_stash_restore_when_reset_fails(monkeypatch, tmp_path, 
     _setup_update_mocks(monkeypatch, tmp_path)
     # Re-enable stash so it actually returns a ref
     monkeypatch.setattr(
-        hermes_main, "_stash_local_changes_if_needed",
+        sparkii_main, "_stash_local_changes_if_needed",
         lambda *a, **kw: "abc123deadbeef",
     )
     restore_calls = []
     monkeypatch.setattr(
-        hermes_main, "_restore_stashed_changes",
+        sparkii_main, "_restore_stashed_changes",
         lambda *a, **kw: restore_calls.append(1) or True,
     )
 
     side_effect, _ = _make_update_side_effect(ff_only_fails=True, reset_fails=True)
-    monkeypatch.setattr(hermes_main.subprocess, "run", side_effect)
+    monkeypatch.setattr(sparkii_main.subprocess, "run", side_effect)
 
     with pytest.raises(SystemExit, match="1"):
-        hermes_main.cmd_update(SimpleNamespace())
+        sparkii_main.cmd_update(SimpleNamespace())
 
     # Stash restore should NOT have been called
     assert len(restore_calls) == 0
@@ -207,25 +207,25 @@ def _setup_setting_test(monkeypatch, tmp_path, mode):
     _setup_update_mocks(monkeypatch, tmp_path)
     monkeypatch.setattr("shutil.which", lambda name: "/usr/bin/uv" if name == "uv" else None)
     monkeypatch.setattr(
-        hermes_main, "_stash_local_changes_if_needed",
+        sparkii_main, "_stash_local_changes_if_needed",
         lambda *a, **kw: "abc123deadbeef",
     )
     restore_calls = []
     discard_calls = []
     monkeypatch.setattr(
-        hermes_main, "_restore_stashed_changes",
+        sparkii_main, "_restore_stashed_changes",
         lambda *a, **kw: restore_calls.append(1) or True,
     )
     monkeypatch.setattr(
-        hermes_main, "_discard_stashed_changes",
+        sparkii_main, "_discard_stashed_changes",
         lambda *a, **kw: discard_calls.append(1) or True,
     )
     monkeypatch.setattr(
-        hermes_config, "load_config",
+        sparkii_config, "load_config",
         lambda *a, **kw: {"updates": {"non_interactive_local_changes": mode}},
     )
     side_effect, recorded = _make_update_side_effect()
-    monkeypatch.setattr(hermes_main.subprocess, "run", side_effect)
+    monkeypatch.setattr(sparkii_main.subprocess, "run", side_effect)
     return restore_calls, discard_calls, recorded
 
 
@@ -235,7 +235,7 @@ def _setup_setting_test(monkeypatch, tmp_path, mode):
 
 def test_bootstrap_marker_not_autostashed_by_update(tmp_path):
     """#38529: the Desktop bootstrap marker must be git-ignored so that
-    ``hermes update``'s ``git stash push --include-untracked`` does not sweep it
+    ``sparkii update``'s ``git stash push --include-untracked`` does not sweep it
     into an autostash on every run.
 
     Behavioral + hermetic: build a throwaway repo that adopts the project's real
@@ -248,7 +248,7 @@ def test_bootstrap_marker_not_autostashed_by_update(tmp_path):
     if shutil.which("git") is None:
         pytest.skip("git not available")
 
-    repo_gitignore = Path(hermes_main.__file__).resolve().parents[1] / ".gitignore"
+    repo_gitignore = Path(sparkii_main.__file__).resolve().parents[1] / ".gitignore"
 
     def git(*args):
         return subprocess.run(
@@ -263,21 +263,21 @@ def test_bootstrap_marker_not_autostashed_by_update(tmp_path):
     git("add", "-A")
     git("commit", "-qm", "init")
 
-    marker = tmp_path / ".hermes-bootstrap-complete"
+    marker = tmp_path / ".sparkii-bootstrap-complete"
     marker.write_text("")
 
-    # Exact flags used by hermes update (sparkii_cli/main.py).
-    git("stash", "push", "--include-untracked", "-m", "hermes-update-autostash")
+    # Exact flags used by sparkii update (sparkii_cli/main.py).
+    git("stash", "push", "--include-untracked", "-m", "sparkii-update-autostash")
 
     assert marker.exists(), (
-        ".hermes-bootstrap-complete was swept into the update autostash — it must "
+        ".sparkii-bootstrap-complete was swept into the update autostash — it must "
         "be listed in .gitignore so `git stash -u` skips it (#38529)."
     )
     # It must not even register as a dirty/untracked change.
     status = subprocess.run(
         ["git", "status", "--porcelain"], cwd=tmp_path, capture_output=True, text=True
     ).stdout
-    assert ".hermes-bootstrap-complete" not in status
+    assert ".sparkii-bootstrap-complete" not in status
 
 
 # ---------------------------------------------------------------------------
@@ -320,20 +320,20 @@ def test_update_autostash_survives_undeletable_untracked_dir(tmp_path):
     (tmp_path / "tracked.txt").write_text("v2 local change\n")
     pkg = tmp_path / "packaging" / "homebrew"
     pkg.mkdir(parents=True)
-    (pkg / "hermes-agent.rb").write_text("formula\n")
+    (pkg / "sparkii-agent.rb").write_text("formula\n")
     os.chmod(pkg, 0o555)  # undeletable contents, like a root-owned dir
     try:
-        stash_ref = hermes_main._stash_local_changes_if_needed(["git"], tmp_path)
+        stash_ref = sparkii_main._stash_local_changes_if_needed(["git"], tmp_path)
         assert stash_ref
 
         # The tracked change is stashed; simulate the updater's checkout window.
         assert (tmp_path / "tracked.txt").read_text() == "v1\n"
 
-        restored = hermes_main._restore_stashed_changes(
+        restored = sparkii_main._restore_stashed_changes(
             ["git"], tmp_path, stash_ref, prompt_user=False
         )
         assert restored is True
         assert (tmp_path / "tracked.txt").read_text() == "v2 local change\n"
-        assert (pkg / "hermes-agent.rb").read_text() == "formula\n"
+        assert (pkg / "sparkii-agent.rb").read_text() == "formula\n"
     finally:
         os.chmod(pkg, 0o755)

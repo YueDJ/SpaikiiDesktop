@@ -266,8 +266,8 @@ _VALID_ITEM_ID = "msg_abc123"
 
 
 # The codex app-server overflows the Responses 64-char call_id limit for
-# MCP-routed tools, e.g. codex_mcp__hermes-tools__web_search_exec-<uuid> (#73492).
-_OVERSIZED_CALL_ID = "codex_mcp__hermes-tools__web_search_exec-" + "0" * 43
+# MCP-routed tools, e.g. codex_mcp__sparkii-tools__web_search_exec-<uuid> (#73492).
+_OVERSIZED_CALL_ID = "codex_mcp__sparkii-tools__web_search_exec-" + "0" * 43
 
 
 def test_chat_messages_to_responses_input_clamps_oversized_call_id():

@@ -3,7 +3,7 @@ import sys
 
 def test_sessions_export_md_writes_single_session(monkeypatch, tmp_path, capsys):
     import sparkii_cli.main as main_mod
-    import hermes_state
+    import sparkii_state
 
     captured = {}
 
@@ -31,12 +31,12 @@ def test_sessions_export_md_writes_single_session(monkeypatch, tmp_path, capsys)
         def close(self):
             captured["closed"] = True
 
-    monkeypatch.setattr(hermes_state, "SessionDB", lambda: FakeDB())
+    monkeypatch.setattr(sparkii_state, "SessionDB", lambda: FakeDB())
     monkeypatch.setattr(
         sys,
         "argv",
         [
-            "hermes",
+            "sparkii",
             "sessions",
             "export",
             "--format",
@@ -68,7 +68,7 @@ def test_sessions_export_md_writes_single_session(monkeypatch, tmp_path, capsys)
 def test_sessions_export_redact_scrubs_secrets(monkeypatch, tmp_path):
     """--redact runs exported content through force-mode secret redaction."""
     import sparkii_cli.main as main_mod
-    import hermes_state
+    import sparkii_state
 
     secret = "sk-proj-Zz12345678901234567890123456789012345678"
 
@@ -88,12 +88,12 @@ def test_sessions_export_redact_scrubs_secrets(monkeypatch, tmp_path):
         def close(self):
             pass
 
-    monkeypatch.setattr(hermes_state, "SessionDB", lambda: FakeDB())
+    monkeypatch.setattr(sparkii_state, "SessionDB", lambda: FakeDB())
     monkeypatch.setattr(
         sys,
         "argv",
         [
-            "hermes", "sessions", "export", "--format", "md",
+            "sparkii", "sessions", "export", "--format", "md",
             "--session-id", "s1", "--redact", str(tmp_path),
         ],
     )

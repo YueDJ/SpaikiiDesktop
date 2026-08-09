@@ -71,10 +71,10 @@ logger = logging.getLogger(__name__)
 # identify HermesAgent traffic — matching other Hermes outbound surfaces
 # that already set ``HermesAgent/<version>`` for platform-partner attribution.
 try:
-    from sparkii_cli import __version__ as _HERMES_VERSION
+    from sparkii_cli import __version__ as _SPARKII_VERSION
 except Exception:
-    _HERMES_VERSION = "unknown"
-_HERMES_SLACK_USER_AGENT_PREFIX = f"HermesAgent/{_HERMES_VERSION}"
+    _SPARKII_VERSION = "unknown"
+_SPARKII_SLACK_USER_AGENT_PREFIX = f"HermesAgent/{_SPARKII_VERSION}"
 
 _SLACK_ERROR_BODY_LIMIT_BYTES = 8 * 1024
 
@@ -1825,9 +1825,9 @@ class SlackAdapter(BasePlatformAdapter):
         bot_tokens = [t.strip() for t in raw_token.split(",") if t.strip()]
 
         # Also load tokens from OAuth token file
-        from hermes_constants import get_hermes_home
+        from sparkii_constants import get_sparkii_home
 
-        tokens_file = get_hermes_home() / "slack_tokens.json"
+        tokens_file = get_sparkii_home() / "slack_tokens.json"
         if tokens_file.exists():
             try:
                 # Warn if the token file is world- or group-readable — it
@@ -1907,7 +1907,7 @@ class SlackAdapter(BasePlatformAdapter):
             primary_token = bot_tokens[0]
             primary_client = AsyncWebClient(
                 token=primary_token,
-                user_agent_prefix=_HERMES_SLACK_USER_AGENT_PREFIX,
+                user_agent_prefix=_SPARKII_SLACK_USER_AGENT_PREFIX,
             )
             self._app = AsyncApp(token=primary_token, client=primary_client)
             _apply_slack_proxy(self._app.client, proxy_url)
@@ -1916,7 +1916,7 @@ class SlackAdapter(BasePlatformAdapter):
             for token in bot_tokens:
                 client = AsyncWebClient(
                     token=token,
-                    user_agent_prefix=_HERMES_SLACK_USER_AGENT_PREFIX,
+                    user_agent_prefix=_SPARKII_SLACK_USER_AGENT_PREFIX,
                 )
                 _apply_slack_proxy(client, proxy_url)
                 auth_response = await client.auth_test()
@@ -8642,9 +8642,9 @@ async def _standalone_send(
     # string, which Slack rejects as ``invalid_auth`` (#47547).
     tokens = [t.strip() for t in str(raw_token or "").split(",") if t.strip()]
     try:
-        from hermes_constants import get_hermes_home
+        from sparkii_constants import get_sparkii_home
 
-        _tokens_file = get_hermes_home() / "slack_tokens.json"
+        _tokens_file = get_sparkii_home() / "slack_tokens.json"
         if _tokens_file.exists():
             _saved = json.loads(_tokens_file.read_text(encoding="utf-8"))
             for _entry in _saved.values():
@@ -8884,18 +8884,18 @@ def interactive_setup() -> None:
     )
 
     def _write_slack_manifest_and_instruct() -> None:
-        """Generate the Slack manifest, write it under HERMES_HOME, and print
+        """Generate the Slack manifest, write it under SPARKII_HOME, and print
         paste-into-Slack instructions. Failures are non-fatal."""
         try:
             from sparkii_cli.slack_cli import _build_full_manifest
-            from hermes_constants import get_hermes_home
+            from sparkii_constants import get_sparkii_home
             import json as _json
 
             manifest = _build_full_manifest(
                 bot_name="Hermes",
                 bot_description="Your Hermes agent on Slack",
             )
-            target = Path(get_hermes_home()) / "slack-manifest.json"
+            target = Path(get_sparkii_home()) / "slack-manifest.json"
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(
                 _json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",

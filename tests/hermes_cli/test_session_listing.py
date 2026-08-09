@@ -18,7 +18,7 @@ class TestParseSessionListingArgs:
 class TestQuerySessionListingSearch:
     @pytest.fixture
     def db(self, tmp_path):
-        from hermes_state import SessionDB
+        from sparkii_state import SessionDB
         db = SessionDB(db_path=tmp_path / "state.db")
         db.create_session("sess_an94", "telegram", user_id="1", chat_id="2")
         db.set_session_title("sess_an94", "AN-94 Prestige Barrel Build #2")
@@ -40,7 +40,7 @@ class TestQuerySessionListingSearch:
 
     def test_search_matches_compression_root_title(self, tmp_path):
         """Searching an old (compressed-away) title surfaces the live tip."""
-        from hermes_state import SessionDB
+        from sparkii_state import SessionDB
         db = SessionDB(db_path=tmp_path / "chain.db")
         db.create_session("root_1", "telegram", user_id="1", chat_id="2")
         db.set_session_title("root_1", "Old Chat")
@@ -60,7 +60,7 @@ class TestQuerySessionListingSearch:
 class TestQuerySessionListingLaneScope:
     @pytest.fixture
     def db(self, tmp_path):
-        from hermes_state import SessionDB
+        from sparkii_state import SessionDB
 
         db = SessionDB(db_path=tmp_path / "state.db")
         lane_key = "agent:main:telegram:dm:lane"

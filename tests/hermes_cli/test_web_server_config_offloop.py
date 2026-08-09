@@ -16,7 +16,7 @@ import pytest
 
 class TestGetConfigOffLoop:
     @pytest.fixture(autouse=True)
-    def _home(self, _isolate_hermes_home):
+    def _home(self, _isolate_sparkii_home):
         pass
 
     def test_get_config_returns_data(self):
@@ -116,7 +116,7 @@ class TestRouterOffLoop:
     do it on the event loop either (same bug class as /api/config)."""
 
     @pytest.fixture(autouse=True)
-    def _home(self, _isolate_hermes_home):
+    def _home(self, _isolate_sparkii_home):
         pass
 
     def test_get_skills_loop_stays_responsive_while_profile_lock_held(self):
@@ -190,7 +190,7 @@ class TestConfigMutationLock:
     concurrent writers touching DIFFERENT keys must both survive."""
 
     @pytest.fixture(autouse=True)
-    def _home(self, _isolate_hermes_home):
+    def _home(self, _isolate_sparkii_home):
         pass
 
     def test_concurrent_distinct_updates_both_survive(self):

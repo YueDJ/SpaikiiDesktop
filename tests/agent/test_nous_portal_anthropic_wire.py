@@ -68,7 +68,7 @@ class TestApiModeRouting:
             == "anthropic_messages"
         )
         assert (
-            determine_api_mode("nous", PORTAL_URL, model="hermes-4-405b")
+            determine_api_mode("nous", PORTAL_URL, model="sparkii-4-405b")
             == "chat_completions"
         )
         # No model → historical OpenAI-wire default (safer than guessing).
@@ -117,7 +117,7 @@ class TestRuntimeResolution:
         monkeypatch.setattr(
             rp,
             "_get_model_config",
-            lambda: {"provider": "nous", "default": "hermes-4-405b"},
+            lambda: {"provider": "nous", "default": "sparkii-4-405b"},
         )
 
         resolved = rp.resolve_runtime_provider(
@@ -197,7 +197,7 @@ class TestClientShape:
         self, monkeypatch
     ):
         """The Anthropic SDK fills api_key from ANTHROPIC_API_KEY when the
-        constructor omits it. Hermes loads that env from ~/.hermes/.env, so
+        constructor omits it. Hermes loads that env from ~/.sparkii/.env, so
         without an explicit clear every Portal request would dual-auth as
         X-Api-Key: sk-ant-… + Authorization: Bearer portal.jwt."""
         from agent.anthropic_adapter import build_anthropic_client
@@ -293,7 +293,7 @@ class TestPortalBodyFields:
 
         tags = self._build()["extra_body"]["tags"]
 
-        assert "product=hermes-agent" in tags
+        assert "product=sparkii-agent" in tags
         assert sparkii_client_tag() in tags
         assert all(isinstance(tag, str) for tag in tags), (
             "Portal skips non-string tag entries unpredictably"
@@ -439,16 +439,16 @@ class TestAuxiliaryDualWire:
         with (
             patch(
                 "agent.auxiliary_client._try_nous",
-                return_value=(plain, "hermes-4-405b"),
+                return_value=(plain, "sparkii-4-405b"),
             ),
             patch(
                 "agent.anthropic_adapter.build_anthropic_client",
                 side_effect=AssertionError("must not build Anthropic client"),
             ),
         ):
-            client, model = resolve_provider_client("nous", "hermes-4-405b")
+            client, model = resolve_provider_client("nous", "sparkii-4-405b")
 
-        assert model == "hermes-4-405b"
+        assert model == "sparkii-4-405b"
         assert client is plain
         assert not isinstance(client, AnthropicAuxiliaryClient)
 

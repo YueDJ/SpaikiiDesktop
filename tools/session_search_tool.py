@@ -19,7 +19,7 @@ mode parameter):
      previews, timestamps).
 
 All three modes operate on the SQLite session DB via the FTS5 index and
-the get_anchored_view / get_messages_around primitives in hermes_state.
+the get_anchored_view / get_messages_around primitives in sparkii_state.
 No LLM calls anywhere — every shape returns actual messages from the DB.
 
 History: PR #20238 (JabberELF) seeded a fast/summary dual-mode split; the
@@ -308,7 +308,7 @@ def _resolve_profile_db(profile: str):
         return None
 
     from sparkii_cli import profiles as profiles_mod
-    from hermes_state import SessionDB
+    from sparkii_state import SessionDB
 
     canon = profiles_mod.normalize_profile_name(profile)
     profiles_mod.validate_profile_name(canon)
@@ -353,7 +353,7 @@ def _locate_session_db(session_id: str):
 
     try:
         from sparkii_cli import profiles as profiles_mod
-        from hermes_state import SessionDB
+        from sparkii_state import SessionDB
     except Exception:
         return None, None
 
@@ -873,11 +873,11 @@ def session_search(
     """
     if db is None:
         try:
-            from hermes_state import SessionDB
+            from sparkii_state import SessionDB
             db = SessionDB()
         except Exception:
             logging.debug("SessionDB unavailable for session_search", exc_info=True)
-            from hermes_state import format_session_db_unavailable
+            from sparkii_state import format_session_db_unavailable
             return tool_error(format_session_db_unavailable(), success=False)
 
     # Normalise a raw `@session:<profile>/<id>` link value passed as session_id.
@@ -973,7 +973,7 @@ def session_search(
 def check_session_search_requirements() -> bool:
     """Requires the SQLite state database."""
     try:
-        from hermes_state import _default_db_path
+        from sparkii_state import _default_db_path
         return _default_db_path().parent.exists()
     except ImportError:
         return False

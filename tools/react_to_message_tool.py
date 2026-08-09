@@ -24,7 +24,7 @@ from utils import env_var_enabled
 def _open_session_db():
     """Open the SessionDB for the profile owning this turn, or ``None``."""
     try:
-        from hermes_state import SessionDB
+        from sparkii_state import SessionDB
 
         return SessionDB()
     except Exception:

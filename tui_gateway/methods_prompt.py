@@ -86,8 +86,8 @@ def _(rid, params: dict) -> dict:
         except Exception:
             typed_stop = False
         if typed_stop:
-            os.environ["HERMES_VOICE"] = "0"
-            os.environ["HERMES_VOICE_TTS"] = "0"
+            os.environ["SPARKII_VOICE"] = "0"
+            os.environ["SPARKII_VOICE_TTS"] = "0"
             try:
                 from sparkii_cli.voice import stop_continuous
 
@@ -301,7 +301,7 @@ def _(rid, params: dict) -> dict:
         # resumes with full context (the agent won't persist the seed itself).
         _persist_branch_seed(session)
     except Exception as exc:
-        from hermes_state import is_disk_full_error
+        from sparkii_state import is_disk_full_error
 
         with session["history_lock"]:
             session["running"] = False

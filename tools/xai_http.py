@@ -45,9 +45,9 @@ def has_xai_credentials() -> bool:
         if (get_secret("XAI_API_KEY", "") or "").strip():
             return True
     try:
-        from hermes_constants import get_hermes_home
+        from sparkii_constants import get_sparkii_home
 
-        auth_path = get_hermes_home() / "auth.json"
+        auth_path = get_sparkii_home() / "auth.json"
         if not auth_path.exists():
             return False
         store = json.loads(auth_path.read_text(encoding="utf-8-sig"))
@@ -92,7 +92,7 @@ def get_env_value(name: str, default=None):
     return value if value is not None else default
 
 
-def hermes_xai_user_agent() -> str:
+def sparkii_xai_user_agent() -> str:
     """Return a stable Hermes-specific User-Agent for xAI HTTP calls."""
     try:
         from sparkii_cli import __version__
@@ -108,7 +108,7 @@ def hermes_xai_default_headers() -> Dict[str, str]:
     so chat/completions and Responses traffic is attributed as Hermes Agent,
     matching the direct HTTP integrations (search, TTS, STT, image, video).
     """
-    return {"User-Agent": hermes_xai_user_agent()}
+    return {"User-Agent": sparkii_xai_user_agent()}
 
 
 def _load_config_section(section_name: str) -> Dict[str, Any]:
@@ -241,9 +241,9 @@ def maybe_mark_xai_storage_notice_seen(section_name: str) -> Optional[str]:
     if not notice:
         return None
     try:
-        from hermes_constants import get_hermes_home
+        from sparkii_constants import get_sparkii_home
 
-        marker_dir = get_hermes_home() / "state"
+        marker_dir = get_sparkii_home() / "state"
         marker_dir.mkdir(parents=True, exist_ok=True)
         marker = marker_dir / f"{section_name}_xai_storage_notice_seen"
         if marker.exists():

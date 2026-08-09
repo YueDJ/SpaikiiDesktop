@@ -34,9 +34,9 @@ async def test_direct_model_switch_offloads_to_thread(tmp_path, monkeypatch):
 
     from sparkii_cli.model_switch import ModelSwitchResult
 
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
-    (hermes_home / "config.yaml").write_text(
+    sparkii_home = tmp_path / ".sparkii"
+    sparkii_home.mkdir()
+    (sparkii_home / "config.yaml").write_text(
         yaml.safe_dump(
             {"model": {"default": "gpt-5.4", "provider": "openrouter"}}
         ),
@@ -45,7 +45,7 @@ async def test_direct_model_switch_offloads_to_thread(tmp_path, monkeypatch):
 
     import gateway.run as gateway_run
 
-    monkeypatch.setattr(gateway_run, "_hermes_home", hermes_home)
+    monkeypatch.setattr(gateway_run, "_sparkii_home", sparkii_home)
 
     # Fail the switch so the handler returns before _finish_switch (which needs
     # full runner state) — we only care that the offload happened.

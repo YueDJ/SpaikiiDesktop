@@ -36,7 +36,7 @@ class ApiServerLikeAdapter:
         self._host = "127.0.0.1"
         self._port = 8642
         self._api_key = "k"
-        self._model_name = "hermes"
+        self._model_name = "sparkii"
         self.handle_message_calls = []
         self.send_calls = 0
 
@@ -106,7 +106,7 @@ def test_apiserver_sub_wakes_real_session_via_self_post(tmp_path, monkeypatch):
     self-posting with the task's raw session_id — never handle_message (which
     would run the wake under a build_session_key()-derived key that can't
     match the raw X-Hermes-Session-Id session)."""
-    monkeypatch.setenv("HERMES_KANBAN_DB", str(tmp_path / "apiserver.db"))
+    monkeypatch.setenv("SPARKII_KANBAN_DB", str(tmp_path / "apiserver.db"))
     kb.init_db()
     tid = _create_completed_subscription(
         "api_server", "raw-sid-123", session_id="raw-sid-123",

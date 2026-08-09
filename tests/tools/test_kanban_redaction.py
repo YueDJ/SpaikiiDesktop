@@ -18,12 +18,12 @@ import pytest
 
 @pytest.fixture
 def worker_env(monkeypatch, tmp_path):
-    """Isolated HERMES_HOME with a running task; returns the task id."""
-    home = tmp_path / ".hermes"
+    """Isolated SPARKII_HOME with a running task; returns the task id."""
+    home = tmp_path / ".sparkii"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_PROFILE", "test-worker")
-    monkeypatch.delenv("HERMES_SESSION_ID", raising=False)
+    monkeypatch.setenv("SPARKII_HOME", str(home))
+    monkeypatch.setenv("SPARKII_PROFILE", "test-worker")
+    monkeypatch.delenv("SPARKII_SESSION_ID", raising=False)
     from pathlib import Path as _Path
     monkeypatch.setattr(_Path, "home", lambda: tmp_path)
 
@@ -36,7 +36,7 @@ def worker_env(monkeypatch, tmp_path):
         kb.claim_task(conn, tid)
     finally:
         conn.close()
-    monkeypatch.setenv("HERMES_KANBAN_TASK", tid)
+    monkeypatch.setenv("SPARKII_KANBAN_TASK", tid)
     return tid
 
 
@@ -103,12 +103,12 @@ def test_kanban_comment_no_secret_passthrough(worker_env):
 
 
 # ---------------------------------------------------------------------------
-# Negative test — force=True bypasses HERMES_REDACT_SECRETS=false
+# Negative test — force=True bypasses SPARKII_REDACT_SECRETS=false
 # ---------------------------------------------------------------------------
 
 def test_scrub_respects_force_flag_regardless_of_config(worker_env, monkeypatch):
-    """force=True must fire even when HERMES_REDACT_SECRETS=false is set."""
-    monkeypatch.setenv("HERMES_REDACT_SECRETS", "false")
+    """force=True must fire even when SPARKII_REDACT_SECRETS=false is set."""
+    monkeypatch.setenv("SPARKII_REDACT_SECRETS", "false")
     from tools import kanban_tools as kt
     from sparkii_cli import kanban_db as kb
     secret = "ghp_" + "C" * 40

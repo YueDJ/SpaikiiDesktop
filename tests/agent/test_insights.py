@@ -4,7 +4,7 @@ import sqlite3
 import time
 import pytest
 
-from hermes_state import SessionDB
+from sparkii_state import SessionDB
 from agent.insights import (
     InsightsEngine,
     _estimate_cost,

@@ -1,4 +1,4 @@
-"""Tests for `hermes curator archive` and `hermes curator prune`.
+"""Tests for `sparkii curator archive` and `sparkii curator prune`.
 
 Covers:
 - archive refuses pinned skills with an `unpin` hint
@@ -38,7 +38,7 @@ def test_archive_refuses_pinned(monkeypatch, capsys):
     assert called == []
     out = capsys.readouterr().out
     assert "pinned" in out.lower()
-    assert "hermes curator unpin" in out
+    assert "sparkii curator unpin" in out
 
 
 
@@ -75,7 +75,7 @@ def test_archive_and_prune_registered():
     import argparse
     import sparkii_cli.curator as curator_cli
 
-    parser = argparse.ArgumentParser(prog="hermes curator")
+    parser = argparse.ArgumentParser(prog="sparkii curator")
     curator_cli.register_cli(parser)
 
     args = parser.parse_args(["archive", "my-skill"])

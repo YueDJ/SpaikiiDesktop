@@ -1,4 +1,4 @@
-"""Tests for `hermes curator status` output.
+"""Tests for `sparkii curator status` output.
 
 Covers:
 - y0shualee's "least recently active" semantic (view/patch/use all count as activity).
@@ -21,17 +21,17 @@ import pytest
 
 @pytest.fixture
 def curator_status_env(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME with real agent-created skills on disk."""
-    home = tmp_path / ".hermes"
+    """Isolated SPARKII_HOME with real agent-created skills on disk."""
+    home = tmp_path / ".sparkii"
     skills = home / "skills"
     skills.mkdir(parents=True)
     (home / "logs").mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("SPARKII_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
     import importlib
-    import hermes_constants
-    importlib.reload(hermes_constants)
+    import sparkii_constants
+    importlib.reload(sparkii_constants)
     from tools import skill_usage
     importlib.reload(skill_usage)
     from agent import curator
@@ -48,7 +48,7 @@ def curator_status_env(tmp_path, monkeypatch):
             "description: test\n"
             "version: 1.0.0\n"
             "metadata:\n"
-            "  hermes:\n"
+            "  sparkii:\n"
             "    agent_created: true\n"
             "---\n"
             f"# {name}\n"

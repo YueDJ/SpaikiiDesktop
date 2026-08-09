@@ -14,7 +14,7 @@ def clean_env(monkeypatch):
         "GEMINI_API_KEY",
         "GOOGLE_API_KEY",
         "GEMINI_BASE_URL",
-        "HERMES_SESSION_PLATFORM",
+        "SPARKII_SESSION_PLATFORM",
     ):
         monkeypatch.delenv(key, raising=False)
 
@@ -126,7 +126,7 @@ class TestGenerateGeminiTts:
             _generate_gemini_tts("Hi", str(tmp_path / "test.wav"), {})
 
         headers = mock_post.call_args[1]["headers"]
-        assert headers["X-Goog-Api-Client"] == f"hermes-agent/{__version__}"
+        assert headers["X-Goog-Api-Client"] == f"sparkii-agent/{__version__}"
 
     def test_default_voice_and_model(self, tmp_path, monkeypatch, mock_gemini_response):
         from tools.tts_tool import (

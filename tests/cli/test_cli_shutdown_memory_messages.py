@@ -112,10 +112,10 @@ def test_cli_close_preflush_resumed_prefix_is_not_duplicated(tmp_path, monkeypat
     The pause is after ``_persist_session`` records its live snapshot but before
     its normal DB flush. The close helper must retain the distinct CLI baseline.
     """
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("SPARKII_HOME", str(tmp_path / ".sparkii"))
 
     import cli as cli_mod
-    from hermes_state import SessionDB
+    from sparkii_state import SessionDB
 
     db = SessionDB(db_path=tmp_path / "state.db")
     session_id = "cli-close-preflush-resume"
@@ -203,10 +203,10 @@ def test_cli_close_preflush_resumed_prefix_is_not_duplicated(tmp_path, monkeypat
 
 def test_cli_close_hands_staged_user_marker_to_turn_start(tmp_path, monkeypatch):
     """A close before turn setup does not duplicate the CLI-staged user row."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("SPARKII_HOME", str(tmp_path / ".sparkii"))
 
     import cli as cli_mod
-    from hermes_state import SessionDB
+    from sparkii_state import SessionDB
 
     db = SessionDB(db_path=tmp_path / "state.db")
     session_id = "cli-close-staged-user"
@@ -250,10 +250,10 @@ def test_cli_close_hands_staged_user_marker_to_turn_start(tmp_path, monkeypatch)
 
 def test_cli_close_uses_clean_override_for_shortened_pending_snapshot(tmp_path, monkeypatch):
     """Close retains the clean user text when its snapshot omits the prefix."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("SPARKII_HOME", str(tmp_path / ".sparkii"))
 
     import cli as cli_mod
-    from hermes_state import SessionDB
+    from sparkii_state import SessionDB
 
     db = SessionDB(db_path=tmp_path / "state.db")
     session_id = "cli-close-shortened-noted-pending"
@@ -297,11 +297,11 @@ def test_cli_close_uses_clean_override_for_shortened_pending_snapshot(tmp_path, 
 
 def test_cli_close_builds_prompt_before_creating_first_session_row(tmp_path, monkeypatch):
     """First-turn close persistence must not leave a NULL prompt snapshot."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("SPARKII_HOME", str(tmp_path / ".sparkii"))
 
     import agent.conversation_loop as loop_mod
     import cli as cli_mod
-    from hermes_state import SessionDB
+    from sparkii_state import SessionDB
 
     db = SessionDB(db_path=tmp_path / "state.db")
     session_id = "cli-close-first-turn"

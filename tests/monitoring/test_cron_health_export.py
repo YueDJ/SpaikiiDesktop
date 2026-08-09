@@ -104,17 +104,17 @@ def test_registered_observable_metric_names_cover_snapshot_metrics(monkeypatch):
             self.attributes = {}
 
     gateway_snapshot = type("S", (), {"metrics": [
-        _M("hermes.gateway.up"), _M("hermes.gateway.active_agents"),
-        _M("hermes.gateway.busy"), _M("hermes.gateway.drainable"),
-        _M("hermes.gateway.restart_requested"),
-        _M("hermes.platform.up"), _M("hermes.platform.degraded"),
+        _M("sparkii.gateway.up"), _M("sparkii.gateway.active_agents"),
+        _M("sparkii.gateway.busy"), _M("sparkii.gateway.drainable"),
+        _M("sparkii.gateway.restart_requested"),
+        _M("sparkii.platform.up"), _M("sparkii.platform.degraded"),
     ]})()
     cron_snapshot = type("S", (), {"metrics": [
-        _M("hermes.cron.scheduler.heartbeat_age_seconds"),
-        _M("hermes.cron.scheduler.last_success_age_seconds"),
-        _M("hermes.cron.scheduler.catch_up_occurrences"),
-        _M("hermes.cron.jobs.enabled"), _M("hermes.cron.jobs.running"),
-        _M("hermes.cron.jobs.overdue"),
+        _M("sparkii.cron.scheduler.heartbeat_age_seconds"),
+        _M("sparkii.cron.scheduler.last_success_age_seconds"),
+        _M("sparkii.cron.scheduler.catch_up_occurrences"),
+        _M("sparkii.cron.jobs.enabled"), _M("sparkii.cron.jobs.running"),
+        _M("sparkii.cron.jobs.overdue"),
     ]})()
     monkeypatch.setattr(gateway_health_export, "_read_gateway_snapshot", lambda config: gateway_snapshot)
     monkeypatch.setattr(gateway_health_export, "_read_cron_snapshot", lambda: cron_snapshot)

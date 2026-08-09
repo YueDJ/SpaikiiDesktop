@@ -173,9 +173,9 @@ _capability_bg_lock = threading.Lock()
 
 def _capability_disk_cache_path() -> "Path":
 
-    from hermes_constants import get_hermes_home
+    from sparkii_constants import get_sparkii_home
 
-    return get_hermes_home() / "cache" / "discord_capabilities.json"
+    return get_sparkii_home() / "cache" / "discord_capabilities.json"
 
 
 def _token_cache_key(token: str) -> str:

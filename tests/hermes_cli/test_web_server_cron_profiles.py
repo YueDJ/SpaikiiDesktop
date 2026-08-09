@@ -14,7 +14,7 @@ def isolated_profiles(tmp_path, monkeypatch):
     """Give profile discovery an isolated default home with one named profile."""
     from sparkii_cli import profiles
 
-    default_home = tmp_path / ".hermes"
+    default_home = tmp_path / ".sparkii"
     profiles_root = default_home / "profiles"
     worker_home = profiles_root / "worker_alpha"
 
@@ -22,7 +22,7 @@ def isolated_profiles(tmp_path, monkeypatch):
         (home / "cron").mkdir(parents=True, exist_ok=True)
         (home / "config.yaml").write_text("model: test-model\n", encoding="utf-8")
 
-    monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: default_home)
+    monkeypatch.setattr(profiles, "_get_default_sparkii_home", lambda: default_home)
     monkeypatch.setattr(profiles, "_get_profiles_root", lambda: profiles_root)
     return {"default": default_home, "worker_alpha": worker_home}
 
@@ -47,20 +47,20 @@ def test_fire_cron_job_scopes_store_and_runtime_home_together(
     from cron import scheduler
     from sparkii_cli import web_server
 
-    from hermes_constants import (
-        reset_hermes_home_override,
-        set_hermes_home_override,
+    from sparkii_constants import (
+        reset_sparkii_home_override,
+        set_sparkii_home_override,
     )
 
     default_home = isolated_profiles["default"]
     worker_home = isolated_profiles["worker_alpha"]
-    monkeypatch.setattr(scheduler, "_hermes_home", None)
+    monkeypatch.setattr(scheduler, "_sparkii_home", None)
     captured = {}
 
     class RecordingProvider:
         def fire_due(self, job_id, *, adapters=None, loop=None):
             captured["job_id"] = job_id
-            captured["runtime_home"] = scheduler._get_hermes_home()
+            captured["runtime_home"] = scheduler._get_sparkii_home()
             captured["jobs_file"] = cron_jobs._current_cron_store().jobs_file
             return True
 
@@ -69,7 +69,7 @@ def test_fire_cron_job_scopes_store_and_runtime_home_together(
         lambda: RecordingProvider(),
     )
 
-    outer_token = set_hermes_home_override(default_home)
+    outer_token = set_sparkii_home_override(default_home)
     try:
         assert web_server._fire_cron_job_for_profile("worker_alpha", "worker-job") is True
         assert captured == {
@@ -77,9 +77,9 @@ def test_fire_cron_job_scopes_store_and_runtime_home_together(
             "runtime_home": worker_home,
             "jobs_file": worker_home / "cron" / "jobs.json",
         }
-        assert scheduler._get_hermes_home() == default_home
+        assert scheduler._get_sparkii_home() == default_home
     finally:
-        reset_hermes_home_override(outer_token)
+        reset_sparkii_home_override(outer_token)
 
 
 def test_create_registers_scheduler_inside_target_profile(
@@ -90,7 +90,7 @@ def test_create_registers_scheduler_inside_target_profile(
     from cron import jobs as cron_jobs
     from cron.scheduler_provider import CronScheduler
     from sparkii_cli import web_server
-    from hermes_constants import get_hermes_home
+    from sparkii_constants import get_sparkii_home
 
     worker_home = isolated_profiles["worker_alpha"]
     captured = {}
@@ -105,7 +105,7 @@ def test_create_registers_scheduler_inside_target_profile(
 
         def register_job(self, job):
             captured["job"] = job
-            captured["runtime_home"] = get_hermes_home()
+            captured["runtime_home"] = get_sparkii_home()
             captured["jobs_file"] = cron_jobs._current_cron_store().jobs_file
 
     monkeypatch.setattr(

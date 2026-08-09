@@ -118,18 +118,18 @@ class TestMacosOsascript:
 
 class TestIsWsl:
     def setup_method(self):
-        # _is_wsl is hermes_constants.is_wsl; reset the function's own module
-        # globals so this stays stable even if hermes_constants was imported
+        # _is_wsl is sparkii_constants.is_wsl; reset the function's own module
+        # globals so this stays stable even if sparkii_constants was imported
         # through a different module object earlier in a large xdist run.
-        import hermes_constants
-        hermes_constants._wsl_detected = None
+        import sparkii_constants
+        sparkii_constants._wsl_detected = None
         _is_wsl.__globals__["_wsl_detected"] = None
 
     def teardown_method(self):
         # Reset again after the test so we don't leak a cached value
         # (True/False) into whichever test the xdist worker runs next.
-        import hermes_constants
-        hermes_constants._wsl_detected = None
+        import sparkii_constants
+        sparkii_constants._wsl_detected = None
         _is_wsl.__globals__["_wsl_detected"] = None
 
     @pytest.mark.parametrize("content, expected", [
@@ -514,7 +514,7 @@ class TestTryAttachClipboardImage:
         with patch("sparkii_cli.clipboard.save_clipboard_image", return_value=True):
             cli._try_attach_clipboard_image()
         path = cli._attached_images[0]
-        assert path.parent == Path(os.environ["HERMES_HOME"]) / "images"
+        assert path.parent == Path(os.environ["SPARKII_HOME"]) / "images"
         assert path.name.startswith("clip_")
         assert path.suffix == ".png"
 

@@ -722,9 +722,9 @@ def _run_command_stt(
     propagating delegated-child lineage markers when applicable.
     """
     from agent.delegation_context import delegated_child_subprocess_env
-    from tools.environments.local import hermes_subprocess_env
+    from tools.environments.local import sparkii_subprocess_env
 
-    scrubbed = hermes_subprocess_env(inherit_credentials=False)
+    scrubbed = sparkii_subprocess_env(inherit_credentials=False)
     for key in env_passthrough or []:
         value = os.environ.get(key)
         if value is not None:
@@ -1910,9 +1910,9 @@ def _transcribe_local_command(file_path: str, model_name: str) -> Dict[str, Any]
             # Scrub Hermes secrets from the child env (sibling path to #56332 /
             # _run_command_stt — this local-whisper path previously inherited
             # the full process environment).
-            from tools.environments.local import hermes_subprocess_env
+            from tools.environments.local import sparkii_subprocess_env
 
-            child_env = hermes_subprocess_env(inherit_credentials=False)
+            child_env = sparkii_subprocess_env(inherit_credentials=False)
             subprocess.run(
                 shlex.split(command),
                 check=True,
@@ -2248,7 +2248,7 @@ def _transcribe_xai(file_path: str, model_name: str) -> Dict[str, Any]:
 
     try:
         import requests
-        from tools.xai_http import hermes_xai_user_agent
+        from tools.xai_http import sparkii_xai_user_agent
 
         data: Dict[str, str] = {}
         if language:
@@ -2264,7 +2264,7 @@ def _transcribe_xai(file_path: str, model_name: str) -> Dict[str, Any]:
                     f"{endpoint_base_url}/stt",
                     headers={
                         "Authorization": f"Bearer {bearer}",
-                        "User-Agent": hermes_xai_user_agent(),
+                        "User-Agent": sparkii_xai_user_agent(),
                     },
                     files={
                         "file": (Path(file_path).name, audio_file),

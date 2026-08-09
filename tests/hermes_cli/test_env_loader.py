@@ -3,7 +3,7 @@ import importlib
 import os
 import sys
 
-from sparkii_cli.env_loader import load_hermes_dotenv
+from sparkii_cli.env_loader import load_sparkii_dotenv
 
 
 def test_utf8_bom_does_not_mangle_first_key(tmp_path, monkeypatch):
@@ -13,7 +13,7 @@ def test_utf8_bom_does_not_mangle_first_key(tmp_path, monkeypatch):
     a BOM (EF BB BF). With encoding=utf-8, python-dotenv keeps U+FEFF on the
     first key so the canonical name is absent and callers see "not configured".
     """
-    home = tmp_path / "hermes"
+    home = tmp_path / "sparkii"
     home.mkdir()
     env_file = home / ".env"
     env_file.write_bytes(
@@ -24,7 +24,7 @@ def test_utf8_bom_does_not_mangle_first_key(tmp_path, monkeypatch):
     monkeypatch.delenv("SECOND_KEY", raising=False)
     monkeypatch.delenv("\ufeffFIRST_KEY", raising=False)
 
-    loaded = load_hermes_dotenv(hermes_home=home)
+    loaded = load_sparkii_dotenv(sparkii_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("FIRST_KEY") == "first-value"
@@ -34,7 +34,7 @@ def test_utf8_bom_does_not_mangle_first_key(tmp_path, monkeypatch):
 
 def test_bomless_utf8_env_still_loads(tmp_path, monkeypatch):
     """BOM-less UTF-8 .env files must keep loading after utf-8-sig."""
-    home = tmp_path / "hermes"
+    home = tmp_path / "sparkii"
     home.mkdir()
     env_file = home / ".env"
     env_file.write_text("OPENAI_API_KEY=sk-plain\nSECOND_KEY=ok\n", encoding="utf-8")
@@ -42,7 +42,7 @@ def test_bomless_utf8_env_still_loads(tmp_path, monkeypatch):
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("SECOND_KEY", raising=False)
 
-    loaded = load_hermes_dotenv(hermes_home=home)
+    loaded = load_sparkii_dotenv(sparkii_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("OPENAI_API_KEY") == "sk-plain"
@@ -51,7 +51,7 @@ def test_bomless_utf8_env_still_loads(tmp_path, monkeypatch):
 
 def test_latin1_env_falls_back(tmp_path, monkeypatch):
     """Invalid UTF-8 bytes must still load via the latin-1 fallback."""
-    home = tmp_path / "hermes"
+    home = tmp_path / "sparkii"
     home.mkdir()
     env_file = home / ".env"
     # 0xE9 is "é" in latin-1 and not a valid UTF-8 lead sequence alone.
@@ -59,7 +59,7 @@ def test_latin1_env_falls_back(tmp_path, monkeypatch):
 
     monkeypatch.delenv("LATIN1_VALUE", raising=False)
 
-    loaded = load_hermes_dotenv(hermes_home=home)
+    loaded = load_sparkii_dotenv(sparkii_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("LATIN1_VALUE") == "café"
@@ -67,7 +67,7 @@ def test_latin1_env_falls_back(tmp_path, monkeypatch):
 
 def test_utf8_bom_preserves_first_api_key_name(tmp_path, monkeypatch):
     """Real-world case: BOM + first line is a provider API key name."""
-    home = tmp_path / "hermes"
+    home = tmp_path / "sparkii"
     home.mkdir()
     env_file = home / ".env"
     env_file.write_bytes(
@@ -78,7 +78,7 @@ def test_utf8_bom_preserves_first_api_key_name(tmp_path, monkeypatch):
     monkeypatch.delenv("SECOND_KEY", raising=False)
     monkeypatch.delenv("\ufeffANTHROPIC_API_KEY", raising=False)
 
-    loaded = load_hermes_dotenv(hermes_home=home)
+    loaded = load_sparkii_dotenv(sparkii_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("ANTHROPIC_API_KEY") == "sk-test-123"
@@ -93,7 +93,7 @@ def test_utf8_bom_plus_invalid_utf8_preserves_first_key(tmp_path, monkeypatch):
     latin-1 fallback, a leading EF BB BF would otherwise become part of the
     first key name under latin-1 and drop the canonical name.
     """
-    home = tmp_path / "hermes"
+    home = tmp_path / "sparkii"
     home.mkdir()
     env_file = home / ".env"
     # BOM + valid first key + latin-1 é (0xE9) in a later value.
@@ -105,7 +105,7 @@ def test_utf8_bom_plus_invalid_utf8_preserves_first_key(tmp_path, monkeypatch):
     monkeypatch.delenv("BAD", raising=False)
     monkeypatch.delenv("\ufeffANTHROPIC_API_KEY", raising=False)
 
-    loaded = load_hermes_dotenv(hermes_home=home)
+    loaded = load_sparkii_dotenv(sparkii_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("ANTHROPIC_API_KEY") == "sk-test-123"
@@ -114,7 +114,7 @@ def test_utf8_bom_plus_invalid_utf8_preserves_first_key(tmp_path, monkeypatch):
 
 def test_bomless_latin1_env_still_loads(tmp_path, monkeypatch):
     """BOM-less cp1252/latin-1 .env files must keep loading after the BOM strip."""
-    home = tmp_path / "hermes"
+    home = tmp_path / "sparkii"
     home.mkdir()
     env_file = home / ".env"
     env_file.write_bytes(b"LATIN1_VALUE=caf\xe9\nOTHER=ok\n")
@@ -122,7 +122,7 @@ def test_bomless_latin1_env_still_loads(tmp_path, monkeypatch):
     monkeypatch.delenv("LATIN1_VALUE", raising=False)
     monkeypatch.delenv("OTHER", raising=False)
 
-    loaded = load_hermes_dotenv(hermes_home=home)
+    loaded = load_sparkii_dotenv(sparkii_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("LATIN1_VALUE") == "café"
@@ -132,7 +132,7 @@ def test_latin1_fallback_stream_honors_override(tmp_path, monkeypatch):
     """Stream-based latin-1 fallback must honor override= identically to dotenv_path."""
     from sparkii_cli.env_loader import _load_dotenv_with_fallback
 
-    home = tmp_path / "hermes"
+    home = tmp_path / "sparkii"
     home.mkdir()
     env_file = home / ".env"
     # Invalid UTF-8 forces the stream/latin-1 path.
@@ -153,7 +153,7 @@ def test_latin1_fallback_stream_honors_override(tmp_path, monkeypatch):
 
 def test_latin1_fallback_stream_preserves_interpolation(tmp_path, monkeypatch):
     """Stream/latin-1 path must still expand ${VAR} like the dotenv_path form."""
-    home = tmp_path / "hermes"
+    home = tmp_path / "sparkii"
     home.mkdir()
     env_file = home / ".env"
     # 0xE9 forces latin-1 fallback; ${FOO} must still expand.
@@ -163,7 +163,7 @@ def test_latin1_fallback_stream_preserves_interpolation(tmp_path, monkeypatch):
     monkeypatch.delenv("BAR", raising=False)
     monkeypatch.delenv("LATIN1_VALUE", raising=False)
 
-    loaded = load_hermes_dotenv(hermes_home=home)
+    loaded = load_sparkii_dotenv(sparkii_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("FOO") == "bar"
@@ -199,7 +199,7 @@ def test_utf16_le_bom_preserves_non_ascii_values(tmp_path, monkeypatch):
     Uses non-credential var names so _sanitize_loaded_credentials does not
     strip non-ASCII from values (that path only targets *_KEY/*_TOKEN/etc.).
     """
-    home = tmp_path / "hermes"
+    home = tmp_path / "sparkii"
     home.mkdir()
     env_file = home / ".env"
     content = "GREETING=café\nCJK_LABEL=日本語\n"
@@ -208,7 +208,7 @@ def test_utf16_le_bom_preserves_non_ascii_values(tmp_path, monkeypatch):
     monkeypatch.delenv("GREETING", raising=False)
     monkeypatch.delenv("CJK_LABEL", raising=False)
 
-    loaded = load_hermes_dotenv(hermes_home=home)
+    loaded = load_sparkii_dotenv(sparkii_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("GREETING") == "café"
@@ -234,7 +234,7 @@ def test_utf32_le_bom_leaves_file_untouched(tmp_path, caplog):
     from sparkii_cli.env_loader import _sanitize_env_file_if_needed
 
     env_file = tmp_path / ".env"
-    content = "HERMES_TEST_KEY=hello_utf32\nSECOND_KEY=world\n"
+    content = "SPARKII_TEST_KEY=hello_utf32\nSECOND_KEY=world\n"
     raw = codecs.BOM_UTF32_LE + content.encode("utf-32-le")
     env_file.write_bytes(raw)
 
@@ -262,7 +262,7 @@ def test_utf32_warning_fires_once_per_path(tmp_path, caplog, monkeypatch):
     monkeypatch.setattr(env_loader, "_WARNED_UTF32_PATHS", set())
 
     env_file = tmp_path / ".env"
-    content = "HERMES_TEST_KEY=hello_utf32\nSECOND_KEY=world\n"
+    content = "SPARKII_TEST_KEY=hello_utf32\nSECOND_KEY=world\n"
     raw = codecs.BOM_UTF32_LE + content.encode("utf-32-le")
     env_file.write_bytes(raw)
 
@@ -280,7 +280,7 @@ def test_utf32_warning_fires_once_per_path(tmp_path, caplog, monkeypatch):
 
 def test_plain_utf8_env_regression(tmp_path, monkeypatch):
     """Plain UTF-8 .env must keep loading after the UTF-16 sanitize changes."""
-    home = tmp_path / "hermes"
+    home = tmp_path / "sparkii"
     home.mkdir()
     env_file = home / ".env"
     before = b"OPENAI_API_KEY=sk-plain\nSECOND_KEY=ok\n"
@@ -289,7 +289,7 @@ def test_plain_utf8_env_regression(tmp_path, monkeypatch):
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("SECOND_KEY", raising=False)
 
-    loaded = load_hermes_dotenv(hermes_home=home)
+    loaded = load_sparkii_dotenv(sparkii_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("OPENAI_API_KEY") == "sk-plain"
@@ -308,7 +308,7 @@ def test_cp1252_env_regression_does_not_crash(tmp_path, monkeypatch):
     errors=replace on values (original already replace-decoded equals
     sanitized), so _load_dotenv_with_fallback's latin-1 path recovers café.
     """
-    home = tmp_path / "hermes"
+    home = tmp_path / "sparkii"
     home.mkdir()
     env_file = home / ".env"
     before = b"ASCII_KEY=ok\nLATIN1_VALUE=caf\xe9\n"
@@ -317,7 +317,7 @@ def test_cp1252_env_regression_does_not_crash(tmp_path, monkeypatch):
     monkeypatch.delenv("ASCII_KEY", raising=False)
     monkeypatch.delenv("LATIN1_VALUE", raising=False)
 
-    loaded = load_hermes_dotenv(hermes_home=home)
+    loaded = load_sparkii_dotenv(sparkii_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("ASCII_KEY") == "ok"
@@ -339,7 +339,7 @@ def test_known_keys_absent_from_user_env_are_cleared(tmp_path, monkeypatch):
     fixes the isolation gap where one profile's ACP/provider settings silently
     leak into another profile's runtime via ``os.environ`` inheritance.
     """
-    home = tmp_path / "hermes"
+    home = tmp_path / "sparkii"
     home.mkdir()
     (home / ".env").write_text(
         "OPENAI_BASE_URL=https://profile.example/v1\n", encoding="utf-8"
@@ -347,17 +347,17 @@ def test_known_keys_absent_from_user_env_are_cleared(tmp_path, monkeypatch):
 
     # Inherited known keys from parent process / other profile
     monkeypatch.setenv("OPENAI_BASE_URL", "https://stale.example/v1")
-    monkeypatch.setenv("HERMES_ACP_AUTH_METHOD", "cursor_login")
+    monkeypatch.setenv("SPARKII_ACP_AUTH_METHOD", "cursor_login")
     monkeypatch.setenv("COPILOT_CLI_PATH", "/usr/bin/claude-code")
     # Unrelated shell var must NOT be touched
     monkeypatch.setenv("MY_SHELL_ONLY_VAR", "keep-me")
 
-    load_hermes_dotenv(hermes_home=home)
+    load_sparkii_dotenv(sparkii_home=home)
 
     # OPENAI_BASE_URL is defined in the profile .env → overridden to the new value
     assert os.getenv("OPENAI_BASE_URL") == "https://profile.example/v1"
-    # HERMES_ACP_AUTH_METHOD and COPILOT_CLI_PATH are NOT in the profile .env → cleared
-    assert "HERMES_ACP_AUTH_METHOD" not in os.environ
+    # SPARKII_ACP_AUTH_METHOD and COPILOT_CLI_PATH are NOT in the profile .env → cleared
+    assert "SPARKII_ACP_AUTH_METHOD" not in os.environ
     assert "COPILOT_CLI_PATH" not in os.environ
     # Unrelated shell vars must survive
     assert os.getenv("MY_SHELL_ONLY_VAR") == "keep-me"
@@ -367,41 +367,41 @@ def test_empty_assignment_in_user_env_is_preserved(tmp_path, monkeypatch):
     """An explicit ``KEY=`` (empty value) in the profile .env keeps the key
     in ``os.environ`` — distinct from a key absent from .env entirely.
 
-    Empty ``HERMES_ACP_AUTH_METHOD=`` tells the ACP adapter to skip
+    Empty ``SPARKII_ACP_AUTH_METHOD=`` tells the ACP adapter to skip
     ``authenticate`` (the key exists, its value is just empty).  This is the
     documented workaround for the leak and must still work after the cleanup.
     """
-    home = tmp_path / "hermes"
+    home = tmp_path / "sparkii"
     home.mkdir()
-    (home / ".env").write_text("HERMES_ACP_AUTH_METHOD=\n", encoding="utf-8")
+    (home / ".env").write_text("SPARKII_ACP_AUTH_METHOD=\n", encoding="utf-8")
 
-    monkeypatch.setenv("HERMES_ACP_AUTH_METHOD", "cursor_login")
+    monkeypatch.setenv("SPARKII_ACP_AUTH_METHOD", "cursor_login")
     monkeypatch.setenv("COPILOT_CLI_PATH", "/usr/bin/sneaky")  # NOT in .env → cleared
 
-    load_hermes_dotenv(hermes_home=home)
+    load_sparkii_dotenv(sparkii_home=home)
 
     # KEY= in .env keeps the key (now empty string)
-    assert "HERMES_ACP_AUTH_METHOD" in os.environ
-    assert os.environ["HERMES_ACP_AUTH_METHOD"] == ""
+    assert "SPARKII_ACP_AUTH_METHOD" in os.environ
+    assert os.environ["SPARKII_ACP_AUTH_METHOD"] == ""
     # COPILOT_CLI_PATH is absent from .env → cleared
     assert "COPILOT_CLI_PATH" not in os.environ
 
 
 def test_no_user_env_does_not_clear_anything(tmp_path, monkeypatch):
-    """When no profile .env exists (bare profile), load_hermes_dotenv must not
+    """When no profile .env exists (bare profile), load_sparkii_dotenv must not
     wipe inherited known keys — the bare-profile case follows #66930 / #67027
     semantics and the user's shell environment should not be mutilated.
     """
-    home = tmp_path / "hermes"
+    home = tmp_path / "sparkii"
     home.mkdir()
     # No .env in home — bare profile
 
-    monkeypatch.setenv("HERMES_ACP_AUTH_METHOD", "cursor_login")
+    monkeypatch.setenv("SPARKII_ACP_AUTH_METHOD", "cursor_login")
     monkeypatch.setenv("PATH", "/usr/bin:/bin")
 
-    load_hermes_dotenv(hermes_home=home)
+    load_sparkii_dotenv(sparkii_home=home)
 
-    assert os.getenv("HERMES_ACP_AUTH_METHOD") == "cursor_login"
+    assert os.getenv("SPARKII_ACP_AUTH_METHOD") == "cursor_login"
     assert os.getenv("PATH") == "/usr/bin:/bin"
 
 
@@ -409,17 +409,17 @@ def test_known_key_explicitly_set_in_user_env_is_kept(tmp_path, monkeypatch):
     """A known Hermes key that IS explicitly set in the profile .env survives
     the cleanup (overrides the inherited value).
     """
-    home = tmp_path / "hermes"
+    home = tmp_path / "sparkii"
     home.mkdir()
     (home / ".env").write_text(
-        "HERMES_ACP_AUTH_METHOD=claude_code_cli\n", encoding="utf-8"
+        "SPARKII_ACP_AUTH_METHOD=claude_code_cli\n", encoding="utf-8"
     )
 
-    monkeypatch.setenv("HERMES_ACP_AUTH_METHOD", "cursor_login")
+    monkeypatch.setenv("SPARKII_ACP_AUTH_METHOD", "cursor_login")
 
-    load_hermes_dotenv(hermes_home=home)
+    load_sparkii_dotenv(sparkii_home=home)
 
-    assert os.getenv("HERMES_ACP_AUTH_METHOD") == "claude_code_cli"
+    assert os.getenv("SPARKII_ACP_AUTH_METHOD") == "claude_code_cli"
 
 
 def test_export_prefixed_known_key_in_user_env_is_kept(tmp_path, monkeypatch):
@@ -428,14 +428,14 @@ def test_export_prefixed_known_key_in_user_env_is_kept(tmp_path, monkeypatch):
     cleanup - mirrors the ``export `` stripping in config.py's load_env()
     (#6659).
     """
-    home = tmp_path / "hermes"
+    home = tmp_path / "sparkii"
     home.mkdir()
     (home / ".env").write_text(
-        "export HERMES_ACP_AUTH_METHOD=claude_code_cli\n", encoding="utf-8"
+        "export SPARKII_ACP_AUTH_METHOD=claude_code_cli\n", encoding="utf-8"
     )
-    monkeypatch.setenv("HERMES_ACP_AUTH_METHOD", "cursor_login")
-    load_hermes_dotenv(hermes_home=home)
-    assert os.getenv("HERMES_ACP_AUTH_METHOD") == "claude_code_cli"
+    monkeypatch.setenv("SPARKII_ACP_AUTH_METHOD", "cursor_login")
+    load_sparkii_dotenv(sparkii_home=home)
+    assert os.getenv("SPARKII_ACP_AUTH_METHOD") == "claude_code_cli"
 
 
 def test_shell_exported_credentials_survive_cleanup(tmp_path, monkeypatch):
@@ -449,7 +449,7 @@ def test_shell_exported_credentials_survive_cleanup(tmp_path, monkeypatch):
     shell export from parent-process leakage, so credential isolation is
     owned by read-time secret scoping instead.
     """
-    home = tmp_path / "hermes"
+    home = tmp_path / "sparkii"
     home.mkdir()
     (home / ".env").write_text("SOME_OTHER_KEY=x\n", encoding="utf-8")
 
@@ -457,14 +457,14 @@ def test_shell_exported_credentials_survive_cleanup(tmp_path, monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-from-shell")
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "12345:token-from-shell")
     # A profile-managed routing key inherited alongside them IS cleared.
-    monkeypatch.setenv("HERMES_ACP_AUTH_METHOD", "cursor_login")
+    monkeypatch.setenv("SPARKII_ACP_AUTH_METHOD", "cursor_login")
 
-    load_hermes_dotenv(hermes_home=home)
+    load_sparkii_dotenv(sparkii_home=home)
 
     assert os.getenv("OPENAI_API_KEY") == "sk-from-shell"
     assert os.getenv("ANTHROPIC_API_KEY") == "sk-ant-from-shell"
     assert os.getenv("TELEGRAM_BOT_TOKEN") == "12345:token-from-shell"
-    assert "HERMES_ACP_AUTH_METHOD" not in os.environ
+    assert "SPARKII_ACP_AUTH_METHOD" not in os.environ
 
 
 def test_cleanup_scope_is_the_profile_managed_set():
@@ -485,7 +485,7 @@ def test_cleanup_scope_is_the_profile_managed_set():
 # ---------------------------------------------------------------------------
 # config.yaml terminal.* re-apply after dotenv loads (#29186 / #67323)
 #
-# load_hermes_dotenv loads .env with override=True, so a stale
+# load_sparkii_dotenv loads .env with override=True, so a stale
 # TERMINAL_ENV=docker in .env used to silently beat config.yaml's
 # terminal.backend on every reload (gateway per-turn reload, cron standalone
 # runs). The bridge re-applies config.yaml's EXPLICIT terminal keys last via
@@ -494,21 +494,21 @@ def test_cleanup_scope_is_the_profile_managed_set():
 
 
 def _seed_terminal_home(tmp_path, monkeypatch, *, config_yaml=None, env_text=None):
-    home = tmp_path / "hermes"
+    home = tmp_path / "sparkii"
     home.mkdir()
     if config_yaml is not None:
         (home / "config.yaml").write_text(config_yaml, encoding="utf-8")
     if env_text is not None:
         (home / ".env").write_text(env_text, encoding="utf-8")
-    # The bridge is scoped to the process HERMES_HOME (a different profile's
+    # The bridge is scoped to the process SPARKII_HOME (a different profile's
     # load must not bridge this process's config), so point the process at
     # the seeded home like a real gateway/cron process would be.
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("SPARKII_HOME", str(home))
     return home
 
 
 def test_config_yaml_terminal_backend_overrides_stale_env(tmp_path, monkeypatch):
-    """Regression for #29186: a leftover TERMINAL_ENV=docker in ~/.hermes/.env
+    """Regression for #29186: a leftover TERMINAL_ENV=docker in ~/.sparkii/.env
     must not silently override the user's choice in config.yaml. config.yaml
     is the documented source of truth, so its value must win after load."""
     home = _seed_terminal_home(
@@ -519,7 +519,7 @@ def test_config_yaml_terminal_backend_overrides_stale_env(tmp_path, monkeypatch)
 
     monkeypatch.delenv("TERMINAL_ENV", raising=False)
 
-    load_hermes_dotenv(hermes_home=home)
+    load_sparkii_dotenv(sparkii_home=home)
 
     assert os.getenv("TERMINAL_ENV") == "local"
 
@@ -534,7 +534,7 @@ def test_config_yaml_terminal_backend_overrides_stale_shell(tmp_path, monkeypatc
 
     monkeypatch.setenv("TERMINAL_ENV", "docker")
 
-    load_hermes_dotenv(hermes_home=home)
+    load_sparkii_dotenv(sparkii_home=home)
 
     assert os.getenv("TERMINAL_ENV") == "local"
 
@@ -551,7 +551,7 @@ def test_no_terminal_section_leaves_env_value_alone(tmp_path, monkeypatch):
 
     monkeypatch.delenv("TERMINAL_ENV", raising=False)
 
-    load_hermes_dotenv(hermes_home=home)
+    load_sparkii_dotenv(sparkii_home=home)
 
     assert os.getenv("TERMINAL_ENV") == "docker"
 
@@ -567,7 +567,7 @@ def test_config_yaml_terminal_omitted_key_does_not_clear_env(tmp_path, monkeypat
 
     monkeypatch.delenv("TERMINAL_ENV", raising=False)
 
-    load_hermes_dotenv(hermes_home=home)
+    load_sparkii_dotenv(sparkii_home=home)
 
     assert os.getenv("TERMINAL_ENV") == "docker"
     assert os.getenv("TERMINAL_TIMEOUT") == "600"
@@ -583,7 +583,7 @@ def test_other_profile_home_does_not_bridge_process_config(tmp_path, monkeypatch
     (process_home / "config.yaml").write_text(
         "terminal:\n  backend: local\n", encoding="utf-8"
     )
-    monkeypatch.setenv("HERMES_HOME", str(process_home))
+    monkeypatch.setenv("SPARKII_HOME", str(process_home))
 
     other_home = tmp_path / "other-profile"
     other_home.mkdir()
@@ -591,7 +591,7 @@ def test_other_profile_home_does_not_bridge_process_config(tmp_path, monkeypatch
 
     monkeypatch.delenv("TERMINAL_ENV", raising=False)
 
-    load_hermes_dotenv(hermes_home=other_home)
+    load_sparkii_dotenv(sparkii_home=other_home)
 
     # The other profile's .env value stands; the process config was not applied.
     assert os.getenv("TERMINAL_ENV") == "docker"

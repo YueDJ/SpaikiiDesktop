@@ -34,7 +34,7 @@ def _make_cli(config_overrides=None, env_overrides=None, **kwargs):
             else:
                 _clean_config[k] = v
 
-    clean_env = {"LLM_MODEL": "", "HERMES_MAX_ITERATIONS": ""}
+    clean_env = {"LLM_MODEL": "", "SPARKII_MAX_ITERATIONS": ""}
     if env_overrides:
         clean_env.update(env_overrides)
     with (
@@ -275,7 +275,7 @@ class TestPreloadResumedSession:
         mock_conn.commit.assert_called_once()
 
     def test_rejects_runaway_transcript_before_history_load(self):
-        from hermes_state import SessionResumeTooLargeError
+        from sparkii_state import SessionResumeTooLargeError
 
         cli = _make_cli(resume="runaway-session")
         mock_db = MagicMock()

@@ -34,7 +34,7 @@ def test_dump_cron_summary_bomless_regression(tmp_path):
 
 
 def test_status_scheduled_jobs_accepts_utf8_bom(monkeypatch, capsys, tmp_path):
-    """hermes status must not print '(error reading jobs file)' under BOM."""
+    """sparkii status must not print '(error reading jobs file)' under BOM."""
     from sparkii_cli import status as status_mod
     import sparkii_cli.auth as auth_mod
     import sparkii_cli.gateway as gateway_mod
@@ -46,9 +46,9 @@ def test_status_scheduled_jobs_accepts_utf8_bom(monkeypatch, capsys, tmp_path):
         b' {"id": "j2", "enabled": true}]}'
     )
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("SPARKII_HOME", str(tmp_path))
     monkeypatch.setattr(status_mod, "get_env_path", lambda: tmp_path / ".env", raising=False)
-    monkeypatch.setattr(status_mod, "get_hermes_home", lambda: tmp_path, raising=False)
+    monkeypatch.setattr(status_mod, "get_sparkii_home", lambda: tmp_path, raising=False)
     monkeypatch.setattr(status_mod, "load_config", lambda: {"model": "gpt-5.4"}, raising=False)
     monkeypatch.setattr(
         status_mod, "resolve_requested_provider", lambda requested=None: "openai-codex", raising=False

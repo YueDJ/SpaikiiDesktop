@@ -1,11 +1,11 @@
-"""Tests for the `hermes memory reset` CLI command.
+"""Tests for the `sparkii memory reset` CLI command.
 
 Covers:
 - Reset both stores (MEMORY.md + USER.md)
 - Reset individual stores (--target memory / --target user)
 - Skip confirmation with --yes
 - Graceful handling when no memory files exist
-- Profile-scoped reset (uses HERMES_HOME)
+- Profile-scoped reset (uses SPARKII_HOME)
 """
 
 import pytest
@@ -13,32 +13,32 @@ import pytest
 
 @pytest.fixture
 def memory_env(tmp_path, monkeypatch):
-    """Set up a fake HERMES_HOME with memory files."""
-    hermes_home = tmp_path / ".hermes"
-    memories = hermes_home / "memories"
+    """Set up a fake SPARKII_HOME with memory files."""
+    sparkii_home = tmp_path / ".sparkii"
+    memories = sparkii_home / "memories"
     memories.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
     # Create sample memory files
     (memories / "MEMORY.md").write_text(
-        "§\nHermes repo is at ~/.hermes/hermes-agent\n§\nUser prefers dark themes",
+        "§\nHermes repo is at ~/.sparkii/sparkii-agent\n§\nUser prefers dark themes",
         encoding="utf-8",
     )
     (memories / "USER.md").write_text(
         "§\nUser is Teknium\n§\nTimezone: US Pacific",
         encoding="utf-8",
     )
-    return hermes_home, memories
+    return sparkii_home, memories
 
 
 def _run_memory_reset(target="all", yes=False, monkeypatch=None, confirm_input="no"):
     """Invoke the memory reset logic from cmd_memory in main.py.
 
-    Simulates what happens when `hermes memory reset` is run.
+    Simulates what happens when `sparkii memory reset` is run.
     """
-    from hermes_constants import get_hermes_home
+    from sparkii_constants import get_sparkii_home
 
-    mem_dir = get_hermes_home() / "memories"
+    mem_dir = get_sparkii_home() / "memories"
     files_to_reset = []
     if target in {"all", "memory"}:
         files_to_reset.append(("MEMORY.md", "agent notes"))
@@ -60,11 +60,11 @@ def _run_memory_reset(target="all", yes=False, monkeypatch=None, confirm_input="
 
 
 class TestMemoryReset:
-    """Tests for `hermes memory reset` subcommand."""
+    """Tests for `sparkii memory reset` subcommand."""
 
     def test_reset_all_with_yes_flag(self, memory_env):
         """--yes flag should skip confirmation and delete both files."""
-        hermes_home, memories = memory_env
+        sparkii_home, memories = memory_env
         assert (memories / "MEMORY.md").exists()
         assert (memories / "USER.md").exists()
 
@@ -76,9 +76,9 @@ class TestMemoryReset:
 
     def test_reset_no_files_exist(self, tmp_path, monkeypatch):
         """Should return 'nothing' when no memory files exist."""
-        hermes_home = tmp_path / ".hermes"
-        (hermes_home / "memories").mkdir(parents=True)
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        sparkii_home = tmp_path / ".sparkii"
+        (sparkii_home / "memories").mkdir(parents=True)
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         result = _run_memory_reset(target="all", yes=True)
         assert result == "nothing"
@@ -86,7 +86,7 @@ class TestMemoryReset:
 
     def test_reset_partial_files(self, memory_env):
         """Reset should work when only one memory file exists."""
-        hermes_home, memories = memory_env
+        sparkii_home, memories = memory_env
         (memories / "USER.md").unlink()
 
         result = _run_memory_reset(target="all", yes=True)

@@ -39,7 +39,7 @@ class _OneFrameBridge:
 
 
 @pytest.fixture
-def pty_client(monkeypatch, _isolate_hermes_home):
+def pty_client(monkeypatch, _isolate_sparkii_home):
     from starlette.testclient import TestClient
 
     import sparkii_cli.web_server as ws
@@ -71,7 +71,7 @@ def test_fresh_param_ignores_channel_active_session_file(pty_client, monkeypatch
     def fake_resolve(resume=None, sidecar_url=None, profile=None, active_session_file=None):
         captured["active_session_file"] = active_session_file
         captured["resume"] = resume
-        return (["fake-hermes-tui"], None, None)
+        return (["fake-sparkii-tui"], None, None)
 
     monkeypatch.setattr(ws, "_resolve_chat_argv", fake_resolve)
 
@@ -104,7 +104,7 @@ def test_child_eof_closes_socket_and_bridge(pty_client, monkeypatch):
 
     monkeypatch.setattr(ws.PtyBridge, "spawn", _RecordingBridge.spawn)
     monkeypatch.setattr(
-        ws, "_resolve_chat_argv", lambda **kw: (["fake-hermes-tui"], None, None)
+        ws, "_resolve_chat_argv", lambda **kw: (["fake-sparkii-tui"], None, None)
     )
 
     # The client never sends a disconnect of its own — it only reads the one

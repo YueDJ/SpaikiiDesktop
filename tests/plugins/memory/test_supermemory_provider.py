@@ -63,7 +63,7 @@ def provider(monkeypatch, tmp_path):
     monkeypatch.setenv("SUPERMEMORY_API_KEY", "test-key")
     monkeypatch.setattr("plugins.memory.supermemory._SupermemoryClient", FakeClient)
     p = SupermemoryMemoryProvider()
-    p.initialize("session-1", hermes_home=str(tmp_path), platform="cli")
+    p.initialize("session-1", sparkii_home=str(tmp_path), platform="cli")
     return p
 
 
@@ -148,12 +148,12 @@ def test_merge_metadata_stamps_sm_source():
 
     client = _SupermemoryClient.__new__(_SupermemoryClient)
     merged = client._merge_metadata({"type": "explicit_memory"})
-    assert merged["sm_source"] == "hermes"
+    assert merged["sm_source"] == "sparkii"
     assert merged["type"] == "explicit_memory"
 
     # Legacy "source" is migrated into "type" when type is absent.
     merged2 = client._merge_metadata({"source": "conversation_turn"})
-    assert merged2["sm_source"] == "hermes"
+    assert merged2["sm_source"] == "sparkii"
     assert merged2["type"] == "conversation_turn"
     assert "source" not in merged2
 
@@ -253,10 +253,10 @@ def test_identity_template_resolved_in_container_tag(monkeypatch, tmp_path):
     """container_tag with {identity} resolves to profile-scoped tag."""
     monkeypatch.setenv("SUPERMEMORY_API_KEY", "test-key")
     monkeypatch.setattr("plugins.memory.supermemory._SupermemoryClient", FakeClient)
-    _save_supermemory_config({"container_tag": "hermes-{identity}"}, str(tmp_path))
+    _save_supermemory_config({"container_tag": "sparkii-{identity}"}, str(tmp_path))
     p = SupermemoryMemoryProvider()
-    p.initialize("s1", hermes_home=str(tmp_path), platform="cli", agent_identity="coder")
-    assert p._container_tag == "hermes_coder"
+    p.initialize("s1", sparkii_home=str(tmp_path), platform="cli", agent_identity="coder")
+    assert p._container_tag == "sparkii_coder"
 
 
 def test_container_tag_env_var_override(monkeypatch, tmp_path):
@@ -265,7 +265,7 @@ def test_container_tag_env_var_override(monkeypatch, tmp_path):
     monkeypatch.setenv("SUPERMEMORY_CONTAINER_TAG", "env-override")
     monkeypatch.setattr("plugins.memory.supermemory._SupermemoryClient", FakeClient)
     p = SupermemoryMemoryProvider()
-    p.initialize("s1", hermes_home=str(tmp_path), platform="cli")
+    p.initialize("s1", sparkii_home=str(tmp_path), platform="cli")
     assert p._container_tag == "env_override"
 
 
@@ -278,7 +278,7 @@ def test_invalid_search_mode_falls_back_to_default(monkeypatch, tmp_path):
     monkeypatch.setattr("plugins.memory.supermemory._SupermemoryClient", FakeClient)
     _save_supermemory_config({"search_mode": "invalid_mode"}, str(tmp_path))
     p = SupermemoryMemoryProvider()
-    p.initialize("s1", hermes_home=str(tmp_path), platform="cli")
+    p.initialize("s1", sparkii_home=str(tmp_path), platform="cli")
     assert p._search_mode == "hybrid"
 
 
@@ -291,7 +291,7 @@ def test_base_url_defaults_to_cloud(monkeypatch, tmp_path):
     monkeypatch.delenv("SUPERMEMORY_BASE_URL", raising=False)
     monkeypatch.setattr("plugins.memory.supermemory._SupermemoryClient", FakeClient)
     p = SupermemoryMemoryProvider()
-    p.initialize("s1", hermes_home=str(tmp_path), platform="cli")
+    p.initialize("s1", sparkii_home=str(tmp_path), platform="cli")
     assert p._base_url == "https://api.supermemory.ai"
     assert p._client.base_url == "https://api.supermemory.ai"
 
@@ -317,7 +317,7 @@ def test_client_passes_custom_base_url_to_sdk(monkeypatch):
     client = _SupermemoryClient(
         api_key="test-key",
         timeout=1.0,
-        container_tag="hermes",
+        container_tag="sparkii",
         base_url="http://localhost:6767/",
     )
 
@@ -338,7 +338,7 @@ def test_ingest_conversation_uses_client_base_url(monkeypatch, base_url, expecte
 
     client = _SupermemoryClient.__new__(_SupermemoryClient)
     client._api_key = "test-key"
-    client._container_tag = "hermes"
+    client._container_tag = "sparkii"
     client._timeout = 1.0
     client._base_url = base_url
 
@@ -384,7 +384,7 @@ def test_probe_supermemory_connection_missing_key(tmp_path):
     status = _probe_supermemory_connection("", str(tmp_path))
     assert status["ok"] is False
     assert status["error"] == "SUPERMEMORY_API_KEY not set"
-    assert status["container_tag"] == "hermes"
+    assert status["container_tag"] == "sparkii"
 
 
 def _stub_supermemory_importable(monkeypatch):
@@ -419,9 +419,9 @@ def test_post_setup_writes_config_and_prints_summary(monkeypatch, tmp_path, caps
     )
     monkeypatch.setattr(
         "plugins.memory.supermemory._probe_supermemory_connection",
-        lambda api_key, hermes_home, **kwargs: {
+        lambda api_key, sparkii_home, **kwargs: {
             "ok": True,
-            "container_tag": "hermes",
+            "container_tag": "sparkii",
             "profile_facts": 3,
             "auto_recall": True,
             "auto_capture": True,

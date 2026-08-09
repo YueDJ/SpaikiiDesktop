@@ -451,11 +451,11 @@ class TestRunJobSessionPersistence:
         fake_db = MagicMock()
         fake_db.get_compression_tip.side_effect = lambda session_id: session_id
 
-        with patch("cron.scheduler._hermes_home", tmp_path), \
+        with patch("cron.scheduler._sparkii_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
+             patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
-             patch("hermes_state.SessionDB", return_value=fake_db), \
+             patch("sparkii_state.SessionDB", return_value=fake_db), \
              patch(
                  "sparkii_cli.runtime_provider.resolve_runtime_provider",
                  return_value={
@@ -509,11 +509,11 @@ class TestRunJobSessionPersistence:
         mock_agent = MagicMock()
         mock_agent.run_conversation.return_value = {"final_response": "ok"}
         base = [
-            patch("cron.scheduler._hermes_home", tmp_path),
+            patch("cron.scheduler._sparkii_home", tmp_path),
             patch("cron.scheduler._resolve_origin", return_value=None),
-            patch("sparkii_cli.env_loader.load_hermes_dotenv"),
+            patch("sparkii_cli.env_loader.load_sparkii_dotenv"),
             patch("sparkii_cli.env_loader.reset_secret_source_cache"),
-            patch("hermes_state.SessionDB", return_value=fake_db),
+            patch("sparkii_state.SessionDB", return_value=fake_db),
             patch(
                 "sparkii_cli.runtime_provider.resolve_runtime_provider",
                 return_value={
@@ -615,9 +615,9 @@ class TestRunJobConfigLogging:
         # resolution and MCP discovery, both of which can spawn subprocesses
         # / hit the network and have caused this test to time out on CI
         # (>30s wall clock) under load. See PR #33661 follow-up.
-        with patch("cron.scheduler._hermes_home", tmp_path), \
+        with patch("cron.scheduler._sparkii_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
+             patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
              patch("sparkii_cli.runtime_provider.resolve_runtime_provider",
                    return_value={"provider": "openrouter", "api_key": "x",
@@ -648,17 +648,17 @@ class TestRunJobConfigEnvVarExpansion:
 
     def test_model_env_ref_in_config_yaml_is_expanded(self, tmp_path, monkeypatch):
         """${VAR} in config.yaml model: is expanded using env after .env is loaded."""
-        (tmp_path / "config.yaml").write_text("model: ${_HERMES_TEST_CRON_MODEL}\n")
-        monkeypatch.setenv("_HERMES_TEST_CRON_MODEL", "gpt-4o-mini-cron-test")
+        (tmp_path / "config.yaml").write_text("model: ${_SPARKII_TEST_CRON_MODEL}\n")
+        monkeypatch.setenv("_SPARKII_TEST_CRON_MODEL", "gpt-4o-mini-cron-test")
 
         job = {"id": "env-job", "name": "env test", "prompt": "hi"}
         fake_db = MagicMock()
 
-        with patch("cron.scheduler._hermes_home", tmp_path), \
+        with patch("cron.scheduler._sparkii_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
+             patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
-             patch("hermes_state.SessionDB", return_value=fake_db), \
+             patch("sparkii_state.SessionDB", return_value=fake_db), \
              patch("sparkii_cli.runtime_provider.resolve_runtime_provider",
                    return_value=self._RUNTIME), \
              patch("run_agent.AIAgent") as mock_agent_cls:
@@ -710,11 +710,11 @@ class TestRunJobConfigEnvVarExpansion:
             assert kwargs["target_model"] == "z-ai/glm-5.2"
             return {**self._RUNTIME, "provider": "openrouter"}
 
-        with patch("cron.scheduler._hermes_home", tmp_path), \
+        with patch("cron.scheduler._sparkii_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
+             patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
-             patch("hermes_state.SessionDB", return_value=fake_db), \
+             patch("sparkii_state.SessionDB", return_value=fake_db), \
              patch("sparkii_cli.runtime_provider.resolve_runtime_provider",
                    side_effect=resolve_runtime), \
              patch("tools.mcp_tool.discover_mcp_tools", return_value=[]), \
@@ -734,17 +734,17 @@ class TestRunJobConfigEnvVarExpansion:
 
     def test_unexpanded_ref_passthrough_when_var_unset(self, tmp_path, monkeypatch):
         """When the env var is not set, the literal ${VAR} is kept verbatim (not crashed)."""
-        (tmp_path / "config.yaml").write_text("model: ${_HERMES_TEST_CRON_UNSET_VAR}\n")
-        monkeypatch.delenv("_HERMES_TEST_CRON_UNSET_VAR", raising=False)
+        (tmp_path / "config.yaml").write_text("model: ${_SPARKII_TEST_CRON_UNSET_VAR}\n")
+        monkeypatch.delenv("_SPARKII_TEST_CRON_UNSET_VAR", raising=False)
 
         job = {"id": "unset-job", "name": "unset var test", "prompt": "hi"}
         fake_db = MagicMock()
 
-        with patch("cron.scheduler._hermes_home", tmp_path), \
+        with patch("cron.scheduler._sparkii_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
+             patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
-             patch("hermes_state.SessionDB", return_value=fake_db), \
+             patch("sparkii_state.SessionDB", return_value=fake_db), \
              patch("sparkii_cli.runtime_provider.resolve_runtime_provider",
                    return_value=self._RUNTIME), \
              patch("run_agent.AIAgent") as mock_agent_cls:
@@ -756,7 +756,7 @@ class TestRunJobConfigEnvVarExpansion:
         assert success is True
         kwargs = mock_agent_cls.call_args.kwargs
         # Unresolved refs are kept verbatim — _expand_env_vars contract
-        assert kwargs["model"] == "${_HERMES_TEST_CRON_UNSET_VAR}"
+        assert kwargs["model"] == "${_SPARKII_TEST_CRON_UNSET_VAR}"
 
 
 class TestRunJobModelResolution:
@@ -764,7 +764,7 @@ class TestRunJobModelResolution:
 
     Issue #23979: a cron job created without an explicit model is stored as
     ``model: null``. At fire time the scheduler must:
-      1. fall back to ``HERMES_MODEL`` env if set,
+      1. fall back to ``SPARKII_MODEL`` env if set,
       2. else fall back to config.yaml ``model.default`` if set,
       3. else fail fast with an actionable error — never let an empty string
          reach the provider where it surfaces as an opaque 400.
@@ -778,18 +778,18 @@ class TestRunJobModelResolution:
     }
 
     def test_null_job_model_falls_back_to_env(self, tmp_path, monkeypatch):
-        """``model: null`` on the job uses HERMES_MODEL when set."""
+        """``model: null`` on the job uses SPARKII_MODEL when set."""
         (tmp_path / "config.yaml").write_text("")
-        monkeypatch.setenv("HERMES_MODEL", "env-model")
+        monkeypatch.setenv("SPARKII_MODEL", "env-model")
 
         job = {"id": "null-model-job", "name": "null model", "prompt": "hi", "model": None}
         fake_db = MagicMock()
 
-        with patch("cron.scheduler._hermes_home", tmp_path), \
+        with patch("cron.scheduler._sparkii_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
+             patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
-             patch("hermes_state.SessionDB", return_value=fake_db), \
+             patch("sparkii_state.SessionDB", return_value=fake_db), \
              patch("sparkii_cli.runtime_provider.resolve_runtime_provider",
                    return_value=self._RUNTIME), \
              patch("run_agent.AIAgent") as mock_agent_cls:
@@ -806,16 +806,16 @@ class TestRunJobModelResolution:
     def test_no_model_anywhere_fails_with_actionable_error(self, tmp_path, monkeypatch):
         """All three sources empty → fail fast with a clear message, not an opaque 400."""
         (tmp_path / "config.yaml").write_text("")
-        monkeypatch.delenv("HERMES_MODEL", raising=False)
+        monkeypatch.delenv("SPARKII_MODEL", raising=False)
 
         job = {"id": "no-model-job", "name": "no model anywhere", "prompt": "hi", "model": None}
         fake_db = MagicMock()
 
-        with patch("cron.scheduler._hermes_home", tmp_path), \
+        with patch("cron.scheduler._sparkii_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
+             patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
-             patch("hermes_state.SessionDB", return_value=fake_db), \
+             patch("sparkii_state.SessionDB", return_value=fake_db), \
              patch("sparkii_cli.runtime_provider.resolve_runtime_provider",
                    return_value=self._RUNTIME), \
              patch("run_agent.AIAgent") as mock_agent_cls:
@@ -838,16 +838,16 @@ class TestRunJobModelResolution:
         cron.
         """
         (tmp_path / "config.yaml").write_text("model:\n  model: alias-key-model\n")
-        monkeypatch.delenv("HERMES_MODEL", raising=False)
+        monkeypatch.delenv("SPARKII_MODEL", raising=False)
 
         job = {"id": "alias-job", "name": "alias", "prompt": "hi", "model": None}
         fake_db = MagicMock()
 
-        with patch("cron.scheduler._hermes_home", tmp_path), \
+        with patch("cron.scheduler._sparkii_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
+             patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
-             patch("hermes_state.SessionDB", return_value=fake_db), \
+             patch("sparkii_state.SessionDB", return_value=fake_db), \
              patch("sparkii_cli.runtime_provider.resolve_runtime_provider",
                    return_value=self._RUNTIME), \
              patch("run_agent.AIAgent") as mock_agent_cls:
@@ -863,16 +863,16 @@ class TestRunJobModelResolution:
     def test_corrupt_config_yaml_does_not_crash_with_job_model(self, tmp_path, monkeypatch):
         """A malformed config.yaml degrades gracefully when the job has a model."""
         (tmp_path / "config.yaml").write_text("{{{invalid yaml!!!")
-        monkeypatch.delenv("HERMES_MODEL", raising=False)
+        monkeypatch.delenv("SPARKII_MODEL", raising=False)
 
         job = {"id": "corrupt-job", "name": "corrupt", "prompt": "hi", "model": "explicit-model"}
         fake_db = MagicMock()
 
-        with patch("cron.scheduler._hermes_home", tmp_path), \
+        with patch("cron.scheduler._sparkii_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
+             patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
-             patch("hermes_state.SessionDB", return_value=fake_db), \
+             patch("sparkii_state.SessionDB", return_value=fake_db), \
              patch("sparkii_cli.runtime_provider.resolve_runtime_provider",
                    return_value=self._RUNTIME), \
              patch("run_agent.AIAgent") as mock_agent_cls:
@@ -911,11 +911,11 @@ class TestRunJobSkillBacked:
             assert "NOTION_API_KEY" in get_all_passthrough()
             return {"final_response": "ok"}
 
-        with patch("cron.scheduler._hermes_home", tmp_path), \
+        with patch("cron.scheduler._sparkii_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
+             patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
-             patch("hermes_state.SessionDB", return_value=fake_db), \
+             patch("sparkii_state.SessionDB", return_value=fake_db), \
              patch(
                  "sparkii_cli.runtime_provider.resolve_runtime_provider",
                  return_value={
@@ -1312,8 +1312,8 @@ class TestParallelTick:
             )
             import time
             time.sleep(0.05)  # give other thread time to set its vars
-            platform = get_session_env("HERMES_SESSION_PLATFORM")
-            chat_id = get_session_env("HERMES_SESSION_CHAT_ID")
+            platform = get_session_env("SPARKII_SESSION_PLATFORM")
+            chat_id = get_session_env("SPARKII_SESSION_CHAT_ID")
             seen[job["id"]] = {"platform": platform, "chat_id": chat_id}
             clear_session_vars(tokens)
             return (True, "output", "response", None)
@@ -1608,7 +1608,7 @@ class TestCronDeliveryTargets:
 class TestHomeTargetEnvVarRegistry:
     """Regression: ``_HOME_TARGET_ENV_VARS`` must include every gateway
     platform that supports cron-driven outbound delivery. Missing an
-    entry means ``hermes cron create --deliver=<platform>`` silently
+    entry means ``sparkii cron create --deliver=<platform>`` silently
     fails to route through the platform's home channel."""
 
 

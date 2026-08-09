@@ -347,8 +347,8 @@ def is_safe_callback_url(url: str) -> bool:
 
 def _audit_path() -> Path:
     try:
-        from hermes_constants import get_hermes_home
-        base = Path(get_hermes_home())
+        from sparkii_constants import get_sparkii_home
+        base = Path(get_sparkii_home())
     except Exception:
         base = Path(os.path.expanduser("~/.hermes"))
     return base / "a2a_audit.jsonl"

@@ -43,7 +43,7 @@ def test_writer_precreates_file_with_header():
     assert "goal: do the thing" in text
     assert "kickoff" in text
     assert "some ctx" in text
-    # Lives under the hermes cache/delegation/live root, named task-<n>.log
+    # Lives under the sparkii cache/delegation/live root, named task-<n>.log
     assert w.path.name == "task-0.log"
     assert w.path.parent.name == "deleg_test1"
     assert w.path.parent.parent == live_transcript_root()

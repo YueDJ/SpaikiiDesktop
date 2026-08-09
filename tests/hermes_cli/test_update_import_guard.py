@@ -1,4 +1,4 @@
-"""Tests for the post-update *import* guard in ``hermes update``.
+"""Tests for the post-update *import* guard in ``sparkii update``.
 
 ``_validate_critical_files_syntax`` only parses files, so it cannot detect a
 partially-updated tree: when one package is refreshed and a sibling is not,
@@ -20,9 +20,9 @@ from pathlib import Path
 
 import pytest
 
-from sparkii_cli import main as hermes_main
+from sparkii_cli import main as sparkii_main
 from sparkii_cli import update_cmd
-from hermes_constants import partial_update_hint
+from sparkii_constants import partial_update_hint
 
 
 def _write_skewed_tree(root: Path, *, skewed: bool) -> None:
@@ -44,7 +44,7 @@ def test_syntax_guard_passes_but_import_guard_catches_skew(monkeypatch, tmp_path
     _write_skewed_tree(tmp_path, skewed=True)
 
     # Both files are valid Python -- the syntax guard sees nothing wrong.
-    # NOTE: patch update_cmd's global, not hermes_main's. Both modules expose
+    # NOTE: patch update_cmd's global, not sparkii_main's. Both modules expose
     # the name, but _validate_critical_files_syntax reads the one in its own
     # module. Patching the re-export leaves the real list in place, the stub
     # files are never looked at, and the guard returns a vacuous (True, None,
@@ -52,12 +52,12 @@ def test_syntax_guard_passes_but_import_guard_catches_skew(monkeypatch, tmp_path
     monkeypatch.setattr(
         update_cmd, "_UPDATE_CRITICAL_FILES", ("consumer.py", "provider/thing.py")
     )
-    syntax_ok, _, _ = hermes_main._validate_critical_files_syntax(tmp_path)
+    syntax_ok, _, _ = sparkii_main._validate_critical_files_syntax(tmp_path)
     assert syntax_ok, "sanity: the skewed tree must parse cleanly"
 
     # The import guard catches it.
     monkeypatch.setattr(update_cmd, "_UPDATE_CRITICAL_MODULES", ("consumer",))
-    ok, module, error = hermes_main._validate_critical_modules_import(tmp_path)
+    ok, module, error = sparkii_main._validate_critical_modules_import(tmp_path)
     assert ok is False
     assert module == "consumer"
     assert error is not None and "SHARED_NAME" in error
@@ -67,7 +67,7 @@ def test_import_guard_passes_on_consistent_tree(monkeypatch, tmp_path):
     _write_skewed_tree(tmp_path, skewed=False)
     monkeypatch.setattr(update_cmd, "_UPDATE_CRITICAL_MODULES", ("consumer",))
 
-    assert hermes_main._validate_critical_modules_import(tmp_path) == (True, None, None)
+    assert sparkii_main._validate_critical_modules_import(tmp_path) == (True, None, None)
 
 
 def test_import_guard_ignores_non_import_errors(monkeypatch, tmp_path):
@@ -78,7 +78,7 @@ def test_import_guard_ignores_non_import_errors(monkeypatch, tmp_path):
     )
     monkeypatch.setattr(update_cmd, "_UPDATE_CRITICAL_MODULES", ("consumer",))
 
-    ok, _, _ = hermes_main._validate_critical_modules_import(tmp_path)
+    ok, _, _ = sparkii_main._validate_critical_modules_import(tmp_path)
     assert ok is True
 
 
@@ -103,7 +103,7 @@ def test_hint_fires_for_first_party_import_error():
     hint = partial_update_hint(exc)
 
     assert hint, "expected recovery guidance for a first-party ImportError"
-    assert any("hermes update" in line for line in hint)
+    assert any("sparkii update" in line for line in hint)
 
 
 @pytest.mark.parametrize(
@@ -123,7 +123,7 @@ def test_hint_stays_silent_for_unrelated_failures(exc):
 
 
 def test_import_guard_prefers_the_project_venv_interpreter(monkeypatch, tmp_path):
-    """``hermes update`` can run under a different Python than the install's.
+    """``sparkii update`` can run under a different Python than the install's.
 
     Probing ``sys.executable`` would then validate a tree the user never
     actually runs -- the same reasoning behind ``_venv_core_imports_healthy``.
@@ -178,7 +178,7 @@ def test_import_guard_flags_missing_first_party_module(monkeypatch, tmp_path):
     assert error is not None and "tools.nonexistent_module" in error
 
 
-@pytest.mark.parametrize("modname", ["agents", "agentops", "toolsets_x", "hermesx"])
+@pytest.mark.parametrize("modname", ["agents", "agentops", "toolsets_x", "sparkiix"])
 def test_hint_does_not_claim_partial_update_for_lookalike_third_party(modname):
     """``startswith`` would match third-party ``agents``/``agentops`` and blame
     our updater for someone else's import error."""
@@ -188,7 +188,7 @@ def test_hint_does_not_claim_partial_update_for_lookalike_third_party(modname):
 
 
 @pytest.mark.parametrize("modname", ["tools.todo_tool", "agent.context_compressor",
-                                     "hermes_constants", "cli"])
+                                     "sparkii_constants", "cli"])
 def test_hint_fires_for_each_first_party_root(modname):
     exc = ImportError("cannot import name 'X'")
     exc.name = modname
@@ -199,13 +199,13 @@ def test_probe_and_hint_share_one_first_party_definition():
     """The guard that BLOCKS and the hint that EXPLAINS must never disagree.
 
     These started as two hand-maintained lists and immediately diverged:
-    `cli` was first-party to the hint but not the probe, and `hermesx`
-    (third-party) matched the probe's loose `startswith("hermes")`. A user
+    `cli` was first-party to the hint but not the probe, and `sparkiix`
+    (third-party) matched the probe's loose `startswith("sparkii")`. A user
     could get a rollback with no explanation, or an explanation with no
     detection. Both now derive from FIRST_PARTY_MODULE_ROOTS; this test
     fails if either grows a private copy.
     """
-    from hermes_constants import FIRST_PARTY_MODULE_ROOTS, is_first_party_module
+    from sparkii_constants import FIRST_PARTY_MODULE_ROOTS, is_first_party_module
 
     captured = {}
 
@@ -233,5 +233,5 @@ def test_probe_and_hint_share_one_first_party_definition():
     for root in FIRST_PARTY_MODULE_ROOTS:
         assert is_first_party_module(f"{root}.anything")
     # Lookalikes stay out of both.
-    for lookalike in ("agents", "agentops", "toolsets_x", "hermesx"):
+    for lookalike in ("agents", "agentops", "toolsets_x", "sparkiix"):
         assert not is_first_party_module(lookalike)

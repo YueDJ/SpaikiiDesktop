@@ -1,4 +1,4 @@
-"""Tests for the `hermes project` CLI dispatch (sparkii_cli/projects_cmd)."""
+"""Tests for the `sparkii project` CLI dispatch (sparkii_cli/projects_cmd)."""
 
 from __future__ import annotations
 

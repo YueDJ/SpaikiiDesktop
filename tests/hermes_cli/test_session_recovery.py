@@ -11,8 +11,8 @@ from types import SimpleNamespace
 
 import pytest
 
-import hermes_state
-from hermes_state import FTS_STORAGE_VERSION, SCHEMA_VERSION, SessionDB
+import sparkii_state
+from sparkii_state import FTS_STORAGE_VERSION, SCHEMA_VERSION, SessionDB
 from sparkii_cli import session_recovery
 from sparkii_cli.session_recovery import (
     SessionRecoverySafetyError,
@@ -519,7 +519,7 @@ def test_cli_allow_partial_salvages_rows_across_a_corrupt_leaf(
     assert not rejected_output.exists()
 
     env = os.environ.copy()
-    env["HERMES_HOME"] = str(tmp_path / "isolated-hermes-home")
+    env["SPARKII_HOME"] = str(tmp_path / "isolated-sparkii-home")
     result = subprocess.run(
         [
             sys.executable,
