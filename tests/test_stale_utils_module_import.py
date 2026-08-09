@@ -20,7 +20,7 @@ Mechanism:
    ``utils.__file__`` on disk (which *does* define ``env_float``), which is why
    the error is so confusing: the file on disk is fine, the in-memory module is not.
 
-``hermes_cli/main.py`` (the ``hermes update`` flow, ~line 9326) already
+``sparkii_cli/main.py`` (the ``hermes update`` flow, ~line 9326) already
 acknowledges this exact hazard -- "source files on disk are newer than cached
 Python modules in this process" -- and reloads ``hermes_constants`` after the
 pull, but NOT ``utils``. Any ``utils`` consumer added in the same release stays

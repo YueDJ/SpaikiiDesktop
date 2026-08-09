@@ -441,7 +441,7 @@ class TestSalvageFollowups:
 
         plan_len_at_trim = {}
 
-        import hermes_cli.mem_trim as mem_trim_mod
+        import sparkii_cli.mem_trim as mem_trim_mod
 
         plan = [(f"s{i}", MagicMock()) for i in range(3)]
 

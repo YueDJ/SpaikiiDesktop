@@ -7,12 +7,12 @@ import { connectWindowsRemote } from './windows-remote-lifecycle'
 
 // Live test against a real Windows host over SSH. Opt-in: set the env trio to
 // your test rig; skipped everywhere else (CI, other machines).
-//   HERMES_WIN_SSH_HOST   ssh alias/host of the Windows box
-//   HERMES_WIN_SSH_USER   remote user
-//   HERMES_WIN_SSH_HERMES absolute path to the remote hermes.exe under test
-const liveHost = process.env.HERMES_WIN_SSH_HOST || ''
-const liveUser = process.env.HERMES_WIN_SSH_USER || ''
-const configuredSparkii = process.env.HERMES_WIN_SSH_HERMES || ''
+//   SPARKII_WIN_SSH_HOST   ssh alias/host of the Windows box
+//   SPARKII_WIN_SSH_USER   remote user
+//   SPARKII_WIN_SSH_SPARKII absolute path to the remote sparkii.exe under test
+const liveHost = process.env.SPARKII_WIN_SSH_HOST || ''
+const liveUser = process.env.SPARKII_WIN_SSH_USER || ''
+const configuredSparkii = process.env.SPARKII_WIN_SSH_SPARKII || ''
 const ownershipId = '89abcdef0123456789abcdef01234567'
 
 function fetchJson(url, token, path) {
@@ -81,21 +81,21 @@ test.skipIf(!liveHost || !liveUser || !configuredSparkii)(
         await ssh.cancelForward(second.localPort, second.remotePort)
       }
 
-      const runtimeScript = `& '${configuredSparkii.replace('hermes.exe', 'python.exe')}' -m hermes_cli.windows_ssh_runtime read-lock '${ownershipId}'`
+      const runtimeScript = `& '${configuredSparkii.replace('sparkii.exe', 'python.exe')}' -m sparkii_cli.windows_ssh_runtime read-lock '${ownershipId}'`
 
       const lock: any = JSON.parse(
         await ssh.exec(`powershell.exe -NoProfile -NonInteractive -Command "${runtimeScript}"`)
       )
 
       if (lock) {
-        const python = configuredSparkii.replace('hermes.exe', 'python.exe')
-        const terminate = `& '${python}' -m hermes_cli.windows_ssh_runtime terminate '${lock.pid}' '${lock.creationTimeNs}' '${lock.hermesPath}' '${lock.spawnNonce}'`
+        const python = configuredSparkii.replace('sparkii.exe', 'python.exe')
+        const terminate = `& '${python}' -m sparkii_cli.windows_ssh_runtime terminate '${lock.pid}' '${lock.creationTimeNs}' '${lock.sparkiiPath}' '${lock.spawnNonce}'`
         await ssh.exec(`powershell.exe -NoProfile -NonInteractive -Command "${terminate}"`)
         await ssh.exec(
-          `powershell.exe -NoProfile -NonInteractive -Command "& '${python}' -m hermes_cli.windows_ssh_runtime remove-lock '${ownershipId}'"`
+          `powershell.exe -NoProfile -NonInteractive -Command "& '${python}' -m sparkii_cli.windows_ssh_runtime remove-lock '${ownershipId}'"`
         )
         await ssh.exec(
-          `powershell.exe -NoProfile -NonInteractive -Command "& '${python}' -m hermes_cli.windows_ssh_runtime remove-log '${ownershipId}' '${lock.spawnNonce}'"`
+          `powershell.exe -NoProfile -NonInteractive -Command "& '${python}' -m sparkii_cli.windows_ssh_runtime remove-log '${ownershipId}' '${lock.spawnNonce}'"`
         )
       }
 

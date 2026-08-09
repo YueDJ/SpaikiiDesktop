@@ -1,8 +1,8 @@
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
-import hermes_cli.memory_setup as memory_setup
-from hermes_cli.memory_setup import _CANCELLED, _curses_select
+import sparkii_cli.memory_setup as memory_setup
+from sparkii_cli.memory_setup import _CANCELLED, _curses_select
 
 
 
@@ -33,8 +33,8 @@ def test_cmd_setup_generic_choice_cancel_writes_nothing(tmp_path, monkeypatch):
     monkeypatch.setattr(memory_setup, "_curses_select", lambda *args, **kwargs: next(selections))
     monkeypatch.setattr(memory_setup, "_install_dependencies", install_dependencies)
     monkeypatch.setattr(memory_setup, "get_hermes_home", lambda: tmp_path)
-    monkeypatch.setattr("hermes_cli.config.load_config", lambda: {"memory": {}})
-    monkeypatch.setattr("hermes_cli.config.save_config", save_config)
+    monkeypatch.setattr("sparkii_cli.config.load_config", lambda: {"memory": {}})
+    monkeypatch.setattr("sparkii_cli.config.save_config", save_config)
 
     memory_setup.cmd_setup(SimpleNamespace())
 

@@ -1,4 +1,4 @@
-"""Regression tests for hermes_cli._ensure_utf8().
+"""Regression tests for sparkii_cli._ensure_utf8().
 
 Covers the crash class where the setup wizard (and other banner-printing
 commands) emit box-drawing characters and the ⚕ glyph, which raise
@@ -15,7 +15,7 @@ import io
 import os
 import sys
 
-import hermes_cli
+import sparkii_cli
 
 
 # The exact glyphs the setup wizard / banners print (setup.py ~line 2962+).
@@ -57,7 +57,7 @@ class _FakeStream:
 def _run_with_streams(monkeypatch, out, err):
     monkeypatch.setattr(sys, "stdout", out, raising=False)
     monkeypatch.setattr(sys, "stderr", err, raising=False)
-    hermes_cli._ensure_utf8()
+    sparkii_cli._ensure_utf8()
 
 
 
@@ -101,7 +101,7 @@ def test_fallback_when_reconfigure_unavailable(monkeypatch, tmp_path):
     stream = _NoReconfigure()
     monkeypatch.setattr(sys, "stdout", stream, raising=False)
     monkeypatch.setattr(sys, "stderr", stream, raising=False)
-    hermes_cli._ensure_utf8()
+    sparkii_cli._ensure_utf8()
 
     # Replaced with a new UTF-8 stream object (not reconfigured in place).
     assert sys.stdout is not stream

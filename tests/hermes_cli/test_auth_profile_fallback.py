@@ -65,7 +65,7 @@ def _write(path: Path, payload: dict) -> None:
 
 def test_missing_global_auth_file_is_safe(profile_env):
     """Profile processes that never had a global auth.json still work."""
-    from hermes_cli.auth import read_credential_pool
+    from sparkii_cli.auth import read_credential_pool
 
     # No global auth.json written at all.
     _write(profile_env["profile"] / "auth.json", _make_auth_store(pool={
@@ -96,7 +96,7 @@ def test_malformed_global_auth_file_does_not_break_profile_read(profile_env):
         }],
     }))
 
-    from hermes_cli.auth import read_credential_pool
+    from sparkii_cli.auth import read_credential_pool
 
     # Profile reads still work; malformed global is silently ignored.
     assert read_credential_pool("openrouter")[0]["id"] == "prof-1"
@@ -115,7 +115,7 @@ def test_malformed_global_auth_file_does_not_break_profile_read(profile_env):
 
 
 def test_provider_auth_state_falls_back_to_global_when_profile_has_none(profile_env):
-    from hermes_cli.auth import get_provider_auth_state
+    from sparkii_cli.auth import get_provider_auth_state
 
     _write(profile_env["global"] / "auth.json", _make_auth_store(providers={
         "nous": {"access_token": "nous-global", "refresh_token": "rt-global"},
@@ -128,7 +128,7 @@ def test_provider_auth_state_falls_back_to_global_when_profile_has_none(profile_
 
 
 def test_provider_auth_state_returns_none_when_neither_has_it(profile_env):
-    from hermes_cli.auth import get_provider_auth_state
+    from sparkii_cli.auth import get_provider_auth_state
 
     _write(profile_env["global"] / "auth.json", _make_auth_store(providers={}))
     _write(profile_env["profile"] / "auth.json", _make_auth_store(providers={}))
@@ -166,7 +166,7 @@ def test_provider_auth_state_returns_none_when_neither_has_it(profile_env):
 
 
 def test_write_credential_pool_targets_profile_not_global(profile_env):
-    from hermes_cli.auth import read_credential_pool, write_credential_pool
+    from sparkii_cli.auth import read_credential_pool, write_credential_pool
 
     _write(profile_env["global"] / "auth.json", _make_auth_store(pool={
         "openrouter": [{
@@ -204,7 +204,7 @@ def test_write_credential_pool_targets_profile_not_global(profile_env):
 
 def test_auth_lock_reentrancy_is_scoped_after_profile_context_switch(profile_env):
     """Changing profile context cannot inherit another store's lock depth."""
-    import hermes_cli.auth as auth
+    import sparkii_cli.auth as auth
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
 
     profile_b = profile_env["global"] / "profiles" / "reviewer"
@@ -269,7 +269,7 @@ def test_write_pool_never_merges_cooldown_onto_reauthed_entry(classic_env):
     A fresh login intentionally clears the entry's status; resurrecting the
     stale cooldown onto the new credentials would bench a just-authorized key.
     """
-    from hermes_cli.auth import write_credential_pool
+    from sparkii_cli.auth import write_credential_pool
 
     _write(classic_env / "auth.json", _make_auth_store(pool={
         "openrouter": [_pool_entry(

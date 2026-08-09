@@ -17,11 +17,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from hermes_cli import main as cli_main
+from sparkii_cli import main as cli_main
 
 
 # Tests in this module either exercise the REAL _detect_concurrent_hermes_instances
-# helper (and need the autouse stub in tests/hermes_cli/conftest.py disabled),
+# helper (and need the autouse stub in tests/sparkii_cli/conftest.py disabled),
 # or supply their own explicit return value via patch.object. Mark the whole
 # module so the conftest fixture skips its default stub.
 pytestmark = pytest.mark.real_concurrent_gate
@@ -207,7 +207,7 @@ def test_pause_windows_gateways_for_update_stops_profile_and_unmapped_pids(
     capsys,
 ):
     import gateway.status as status_mod
-    import hermes_cli.gateway as gateway_mod
+    import sparkii_cli.gateway as gateway_mod
 
     profile_home = tmp_path / "profiles" / "work"
     profile_home.mkdir(parents=True)
@@ -230,7 +230,7 @@ def test_pause_windows_gateways_for_update_stops_profile_and_unmapped_pids(
     monkeypatch.setattr(
         gateway_mod,
         "_capture_gateway_argv",
-        lambda pid: ["pythonw.exe", "-m", "hermes_cli.main", "gateway", "run"]
+        lambda pid: ["pythonw.exe", "-m", "sparkii_cli.main", "gateway", "run"]
         if pid == 202
         else None,
     )
@@ -251,7 +251,7 @@ def test_pause_windows_gateways_for_update_stops_profile_and_unmapped_pids(
         "unmapped": [
             {
                 "pid": 202,
-                "argv": ["pythonw.exe", "-m", "hermes_cli.main", "gateway", "run"],
+                "argv": ["pythonw.exe", "-m", "sparkii_cli.main", "gateway", "run"],
             }
         ],
     }
@@ -363,7 +363,7 @@ def test_pause_kill_set_covers_venv_guard_abort_set(
     the guard reported the venv-side launcher, so the update aborted forever
     despite a "successful" pause.
     """
-    import hermes_cli.gateway as gateway_mod
+    import sparkii_cli.gateway as gateway_mod
     import gateway.status as status_mod
 
     venv_exe = str(cli_main.PROJECT_ROOT / "venv" / "Scripts" / "python.exe")
@@ -437,7 +437,7 @@ def test_pause_kill_set_covers_venv_guard_abort_set(
 GATEWAY_ARGV = [
     r"C:\x\venv\Scripts\python.exe",
     "-m",
-    "hermes_cli.main",
+    "sparkii_cli.main",
     "gateway",
     "run",
 ]
@@ -494,7 +494,7 @@ def test_unreadable_argv_falls_back_to_the_captured_prefix(monkeypatch):
     anything else still refuses.
     """
     monkeypatch.setitem(sys.modules, "psutil", _fake_psutil_cmdlines({}))
-    gateway_prefix = r"venv\Scripts\python.exe -m hermes_cli.main gateway run"
+    gateway_prefix = r"venv\Scripts\python.exe -m sparkii_cli.main gateway run"
 
     assert cli_main._leftover_pausable_gateway_pids(
         [(300, "python.exe", gateway_prefix)]

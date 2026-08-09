@@ -1,4 +1,4 @@
-"""Tests for `_can_open_graphical_browser()` in hermes_cli.auth.
+"""Tests for `_can_open_graphical_browser()` in sparkii_cli.auth.
 
 Guards the fix for the May 2026 report where `hermes auth add xai-oauth`
 launched a text-mode browser (w3m) INSIDE the terminal on a headless Linux
@@ -17,7 +17,7 @@ import webbrowser
 
 import pytest
 
-from hermes_cli.auth import _can_open_graphical_browser
+from sparkii_cli.auth import _can_open_graphical_browser
 
 
 class _FakeController:
@@ -37,7 +37,7 @@ def _clean_browser_env(monkeypatch):
 
 
 def _force_platform_linux(monkeypatch):
-    monkeypatch.setattr("hermes_cli.auth.sys.platform", "linux")
+    monkeypatch.setattr("sparkii_cli.auth.sys.platform", "linux")
 
 
 def _force_resolved_browser(monkeypatch, name: str):

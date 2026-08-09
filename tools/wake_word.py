@@ -191,7 +191,7 @@ def ensure_tflite_runtime() -> bool:
 def load_wake_word_config() -> Dict[str, Any]:
     """Return the ``wake_word`` config section, shape-guarded to a dict."""
     try:
-        from hermes_cli.config import load_config
+        from sparkii_cli.config import load_config
 
         cfg = load_config().get("wake_word")
     except Exception:
@@ -333,7 +333,7 @@ def wake_surface_enabled(surface: str, cfg: Optional[Dict[str, Any]] = None) -> 
 
 def _active_profile_name() -> str:
     try:
-        from hermes_cli.profiles import get_active_profile_name
+        from sparkii_cli.profiles import get_active_profile_name
 
         return get_active_profile_name() or "default"
     except Exception:
@@ -351,8 +351,8 @@ def enrolled_profile_phrases() -> Dict[str, str]:
     """
     phrases: Dict[str, str] = {}
     try:
-        from hermes_cli.config import read_user_config_raw
-        from hermes_cli.profiles import get_profile_dir, list_profiles
+        from sparkii_cli.config import read_user_config_raw
+        from sparkii_cli.profiles import get_profile_dir, list_profiles
 
         for info in list_profiles():
             name = getattr(info, "name", None) or str(info)
@@ -1267,7 +1267,7 @@ class WakeWordDetector:
 
 
 # ---------------------------------------------------------------------------
-# Process-wide singleton (mirrors hermes_cli.voice's continuous API)
+# Process-wide singleton (mirrors sparkii_cli.voice's continuous API)
 # ---------------------------------------------------------------------------
 
 _detector: Optional[WakeWordDetector] = None

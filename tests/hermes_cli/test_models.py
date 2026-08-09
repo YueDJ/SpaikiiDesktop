@@ -1,16 +1,16 @@
-"""Tests for the hermes_cli models module."""
+"""Tests for the sparkii_cli models module."""
 
 from unittest.mock import patch, MagicMock
 
-from hermes_cli.nous_account import NousPortalAccountInfo
-from hermes_cli.models import (
+from sparkii_cli.nous_account import NousPortalAccountInfo
+from sparkii_cli.models import (
     OPENROUTER_MODELS, fetch_openrouter_models, model_ids, detect_provider_for_model,
     is_nous_free_tier, partition_nous_models_by_tier,
     check_nous_free_tier, _FREE_TIER_CACHE_TTL,
     union_with_portal_free_recommendations,
     union_with_portal_paid_recommendations,
 )
-import hermes_cli.models as _models_mod
+import sparkii_cli.models as _models_mod
 
 LIVE_OPENROUTER_MODELS = [
     ("anthropic/claude-opus-4.6", "recommended"),
@@ -21,7 +21,7 @@ LIVE_OPENROUTER_MODELS = [
 
 class TestModelIds:
     def test_returns_non_empty_list(self):
-        with patch("hermes_cli.models.fetch_openrouter_models", return_value=LIVE_OPENROUTER_MODELS):
+        with patch("sparkii_cli.models.fetch_openrouter_models", return_value=LIVE_OPENROUTER_MODELS):
             ids = model_ids()
         assert isinstance(ids, list)
         assert len(ids) > 0
@@ -43,8 +43,8 @@ class TestFetchOpenRouterModels:
         monkeypatch.setattr(_models_mod, "_openrouter_catalog_cache", None)
         # Pin the remote manifest out too — otherwise the fallback silently
         # depends on whatever the deployed catalog currently contains.
-        with patch("hermes_cli.model_catalog.get_curated_openrouter_models", return_value=None), \
-             patch("hermes_cli.models._urlopen_model_catalog_request", side_effect=OSError("boom")):
+        with patch("sparkii_cli.model_catalog.get_curated_openrouter_models", return_value=None), \
+             patch("sparkii_cli.models._urlopen_model_catalog_request", side_effect=OSError("boom")):
             models = fetch_openrouter_models(force_refresh=True)
 
         assert models == OPENROUTER_MODELS
@@ -90,8 +90,8 @@ class TestFetchOpenRouterModels:
         )
         monkeypatch.setattr(_models_mod, "_openrouter_catalog_cache", None)
         with (
-            patch("hermes_cli.model_catalog.get_curated_openrouter_models", return_value=[]),
-            patch("hermes_cli.models._urlopen_model_catalog_request", return_value=_Resp()),
+            patch("sparkii_cli.model_catalog.get_curated_openrouter_models", return_value=[]),
+            patch("sparkii_cli.models._urlopen_model_catalog_request", return_value=_Resp()),
         ):
             models = fetch_openrouter_models(force_refresh=True)
 
@@ -107,7 +107,7 @@ class TestOpenRouterToolSupportHelper:
     """Unit tests for _openrouter_model_supports_tools (Kilo port #9068)."""
 
     def test_tools_in_supported_parameters(self):
-        from hermes_cli.models import _openrouter_model_supports_tools
+        from sparkii_cli.models import _openrouter_model_supports_tools
         assert _openrouter_model_supports_tools(
             {"id": "x", "supported_parameters": ["temperature", "tools"]}
         ) is True
@@ -115,7 +115,7 @@ class TestOpenRouterToolSupportHelper:
 
     def test_empty_supported_parameters_list_drops_model(self):
         """Explicit empty list → no tools → drop."""
-        from hermes_cli.models import _openrouter_model_supports_tools
+        from sparkii_cli.models import _openrouter_model_supports_tools
         assert _openrouter_model_supports_tools(
             {"id": "x", "supported_parameters": []}
         ) is False
@@ -123,8 +123,8 @@ class TestOpenRouterToolSupportHelper:
 
 class TestFindOpenrouterSlug:
     def test_exact_match(self):
-        from hermes_cli.models import _find_openrouter_slug
-        with patch("hermes_cli.models.fetch_openrouter_models", return_value=LIVE_OPENROUTER_MODELS):
+        from sparkii_cli.models import _find_openrouter_slug
+        with patch("sparkii_cli.models.fetch_openrouter_models", return_value=LIVE_OPENROUTER_MODELS):
             assert _find_openrouter_slug("anthropic/claude-opus-4.6") == "anthropic/claude-opus-4.6"
 
 
@@ -135,7 +135,7 @@ class TestDetectProviderForModel:
     def test_short_alias_resolves_to_static_model(self):
         """Short aliases (e.g. sonnet) should resolve without network lookups."""
         with patch(
-            "hermes_cli.models.fetch_openrouter_models",
+            "sparkii_cli.models.fetch_openrouter_models",
             side_effect=AssertionError("network lookup should not run"),
         ):
             result = detect_provider_for_model("sonnet", "auto")
@@ -225,7 +225,7 @@ class TestUnionWithPortalFreeRecommendations:
         curated = ["anthropic/claude-opus-4.6"]
         pricing = {"anthropic/claude-opus-4.6": self._PAID}
         with patch(
-            "hermes_cli.models.fetch_nous_recommended_models",
+            "sparkii_cli.models.fetch_nous_recommended_models",
             return_value=self._payload(["qwen/qwen3.6-plus"]),
         ):
             ids, p = union_with_portal_free_recommendations(curated, pricing, "")
@@ -246,7 +246,7 @@ class TestUnionWithPortalFreeRecommendations:
         curated = ["a"]
         pricing = {"a": self._PAID}
         with patch(
-            "hermes_cli.models.fetch_nous_recommended_models",
+            "sparkii_cli.models.fetch_nous_recommended_models",
             side_effect=RuntimeError("network down"),
         ):
             ids, p = union_with_portal_free_recommendations(curated, pricing, "")
@@ -281,7 +281,7 @@ class TestUnionWithPortalPaidRecommendations:
         curated = ["anthropic/claude-opus-4.6"]
         pricing = {"anthropic/claude-opus-4.6": self._PAID}
         with patch(
-            "hermes_cli.models.fetch_nous_recommended_models",
+            "sparkii_cli.models.fetch_nous_recommended_models",
             return_value=self._payload(["openai/gpt-5.4", "openai/gpt-5.5"]),
         ):
             ids, _ = union_with_portal_paid_recommendations(curated, pricing, "")
@@ -301,7 +301,7 @@ class TestCheckNousFreeTierCache:
     def teardown_method(self):
         _models_mod._free_tier_cache = None
 
-    @patch("hermes_cli.nous_account.get_nous_portal_account_info")
+    @patch("sparkii_cli.nous_account.get_nous_portal_account_info")
     def test_result_is_cached(self, mock_account):
         """Second call within TTL returns cached result without account lookup."""
         mock_account.return_value = NousPortalAccountInfo(
@@ -318,7 +318,7 @@ class TestCheckNousFreeTierCache:
         assert mock_account.call_count == 1
 
 
-    @patch("hermes_cli.nous_account.get_nous_portal_account_info")
+    @patch("sparkii_cli.nous_account.get_nous_portal_account_info")
     def test_force_fresh_bypasses_cache(self, mock_account):
         mock_account.return_value = NousPortalAccountInfo(
             logged_in=True,
@@ -370,9 +370,9 @@ class TestNousRecommendedModels:
         return cm
 
     def test_fetch_caches_per_portal_url(self):
-        from hermes_cli.models import fetch_nous_recommended_models
+        from sparkii_cli.models import fetch_nous_recommended_models
         mock_cm = self._mock_urlopen(self._SAMPLE_PAYLOAD)
-        with patch("hermes_cli.models._urlopen_model_catalog_request", return_value=mock_cm) as mock_urlopen:
+        with patch("sparkii_cli.models._urlopen_model_catalog_request", return_value=mock_cm) as mock_urlopen:
             a = fetch_nous_recommended_models("https://portal.example.com")
             b = fetch_nous_recommended_models("https://portal.example.com")
         assert a == self._SAMPLE_PAYLOAD
@@ -387,14 +387,14 @@ class TestNousRecommendedModels:
 
     def test_paid_tier_prefers_paid_recommendation(self):
         """Paid-tier users should get the paid model when it's populated."""
-        from hermes_cli.models import get_nous_recommended_aux_model
+        from sparkii_cli.models import get_nous_recommended_aux_model
         payload = {
             "paidRecommendedCompactionModel": {"modelName": "anthropic/claude-opus-4.7"},
             "freeRecommendedCompactionModel": {"modelName": "google/gemini-3-flash-preview"},
             "paidRecommendedVisionModel": {"modelName": "openai/gpt-5.4"},
             "freeRecommendedVisionModel": {"modelName": "google/gemini-3-flash-preview"},
         }
-        with patch("hermes_cli.models.fetch_nous_recommended_models", return_value=payload):
+        with patch("sparkii_cli.models.fetch_nous_recommended_models", return_value=payload):
             text = get_nous_recommended_aux_model(vision=False, free_tier=False)
             vision = get_nous_recommended_aux_model(vision=True, free_tier=False)
         assert text == "anthropic/claude-opus-4.7"
@@ -405,14 +405,14 @@ class TestNousRecommendedModels:
 
     def test_tier_detection_error_defaults_to_paid(self):
         """If tier detection raises, assume paid so we don't downgrade silently."""
-        from hermes_cli.models import get_nous_recommended_aux_model
+        from sparkii_cli.models import get_nous_recommended_aux_model
         payload = {
             "paidRecommendedCompactionModel": {"modelName": "paid-model"},
             "freeRecommendedCompactionModel": {"modelName": "free-model"},
         }
         with (
-            patch("hermes_cli.models.fetch_nous_recommended_models", return_value=payload),
-            patch("hermes_cli.models.check_nous_free_tier", side_effect=RuntimeError("boom")),
+            patch("sparkii_cli.models.fetch_nous_recommended_models", return_value=payload),
+            patch("sparkii_cli.models.check_nous_free_tier", side_effect=RuntimeError("boom")),
         ):
             assert get_nous_recommended_aux_model(vision=False) == "paid-model"
 
@@ -426,7 +426,7 @@ class TestCodexSoftAcceptPlausibilityGate:
     and mislabel the provider as 'OpenAI Codex')."""
 
     def test_unrelated_name_rejected_on_openai_codex(self):
-        from hermes_cli.models import validate_requested_model
+        from sparkii_cli.models import validate_requested_model
         r = validate_requested_model("qwen3.5-4b", "openai-codex")
         assert r["accepted"] is False
         assert r["persist"] is False
@@ -434,7 +434,7 @@ class TestCodexSoftAcceptPlausibilityGate:
 
 
     def test_real_catalog_model_unaffected(self):
-        from hermes_cli.models import validate_requested_model
+        from sparkii_cli.models import validate_requested_model
         r = validate_requested_model("gpt-5.5", "openai-codex")
         assert r["accepted"] is True
         assert r["recognized"] is True
@@ -444,7 +444,7 @@ class TestClaudeSonnet5InCuratedLists:
     """Regression: Claude Sonnet 5 must appear in curated model lists (#55846)."""
 
     def test_anthropic_native_list_includes_sonnet_5(self):
-        from hermes_cli.models import _PROVIDER_MODELS
+        from sparkii_cli.models import _PROVIDER_MODELS
         assert "claude-sonnet-5" in _PROVIDER_MODELS["anthropic"]
 
 
@@ -454,24 +454,24 @@ class TestFormatPricePerMtok:
     """_format_price_per_mtok: sub-cent prices must not collapse to 'free'/'$0.00'."""
 
     def test_standard_prices_keep_two_decimals(self):
-        from hermes_cli.models import _format_price_per_mtok
+        from sparkii_cli.models import _format_price_per_mtok
         assert _format_price_per_mtok("0.000003") == "$3.00"
         assert _format_price_per_mtok("0.00003") == "$30.00"
         assert _format_price_per_mtok("0.00000015") == "$0.15"
         assert _format_price_per_mtok("0.00018") == "$180.00"
 
     def test_zero_is_free(self):
-        from hermes_cli.models import _format_price_per_mtok
+        from sparkii_cli.models import _format_price_per_mtok
         assert _format_price_per_mtok("0") == "free"
         assert _format_price_per_mtok("0.0") == "free"
 
     def test_invalid_is_question_mark(self):
-        from hermes_cli.models import _format_price_per_mtok
+        from sparkii_cli.models import _format_price_per_mtok
         assert _format_price_per_mtok("garbage") == "?"
         assert _format_price_per_mtok(None) == "?"
 
     def test_sub_cent_price_extends_precision(self):
-        from hermes_cli.models import _format_price_per_mtok
+        from sparkii_cli.models import _format_price_per_mtok
         # DeepSeek V4 Flash 0731 promo cache-hit rate: $0.0018/Mtok.
         assert _format_price_per_mtok("0.0000000018") == "$0.0018"
         assert _format_price_per_mtok("0.000000001") == "$0.001"
@@ -481,5 +481,5 @@ class TestFormatPricePerMtok:
         assert _format_price_per_mtok("0.00000000001") == "$0.00001"
 
     def test_one_cent_boundary_stays_two_decimals(self):
-        from hermes_cli.models import _format_price_per_mtok
+        from sparkii_cli.models import _format_price_per_mtok
         assert _format_price_per_mtok("0.00000001") == "$0.01"

@@ -5,7 +5,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from hermes_cli import runtime_provider as rp
+from sparkii_cli import runtime_provider as rp
 
 
 def test_configured_api_key_provider_without_key_fails_closed(monkeypatch):
@@ -17,7 +17,7 @@ def test_configured_api_key_provider_without_key_fails_closed(monkeypatch):
     )
     monkeypatch.setattr(rp, "load_pool", lambda _provider: SimpleNamespace(has_credentials=lambda: False))
     monkeypatch.setattr(
-        "hermes_cli.auth.resolve_api_key_provider_credentials",
+        "sparkii_cli.auth.resolve_api_key_provider_credentials",
         lambda _provider: {
             "provider": "deepseek",
             "api_key": "",
@@ -34,7 +34,7 @@ def test_noauth_lmstudio_still_resolves(monkeypatch):
     """The fail-closed key guard preserves LM Studio's no-auth contract."""
     monkeypatch.setattr(rp, "load_pool", lambda _provider: SimpleNamespace(has_credentials=lambda: False))
     monkeypatch.setattr(
-        "hermes_cli.auth.resolve_api_key_provider_credentials",
+        "sparkii_cli.auth.resolve_api_key_provider_credentials",
         lambda _provider: {
             "provider": "lmstudio",
             "api_key": "lmstudio-noauth",
@@ -88,7 +88,7 @@ def test_resolve_runtime_provider_uses_credential_pool(monkeypatch):
 
 def test_qwen_oauth_auto_fallthrough_on_auth_failure(monkeypatch):
     """When requested_provider is 'auto' and Qwen creds fail, fall through."""
-    from hermes_cli.auth import AuthError
+    from sparkii_cli.auth import AuthError
 
     monkeypatch.setattr(rp, "resolve_provider", lambda *a, **k: "qwen-oauth")
     monkeypatch.setattr(
@@ -831,7 +831,7 @@ def test_opencode_go_model_derivation_beats_stale_persisted_api_mode(monkeypatch
 
 def test_auto_detected_nous_auth_failure_falls_through_to_openrouter(monkeypatch):
     """When auto-detect picks Nous but credentials are revoked, fall through to OpenRouter."""
-    from hermes_cli.auth import AuthError
+    from sparkii_cli.auth import AuthError
 
     monkeypatch.setenv("OPENROUTER_API_KEY", "test-or-key")
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
@@ -1110,7 +1110,7 @@ class TestProviderEntryApiKeyEnvAlias:
     use `api_key_env`) resolve correctly."""
 
     def test_snake_case_api_key_env_normalizes_to_key_env(self):
-        from hermes_cli.config import _normalize_custom_provider_entry
+        from sparkii_cli.config import _normalize_custom_provider_entry
         entry = {
             "name": "vendor",
             "base_url": "https://api.vendor.example.com/v1",
@@ -1124,11 +1124,11 @@ class TestProviderEntryApiKeyEnvAlias:
     def test_valid_fields_set_lists_key_env(self):
         """The _VALID_CUSTOM_PROVIDER_FIELDS documentation set must include
         key_env so the set stays in sync with what the runtime actually reads."""
-        from hermes_cli.config import _VALID_CUSTOM_PROVIDER_FIELDS
+        from sparkii_cli.config import _VALID_CUSTOM_PROVIDER_FIELDS
         assert "key_env" in _VALID_CUSTOM_PROVIDER_FIELDS
 
     def test_extra_body_is_supported_schema(self):
-        from hermes_cli.config import (
+        from sparkii_cli.config import (
             _VALID_CUSTOM_PROVIDER_FIELDS,
             _normalize_custom_provider_entry,
         )
@@ -1156,7 +1156,7 @@ class TestProviderEntryApiKeyEnvAlias:
 
 def test_minimax_oauth_runtime_returns_anthropic_messages_mode(monkeypatch):
     """resolve_runtime_provider for minimax-oauth must return api_mode='anthropic_messages'."""
-    from hermes_cli.auth import MINIMAX_OAUTH_GLOBAL_INFERENCE
+    from sparkii_cli.auth import MINIMAX_OAUTH_GLOBAL_INFERENCE
 
     monkeypatch.setattr(rp, "resolve_provider", lambda *a, **k: "minimax-oauth")
     monkeypatch.setattr(rp, "_get_model_config", lambda: {"provider": "minimax-oauth"})
@@ -1179,7 +1179,7 @@ def test_minimax_oauth_runtime_returns_anthropic_messages_mode(monkeypatch):
         "source": "oauth",
     }
 
-    import hermes_cli.auth as auth_mod
+    import sparkii_cli.auth as auth_mod
     monkeypatch.setattr(auth_mod, "resolve_minimax_oauth_runtime_credentials",
                         lambda **k: fake_creds)
 

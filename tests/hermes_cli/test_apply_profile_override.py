@@ -43,7 +43,7 @@ def _run_apply_profile_override(
 
     monkeypatch.setattr(sys, "argv", argv or ["hermes", "gateway", "start"])
 
-    from hermes_cli.main import _apply_profile_override
+    from sparkii_cli.main import _apply_profile_override
     _apply_profile_override()
 
     return os.environ.get("HERMES_HOME")
@@ -104,7 +104,7 @@ class TestApplyProfileOverrideHermesHomeGuard:
 
         monkeypatch.setattr(pwd, "getpwnam", lambda name: SimpleNamespace(pw_dir=str(user_home)))
 
-        from hermes_cli.main import _apply_profile_override
+        from sparkii_cli.main import _apply_profile_override
         _apply_profile_override()
 
         assert os.environ.get("HERMES_HOME") == str(profile_dir)
@@ -157,7 +157,7 @@ class TestSupervisedChildIgnoresStickyProfile:
         monkeypatch.setenv("HERMES_S6_SUPERVISED_CHILD", "1")
         monkeypatch.setattr(sys, "argv", ["hermes", "-p", "coder", "gateway", "run"])
 
-        from hermes_cli.main import _apply_profile_override
+        from sparkii_cli.main import _apply_profile_override
         _apply_profile_override()
 
         result = os.environ.get("HERMES_HOME")

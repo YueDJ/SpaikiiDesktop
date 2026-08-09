@@ -1,4 +1,4 @@
-"""Tests for hermes_cli.model_catalog — remote manifest fetch + cache + fallback."""
+"""Tests for sparkii_cli.model_catalog — remote manifest fetch + cache + fallback."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ def isolated_home(tmp_path, monkeypatch):
 
     # Force a fresh catalog module state for each test.
     import importlib
-    from hermes_cli import model_catalog
+    from sparkii_cli import model_catalog
     importlib.reload(model_catalog)
     yield home
     model_catalog.reset_cache()
@@ -54,18 +54,18 @@ def _valid_manifest() -> dict:
 
 class TestValidation:
     def test_accepts_well_formed_manifest(self, isolated_home):
-        from hermes_cli.model_catalog import _validate_manifest
+        from sparkii_cli.model_catalog import _validate_manifest
         assert _validate_manifest(_valid_manifest()) is True
 
     def test_rejects_non_dict(self, isolated_home):
-        from hermes_cli.model_catalog import _validate_manifest
+        from sparkii_cli.model_catalog import _validate_manifest
         assert _validate_manifest("string") is False
         assert _validate_manifest([]) is False
         assert _validate_manifest(None) is False
 
 
     def test_rejects_non_string_model_id(self, isolated_home):
-        from hermes_cli.model_catalog import _validate_manifest
+        from sparkii_cli.model_catalog import _validate_manifest
         m = _valid_manifest()
         m["providers"]["openrouter"]["models"][0] = {"id": 42}
         assert _validate_manifest(m) is False
@@ -73,7 +73,7 @@ class TestValidation:
 
 class TestFetchSuccess:
     def test_fetch_and_cache_writes_disk(self, isolated_home):
-        from hermes_cli import model_catalog
+        from sparkii_cli import model_catalog
         manifest = _valid_manifest()
         with patch.object(
             model_catalog, "_fetch_manifest", return_value=manifest
@@ -91,13 +91,13 @@ class TestFetchSuccess:
 
 class TestFetchFailure:
     def test_network_failure_returns_empty_when_no_cache(self, isolated_home):
-        from hermes_cli import model_catalog
+        from sparkii_cli import model_catalog
         with patch.object(model_catalog, "_fetch_manifest", return_value=None):
             result = model_catalog.get_catalog(force_refresh=True)
         assert result == {}
 
     def test_network_failure_falls_back_to_disk_cache(self, isolated_home):
-        from hermes_cli import model_catalog
+        from sparkii_cli import model_catalog
         # Prime disk cache with a fresh copy.
         manifest = _valid_manifest()
         with patch.object(model_catalog, "_fetch_manifest", return_value=manifest):
@@ -111,7 +111,7 @@ class TestFetchFailure:
         assert result == manifest
 
     def test_fetch_failure_falls_back_to_stale_cache(self, isolated_home):
-        from hermes_cli import model_catalog
+        from sparkii_cli import model_catalog
         manifest = _valid_manifest()
         # Write stale cache directly (mtime in the past).
         cache = model_catalog._cache_path()
@@ -144,7 +144,7 @@ class TestFallbackChain:
     )
 
     def test_uses_primary_when_it_succeeds(self, isolated_home):
-        from hermes_cli import model_catalog
+        from sparkii_cli import model_catalog
         calls: list[str] = []
 
         def fake_fetch(url, timeout):
@@ -158,7 +158,7 @@ class TestFallbackChain:
         assert calls == [self.PRIMARY], "fallback URLs must not be touched on primary success"
 
     def test_falls_through_to_raw_github_on_primary_failure(self, isolated_home):
-        from hermes_cli import model_catalog
+        from sparkii_cli import model_catalog
         calls: list[str] = []
 
         def fake_fetch(url, timeout):
@@ -177,7 +177,7 @@ class TestFallbackChain:
     def test_get_catalog_uses_fallback_chain(self, isolated_home):
         """End-to-end: ``get_catalog`` routes through the fallback helper so
         a primary URL failure transparently produces a working catalog."""
-        from hermes_cli import model_catalog
+        from sparkii_cli import model_catalog
         manifest = _valid_manifest()
         calls: list[str] = []
 
@@ -196,7 +196,7 @@ class TestFallbackChain:
 
 class TestCuratedAccessors:
     def test_openrouter_returns_tuples(self, isolated_home):
-        from hermes_cli import model_catalog
+        from sparkii_cli import model_catalog
         with patch.object(
             model_catalog, "_fetch_manifest", return_value=_valid_manifest()
         ):
@@ -209,7 +209,7 @@ class TestCuratedAccessors:
 
 
     def test_nous_returns_none_when_catalog_empty(self, isolated_home):
-        from hermes_cli import model_catalog
+        from sparkii_cli import model_catalog
         with patch.object(model_catalog, "_fetch_manifest", return_value=None):
             assert model_catalog.get_curated_nous_models() is None
 
@@ -225,7 +225,7 @@ class TestDefaultModelFromCache:
         return m
 
     def test_reads_label_from_disk_cache(self, isolated_home):
-        from hermes_cli import model_catalog
+        from sparkii_cli import model_catalog
         cache = isolated_home / "cache"
         cache.mkdir()
         (cache / "model_catalog.json").write_text(
@@ -243,7 +243,7 @@ class TestDefaultModelFromCache:
             fetch.assert_not_called()
 
     def test_no_label_returns_none(self, isolated_home):
-        from hermes_cli import model_catalog
+        from sparkii_cli import model_catalog
         cache = isolated_home / "cache"
         cache.mkdir()
         (cache / "model_catalog.json").write_text(json.dumps(_valid_manifest()))
@@ -255,8 +255,8 @@ class TestDefaultModelFromCache:
     def test_shipped_manifest_labels_glm52_default(self, isolated_home):
         """Contract with the in-repo manifest: both provider blocks label the
         same default entry the code constant points at."""
-        import hermes_cli.model_catalog as model_catalog
-        from hermes_cli.models import PREFERRED_SILENT_DEFAULT_MODEL
+        import sparkii_cli.model_catalog as model_catalog
+        from sparkii_cli.models import PREFERRED_SILENT_DEFAULT_MODEL
 
         repo_root = Path(model_catalog.__file__).resolve().parent.parent
         manifest = json.loads(
@@ -273,7 +273,7 @@ class TestDefaultModelFromCache:
 
 class TestProviderOverride:
     def test_override_url_takes_precedence(self, isolated_home):
-        from hermes_cli import model_catalog
+        from sparkii_cli import model_catalog
 
         override_payload = {
             "version": 1,
@@ -308,7 +308,7 @@ class TestProviderOverride:
 
 
 class TestIntegrationWithModelsModule:
-    """Exercise the fallback paths via the real callers in hermes_cli.models."""
+    """Exercise the fallback paths via the real callers in sparkii_cli.models."""
 
 
 
@@ -326,11 +326,11 @@ class TestIntegrationWithModelsModule:
         # seat-belt thinks is the "real" user store. Use the autouse
         # ``_hermetic_environment`` HERMES_HOME directly instead.
         import importlib
-        from hermes_cli import model_catalog
-        from hermes_cli.models import get_curated_nous_model_ids
+        from sparkii_cli import model_catalog
+        from sparkii_cli.models import get_curated_nous_model_ids
         importlib.reload(model_catalog)
         try:
-            from hermes_cli.model_switch import list_picker_providers
+            from sparkii_cli.model_switch import list_picker_providers
 
             active_home = Path(os.environ["HERMES_HOME"])
             (active_home / "auth.json").write_text(
@@ -349,11 +349,11 @@ class TestIntegrationWithModelsModule:
             # stays an invariant — it can't rot as the curated/manifest list grows.
             with patch.object(
                 model_catalog, "_fetch_manifest", return_value=_valid_manifest()
-            ), patch("hermes_cli.models.check_nous_free_tier", return_value=False), patch(
-                "hermes_cli.models.union_with_portal_free_recommendations",
+            ), patch("sparkii_cli.models.check_nous_free_tier", return_value=False), patch(
+                "sparkii_cli.models.union_with_portal_free_recommendations",
                 side_effect=lambda ids, *a, **k: (ids, {}),
             ), patch(
-                "hermes_cli.models.union_with_portal_paid_recommendations",
+                "sparkii_cli.models.union_with_portal_paid_recommendations",
                 side_effect=lambda ids, *a, **k: (ids, {}),
             ):
                 expected = get_curated_nous_model_ids()
@@ -375,11 +375,11 @@ class TestIntegrationWithModelsModule:
         a ``if max_models`` (falsy) check would conflate ``0`` with unlimited.
         """
         import importlib
-        from hermes_cli import model_catalog
-        from hermes_cli.models import get_curated_nous_model_ids
+        from sparkii_cli import model_catalog
+        from sparkii_cli.models import get_curated_nous_model_ids
         importlib.reload(model_catalog)
         try:
-            from hermes_cli.model_switch import (
+            from sparkii_cli.model_switch import (
                 list_authenticated_providers,
                 list_picker_providers,
             )
@@ -395,11 +395,11 @@ class TestIntegrationWithModelsModule:
             )
             with patch.object(
                 model_catalog, "_fetch_manifest", return_value=_valid_manifest()
-            ), patch("hermes_cli.models.check_nous_free_tier", return_value=False), patch(
-                "hermes_cli.models.union_with_portal_free_recommendations",
+            ), patch("sparkii_cli.models.check_nous_free_tier", return_value=False), patch(
+                "sparkii_cli.models.union_with_portal_free_recommendations",
                 side_effect=lambda ids, *a, **k: (ids, {}),
             ), patch(
-                "hermes_cli.models.union_with_portal_paid_recommendations",
+                "sparkii_cli.models.union_with_portal_paid_recommendations",
                 side_effect=lambda ids, *a, **k: (ids, {}),
             ):
                 expected = get_curated_nous_model_ids()

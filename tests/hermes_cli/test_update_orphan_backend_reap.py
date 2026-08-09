@@ -2,7 +2,7 @@
 
 The GUI-updater handoff race (ryanc's 2026-08-09 failures): the Desktop app
 fires SIGTERM + app.quit() and spawns hermes-setup, but its Python backend
-(``python.exe -m hermes_cli.main serve``) survives the teardown race. The
+(``python.exe -m sparkii_cli.main serve``) survives the teardown race. The
 Desktop is gone — nothing will respawn that backend — yet the venv-holder
 guard refused on it and the update dead-ended with "Hermes is still running"
 while the user had zero windows open.
@@ -23,7 +23,7 @@ import types
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-from hermes_cli import main as cli_main
+from sparkii_cli import main as cli_main
 
 
 class _FakeNoSuchProcess(Exception):
@@ -64,14 +64,14 @@ def _proc(
 _SERVE_ARGV = [
     "C:\\hermes\\venv\\Scripts\\python.exe",
     "-m",
-    "hermes_cli.main",
+    "sparkii_cli.main",
     "serve",
     "--host",
     "127.0.0.1",
 ]
 
 
-def _holders(pid=200, cmdline="python.exe -m hermes_cli.main serve"):
+def _holders(pid=200, cmdline="python.exe -m sparkii_cli.main serve"):
     return [(pid, "python.exe", cmdline)]
 
 
@@ -105,10 +105,10 @@ def test_recycled_parent_pid_counts_as_orphan():
 
 
 def test_non_backend_holder_keeps_refusal():
-    repl = _proc(300, ["python.exe", "-m", "hermes_cli.main", "chat"], ppid=999)
+    repl = _proc(300, ["python.exe", "-m", "sparkii_cli.main", "chat"], ppid=999)
     fake = _fake_psutil({300: repl})
     with patch.dict(sys.modules, {"psutil": fake}):
-        holders = _holders(pid=300, cmdline="python.exe -m hermes_cli.main chat")
+        holders = _holders(pid=300, cmdline="python.exe -m sparkii_cli.main chat")
         assert cli_main._orphaned_desktop_backend_pids(holders) is None
 
 
@@ -203,7 +203,7 @@ def test_missing_psutil_keeps_refusal():
 
 
 def test_stop_process_trees_kills_full_tree():
-    from hermes_cli import update_cmd
+    from sparkii_cli import update_cmd
 
     with patch.object(update_cmd.subprocess, "run") as run:
         cli_main._stop_process_trees([111, 222])
@@ -215,7 +215,7 @@ def test_stop_process_trees_kills_full_tree():
 
 
 def test_stop_process_trees_never_raises():
-    from hermes_cli import update_cmd
+    from sparkii_cli import update_cmd
 
     with patch.object(
         update_cmd.subprocess, "run", side_effect=OSError("no taskkill")

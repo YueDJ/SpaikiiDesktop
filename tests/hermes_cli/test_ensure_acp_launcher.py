@@ -13,7 +13,7 @@ from unittest.mock import patch
 
 import pytest
 
-from hermes_cli.main import _ensure_acp_launcher
+from sparkii_cli.main import _ensure_acp_launcher
 
 
 @pytest.fixture

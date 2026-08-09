@@ -42,7 +42,7 @@ class _OneFrameBridge:
 def pty_client(monkeypatch, _isolate_hermes_home):
     from starlette.testclient import TestClient
 
-    import hermes_cli.web_server as ws
+    import sparkii_cli.web_server as ws
 
     monkeypatch.setattr(ws, "_DASHBOARD_EMBEDDED_CHAT_ENABLED", True)
     monkeypatch.setattr(ws.PtyBridge, "spawn", _OneFrameBridge.spawn)

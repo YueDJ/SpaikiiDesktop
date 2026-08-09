@@ -14,9 +14,9 @@ from typing import Any
 
 import pytest
 
-from hermes_cli import lifecycle, plugins
-from hermes_cli.observability import relay_runtime, relay_shared_metrics
-from hermes_cli.plugins import PluginManager
+from sparkii_cli import lifecycle, plugins
+from sparkii_cli.observability import relay_runtime, relay_shared_metrics
+from sparkii_cli.plugins import PluginManager
 
 
 class _Request:
@@ -213,7 +213,7 @@ def direct_runtime(tmp_path, monkeypatch):
     monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes-home"))
     monkeypatch.setattr(relay_runtime, "_load_nemo_relay", lambda: fake)
     monkeypatch.setattr(
-        "hermes_cli.config.read_raw_config_readonly",
+        "sparkii_cli.config.read_raw_config_readonly",
         lambda: {"telemetry": {"shared_metrics": {"enabled": True}}},
     )
     relay_shared_metrics._reset_for_tests()
@@ -231,7 +231,7 @@ def real_binding_runtime(tmp_path, monkeypatch):
         pytest.skip("NeMo Relay native binding is unavailable on this platform")
     monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes-home"))
     monkeypatch.setattr(
-        "hermes_cli.config.read_raw_config_readonly",
+        "sparkii_cli.config.read_raw_config_readonly",
         lambda: {"telemetry": {"shared_metrics": {"enabled": True}}},
     )
     relay_shared_metrics._reset_for_tests()
@@ -604,13 +604,13 @@ def test_real_binding_drives_lifecycle_aggregation_export_and_snapshot(
     )
     lifecycle.finalize_session(session_id=cancelled["session_id"])
 
-    from hermes_cli.observability.shared_metrics import SharedMetricsStore
+    from sparkii_cli.observability.shared_metrics import SharedMetricsStore
 
     root = tmp_path / "hermes-home" / "telemetry" / "shared_metrics"
     store = SharedMetricsStore(root / "metrics.sqlite3", root / "outbox")
     tomorrow = datetime.now(timezone.utc) + timedelta(days=1)
     monkeypatch.setattr(
-        "hermes_cli.observability.shared_metrics._utc_now",
+        "sparkii_cli.observability.shared_metrics._utc_now",
         lambda: tomorrow,
     )
     assert len(store.create_and_export_package_if_due()) == 1
@@ -727,7 +727,7 @@ def test_real_binding_correlates_plugin_approval_denial_to_tool_metric(
     tmp_path,
     monkeypatch,
 ):
-    from hermes_cli.observability.shared_metrics import SharedMetricsStore
+    from sparkii_cli.observability.shared_metrics import SharedMetricsStore
     from tools import approval
 
     assert real_binding_runtime._native is not None
@@ -820,7 +820,7 @@ def test_real_binding_aggregates_tool_and_approval_timeouts(
     real_binding_runtime,
     tmp_path,
 ):
-    from hermes_cli.observability.shared_metrics import SharedMetricsStore
+    from sparkii_cli.observability.shared_metrics import SharedMetricsStore
 
     assert real_binding_runtime._native is not None
     base = {
@@ -1123,7 +1123,7 @@ def test_managed_config_cannot_override_shared_metrics_consent(
     profile_enabled,
     managed_enabled,
 ):
-    from hermes_cli import config, managed_scope
+    from sparkii_cli import config, managed_scope
     from hermes_constants import (
         reset_hermes_home_override,
         set_hermes_home_override,
@@ -1171,7 +1171,7 @@ def test_managed_config_cannot_override_shared_metrics_consent(
 def test_disabling_shared_metrics_stops_collection_and_shutdown_export(
     tmp_path, monkeypatch
 ):
-    from hermes_cli.observability.shared_metrics import SharedMetricsStore
+    from sparkii_cli.observability.shared_metrics import SharedMetricsStore
 
     fake = _Relay()
     profile = tmp_path / "profile"
@@ -1179,7 +1179,7 @@ def test_disabling_shared_metrics_stops_collection_and_shutdown_export(
     monkeypatch.setenv("HERMES_HOME", str(profile))
     monkeypatch.setattr(relay_runtime, "_load_nemo_relay", lambda: fake)
     monkeypatch.setattr(
-        "hermes_cli.config.read_raw_config_readonly",
+        "sparkii_cli.config.read_raw_config_readonly",
         lambda: {"telemetry": {"shared_metrics": dict(policy)}},
     )
     relay_shared_metrics._reset_for_tests()
@@ -2291,7 +2291,7 @@ def test_failed_flush_keeps_daily_export_open_for_later_task(
 ):
     current_time = datetime(2026, 7, 28, 9, tzinfo=timezone.utc)
     monkeypatch.setattr(
-        "hermes_cli.observability.shared_metrics._utc_now",
+        "sparkii_cli.observability.shared_metrics._utc_now",
         lambda: current_time,
     )
     original_flush = direct_runtime.subscribers.flush

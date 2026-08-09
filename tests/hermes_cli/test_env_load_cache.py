@@ -21,7 +21,7 @@ def _write_env(path: Path, contents: str) -> None:
 
 def test_load_env_caches_on_repeat_calls():
     """Repeated load_env() calls on the same file return the cached dict."""
-    from hermes_cli.config import invalidate_env_cache, load_env
+    from sparkii_cli.config import invalidate_env_cache, load_env
 
     invalidate_env_cache()
 
@@ -32,7 +32,7 @@ def test_load_env_caches_on_repeat_calls():
         env_path = Path(f.name)
 
     try:
-        with patch("hermes_cli.config.get_env_path", return_value=env_path):
+        with patch("sparkii_cli.config.get_env_path", return_value=env_path):
             first = load_env()
             # Even if a writer outside our cache mutates the file, an
             # mtime/size match means the cache still wins. We simulate that
@@ -51,8 +51,8 @@ def test_load_env_caches_on_repeat_calls():
 
 def test_remove_env_value_invalidates_cache(tmp_path, monkeypatch):
     """remove_env_value() invalidates the cache so the removed key disappears."""
-    from hermes_cli import config as config_mod
-    from hermes_cli.config import (
+    from sparkii_cli import config as config_mod
+    from sparkii_cli.config import (
         invalidate_env_cache,
         load_env,
         remove_env_value,

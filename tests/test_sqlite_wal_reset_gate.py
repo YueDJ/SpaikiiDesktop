@@ -386,7 +386,7 @@ class TestNoDowngradeUnderConcurrentOpeners:
 
 def test_doctor_warns_without_adding_issues(monkeypatch, tmp_path, capsys):
     """Vulnerable SQLite is warn-only in doctor — not a blocking issues[] entry."""
-    from hermes_cli.doctor import run_doctor
+    from sparkii_cli.doctor import run_doctor
 
     home = tmp_path / ".hermes"
     home.mkdir()

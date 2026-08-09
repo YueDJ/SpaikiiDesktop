@@ -1,4 +1,4 @@
-"""Unit tests for hermes_cli.managed_scope (resolver + loaders + key helpers)."""
+"""Unit tests for sparkii_cli.managed_scope (resolver + loaders + key helpers)."""
 import textwrap
 
 import pytest
@@ -15,7 +15,7 @@ import pytest
 
 
 def _write_managed(tmp_path, monkeypatch, *, config=None, env=None):
-    from hermes_cli import managed_scope
+    from sparkii_cli import managed_scope
 
     managed = tmp_path / "managed"
     managed.mkdir(exist_ok=True)
@@ -35,7 +35,7 @@ def _write_managed(tmp_path, monkeypatch, *, config=None, env=None):
 
 
 def test_load_managed_env_and_is_env_managed(tmp_path, monkeypatch):
-    from hermes_cli import managed_scope
+    from sparkii_cli import managed_scope
 
     _write_managed(
         tmp_path, monkeypatch, env="OPENAI_API_BASE=https://org.example/v1\n"

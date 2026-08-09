@@ -47,28 +47,28 @@ def nested_plugin_env(tmp_path):
 
 
 class TestResolvePluginKey:
-    @patch("hermes_cli.plugins.get_bundled_plugins_dir")
-    @patch("hermes_cli.plugins_cmd._plugins_dir")
+    @patch("sparkii_cli.plugins.get_bundled_plugins_dir")
+    @patch("sparkii_cli.plugins_cmd._plugins_dir")
     def test_full_key_resolves_to_itself(self, mock_user, mock_bundled, nested_plugin_env):
-        from hermes_cli.plugins_cmd import _resolve_plugin_key
+        from sparkii_cli.plugins_cmd import _resolve_plugin_key
         mock_user.return_value = nested_plugin_env
         mock_bundled.return_value = nested_plugin_env / "nonexistent"
         assert _resolve_plugin_key("observability/nemo_relay") == "observability/nemo_relay"
 
 
-    @patch("hermes_cli.plugins.get_bundled_plugins_dir")
-    @patch("hermes_cli.plugins_cmd._plugins_dir")
+    @patch("sparkii_cli.plugins.get_bundled_plugins_dir")
+    @patch("sparkii_cli.plugins_cmd._plugins_dir")
     def test_unknown_returns_none(self, mock_user, mock_bundled, nested_plugin_env):
-        from hermes_cli.plugins_cmd import _resolve_plugin_key
+        from sparkii_cli.plugins_cmd import _resolve_plugin_key
         mock_user.return_value = nested_plugin_env
         mock_bundled.return_value = nested_plugin_env / "nonexistent"
         assert _resolve_plugin_key("does-not-exist") is None
 
-    @patch("hermes_cli.plugins.get_bundled_plugins_dir")
-    @patch("hermes_cli.plugins_cmd._plugins_dir")
+    @patch("sparkii_cli.plugins.get_bundled_plugins_dir")
+    @patch("sparkii_cli.plugins_cmd._plugins_dir")
     def test_ambiguous_leaf_name_returns_none(self, mock_user, mock_bundled, tmp_path):
         """Same leaf name under two categories must NOT silently pick one."""
-        from hermes_cli.plugins_cmd import _resolve_plugin_key
+        from sparkii_cli.plugins_cmd import _resolve_plugin_key
         _make_category_plugin(tmp_path, "image_gen", "openai", {"name": "image-gen-openai"})
         _make_category_plugin(tmp_path, "model-providers", "openai", {"name": "mp-openai"})
         mock_user.return_value = tmp_path
@@ -84,17 +84,17 @@ class TestResolvePluginKey:
 
 
 class TestEnableDisableNested:
-    @patch("hermes_cli.plugins.get_bundled_plugins_dir")
-    @patch("hermes_cli.plugins_cmd._plugins_dir")
-    @patch("hermes_cli.plugins_cmd._save_disabled_set")
-    @patch("hermes_cli.plugins_cmd._save_enabled_set")
-    @patch("hermes_cli.plugins_cmd._get_disabled_set", return_value=set())
-    @patch("hermes_cli.plugins_cmd._get_enabled_set", return_value=set())
+    @patch("sparkii_cli.plugins.get_bundled_plugins_dir")
+    @patch("sparkii_cli.plugins_cmd._plugins_dir")
+    @patch("sparkii_cli.plugins_cmd._save_disabled_set")
+    @patch("sparkii_cli.plugins_cmd._save_enabled_set")
+    @patch("sparkii_cli.plugins_cmd._get_disabled_set", return_value=set())
+    @patch("sparkii_cli.plugins_cmd._get_enabled_set", return_value=set())
     def test_enable_bare_name_writes_key(
         self, mock_en, mock_dis, mock_save_en, mock_save_dis,
         mock_user, mock_bundled, nested_plugin_env,
     ):
-        from hermes_cli.plugins_cmd import cmd_enable
+        from sparkii_cli.plugins_cmd import cmd_enable
         mock_user.return_value = nested_plugin_env
         mock_bundled.return_value = nested_plugin_env / "nonexistent"
 
@@ -107,27 +107,27 @@ class TestEnableDisableNested:
         assert "nemo_relay" not in saved or "observability/nemo_relay" in saved
 
 
-    @patch("hermes_cli.plugins.get_bundled_plugins_dir")
-    @patch("hermes_cli.plugins_cmd._plugins_dir")
+    @patch("sparkii_cli.plugins.get_bundled_plugins_dir")
+    @patch("sparkii_cli.plugins_cmd._plugins_dir")
     def test_enable_unknown_plugin_exits(self, mock_user, mock_bundled, nested_plugin_env):
-        from hermes_cli.plugins_cmd import cmd_enable
+        from sparkii_cli.plugins_cmd import cmd_enable
         mock_user.return_value = nested_plugin_env
         mock_bundled.return_value = nested_plugin_env / "nonexistent"
         with pytest.raises(SystemExit):
             cmd_enable("does-not-exist")
 
-    @patch("hermes_cli.plugins.get_bundled_plugins_dir")
-    @patch("hermes_cli.plugins_cmd._plugins_dir")
-    @patch("hermes_cli.plugins_cmd._save_disabled_set")
-    @patch("hermes_cli.plugins_cmd._save_enabled_set")
-    @patch("hermes_cli.plugins_cmd._get_disabled_set", return_value=set())
-    @patch("hermes_cli.plugins_cmd._get_enabled_set", return_value=set())
+    @patch("sparkii_cli.plugins.get_bundled_plugins_dir")
+    @patch("sparkii_cli.plugins_cmd._plugins_dir")
+    @patch("sparkii_cli.plugins_cmd._save_disabled_set")
+    @patch("sparkii_cli.plugins_cmd._save_enabled_set")
+    @patch("sparkii_cli.plugins_cmd._get_disabled_set", return_value=set())
+    @patch("sparkii_cli.plugins_cmd._get_enabled_set", return_value=set())
     def test_enable_flat_plugin_unchanged(
         self, mock_en, mock_dis, mock_save_en, mock_save_dis,
         mock_user, mock_bundled, nested_plugin_env,
     ):
         """Flat plugins keep writing their bare name (key == name) — no regression."""
-        from hermes_cli.plugins_cmd import cmd_enable
+        from sparkii_cli.plugins_cmd import cmd_enable
         mock_user.return_value = nested_plugin_env
         mock_bundled.return_value = nested_plugin_env / "nonexistent"
 
@@ -147,19 +147,19 @@ class TestEnableToolOverrideConsent:
     choice under ``plugins.entries.<key>.allow_tool_override``."""
 
 
-    @patch("hermes_cli.plugins.get_bundled_plugins_dir")
-    @patch("hermes_cli.plugins_cmd._plugins_dir")
-    @patch("hermes_cli.plugins_cmd._set_plugin_entry_flag")
-    @patch("hermes_cli.plugins_cmd._save_disabled_set")
-    @patch("hermes_cli.plugins_cmd._save_enabled_set")
-    @patch("hermes_cli.plugins_cmd._get_disabled_set", return_value=set())
-    @patch("hermes_cli.plugins_cmd._get_enabled_set", return_value=set())
+    @patch("sparkii_cli.plugins.get_bundled_plugins_dir")
+    @patch("sparkii_cli.plugins_cmd._plugins_dir")
+    @patch("sparkii_cli.plugins_cmd._set_plugin_entry_flag")
+    @patch("sparkii_cli.plugins_cmd._save_disabled_set")
+    @patch("sparkii_cli.plugins_cmd._save_enabled_set")
+    @patch("sparkii_cli.plugins_cmd._get_disabled_set", return_value=set())
+    @patch("sparkii_cli.plugins_cmd._get_enabled_set", return_value=set())
     def test_interactive_eof_defaults_to_deny(
         self, mock_en, mock_dis, mock_save_en, mock_save_dis, mock_set_flag,
         mock_user, mock_bundled, nested_plugin_env,
     ):
         """Non-interactive stdin (EOFError) must fail closed to deny."""
-        from hermes_cli.plugins_cmd import cmd_enable
+        from sparkii_cli.plugins_cmd import cmd_enable
         mock_user.return_value = nested_plugin_env
         mock_bundled.return_value = nested_plugin_env / "nonexistent"
 
@@ -170,19 +170,19 @@ class TestEnableToolOverrideConsent:
             "disk-cleanup", "allow_tool_override", False
         )
 
-    @patch("hermes_cli.plugins.get_bundled_plugins_dir")
-    @patch("hermes_cli.plugins_cmd._plugins_dir")
-    @patch("hermes_cli.plugins_cmd._set_plugin_entry_flag")
-    @patch("hermes_cli.plugins_cmd._save_disabled_set")
-    @patch("hermes_cli.plugins_cmd._save_enabled_set")
-    @patch("hermes_cli.plugins_cmd._get_disabled_set", return_value=set())
-    @patch("hermes_cli.plugins_cmd._get_enabled_set", return_value=set())
+    @patch("sparkii_cli.plugins.get_bundled_plugins_dir")
+    @patch("sparkii_cli.plugins_cmd._plugins_dir")
+    @patch("sparkii_cli.plugins_cmd._set_plugin_entry_flag")
+    @patch("sparkii_cli.plugins_cmd._save_disabled_set")
+    @patch("sparkii_cli.plugins_cmd._save_enabled_set")
+    @patch("sparkii_cli.plugins_cmd._get_disabled_set", return_value=set())
+    @patch("sparkii_cli.plugins_cmd._get_enabled_set", return_value=set())
     def test_bundled_plugin_never_prompts_or_writes_entry(
         self, mock_en, mock_dis, mock_save_en, mock_save_dis, mock_set_flag,
         mock_user, mock_bundled, tmp_path,
     ):
         """Bundled plugins are trusted — no consent prompt, no entry write."""
-        from hermes_cli.plugins_cmd import cmd_enable
+        from sparkii_cli.plugins_cmd import cmd_enable
         # Bundled dir holds the plugin; user dir is empty.
         _make_plugin_dir(tmp_path / "bundled", "trusted_bundled", {
             "name": "trusted_bundled", "version": "1.0.0",
@@ -205,13 +205,13 @@ class TestCompositeMenuWritesCanonicalKey:
     name is what silently vetoed a bundled backend forever (pi314).
     """
 
-    @patch("hermes_cli.plugins_cmd._save_disabled_set")
-    @patch("hermes_cli.plugins_cmd._save_enabled_set")
-    @patch("hermes_cli.plugins_cmd._get_enabled_set", return_value=set())
+    @patch("sparkii_cli.plugins_cmd._save_disabled_set")
+    @patch("sparkii_cli.plugins_cmd._save_enabled_set")
+    @patch("sparkii_cli.plugins_cmd._get_enabled_set", return_value=set())
     def test_fallback_unchecked_plugin_disables_by_key_not_name(
         self, mock_en, mock_save_en, mock_save_dis,
     ):
-        from hermes_cli.plugins_cmd import _run_composite_fallback
+        from sparkii_cli.plugins_cmd import _run_composite_fallback
         from rich.console import Console
 
         # key differs from the manifest name, mirroring web/firecrawl.

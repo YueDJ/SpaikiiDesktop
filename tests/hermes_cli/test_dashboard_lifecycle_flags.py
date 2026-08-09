@@ -15,7 +15,7 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-from hermes_cli.main import cmd_dashboard
+from sparkii_cli.main import cmd_dashboard
 
 
 def _ns(**kw):
@@ -30,7 +30,7 @@ def _ns(**kw):
 
 class TestDashboardStatus:
     def test_status_no_processes(self, capsys):
-        with patch("hermes_cli.main._scan_dashboard_processes", return_value=[]), \
+        with patch("sparkii_cli.main._scan_dashboard_processes", return_value=[]), \
              pytest.raises(SystemExit) as exc:
             cmd_dashboard(_ns(status=True))
         assert exc.value.code == 0
@@ -40,11 +40,11 @@ class TestDashboardStatus:
     def test_status_with_processes(self, capsys):
         processes = [
             (12345, "hermes dashboard --port 9119"),
-            (12346, "python -m hermes_cli.main dashboard --host 0.0.0.0 --port 9120"),
+            (12346, "python -m sparkii_cli.main dashboard --host 0.0.0.0 --port 9120"),
         ]
-        with patch("hermes_cli.main._scan_dashboard_processes", return_value=processes), \
+        with patch("sparkii_cli.main._scan_dashboard_processes", return_value=processes), \
              patch("gateway.status._pid_exists", return_value=True), \
-             patch("hermes_cli.main._dashboard_listening", return_value=True), \
+             patch("sparkii_cli.main._dashboard_listening", return_value=True), \
              pytest.raises(SystemExit) as exc:
             cmd_dashboard(_ns(status=True))
         # Status is informational — always exits 0.
@@ -65,7 +65,7 @@ class TestDashboardStatus:
                 raise ImportError("fastapi missing")
             return orig_import(name, *a, **kw)
 
-        with patch("hermes_cli.main._scan_dashboard_processes", return_value=[]), \
+        with patch("sparkii_cli.main._scan_dashboard_processes", return_value=[]), \
              patch("builtins.__import__", side_effect=fake_import), \
              pytest.raises(SystemExit) as exc:
             cmd_dashboard(_ns(status=True))
@@ -78,9 +78,9 @@ class TestDashboardStop:
         """After the kill, if the second scan returns empty we exit 0."""
         # First scan: finds two processes.  Second (verification) scan: empty.
         scans = iter([[12345, 12346], []])
-        with patch("hermes_cli.main._find_stale_dashboard_pids",
+        with patch("sparkii_cli.main._find_stale_dashboard_pids",
                    side_effect=lambda: next(scans)), \
-             patch("hermes_cli.main._kill_stale_dashboard_processes") as mock_kill, \
+             patch("sparkii_cli.main._kill_stale_dashboard_processes") as mock_kill, \
              pytest.raises(SystemExit) as exc:
             cmd_dashboard(_ns(stop=True))
         mock_kill.assert_called_once()
@@ -96,9 +96,9 @@ class TestDashboardStop:
         """If the second scan still finds PIDs, we exit 1 so scripts can
         detect that the stop didn't succeed (e.g. permission denied)."""
         scans = iter([[12345], [12345]])  # both scans find the same PID
-        with patch("hermes_cli.main._find_stale_dashboard_pids",
+        with patch("sparkii_cli.main._find_stale_dashboard_pids",
                    side_effect=lambda: next(scans)), \
-             patch("hermes_cli.main._kill_stale_dashboard_processes"), \
+             patch("sparkii_cli.main._kill_stale_dashboard_processes"), \
              pytest.raises(SystemExit) as exc:
             cmd_dashboard(_ns(stop=True))
         assert exc.value.code == 1
@@ -111,7 +111,7 @@ class TestDashboardStop:
                 raise ImportError("fastapi missing")
             return orig_import(name, *a, **kw)
 
-        with patch("hermes_cli.main._find_stale_dashboard_pids",
+        with patch("sparkii_cli.main._find_stale_dashboard_pids",
                    return_value=[]), \
              patch("builtins.__import__", side_effect=fake_import), \
              pytest.raises(SystemExit) as exc:
@@ -138,9 +138,9 @@ class TestLifecycleFlagsTakePrecedence:
         fake_ws = MagicMock()
         fake_ws.start_server = fake_start_server
 
-        with patch("hermes_cli.main._find_stale_dashboard_pids",
+        with patch("sparkii_cli.main._find_stale_dashboard_pids",
                    return_value=[]), \
-             patch.dict(sys.modules, {"hermes_cli.web_server": fake_ws}), \
+             patch.dict(sys.modules, {"sparkii_cli.web_server": fake_ws}), \
              pytest.raises(SystemExit):
             cmd_dashboard(_ns(stop=True))
         assert called["start"] is False
@@ -151,18 +151,18 @@ class TestArgparseWiring:
     ``hermes dashboard --stop`` / ``--status`` actually parse."""
 
     def test_flags_are_registered(self):
-        from hermes_cli.main import main as _cli_main  # noqa: F401
+        from sparkii_cli.main import main as _cli_main  # noqa: F401
         # Rebuild the argparse tree by re-running the section of main()
         # that builds it.  Cheapest way: introspect via --help on the
         # already-built parser would require refactoring; instead we
         # parse the flags directly via a minimal replay.
         import importlib
-        mod = importlib.import_module("hermes_cli.main")
+        mod = importlib.import_module("sparkii_cli.main")
         # Find the dashboard_parser instance by running build logic would
         # be too invasive.  Instead parse args as if via the CLI by
         # intercepting parse_args.  This is overkill for a smoke test —
         # we just want to know the flags don't KeyError.
-        with patch("hermes_cli.main._scan_dashboard_processes", return_value=[]), \
+        with patch("sparkii_cli.main._scan_dashboard_processes", return_value=[]), \
              pytest.raises(SystemExit) as exc:
             mod.cmd_dashboard(_ns(status=True))
         assert exc.value.code == 0

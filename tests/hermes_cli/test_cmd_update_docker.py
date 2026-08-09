@@ -21,14 +21,14 @@ from unittest.mock import patch
 
 import pytest
 
-from hermes_cli.main import _cmd_update_check, cmd_update
+from sparkii_cli.main import _cmd_update_check, cmd_update
 
 
 # ---------- cmd_update (apply path) ----------
 
 
-@patch("hermes_cli.config.is_managed", return_value=False)
-@patch("hermes_cli.config.detect_install_method", return_value="docker")
+@patch("sparkii_cli.config.is_managed", return_value=False)
+@patch("sparkii_cli.config.detect_install_method", return_value="docker")
 @patch("subprocess.run")
 def test_cmd_update_in_docker_prints_guidance_and_exits(
     mock_run, _mock_method, _mock_managed, capsys
@@ -69,7 +69,7 @@ def test_format_docker_update_message_contents():
     disappear in a copy edit, the message has lost its value.  Specific
     wording around them is free to evolve (we don't assert full text).
     """
-    from hermes_cli.config import format_docker_update_message
+    from sparkii_cli.config import format_docker_update_message
 
     msg = format_docker_update_message()
 

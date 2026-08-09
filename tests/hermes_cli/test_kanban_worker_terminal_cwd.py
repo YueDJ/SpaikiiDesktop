@@ -64,7 +64,7 @@ def test_terminal_cwd_pinned_to_workspace(monkeypatch, tmp_path):
     root.joinpath("config.yaml").write_text("toolsets:\n  - kanban\n", encoding="utf-8")
     monkeypatch.setenv("HERMES_HOME", str(root))
 
-    from hermes_cli import kanban_db as kb
+    from sparkii_cli import kanban_db as kb
 
     workspace = tmp_path / "ws"
     workspace.mkdir()

@@ -1,10 +1,10 @@
-"""Tests for hermes_cli.relaunch — unified self-relaunch utility."""
+"""Tests for sparkii_cli.relaunch — unified self-relaunch utility."""
 
 import sys
 
 import pytest
 
-from hermes_cli import relaunch as relaunch_mod
+from sparkii_cli import relaunch as relaunch_mod
 
 
 class TestResolveHermesBin:
@@ -213,7 +213,7 @@ class TestResolveHermesBinWindowsPyGuard:
     def test_windows_py_argv0_with_no_hermes_on_path_returns_none(self, monkeypatch, tmp_path):
         """Bulletproof fallback: if argv0 is .py on Windows AND hermes.exe
         isn't on PATH, return None so the caller falls back to
-        python -m hermes_cli.main."""
+        python -m sparkii_cli.main."""
         script = tmp_path / "main.py"
         script.write_text("# stub")
 

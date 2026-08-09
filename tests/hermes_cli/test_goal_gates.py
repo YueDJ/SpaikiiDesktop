@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from hermes_cli.goals import (
+from sparkii_cli.goals import (
     DEFAULT_GATE_MAX_RETRIES,
     DEFAULT_GATE_TIMEOUT_SECONDS,
     GoalGate,
@@ -161,8 +161,8 @@ def test_status_line_mentions_gates():
 def test_failing_gate_short_circuits_judge():
     mgr = _mgr_with_goal("gate-fail-sid")
     mgr.add_gate("exit 5")
-    with patch("hermes_cli.goals.judge_goal") as mock_judge, \
-         patch("hermes_cli.goals.workspace_fingerprint", return_value=""):
+    with patch("sparkii_cli.goals.judge_goal") as mock_judge, \
+         patch("sparkii_cli.goals.workspace_fingerprint", return_value=""):
         decision = mgr.evaluate_after_turn("I think it's done!")
     mock_judge.assert_not_called()
     assert decision["verdict"] == "gate_failed"
@@ -175,7 +175,7 @@ def test_passing_gates_fall_through_to_judge():
     mgr = _mgr_with_goal("gate-pass-sid")
     mgr.add_gate("true")
     with patch(
-        "hermes_cli.goals.judge_goal",
+        "sparkii_cli.goals.judge_goal",
         return_value=("done", "all good", False, None, False),
     ) as mock_judge:
         decision = mgr.evaluate_after_turn("finished")
@@ -190,8 +190,8 @@ def test_gate_retry_exhaustion_pauses_goal():
     mgr = _mgr_with_goal("gate-exhaust-sid")
     mgr.add_gate("exit 1")
     mgr.state.gates[0].max_retries = 2
-    with patch("hermes_cli.goals.judge_goal") as mock_judge, \
-         patch("hermes_cli.goals.workspace_fingerprint", return_value=""):
+    with patch("sparkii_cli.goals.judge_goal") as mock_judge, \
+         patch("sparkii_cli.goals.workspace_fingerprint", return_value=""):
         d1 = mgr.evaluate_after_turn("attempt one")
         d2 = mgr.evaluate_after_turn("attempt two")
         d3 = mgr.evaluate_after_turn("attempt three")
@@ -207,11 +207,11 @@ def test_gate_retry_exhaustion_pauses_goal():
 def test_unchanged_workspace_skips_rerun():
     mgr = _mgr_with_goal("gate-unchanged-sid")
     mgr.add_gate("exit 1")
-    with patch("hermes_cli.goals.workspace_fingerprint", return_value="fp-1"), \
-         patch("hermes_cli.goals.judge_goal"):
+    with patch("sparkii_cli.goals.workspace_fingerprint", return_value="fp-1"), \
+         patch("sparkii_cli.goals.judge_goal"):
         mgr.evaluate_after_turn("turn 1")
         # Second turn, same fingerprint — run_gate must NOT run again.
-        with patch("hermes_cli.goals.run_gate") as mock_run:
+        with patch("sparkii_cli.goals.run_gate") as mock_run:
             d2 = mgr.evaluate_after_turn("turn 2")
         mock_run.assert_not_called()
     assert d2["verdict"] == "gate_failed"
@@ -221,11 +221,11 @@ def test_unchanged_workspace_skips_rerun():
 def test_changed_workspace_reruns_gate():
     mgr = _mgr_with_goal("gate-changed-sid")
     mgr.add_gate("exit 1")
-    with patch("hermes_cli.goals.judge_goal"):
-        with patch("hermes_cli.goals.workspace_fingerprint", return_value="fp-1"):
+    with patch("sparkii_cli.goals.judge_goal"):
+        with patch("sparkii_cli.goals.workspace_fingerprint", return_value="fp-1"):
             mgr.evaluate_after_turn("turn 1")
-        with patch("hermes_cli.goals.workspace_fingerprint", return_value="fp-2"), \
-             patch("hermes_cli.goals.run_gate", return_value=(False, 1, "still red")) as mock_run:
+        with patch("sparkii_cli.goals.workspace_fingerprint", return_value="fp-2"), \
+             patch("sparkii_cli.goals.run_gate", return_value=(False, 1, "still red")) as mock_run:
             mgr.evaluate_after_turn("turn 2")
         mock_run.assert_called_once()
 
@@ -234,8 +234,8 @@ def test_gate_continuation_respects_turn_budget():
     mgr = GoalManager(session_id="gate-budget-sid", default_max_turns=1)
     mgr.set("budget goal")
     mgr.add_gate("exit 1")
-    with patch("hermes_cli.goals.judge_goal"), \
-         patch("hermes_cli.goals.workspace_fingerprint", return_value=""):
+    with patch("sparkii_cli.goals.judge_goal"), \
+         patch("sparkii_cli.goals.workspace_fingerprint", return_value=""):
         decision = mgr.evaluate_after_turn("only turn")
     assert decision["status"] == "paused"
     assert decision["should_continue"] is False
@@ -245,7 +245,7 @@ def test_gate_continuation_respects_turn_budget():
 def test_no_gates_behaves_exactly_as_before():
     mgr = _mgr_with_goal("gate-none-sid")
     with patch(
-        "hermes_cli.goals.judge_goal",
+        "sparkii_cli.goals.judge_goal",
         return_value=("continue", "keep going", False, None, False),
     ) as mock_judge:
         decision = mgr.evaluate_after_turn("wip")

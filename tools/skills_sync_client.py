@@ -11,7 +11,7 @@ plane (push objects + CAS a ref, pull the owner's HEAD, three-way merge on a
   * a periodic pull hook (``maybe_pull_skills``) at the curator tick sites,
   * the ``hermes sync status|pull|push|now`` CLI.
 
-It lives beside ``tools/skills_sync.py`` (NOT under ``hermes_cli/``) so the
+It lives beside ``tools/skills_sync.py`` (NOT under ``sparkii_cli/``) so the
 low-level sync layer never imports the CLI -- same rule the bundled-skills
 sync module documents at ``skills_sync.py:43-50``.
 
@@ -254,7 +254,7 @@ def resolve_identity() -> Dict[str, Any]:
     ref naming only.
     """
     try:
-        from hermes_cli.auth import resolve_nous_runtime_credentials
+        from sparkii_cli.auth import resolve_nous_runtime_credentials
 
         creds = resolve_nous_runtime_credentials()
     except Exception as e:
@@ -322,7 +322,7 @@ def resolve_sync_base_url() -> Optional[str]:
         # Lazy import: the low-level sync layer must not import the CLI at
         # module load (skills_sync.py:43-50). A function-scoped import avoids
         # the cycle -- same pattern agent/curator.py:141 uses for config.
-        from hermes_cli.config import load_config
+        from sparkii_cli.config import load_config
 
         cfg = load_config() or {}
         sync_cfg = cfg.get("sync") or {}
@@ -376,7 +376,7 @@ def _sync_config_bool(env_var: str, config_key: str, *, default: bool) -> bool:
     if env_val is not None:
         return env_val
     try:
-        from hermes_cli.config import load_config
+        from sparkii_cli.config import load_config
 
         cfg = load_config() or {}
         sync_cfg = cfg.get("sync") or {}

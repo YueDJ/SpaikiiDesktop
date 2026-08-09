@@ -20,8 +20,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from hermes_cli import runtime_provider as rp
-from hermes_cli.providers import nous_api_mode
+from sparkii_cli import runtime_provider as rp
+from sparkii_cli.providers import nous_api_mode
 
 PORTAL_URL = "https://inference-api.nousresearch.com/v1"
 # Staging / preview hosts used via NOUS_INFERENCE_BASE_URL — not the prod
@@ -57,7 +57,7 @@ class TestApiModeRouting:
         """Callers that skip resolve_runtime_provider (fallback, switch_model
         empty-mode path) must still land Claude on Messages — the Hermes
         overlay alone advertises openai_chat for every Nous model."""
-        from hermes_cli.providers import determine_api_mode
+        from sparkii_cli.providers import determine_api_mode
 
         assert (
             determine_api_mode(
@@ -289,12 +289,12 @@ class TestPortalBodyFields:
         return build_api_kwargs(agent, [{"role": "user", "content": "hi"}])
 
     def test_portal_tags_reach_the_messages_request(self):
-        from agent.portal_tags import hermes_client_tag
+        from agent.portal_tags import sparkii_client_tag
 
         tags = self._build()["extra_body"]["tags"]
 
         assert "product=hermes-agent" in tags
-        assert hermes_client_tag() in tags
+        assert sparkii_client_tag() in tags
         assert all(isinstance(tag, str) for tag in tags), (
             "Portal skips non-string tag entries unpredictably"
         )

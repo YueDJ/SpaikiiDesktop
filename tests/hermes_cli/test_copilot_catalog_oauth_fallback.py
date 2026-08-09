@@ -12,7 +12,7 @@ credential pool.
 
 from unittest.mock import patch
 
-from hermes_cli.models import _resolve_copilot_catalog_api_key
+from sparkii_cli.models import _resolve_copilot_catalog_api_key
 
 
 class TestCopilotCatalogApiKeyResolution:
@@ -20,13 +20,13 @@ class TestCopilotCatalogApiKeyResolution:
     def test_falls_back_to_pool_oauth_token(self):
         """Empty env → walk credential_pool.copilot[] for an OAuth access_token."""
         with patch(
-            "hermes_cli.auth.resolve_api_key_provider_credentials",
+            "sparkii_cli.auth.resolve_api_key_provider_credentials",
             return_value={"api_key": ""},
         ), patch(
-            "hermes_cli.auth.read_credential_pool",
+            "sparkii_cli.auth.read_credential_pool",
             return_value=[{"access_token": "gho_abc123"}],
         ), patch(
-            "hermes_cli.copilot_auth.exchange_copilot_token",
+            "sparkii_cli.copilot_auth.exchange_copilot_token",
             return_value=("tid_exchanged_xyz", 1234567890.0),
         ):
             assert _resolve_copilot_catalog_api_key() == "tid_exchanged_xyz"
@@ -46,16 +46,16 @@ class TestCopilotCatalogApiKeyResolution:
             return ("tid_from_second", 1234567890.0)
 
         with patch(
-            "hermes_cli.auth.resolve_api_key_provider_credentials",
+            "sparkii_cli.auth.resolve_api_key_provider_credentials",
             return_value={"api_key": ""},
         ), patch(
-            "hermes_cli.auth.read_credential_pool",
+            "sparkii_cli.auth.read_credential_pool",
             return_value=[
                 {"access_token": "gho_unsupported_account"},
                 {"access_token": "gho_valid_token"},
             ],
         ), patch(
-            "hermes_cli.copilot_auth.exchange_copilot_token",
+            "sparkii_cli.copilot_auth.exchange_copilot_token",
             side_effect=fake_exchange,
         ):
             assert _resolve_copilot_catalog_api_key() == "tid_from_second"

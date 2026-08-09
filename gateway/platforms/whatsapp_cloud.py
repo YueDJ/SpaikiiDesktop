@@ -80,7 +80,7 @@ from gateway.platforms.base import (
 from gateway.platforms.whatsapp_common import WhatsAppBehaviorMixin, _get_wsecret
 from gateway.platforms.media_cache import ext_for_mime
 from gateway import rich_sent_store
-from hermes_constants import get_hermes_dir
+from sparkii_constants import get_sparkii_dir
 
 logger = logging.getLogger(__name__)
 
@@ -185,16 +185,16 @@ def _ext_for_mime(mime: str) -> Optional[str]:
     )
 
 
-# Inbound media cache lives under the user's hermes dir so it survives
+# Inbound media cache lives under the user's sparkii dir so it survives
 # restarts and gateway reloads — same convention the Baileys bridge uses.
-_INBOUND_MEDIA_CACHE = Path(get_hermes_dir("platforms/whatsapp_cloud/media", "whatsapp_cloud/media"))
+_INBOUND_MEDIA_CACHE = Path(get_sparkii_dir("platforms/whatsapp_cloud/media", "whatsapp_cloud/media"))
 
 
 def check_whatsapp_cloud_requirements() -> bool:
     """Return whether transport dependencies are available.
 
     aiohttp is needed for the webhook server (inbound). httpx is needed
-    for Graph API calls (outbound). Both ship with hermes-agent's default
+    for Graph API calls (outbound). Both ship with sparkii-agent's default
     dependency set, so this should always be True in normal installs.
     """
     return AIOHTTP_AVAILABLE and HTTPX_AVAILABLE
@@ -437,7 +437,7 @@ class WhatsAppCloudAdapter(WhatsAppBehaviorMixin, BasePlatformAdapter):
             self._set_fatal_error(
                 "whatsapp_cloud_deps_missing",
                 "aiohttp and httpx are required for whatsapp_cloud — "
-                "reinstall hermes-agent.",
+                "reinstall sparkii-agent.",
                 retryable=False,
             )
             return False

@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import logging
 
-from hermes_cli.auth import (
+from sparkii_cli.auth import (
     DEFAULT_NOUS_INFERENCE_URL,
     _ALLOWED_NOUS_INFERENCE_HOSTS,
     _validate_nous_inference_url_from_network,
@@ -34,7 +34,7 @@ class TestValidatorRules:
 
 
     def test_attacker_host_rejected(self, caplog):
-        with caplog.at_level(logging.WARNING, logger="hermes_cli.auth"):
+        with caplog.at_level(logging.WARNING, logger="sparkii_cli.auth"):
             assert (
                 _validate_nous_inference_url_from_network("https://attacker.com/v1")
                 is None
@@ -76,7 +76,7 @@ class TestCallSiteWiring:
     """
 
     def _read_auth_source(self):
-        import hermes_cli.auth as _auth_mod
+        import sparkii_cli.auth as _auth_mod
         from pathlib import Path
         return Path(_auth_mod.__file__).read_text(encoding="utf-8")
 
@@ -115,7 +115,7 @@ class TestCallSiteWiring:
         bypass at the source layer still gets caught at the forward
         boundary."""
         from pathlib import Path
-        import hermes_cli.proxy.adapters.nous_portal as _nous_adapter
+        import sparkii_cli.proxy.adapters.nous_portal as _nous_adapter
         source = Path(_nous_adapter.__file__).read_text(encoding="utf-8")
         assert "_validate_nous_inference_url_from_network" in source
 
@@ -136,7 +136,7 @@ class TestEnvOverrideNotGated:
         read via os.getenv directly, not via the validator. Grep the
         source to confirm: the env line should NOT mention the
         validator."""
-        import hermes_cli.auth as _auth_mod
+        import sparkii_cli.auth as _auth_mod
         from pathlib import Path
         source = Path(_auth_mod.__file__).read_text(encoding="utf-8")
         # Find the env-override read line.
@@ -163,7 +163,7 @@ class TestHealsPoisonedStoredValue:
     """
 
     def test_refresh_resets_rejected_url_to_default(self, monkeypatch):
-        import hermes_cli.auth as auth
+        import sparkii_cli.auth as auth
 
         poisoned = "https://stg-inference-api.nousresearch.com/v1"
         state = {
@@ -254,7 +254,7 @@ class TestEnvOverrideWins:
     def test_no_refresh_env_override_not_persisted(self, monkeypatch):
         """The env override is a runtime overlay: it must never be written
         back into the stored state (auth.json)."""
-        import hermes_cli.auth as auth
+        import sparkii_cli.auth as auth
 
         state = self._base_state(auth, auth.DEFAULT_NOUS_INFERENCE_URL)
         self._patch_no_refresh(monkeypatch, auth, state)
@@ -272,7 +272,7 @@ class TestEnvOverrideWins:
         """A poisoned stored staging host (persisted before the allowlist)
         still heals to the default when no env override is present — the
         #50265 no-refresh-read-path heal, folded in here."""
-        import hermes_cli.auth as auth
+        import sparkii_cli.auth as auth
 
         state = self._base_state(auth, self.STAGING)
         self._patch_no_refresh(monkeypatch, auth, state)
@@ -298,7 +298,7 @@ class TestProxyAdapterEnvOverride:
         resolution consults the env override before the network validator,
         so a staging override survives the defense-in-depth re-validation."""
         from pathlib import Path
-        import hermes_cli.proxy.adapters.nous_portal as _nous_adapter
+        import sparkii_cli.proxy.adapters.nous_portal as _nous_adapter
 
         source = Path(_nous_adapter.__file__).read_text(encoding="utf-8")
         assert "_nous_inference_env_override()" in source, (

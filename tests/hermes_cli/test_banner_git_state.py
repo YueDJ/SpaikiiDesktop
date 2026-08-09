@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 
 def test_format_banner_version_label_on_upstream_main():
-    from hermes_cli import banner
+    from sparkii_cli import banner
 
     with patch.object(
         banner,
@@ -18,7 +18,7 @@ def test_format_banner_version_label_on_upstream_main():
 
 
 def test_get_git_banner_state_reads_origin_and_head(tmp_path):
-    from hermes_cli import banner
+    from sparkii_cli import banner
 
     repo_dir = tmp_path / "repo"
     (repo_dir / ".git").mkdir(parents=True)
@@ -35,7 +35,7 @@ def test_get_git_banner_state_reads_origin_and_head(tmp_path):
             raise AssertionError(f"unexpected command: {cmd}")
         return results[key]
 
-    with patch("hermes_cli.banner.subprocess.run", side_effect=fake_run):
+    with patch("sparkii_cli.banner.subprocess.run", side_effect=fake_run):
         state = banner.get_git_banner_state(repo_dir)
 
     assert state == {"upstream": "b2f477a3", "local": "af8aad31", "ahead": 3}

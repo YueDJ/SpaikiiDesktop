@@ -9,7 +9,7 @@ import os
 import pytest
 import yaml
 
-from hermes_cli import skin_cmd
+from sparkii_cli import skin_cmd
 from hermes_constants import get_hermes_home
 
 

@@ -462,12 +462,12 @@ def _validate_cron_base_url(
             "configured custom provider to use a custom endpoint."
         )
     try:
-        from hermes_cli.runtime_provider import (
+        from sparkii_cli.runtime_provider import (
             has_named_custom_provider,
             resolve_requested_provider,
             _get_named_custom_provider,
         )
-        from hermes_cli.auth import PROVIDER_REGISTRY
+        from sparkii_cli.auth import PROVIDER_REGISTRY
         from utils import base_url_host_matches, base_url_hostname
     except Exception:
         # Can't resolve provider metadata -> fail closed.

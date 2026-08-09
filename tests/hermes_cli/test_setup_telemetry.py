@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import argparse
 
-from hermes_cli.config import DEFAULT_CONFIG
-from hermes_cli.setup import setup_telemetry
-from hermes_cli.subcommands.setup import build_setup_parser
+from sparkii_cli.config import DEFAULT_CONFIG
+from sparkii_cli.setup import setup_telemetry
+from sparkii_cli.subcommands.setup import build_setup_parser
 
 
 def test_shared_metrics_are_registered_disabled_by_default():
@@ -16,7 +16,7 @@ def test_shared_metrics_are_registered_disabled_by_default():
 def test_setup_telemetry_enables_shared_metrics(monkeypatch):
     config = {}
     monkeypatch.setattr(
-        "hermes_cli.setup.prompt_yes_no",
+        "sparkii_cli.setup.prompt_yes_no",
         lambda _question, default: not default,
     )
 

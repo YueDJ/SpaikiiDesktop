@@ -10,7 +10,7 @@ picker resolved another profile's key from the process environment.
 import os
 
 from agent import secret_scope
-from hermes_cli.model_switch import _scoped_key_env
+from sparkii_cli.model_switch import _scoped_key_env
 
 
 class TestPickerKeyEnvScope:
@@ -52,7 +52,7 @@ class TestSwitchModelKeyEnvScope:
     not just the picker listing."""
 
     def _run_switch(self, monkeypatch, user_cfg):
-        import hermes_cli.model_switch as ms
+        import sparkii_cli.model_switch as ms
 
         captured = {}
 
@@ -62,7 +62,7 @@ class TestSwitchModelKeyEnvScope:
             return {"api_key": explicit_api_key or "", "base_url": explicit_base_url, "api_mode": ""}
 
         monkeypatch.setattr(
-            "hermes_cli.runtime_provider.resolve_runtime_provider", _fake_runtime
+            "sparkii_cli.runtime_provider.resolve_runtime_provider", _fake_runtime
         )
         monkeypatch.setattr(ms, "resolve_alias", lambda *a, **k: None)
         result = ms.switch_model(

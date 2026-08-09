@@ -6,7 +6,7 @@ Exposes an HTTP server with endpoints:
 - POST /v1/responses               — OpenAI Responses API format (stateful via previous_response_id; X-Hermes-Session-Key supported)
 - GET  /v1/responses/{response_id} — Retrieve a stored response
 - DELETE /v1/responses/{response_id} — Delete a stored response
-- GET  /v1/models                  — lists hermes-agent and any configured model_routes aliases
+- GET  /v1/models                  — lists sparkii-agent and any configured model_routes aliases
 - GET  /v1/capabilities            — machine-readable API capabilities for external UIs
 - GET  /api/sessions               — list client-visible Hermes sessions
 - POST /api/sessions               — create an empty Hermes session
@@ -23,7 +23,7 @@ Exposes an HTTP server with endpoints:
 - GET  /health/detailed            — rich status for cross-container dashboard probing
 
 Any OpenAI-compatible frontend (Open WebUI, LobeChat, LibreChat,
-AnythingLLM, NextChat, ChatBox, etc.) can connect to hermes-agent
+AnythingLLM, NextChat, ChatBox, etc.) can connect to sparkii-agent
 through this adapter by pointing at http://localhost:8642/v1 and
 authenticating with API_SERVER_KEY.
 
@@ -122,18 +122,18 @@ def _get_scoped_secret(name, default=None):
 logger = logging.getLogger(__name__)
 
 
-def _hermes_version() -> str:
+def _sparkii_version() -> str:
     """Return the canonical Hermes Agent version string.
 
-    ``hermes_cli.__version__`` is the runtime source of truth used by the CLI,
+    ``sparkii_cli.__version__`` is the runtime source of truth used by the CLI,
     dashboard, portal tags, and release script. Prefer it over installed
     distribution metadata because editable/source checkouts can retain stale
-    ``hermes_agent-*.dist-info`` after a source update until the environment is
+    ``sparkii_agent-*.dist-info`` after a source update until the environment is
     reinstalled. Never raises — a version probe must not be able to break the
     health endpoint.
     """
     try:
-        from hermes_cli import __version__
+        from sparkii_cli import __version__
 
         return __version__
     except Exception:
@@ -141,7 +141,7 @@ def _hermes_version() -> str:
     try:
         from importlib.metadata import version
 
-        return version("hermes-agent")
+        return version("sparkii-agent")
     except Exception:
         return "dev"
 
@@ -332,7 +332,7 @@ def _resolve_request_runtime_agent_kwargs(provider: str, target_model: Optional[
     explicit provider/model so an API caller can use the same authenticated
     provider catalog as the TUI without mutating config.yaml.
     """
-    from hermes_cli.runtime_provider import resolve_runtime_provider, format_runtime_provider_error, _get_model_config
+    from sparkii_cli.runtime_provider import resolve_runtime_provider, format_runtime_provider_error, _get_model_config
 
     try:
         runtime = resolve_runtime_provider(requested=provider, target_model=target_model)
@@ -341,7 +341,7 @@ def _resolve_request_runtime_agent_kwargs(provider: str, target_model: Optional[
 
     model_cfg = _get_model_config()
     max_tokens = None
-    env_max_tokens = os.environ.get("HERMES_MAX_TOKENS")
+    env_max_tokens = os.environ.get("SPARKII_MAX_TOKENS")
     if env_max_tokens:
         try:
             max_tokens = int(env_max_tokens)
@@ -376,7 +376,7 @@ def _request_agent_overrides(
 ) -> Dict[str, Any]:
     """Extract per-request model/provider/options for _run_agent.
 
-    ``/v1/models`` advertises a stable virtual model (usually ``hermes-agent``)
+    ``/v1/models`` advertises a stable virtual model (usually ``sparkii-agent``)
     for OpenAI-compatible clients.  Treat that alias as "use the gateway
     default"; real model picker selections from the browser extension send the
     raw provider model id plus a provider slug and should override this turn.
@@ -829,8 +829,8 @@ class ResponseStore:
         self._max_size = max_size
         if db_path is None:
             try:
-                from hermes_cli.config import get_hermes_home
-                db_path = str(get_hermes_home() / "response_store.db")
+                from sparkii_cli.config import get_sparkii_home
+                db_path = str(get_sparkii_home() / "response_store.db")
             except Exception:
                 db_path = ":memory:"
         self._db_path: Optional[str] = db_path if db_path != ":memory:" else None
@@ -840,10 +840,10 @@ class ResponseStore:
             self._conn = sqlite3.connect(":memory:", check_same_thread=False)
             self._db_path = None
         # Use shared WAL-fallback helper so response_store.db degrades
-        # gracefully on NFS/SMB/FUSE-mounted HERMES_HOME (same filesystem
+        # gracefully on NFS/SMB/FUSE-mounted SPARKII_HOME (same filesystem
         # issue addressed for state.db/kanban.db — see
-        # hermes_state._WAL_INCOMPAT_MARKERS).
-        from hermes_state import apply_wal_with_fallback
+        # sparkii_state._WAL_INCOMPAT_MARKERS).
+        from sparkii_state import apply_wal_with_fallback
         apply_wal_with_fallback(self._conn, db_label="response_store.db")
         self._conn.execute(
             """CREATE TABLE IF NOT EXISTS responses (
@@ -1353,7 +1353,7 @@ class APIServerAdapter(BasePlatformAdapter):
     OpenAI-compatible HTTP API server adapter.
 
     Runs an aiohttp web server that accepts OpenAI-format requests
-    and routes them through hermes-agent's AIAgent.
+    and routes them through sparkii-agent's AIAgent.
     """
 
     # Stateless request/response: every route (the OpenAI-spec
@@ -1626,7 +1626,7 @@ class APIServerAdapter(BasePlatformAdapter):
         """
         default = 10
         try:
-            from hermes_cli.config import cfg_get, load_config
+            from sparkii_cli.config import cfg_get, load_config
 
             raw = cfg_get(
                 load_config(),
@@ -1647,23 +1647,23 @@ class APIServerAdapter(BasePlatformAdapter):
         Priority:
         1. Explicit override (config extra or API_SERVER_MODEL_NAME env var)
         2. Active profile name (so each profile advertises a distinct model)
-        3. Fallback: "hermes-agent"
+        3. Fallback: "sparkii-agent"
 
         Delegates the tiered fallthrough to
-        :func:`hermes_cli.model_switch.resolve_effective_model` (the shared
+        :func:`sparkii_cli.model_switch.resolve_effective_model` (the shared
         override > mid-tier > default precedence owner).
         """
-        from hermes_cli.model_switch import resolve_effective_model
+        from sparkii_cli.model_switch import resolve_effective_model
 
         profile_name = ""
         try:
-            from hermes_cli.profiles import get_active_profile_name
+            from sparkii_cli.profiles import get_active_profile_name
             profile = get_active_profile_name()
             if profile and profile not in {"default", "custom"}:
                 profile_name = profile
         except Exception:
             pass
-        return resolve_effective_model(explicit, profile_name, "hermes-agent")
+        return resolve_effective_model(explicit, profile_name, "sparkii-agent")
 
     def _cors_headers_for_origin(self, origin: str) -> Optional[Dict[str, str]]:
         """Return CORS headers for an allowed browser origin."""
@@ -1759,7 +1759,7 @@ class APIServerAdapter(BasePlatformAdapter):
 
         try:
             from agent.secret_scope import get_secret
-            from hermes_cli.auth import has_usable_secret
+            from sparkii_cli.auth import has_usable_secret
 
             key = get_secret("API_SERVER_KEY", "") or ""
             if not has_usable_secret(key, min_length=16):
@@ -1980,7 +1980,7 @@ class APIServerAdapter(BasePlatformAdapter):
             # the single-profile gateway (don't 404 a would-be valid route).
             return None
         try:
-            from hermes_cli.profiles import profiles_to_serve
+            from sparkii_cli.profiles import profiles_to_serve
 
             served = {name for name, _ in profiles_to_serve(multiplex=True)}
         except Exception:
@@ -2007,14 +2007,14 @@ class APIServerAdapter(BasePlatformAdapter):
 
                 if is_multiplex_active():
                     from gateway.run import _profile_runtime_scope
-                    from hermes_constants import get_hermes_home
+                    from sparkii_constants import get_sparkii_home
 
-                    return _profile_runtime_scope(get_hermes_home())
+                    return _profile_runtime_scope(get_sparkii_home())
             except Exception:
                 pass
             return nullcontext()
         from gateway.run import _profile_runtime_scope
-        from hermes_cli.profiles import get_profile_dir
+        from sparkii_cli.profiles import get_profile_dir
 
         return _profile_runtime_scope(get_profile_dir(profile))
 
@@ -2169,7 +2169,7 @@ class APIServerAdapter(BasePlatformAdapter):
         — that stays reserved for an explicit test/manual override, so the first
         profile served can't pin every later request to its DB.
         """
-        from hermes_state import SessionDB
+        from sparkii_state import SessionDB
 
         key = str(home)
         cache = getattr(self, "_session_dbs", None)
@@ -2185,11 +2185,11 @@ class APIServerAdapter(BasePlatformAdapter):
     def _ensure_session_db(self):
         """Lazily initialise and return the SessionDB for the active profile home.
 
-        Sessions are persisted to ``state.db`` so that ``hermes sessions list``
+        Sessions are persisted to ``state.db`` so that ``sparkii sessions list``
         shows API-server conversations alongside CLI and gateway ones.
 
         Under multiplex ``/p/<profile>/`` requests the profile runtime scope
-        redirects ``get_hermes_home()``, so each profile gets its own DB —
+        redirects ``get_sparkii_home()``, so each profile gets its own DB —
         never the default profile's file. Synchronous: used by ``_create_agent``
         (itself sync, and run in both loop and worker contexts). Request
         handlers use ``_ensure_session_db_async`` to keep the SQLite open off
@@ -2199,9 +2199,9 @@ class APIServerAdapter(BasePlatformAdapter):
         if self._session_db is not None:
             return self._session_db
         try:
-            from hermes_constants import get_hermes_home
+            from sparkii_constants import get_sparkii_home
 
-            return self._open_and_cache_session_db(get_hermes_home())
+            return self._open_and_cache_session_db(get_sparkii_home())
         except Exception as e:
             logger.debug("SessionDB unavailable for API server: %s", e)
             return None
@@ -2218,9 +2218,9 @@ class APIServerAdapter(BasePlatformAdapter):
         if self._session_db is not None:
             return self._session_db
         try:
-            from hermes_constants import get_hermes_home
+            from sparkii_constants import get_sparkii_home
 
-            home = get_hermes_home()
+            home = get_sparkii_home()
             key = str(home)
             cache = getattr(self, "_session_dbs", None)
             if cache is not None and cache.get(key) is not None:
@@ -2512,9 +2512,9 @@ class APIServerAdapter(BasePlatformAdapter):
     @staticmethod
     def _normalize_session_source(value: Any) -> str:
         text = str(value or "").strip().lower()
-        allowed = {"api_server", "hermes_browser", "browser", "cli", "telegram", "discord", "slack", "desktop", "dashboard"}
+        allowed = {"api_server", "sparkii_browser", "browser", "cli", "telegram", "discord", "slack", "desktop", "dashboard"}
         if text in allowed:
-            return "hermes_browser" if text == "browser" else text
+            return "sparkii_browser" if text == "browser" else text
         return "api_server"
 
     def _session_model_override_for(self, session_key: Optional[str]) -> Optional[Dict[str, Any]]:
@@ -2605,7 +2605,7 @@ class APIServerAdapter(BasePlatformAdapter):
         Uses _resolve_runtime_agent_kwargs() to pick up model, api_key,
         base_url, etc. from config.yaml / env vars.  Toolsets are resolved
         from config.yaml platform_toolsets.api_server (same as all other
-        gateway platforms), falling back to the hermes-api-server default.
+        gateway platforms), falling back to the sparkii-api-server default.
 
         ``gateway_session_key`` is a stable per-channel identifier supplied
         by the client (via ``X-Hermes-Session-Key``).  Unlike ``session_id``
@@ -2641,7 +2641,7 @@ class APIServerAdapter(BasePlatformAdapter):
             _load_gateway_config,
             GatewayRunner,
         )
-        from hermes_cli.tools_config import _get_platform_tools
+        from sparkii_cli.tools_config import _get_platform_tools
 
         # Catch RuntimeError ONLY around this call, not the wider
         # _create_agent()+run_conversation() span --
@@ -2728,10 +2728,10 @@ class APIServerAdapter(BasePlatformAdapter):
         if not confirmed_runtime_lock:
             session_override = self._session_model_override_for(session_key)
         # Model-string precedence delegates to the shared owner
-        # hermes_cli.model_switch.resolve_effective_model (session /model
+        # sparkii_cli.model_switch.resolve_effective_model (session /model
         # override > session-persisted model > global) — the rule 7dd00bb47d
         # had to re-fix here after it diverged from gateway/run.py.
-        from hermes_cli.model_switch import resolve_effective_model
+        from sparkii_cli.model_switch import resolve_effective_model
         if session_override:
             override_model = resolve_effective_model(session_override, None, model)
             session_provider = _clean_request_string(session_override.get("provider"))
@@ -2813,7 +2813,7 @@ class APIServerAdapter(BasePlatformAdapter):
                 )
 
         # When the config has no model.default but a provider was resolved
-        # (e.g. user ran `hermes auth add openai-codex` without `hermes model`),
+        # (e.g. user ran `sparkii auth add openai-codex` without `sparkii model`),
         # fall back to the provider's first catalog model so the API call
         # doesn't fail with "model must be a non-empty string". Mirrors
         # run.py::_resolve_session_agent_runtime. Runs after the selection
@@ -2821,7 +2821,7 @@ class APIServerAdapter(BasePlatformAdapter):
         # resolved a model is never treated as "empty" here.
         if not model and runtime_kwargs.get("provider"):
             try:
-                from hermes_cli.models import get_default_model_for_provider
+                from sparkii_cli.models import get_default_model_for_provider
                 model = get_default_model_for_provider(runtime_kwargs["provider"])
                 if model:
                     logger.info(
@@ -2912,7 +2912,7 @@ class APIServerAdapter(BasePlatformAdapter):
             agent_kwargs["service_tier"] = request_service_tier
 
         agent = AIAgent(**agent_kwargs)
-        agent._hermes_api_runtime = {
+        agent._sparkii_api_runtime = {
             "provider": runtime_kwargs.get("provider") or getattr(agent, "provider", "") or "",
             "model": getattr(agent, "model", None) or model,
             "route_source": (
@@ -2934,7 +2934,7 @@ class APIServerAdapter(BasePlatformAdapter):
     async def _handle_health(self, request: "web.Request") -> "web.Response":
         """GET /health — simple health check."""
         return web.json_response(
-            {"status": "ok", "platform": "hermes-agent", "version": _hermes_version()}
+            {"status": "ok", "platform": "sparkii-agent", "version": _sparkii_version()}
         )
 
     async def _handle_health_detailed(self, request: "web.Request") -> "web.Response":
@@ -2975,8 +2975,8 @@ class APIServerAdapter(BasePlatformAdapter):
         return web.json_response({
             "status": readiness["status"],
             "readiness": readiness,
-            "platform": "hermes-agent",
-            "version": _hermes_version(),
+            "platform": "sparkii-agent",
+            "version": _sparkii_version(),
             "gateway_state": gw_state,
             "platforms": runtime.get("platforms", {}),
             "active_agents": gw_active,
@@ -2997,7 +2997,7 @@ class APIServerAdapter(BasePlatformAdapter):
         })
 
     async def _handle_models(self, request: "web.Request") -> "web.Response":
-        """GET /v1/models — list hermes-agent and any configured model_routes aliases.
+        """GET /v1/models — list sparkii-agent and any configured model_routes aliases.
 
         Under ``/p/<profile>/v1/models`` (multiplex on) the advertised primary
         model id follows that profile's name/config, not the default adapter's
@@ -3020,7 +3020,7 @@ class APIServerAdapter(BasePlatformAdapter):
                 "id": model_name,
                 "object": "model",
                 "created": now,
-                "owned_by": "hermes",
+                "owned_by": "sparkii",
                 "permission": [],
                 "root": model_name,
                 "parent": None,
@@ -3036,7 +3036,7 @@ class APIServerAdapter(BasePlatformAdapter):
                 "id": alias,
                 "object": "model",
                 "created": now,
-                "owned_by": "hermes",
+                "owned_by": "sparkii",
                 "permission": [],
                 "root": route_cfg.get("model", alias),
                 "parent": model_name,
@@ -3058,7 +3058,7 @@ class APIServerAdapter(BasePlatformAdapter):
 
         refresh = _coerce_request_bool(request.query.get("refresh"), default=False)
         try:
-            from hermes_cli.inventory import build_model_options_payload, load_picker_context
+            from sparkii_cli.inventory import build_model_options_payload, load_picker_context
 
             def _build_payload() -> Dict[str, Any]:
                 return build_model_options_payload(
@@ -3093,8 +3093,8 @@ class APIServerAdapter(BasePlatformAdapter):
             return auth_err
 
         return web.json_response({
-            "object": "hermes.api_server.capabilities",
-            "platform": "hermes-agent",
+            "object": "sparkii.api_server.capabilities",
+            "platform": "sparkii-agent",
             "model": self._model_name,
             "auth": {
                 "type": "bearer",
@@ -3210,8 +3210,8 @@ class APIServerAdapter(BasePlatformAdapter):
             return auth_err
 
         try:
-            from hermes_cli.config import load_config
-            from hermes_cli.tools_config import (
+            from sparkii_cli.config import load_config
+            from sparkii_cli.tools_config import (
                 _get_effective_configurable_toolsets,
                 _get_platform_tools,
                 _toolset_has_keys,
@@ -3475,7 +3475,7 @@ class APIServerAdapter(BasePlatformAdapter):
             return web.json_response(_openai_error(f"Session already exists: {session_id}", code="session_exists"), status=409)
         if err and err.startswith("title:"):
             return web.json_response(_openai_error(err[len("title:"):], code="invalid_title"), status=400)
-        return web.json_response({"object": "hermes.session", "session": self._session_response(session)}, status=201)
+        return web.json_response({"object": "sparkii.session", "session": self._session_response(session)}, status=201)
 
     async def _handle_get_session(self, request: "web.Request") -> "web.Response":
         """GET /api/sessions/{session_id}."""
@@ -3485,7 +3485,7 @@ class APIServerAdapter(BasePlatformAdapter):
         session, err = await self._get_existing_session_or_404(request.match_info["session_id"])
         if err:
             return err
-        return web.json_response({"object": "hermes.session", "session": self._session_response(session)})
+        return web.json_response({"object": "sparkii.session", "session": self._session_response(session)})
 
     async def _handle_patch_session(self, request: "web.Request") -> "web.Response":
         """PATCH /api/sessions/{session_id} — update client-safe session metadata."""
@@ -3525,7 +3525,7 @@ class APIServerAdapter(BasePlatformAdapter):
         if body.get("end_reason"):
             await asyncio.to_thread(db.end_session, session_id, str(body["end_reason"]))
         session = await asyncio.to_thread(db.get_session, session_id) or session
-        return web.json_response({"object": "hermes.session", "session": self._session_response(session)})
+        return web.json_response({"object": "sparkii.session", "session": self._session_response(session)})
 
     async def _handle_delete_session(self, request: "web.Request") -> "web.Response":
         """DELETE /api/sessions/{session_id}."""
@@ -3538,7 +3538,7 @@ class APIServerAdapter(BasePlatformAdapter):
             return err
         db = await self._ensure_session_db_async()
         deleted = await asyncio.to_thread(db.delete_session, session_id)
-        return web.json_response({"object": "hermes.session.deleted", "id": session_id, "deleted": bool(deleted)})
+        return web.json_response({"object": "sparkii.session.deleted", "id": session_id, "deleted": bool(deleted)})
 
     async def _handle_session_messages(self, request: "web.Request") -> "web.Response":
         """GET /api/sessions/{session_id}/messages."""
@@ -3644,7 +3644,7 @@ class APIServerAdapter(BasePlatformAdapter):
         except ValueError as exc:
             return web.json_response(_openai_error(str(exc), code="invalid_title"), status=400)
         fork = await asyncio.to_thread(db.get_session, fork_id) or {"id": fork_id, "parent_session_id": source_id}
-        return web.json_response({"object": "hermes.session", "session": self._session_response(fork)}, status=201)
+        return web.json_response({"object": "sparkii.session", "session": self._session_response(fork)}, status=201)
 
     @_admit_api_agent_request
     async def _handle_session_chat(self, request: "web.Request") -> "web.Response":
@@ -3754,7 +3754,7 @@ class APIServerAdapter(BasePlatformAdapter):
         )
         return web.json_response(
             {
-                "object": "hermes.session.chat.completion",
+                "object": "sparkii.session.chat.completion",
                 "session_id": effective_session_id or session_id,
                 "message": {"role": "assistant", "content": final_response},
                 "usage": usage,
@@ -4013,7 +4013,7 @@ class APIServerAdapter(BasePlatformAdapter):
             model_lock="accepted",
         )
         return web.json_response({
-            "object": "hermes.session.model_lock",
+            "object": "sparkii.session.model_lock",
             "session_id": session_id,
             "runtime": runtime,
         })
@@ -4189,7 +4189,7 @@ class APIServerAdapter(BasePlatformAdapter):
             _started_tool_call_ids: set[str] = set()
 
             def _on_tool_start(tool_call_id, function_name, function_args):
-                """Emit ``hermes.tool.progress`` with ``status: running``.
+                """Emit ``sparkii.tool.progress`` with ``status: running``.
 
                 Replaces the old ``tool_progress_callback("tool.started",
                 ...)`` emit so SSE consumers receive a single event per
@@ -4330,7 +4330,7 @@ class APIServerAdapter(BasePlatformAdapter):
                 err_type="server_error",
                 code="agent_incomplete",
             )
-            err_body["error"]["hermes"] = {
+            err_body["error"]["sparkii"] = {
                 "completed": completed,
                 "partial": is_partial,
                 "failed": is_failed,
@@ -4364,7 +4364,7 @@ class APIServerAdapter(BasePlatformAdapter):
             },
         }
         if is_partial or is_failed or not completed:
-            response_data["hermes"] = {
+            response_data["sparkii"] = {
                 "completed": completed,
                 "partial": is_partial,
                 "failed": is_failed,
@@ -4425,13 +4425,13 @@ class APIServerAdapter(BasePlatformAdapter):
 
                 Plain strings are sent as normal ``delta.content`` chunks.
                 Tagged tuples ``("__tool_progress__", payload)`` are sent
-                as a custom ``event: hermes.tool.progress`` SSE event so
+                as a custom ``event: sparkii.tool.progress`` SSE event so
                 frontends can display them without storing the markers in
                 conversation history.  See #6972 for the original event,
                 #16588 for the ``toolCallId``/``status`` lifecycle fields.
                 """
                 if isinstance(item, tuple) and len(item) == 2 and item[0] == "__tool_progress__":
-                    await response.write(_sse_frame(item[1], event="hermes.tool.progress"))
+                    await response.write(_sse_frame(item[1], event="sparkii.tool.progress"))
                 else:
                     content_chunk = {
                         "id": completion_id, "object": "chat.completion.chunk",
@@ -4526,7 +4526,7 @@ class APIServerAdapter(BasePlatformAdapter):
                         "message": err_msg,
                         "type": type(agent_error).__name__ if agent_error else "agent_error",
                     }
-                finish_chunk["hermes"] = {
+                finish_chunk["sparkii"] = {
                     "completed": completed,
                     "partial": is_partial,
                     "failed": is_failed,
@@ -5788,7 +5788,7 @@ class APIServerAdapter(BasePlatformAdapter):
         trips NAS's HTTP timeout. The store CAS claim inside fire_due guards
         against double-fire on a NAS/scheduler retry.
         """
-        from hermes_cli.config import cfg_get, load_config
+        from sparkii_cli.config import cfg_get, load_config
         from plugins.cron_providers.chronos.verify import get_fire_verifier
 
         auth = request.headers.get("Authorization", "")
@@ -6228,7 +6228,7 @@ class APIServerAdapter(BasePlatformAdapter):
                         or (route_source and route_source != "global")
                     )
                     if include_runtime:
-                        runtime = dict(getattr(agent, "_hermes_api_runtime", {}) or {})
+                        runtime = dict(getattr(agent, "_sparkii_api_runtime", {}) or {})
                         raw_provider = getattr(agent, "provider", "")
                         raw_model = getattr(agent, "model", "")
                         actual_provider = (
@@ -6348,7 +6348,7 @@ class APIServerAdapter(BasePlatformAdapter):
         now = time.time()
         current = self._run_statuses.get(run_id, {})
         current.update({
-            "object": "hermes.run",
+            "object": "sparkii.run",
             "run_id": run_id,
             "status": status,
             "updated_at": now,
@@ -6671,7 +6671,7 @@ class APIServerAdapter(BasePlatformAdapter):
                                 # the other agent-entry routes bind it via
                                 # _run_agent(). Without it,
                                 # tools.async_delegation reads an empty
-                                # HERMES_SESSION_CHAT_ID on /v1/runs and
+                                # SPARKII_SESSION_CHAT_ID on /v1/runs and
                                 # background delegations stay forced-sync
                                 # (no wake target).
                                 chat_id=session_id or "",
@@ -7008,7 +7008,7 @@ class APIServerAdapter(BasePlatformAdapter):
                 pass
 
         return web.json_response({
-            "object": "hermes.run.approval_response",
+            "object": "sparkii.run.approval_response",
             "run_id": run_id,
             "choice": choice,
             "resolved": resolved,
@@ -7109,7 +7109,7 @@ class APIServerAdapter(BasePlatformAdapter):
             return False
 
         try:
-            from hermes_cli.auth import has_usable_secret
+            from sparkii_cli.auth import has_usable_secret
         except Exception as exc:
             # Fail CLOSED. This guard is the only thing between a guessable
             # key and a terminal-capable endpoint, so "the check could not be
@@ -7206,13 +7206,13 @@ class APIServerAdapter(BasePlatformAdapter):
             # Loud warning when a network-accessible API server runs against an
             # unsandboxed local terminal backend. The API server can drive the
             # agent's terminal/file tools as the host user; on a public bind
-            # that is the exact surface the hermes-0day campaign abused to write
-            # ~/.hermes/config.yaml and plant persistence. Sandboxing (Docker /
+            # that is the exact surface the sparkii-0day campaign abused to write
+            # ~/.sparkii/config.yaml and plant persistence. Sandboxing (Docker /
             # remote backend) contains the blast radius. Warn, don't refuse —
             # the operator may have an external firewall / strong key.
             if is_network_accessible(self._host):
                 try:
-                    from hermes_cli.config import load_config as _load_cfg
+                    from sparkii_cli.config import load_config as _load_cfg
                     _backend = (
                         ((_load_cfg() or {}).get("terminal") or {}).get(
                             "backend", "local"

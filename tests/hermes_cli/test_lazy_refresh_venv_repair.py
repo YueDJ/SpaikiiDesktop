@@ -6,7 +6,7 @@ import textwrap
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import hermes_cli.main as m
+import sparkii_cli.main as m
 
 
 

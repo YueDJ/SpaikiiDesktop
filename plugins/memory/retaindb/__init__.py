@@ -53,7 +53,7 @@ def _load_retaindb_config() -> Dict[str, Any]:
     secret resolution rather than config.yaml.
     """
     try:
-        from hermes_cli.config import load_config_readonly
+        from sparkii_cli.config import load_config_readonly
 
         config = load_config_readonly()
         memory_config = config.get("memory", {}) if isinstance(config, dict) else {}

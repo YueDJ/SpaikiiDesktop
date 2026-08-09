@@ -12,8 +12,8 @@ import types
 import pytest
 
 import cli as cli_mod
-from hermes_cli import main as main_mod
-from hermes_cli import mcp_startup
+from sparkii_cli import main as main_mod
+from sparkii_cli import mcp_startup
 
 
 @pytest.fixture(autouse=True)
@@ -55,12 +55,12 @@ def test_prepare_agent_startup_backgrounds_blocking_mcp_for_chat(monkeypatch):
 
     monkeypatch.setitem(
         sys.modules,
-        "hermes_cli.plugins",
+        "sparkii_cli.plugins",
         types.SimpleNamespace(discover_plugins=lambda: None),
     )
     monkeypatch.setitem(
         sys.modules,
-        "hermes_cli.config",
+        "sparkii_cli.config",
         types.SimpleNamespace(
             read_raw_config=lambda: {"mcp_servers": {"demo": {"transport": "stdio"}}},
             load_config=lambda: {},
@@ -117,7 +117,7 @@ def test_background_mcp_discovery_suppresses_interactive_oauth(monkeypatch):
 
     monkeypatch.setitem(
         sys.modules,
-        "hermes_cli.config",
+        "sparkii_cli.config",
         types.SimpleNamespace(
             read_raw_config=lambda: {"mcp_servers": {"demo": {"url": "https://mcp.example.test/mcp"}}},
         ),
@@ -149,12 +149,12 @@ def test_background_mcp_discovery_suppresses_interactive_oauth(monkeypatch):
 def test_portable_only_mcp_configuration_opens_startup_gate(monkeypatch):
     monkeypatch.setitem(
         sys.modules,
-        "hermes_cli.config",
+        "sparkii_cli.config",
         types.SimpleNamespace(read_raw_config=lambda: {}),
     )
     monkeypatch.setitem(
         sys.modules,
-        "hermes_cli.agent_plugins",
+        "sparkii_cli.agent_plugins",
         types.SimpleNamespace(
             has_enabled_agent_plugin_mcp=lambda _config: True,
         ),
@@ -179,7 +179,7 @@ def _retry_logger():
 def _install_retry_stubs(monkeypatch, *, connected: bool, calls: dict):
     monkeypatch.setitem(
         sys.modules,
-        "hermes_cli.config",
+        "sparkii_cli.config",
         types.SimpleNamespace(
             read_raw_config=lambda: {"mcp_servers": {"demo": {"transport": "stdio"}}},
         ),

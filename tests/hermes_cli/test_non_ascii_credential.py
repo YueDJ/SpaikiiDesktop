@@ -8,7 +8,7 @@ httpx tries to encode the Authorization header as ASCII.
 import os
 
 
-from hermes_cli.config import _check_non_ascii_credential
+from sparkii_cli.config import _check_non_ascii_credential
 
 
 class TestCheckNonAsciiCredential:
@@ -41,7 +41,7 @@ class TestEnvLoaderSanitization:
     """Tests for _sanitize_loaded_credentials in env_loader."""
 
     def test_strips_non_ascii_from_api_key(self, monkeypatch):
-        from hermes_cli.env_loader import _sanitize_loaded_credentials, _WARNED_KEYS
+        from sparkii_cli.env_loader import _sanitize_loaded_credentials, _WARNED_KEYS
 
         _WARNED_KEYS.discard("OPENROUTER_API_KEY")
         monkeypatch.setenv("OPENROUTER_API_KEY", "sk-proj-abcʋdef")
@@ -50,7 +50,7 @@ class TestEnvLoaderSanitization:
 
 
     def test_ignores_non_credential_vars(self, monkeypatch):
-        from hermes_cli.env_loader import _sanitize_loaded_credentials
+        from sparkii_cli.env_loader import _sanitize_loaded_credentials
 
         monkeypatch.setenv("MY_UNICODE_VAR", "héllo wörld")
         _sanitize_loaded_credentials()
@@ -64,7 +64,7 @@ class TestEnvLoaderSanitization:
         Users must be told when a copy-paste artifact was removed so they
         can re-copy the key if authentication fails.
         """
-        from hermes_cli.env_loader import _sanitize_loaded_credentials, _WARNED_KEYS
+        from sparkii_cli.env_loader import _sanitize_loaded_credentials, _WARNED_KEYS
 
         _WARNED_KEYS.discard("GOOGLE_API_KEY")
         monkeypatch.setenv("GOOGLE_API_KEY", "AIzaSy\u200babcdef")  # ZWSP mid-key
@@ -83,7 +83,7 @@ class TestEnvLoaderSanitization:
         This is intentional — they're valid ASCII for HTTP headers even if the
         provider rejects them. Documents the scope of the sanitizer.
         """
-        from hermes_cli.env_loader import _sanitize_loaded_credentials, _WARNED_KEYS
+        from sparkii_cli.env_loader import _sanitize_loaded_credentials, _WARNED_KEYS
 
         _WARNED_KEYS.clear()
         monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant\x1bapi-key")

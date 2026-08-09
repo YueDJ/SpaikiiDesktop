@@ -12,7 +12,7 @@ Covers:
     sets/needs no cookie).
   * ``/auth/native/refresh`` token rotation and terminal-expiry semantics.
 
-Run: pytest tests/hermes_cli/test_dashboard_auth_native_flow.py
+Run: pytest tests/sparkii_cli/test_dashboard_auth_native_flow.py
 """
 
 from __future__ import annotations
@@ -25,14 +25,14 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 from fastapi.testclient import TestClient
 
-from hermes_cli import web_server
-from hermes_cli.dashboard_auth import (
+from sparkii_cli import web_server
+from sparkii_cli.dashboard_auth import (
     clear_providers,
     register_provider,
 )
-from hermes_cli.dashboard_auth import native_flow
-from hermes_cli.dashboard_auth.base import Session
-from tests.hermes_cli.conftest_dashboard_auth import StubAuthProvider
+from sparkii_cli.dashboard_auth import native_flow
+from sparkii_cli.dashboard_auth.base import Session
+from tests.sparkii_cli.conftest_dashboard_auth import StubAuthProvider
 
 
 # ---------------------------------------------------------------------------

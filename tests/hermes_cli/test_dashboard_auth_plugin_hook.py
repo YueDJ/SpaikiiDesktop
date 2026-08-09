@@ -7,11 +7,11 @@ from __future__ import annotations
 
 import pytest
 
-from hermes_cli.dashboard_auth import clear_providers, get_provider
-from hermes_cli.dashboard_auth.base import (
+from sparkii_cli.dashboard_auth import clear_providers, get_provider
+from sparkii_cli.dashboard_auth.base import (
     DashboardAuthProvider, LoginStart, Session,
 )
-from hermes_cli.plugins import PluginContext, PluginManifest
+from sparkii_cli.plugins import PluginContext, PluginManifest
 
 
 class _Stub(DashboardAuthProvider):

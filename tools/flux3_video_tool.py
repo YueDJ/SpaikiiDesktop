@@ -792,7 +792,7 @@ def _has_nous_credential() -> bool:
     if peek_nous_access_token():
         return True
     try:
-        from hermes_cli.auth import get_provider_auth_state
+        from sparkii_cli.auth import get_provider_auth_state
 
         state = get_provider_auth_state("nous") or {}
     except Exception:

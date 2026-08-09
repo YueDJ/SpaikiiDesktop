@@ -1,4 +1,4 @@
-"""Tests for native clipboard text write (hermes_cli/clipboard.py).
+"""Tests for native clipboard text write (sparkii_cli/clipboard.py).
 
 Mirrors the TUI's writeClipboardText fallback chain: pbcopy /
 PowerShell Set-Clipboard / wl-copy / xclip / xsel, with OSC 52 left to
@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 import pytest
 
-from hermes_cli import clipboard as clip
+from sparkii_cli import clipboard as clip
 
 
 def _completed(returncode=0):

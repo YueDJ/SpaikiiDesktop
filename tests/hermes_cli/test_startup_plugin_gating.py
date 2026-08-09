@@ -1,6 +1,6 @@
 """Guards for CLI startup performance regression.
 
-``hermes_cli.main`` skips eager plugin discovery at argparse-setup time
+``sparkii_cli.main`` skips eager plugin discovery at argparse-setup time
 when the invocation is clearly targeting a known built-in subcommand.
 This saves 500-650ms on ``hermes --help``, ``hermes version``,
 ``hermes logs``, etc., by not importing ``google.cloud.pubsub_v1``,
@@ -28,7 +28,7 @@ from unittest.mock import patch
 
 import pytest
 
-from hermes_cli.main import (
+from sparkii_cli.main import (
     _BUILTIN_SUBCOMMANDS,
     _first_positional_argv,
     _plugin_cli_discovery_needed,
@@ -46,7 +46,7 @@ def _live_subcommand_names() -> set[str]:
     plugin-registered commands aren't included — we're validating the
     built-in-only set.
     """
-    from hermes_cli import main as _main
+    from sparkii_cli import main as _main
 
     argv_backup = sys.argv[:]
     sys.argv = ["hermes", "--help"]
@@ -91,7 +91,7 @@ def test_deferred_platform_cli_resolution_targets_matching_platform():
     deferred entry, so without this resolution step the CLI command stays
     absent and argparse rejects ``photon`` (issue #54678).
     """
-    from hermes_cli import main as _main
+    from sparkii_cli import main as _main
 
     class _FakeRegistry:
         def __init__(self):
@@ -129,7 +129,7 @@ def test_deferred_platform_loader_registers_cli_command_before_parser_table():
     import argparse
 
     from gateway.platform_registry import PlatformRegistry
-    from hermes_cli.plugins import PluginContext, PluginManager, PluginManifest
+    from sparkii_cli.plugins import PluginContext, PluginManager, PluginManifest
 
     mgr = PluginManager()
     manifest = PluginManifest(name="fake-photon-platform")

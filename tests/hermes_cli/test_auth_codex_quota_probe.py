@@ -14,8 +14,8 @@ from types import SimpleNamespace
 
 import pytest
 
-import hermes_cli.auth as auth_mod
-from hermes_cli.auth import (
+import sparkii_cli.auth as auth_mod
+from sparkii_cli.auth import (
     AuthError,
     _codex_usage_probe_url,
     _is_codex_rate_limit_shaped,

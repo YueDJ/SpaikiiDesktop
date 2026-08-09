@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import pytest
 
-from hermes_cli import runtime_provider as rp
+from sparkii_cli import runtime_provider as rp
 
 PROVIDER_KEY = "my-endpoint"
 DISPLAY_NAME = "My Endpoint Display"
@@ -42,7 +42,7 @@ def keyed_provider_config(monkeypatch):
         }
     }
     monkeypatch.setattr(rp, "load_config", lambda *a, **k: config)
-    monkeypatch.setattr("hermes_cli.config.load_config", lambda *a, **k: config)
+    monkeypatch.setattr("sparkii_cli.config.load_config", lambda *a, **k: config)
     monkeypatch.setattr(rp, "_get_model_config", lambda: {})
     return config
 
@@ -94,7 +94,7 @@ def test_legacy_unkeyed_entry_keeps_its_name_identity(monkeypatch):
         ]
     }
     monkeypatch.setattr(rp, "load_config", lambda *a, **k: config)
-    monkeypatch.setattr("hermes_cli.config.load_config", lambda *a, **k: config)
+    monkeypatch.setattr("sparkii_cli.config.load_config", lambda *a, **k: config)
     monkeypatch.setattr(rp, "_get_model_config", lambda: {})
 
     assert rp.canonical_custom_identity(config_provider="Legacy Endpoint") == "custom:legacy-endpoint"

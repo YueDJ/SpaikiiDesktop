@@ -38,7 +38,7 @@ from agent.interrupt_compat import request_hard_interrupt
 
 # Sentinel value used by the runtime provider system for providers that are
 # not natively known (named custom providers, third-party aggregators, etc.).
-# Must match hermes_cli.runtime_provider.RUNTIME_PROVIDER_TYPE_CUSTOM.
+# Must match sparkii_cli.runtime_provider.RUNTIME_PROVIDER_TYPE_CUSTOM.
 _RUNTIME_PROVIDER_CUSTOM = "custom"
 from tools import file_state
 from tools.terminal_tool import set_approval_callback as _set_subagent_approval_cb
@@ -1501,7 +1501,7 @@ def _build_child_agent(
     if override_api_mode is not None:
         effective_api_mode = override_api_mode
     elif _effective_provider_norm in {"nous", "nous-portal", "nousresearch"}:
-        from hermes_cli.providers import nous_api_mode
+        from sparkii_cli.providers import nous_api_mode
 
         effective_api_mode = nous_api_mode(effective_model)
     elif effective_provider != _parent_provider:
@@ -1705,7 +1705,7 @@ def _build_child_agent(
             logger.debug("spawn_requested relay failed: %s", exc)
 
     try:
-        from hermes_cli.lifecycle import invoke_hook as _invoke_hook
+        from sparkii_cli.lifecycle import invoke_hook as _invoke_hook
         _invoke_hook(
             "subagent_start",
             parent_session_id=getattr(parent_agent, "session_id", None),
@@ -2958,7 +2958,7 @@ def _finalize_child_results(
 
         parent_session_id = getattr(parent_agent, "session_id", None)
         try:
-            from hermes_cli.plugins import invoke_hook as invoke_hook
+            from sparkii_cli.plugins import invoke_hook as invoke_hook
         except Exception:
             invoke_hook = None
 
@@ -3941,7 +3941,7 @@ def _resolve_delegation_credentials(cfg: dict, parent_agent) -> dict:
         # proxies — pick the right transport automatically. Without this,
         # subagents would default to chat_completions and hit 404s on endpoints
         # that only speak the Anthropic Messages protocol. Fixes #10213.
-        from hermes_cli.runtime_provider import _detect_api_mode_for_url
+        from sparkii_cli.runtime_provider import _detect_api_mode_for_url
 
         base_lower = configured_base_url.lower()
         provider = "custom"
@@ -3986,7 +3986,7 @@ def _resolve_delegation_credentials(cfg: dict, parent_agent) -> dict:
 
     # Provider is configured — resolve full credentials
     try:
-        from hermes_cli.runtime_provider import resolve_runtime_provider
+        from sparkii_cli.runtime_provider import resolve_runtime_provider
 
         runtime = resolve_runtime_provider(requested=configured_provider, target_model=configured_model)
     except Exception as exc:
@@ -4039,7 +4039,7 @@ def _load_config() -> dict:
     prefer_legacy = os.environ.get("HERMES_IGNORE_USER_CONFIG") == "1"
     if not prefer_legacy:
         try:
-            from hermes_cli.config import load_config_readonly
+            from sparkii_cli.config import load_config_readonly
 
             full = load_config_readonly()
             cfg = full.get("delegation") or {}

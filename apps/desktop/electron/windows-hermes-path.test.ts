@@ -1,12 +1,12 @@
-// Unit tests for the pure Windows `hermes` resolution helpers extracted from
+// Unit tests for the pure Windows `sparkii` resolution helpers extracted from
 // main.ts's findOnPath(), handOffWindowsBootstrapRecovery(), and
 // unwrapWindowsVenvSparkiiCommand(). These pin the two Windows resolution bugs
 // that caused desktop reinstall loops:
 //   1. buildPathExtCandidates() — PATHEXT extensions must be tried BEFORE the
-//      empty extension, or an extensionless Git-Bash `hermes` shim shadows
-//      the real hermes.cmd/hermes.exe.
+//      empty extension, or an extensionless Git-Bash `sparkii` shim shadows
+//      the real sparkii.cmd/sparkii.exe.
 //   2. chooseUpdaterArgs() — must gate on haveRealInstall (any real-install
-//      signal), not just the hermes.exe console-script shim, or healthy
+//      signal), not just the sparkii.exe console-script shim, or healthy
 //      installs get forced into a destructive --repair.
 //   3. resolveVenvSparkiiCommand() — must probe the venv python via
 //      canImportSparkiiCli() before trusting it, or a broken venv gets
@@ -22,7 +22,7 @@ import {
   chooseUpdaterArgs,
   getVenvSitePackagesEntries,
   resolveVenvSparkiiCommand
-} from './windows-hermes-path'
+} from './windows-sparkii-path'
 
 test('buildPathExtCandidates: Windows tries PATHEXT extensions before the empty extension', () => {
   const extensions = buildPathExtCandidates('.COM;.EXE;.BAT;.CMD', true)
@@ -68,7 +68,7 @@ function makeDeps(overrides: Partial<Parameters<typeof resolveVenvSparkiiCommand
     getVenvPython: (venvRoot: string) => `${venvRoot}/Scripts/python.exe`,
     getVenvSitePackagesEntries: () => [],
     buildDesktopBackendEnv: () => ({ FAKE_ENV: '1' }),
-    sparkiiHome: '/fake/hermes-home',
+    sparkiiHome: '/fake/sparkii-home',
     resolvePath: (...segments: string[]) => segments.join('/').replace(/\/+/g, '/'),
     dirname: (p: string) => p.slice(0, p.lastIndexOf('/')) || '/',
     basename: (p: string) => p.slice(p.lastIndexOf('/') + 1),
@@ -80,16 +80,16 @@ function makeDeps(overrides: Partial<Parameters<typeof resolveVenvSparkiiCommand
 test('resolveVenvSparkiiCommand: returns null off Windows', () => {
   const deps = makeDeps({ isWindows: false })
 
-  assert.equal(resolveVenvSparkiiCommand('/root/venv/Scripts/hermes.exe', [], deps), null)
+  assert.equal(resolveVenvSparkiiCommand('/root/venv/Scripts/sparkii.exe', [], deps), null)
 })
 
 test('resolveVenvSparkiiCommand: returns null for a .cmd/.bat script command', () => {
   const deps = makeDeps({ isCommandScript: () => true })
 
-  assert.equal(resolveVenvSparkiiCommand('/root/venv/Scripts/hermes.cmd', [], deps), null)
+  assert.equal(resolveVenvSparkiiCommand('/root/venv/Scripts/sparkii.cmd', [], deps), null)
 })
 
-test('resolveVenvSparkiiCommand: returns null when the basename is not hermes/hermes.exe', () => {
+test('resolveVenvSparkiiCommand: returns null when the basename is not sparkii/sparkii.exe', () => {
   const deps = makeDeps()
 
   assert.equal(resolveVenvSparkiiCommand('/root/venv/Scripts/python.exe', [], deps), null)
@@ -98,13 +98,13 @@ test('resolveVenvSparkiiCommand: returns null when the basename is not hermes/he
 test('resolveVenvSparkiiCommand: returns null when the parent dir is not Scripts', () => {
   const deps = makeDeps()
 
-  assert.equal(resolveVenvSparkiiCommand('/root/venv/bin/hermes.exe', [], deps), null)
+  assert.equal(resolveVenvSparkiiCommand('/root/venv/bin/sparkii.exe', [], deps), null)
 })
 
 test('resolveVenvSparkiiCommand: returns null when the venv python does not exist on disk', () => {
   const deps = makeDeps({ fileExists: () => false })
 
-  assert.equal(resolveVenvSparkiiCommand('/root/venv/Scripts/hermes.exe', [], deps), null)
+  assert.equal(resolveVenvSparkiiCommand('/root/venv/Scripts/sparkii.exe', [], deps), null)
 })
 
 test('resolveVenvSparkiiCommand: probes the venv python before trusting it (returns null on failed probe)', () => {
@@ -119,7 +119,7 @@ test('resolveVenvSparkiiCommand: probes the venv python before trusting it (retu
     }
   })
 
-  const result = resolveVenvSparkiiCommand('/root/venv/Scripts/hermes.exe', ['serve'], deps)
+  const result = resolveVenvSparkiiCommand('/root/venv/Scripts/sparkii.exe', ['serve'], deps)
 
   assert.equal(probed, true, 'must probe the venv interpreter; a broken venv must not be re-selected forever')
   assert.equal(result, null, 'a failed probe must fall through (return null) so the resolver reaches bootstrap')
@@ -127,22 +127,22 @@ test('resolveVenvSparkiiCommand: probes the venv python before trusting it (retu
 
 test('resolveVenvSparkiiCommand: returns the resolved python backend descriptor when the probe passes', () => {
   const deps = makeDeps()
-  const result = resolveVenvSparkiiCommand('/root/venv/Scripts/hermes.exe', ['serve', '--port', '0'], deps)
+  const result = resolveVenvSparkiiCommand('/root/venv/Scripts/sparkii.exe', ['serve', '--port', '0'], deps)
 
   assert.ok(result, 'a passing probe must return a backend descriptor, not null')
   assert.equal(result.command, '/root/venv/Scripts/python.exe')
-  assert.deepEqual(result.args, ['-m', 'hermes_cli.main', 'serve', '--port', '0'])
+  assert.deepEqual(result.args, ['-m', 'sparkii_cli.main', 'serve', '--port', '0'])
   assert.equal(result.bootstrap, false)
   assert.equal(result.kind, 'python')
   assert.equal(result.shell, false)
   assert.deepEqual(result.env, { FAKE_ENV: '1' })
 })
 
-test('resolveVenvSparkiiCommand: is case-insensitive on hermes.exe and the Scripts dir name', () => {
+test('resolveVenvSparkiiCommand: is case-insensitive on sparkii.exe and the Scripts dir name', () => {
   const deps = makeDeps()
 
-  assert.ok(resolveVenvSparkiiCommand('/root/venv/Scripts/HERMES.EXE', [], deps))
-  assert.ok(resolveVenvSparkiiCommand('/root/venv/SCRIPTS/hermes.exe', [], deps))
+  assert.ok(resolveVenvSparkiiCommand('/root/venv/Scripts/SPARKII.EXE', [], deps))
+  assert.ok(resolveVenvSparkiiCommand('/root/venv/SCRIPTS/sparkii.exe', [], deps))
 })
 
 // ── getVenvSitePackagesEntries ─────────────────────────────────────────────

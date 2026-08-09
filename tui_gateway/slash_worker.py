@@ -65,7 +65,7 @@ def _prepare_slash_worker_runtime() -> None:
     """
     import logging
 
-    from hermes_cli.mcp_startup import (
+    from sparkii_cli.mcp_startup import (
         start_background_mcp_discovery,
         wait_for_mcp_discovery,
     )
@@ -179,7 +179,7 @@ def main():
             # the same command boundary as other long-lived gateway processes.
             # trim_memory's shared cooldown coalesces this with nearby activity.
             try:
-                from hermes_cli.mem_trim import trim_memory
+                from sparkii_cli.mem_trim import trim_memory
 
                 trim_memory(reason="slash worker command completion")
             except Exception as exc:

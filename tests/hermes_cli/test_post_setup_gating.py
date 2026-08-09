@@ -18,7 +18,7 @@ class TestPostSetupGate:
     def test_cua_driver_missing_forces_setup(self, monkeypatch, tmp_path):
         """When cua-driver isn't on PATH, the gate must return True so the
         provider-setup flow runs and triggers `_run_post_setup`."""
-        from hermes_cli import tools_config
+        from sparkii_cli import tools_config
 
         monkeypatch.setenv("HERMES_HOME", str(tmp_path))
         monkeypatch.setattr(tools_config.shutil, "which", lambda name, path=None: None)
@@ -31,7 +31,7 @@ class TestPostSetupGate:
     def test_post_setup_predicate_exception_does_not_block(self, monkeypatch):
         """A predicate that raises must be treated as 'satisfied' so a
         broken check can't strand the user in an infinite setup loop."""
-        from hermes_cli import tools_config
+        from sparkii_cli import tools_config
 
         def _boom():
             raise RuntimeError("predicate broken")

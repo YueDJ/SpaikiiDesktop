@@ -6,19 +6,19 @@ are exposed in the model picker.
 """
 
 import pytest
-from hermes_cli.model_switch import list_authenticated_providers, switch_model
-from hermes_cli import runtime_provider as rp
+from sparkii_cli.model_switch import list_authenticated_providers, switch_model
+from sparkii_cli import runtime_provider as rp
 
 
 @pytest.fixture(autouse=True)
 def _no_live_builtin_provider_probes(monkeypatch):
     """Keep picker tests offline: builtin-provider catalog fetches hit the network."""
-    monkeypatch.setattr("hermes_cli.models.fetch_api_models", lambda *_a, **_kw: None)
+    monkeypatch.setattr("sparkii_cli.models.fetch_api_models", lambda *_a, **_kw: None)
     monkeypatch.setattr(
-        "hermes_cli.models.cached_provider_model_ids", lambda *_a, **_kw: []
+        "sparkii_cli.models.cached_provider_model_ids", lambda *_a, **_kw: []
     )
     monkeypatch.setattr(
-        "hermes_cli.models.provider_model_ids", lambda *_a, **_kw: []
+        "sparkii_cli.models.provider_model_ids", lambda *_a, **_kw: []
     )
 
 
@@ -32,7 +32,7 @@ def test_list_authenticated_providers_includes_full_models_list_from_user_provid
     Regression test: previously only default_model was shown in /model picker.
     """
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
-    monkeypatch.setattr("hermes_cli.providers.HERMES_OVERLAYS", {})
+    monkeypatch.setattr("sparkii_cli.providers.HERMES_OVERLAYS", {})
     
     user_providers = {
         "local-ollama": {
@@ -78,7 +78,7 @@ def test_list_authenticated_providers_enumerates_dict_format_models(monkeypatch)
     even though Hermes's own writer and downstream readers use dict format.
     """
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
-    monkeypatch.setattr("hermes_cli.providers.HERMES_OVERLAYS", {})
+    monkeypatch.setattr("sparkii_cli.providers.HERMES_OVERLAYS", {})
 
     user_providers = {
         "local-ollama": {
@@ -122,7 +122,7 @@ def test_list_authenticated_providers_uses_live_models_for_user_provider(monkeyp
     /v1/models endpoint exposed newly added models.
     """
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
-    monkeypatch.setattr("hermes_cli.providers.HERMES_OVERLAYS", {})
+    monkeypatch.setattr("sparkii_cli.providers.HERMES_OVERLAYS", {})
     monkeypatch.setenv("CRS_TEST_KEY", "sk-test")
 
     calls = []
@@ -131,7 +131,7 @@ def test_list_authenticated_providers_uses_live_models_for_user_provider(monkeyp
         calls.append((api_key, base_url, kwargs))
         return ["old-configured-model", "new-live-model"]
 
-    monkeypatch.setattr("hermes_cli.models.fetch_api_models", fake_fetch_api_models)
+    monkeypatch.setattr("sparkii_cli.models.fetch_api_models", fake_fetch_api_models)
 
     user_providers = {
         "crs-henkee": {
@@ -185,7 +185,7 @@ def test_list_authenticated_providers_accepts_base_url_and_singular_model(monkey
     surfaced with empty ``api_url`` and no default.
     """
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
-    monkeypatch.setattr("hermes_cli.providers.HERMES_OVERLAYS", {})
+    monkeypatch.setattr("sparkii_cli.providers.HERMES_OVERLAYS", {})
 
     user_providers = {
         "custom": {
@@ -222,7 +222,7 @@ def test_list_authenticated_providers_dedupes_when_user_and_custom_overlap(monke
     overlapping entries produced two picker rows for the same provider.
     """
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
-    monkeypatch.setattr("hermes_cli.providers.HERMES_OVERLAYS", {})
+    monkeypatch.setattr("sparkii_cli.providers.HERMES_OVERLAYS", {})
 
     providers = list_authenticated_providers(
         current_provider="custom",
@@ -262,10 +262,10 @@ def test_list_authenticated_providers_no_duplicate_labels_across_schemas(monkeyp
     identically, bypassing ``seen_slugs`` dedup because the slug shapes differ.
     """
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
-    monkeypatch.setattr("hermes_cli.providers.HERMES_OVERLAYS", {})
+    monkeypatch.setattr("sparkii_cli.providers.HERMES_OVERLAYS", {})
     # Singular ``model:``-only entries are un-narrowed → section 3 now probes
     # them; stub the probe so the test stays hermetic (endpoints are fake).
-    monkeypatch.setattr("hermes_cli.models.fetch_api_models", lambda *a, **k: None)
+    monkeypatch.setattr("sparkii_cli.models.fetch_api_models", lambda *a, **k: None)
 
     shared_entries = [
         ("endpoint-a", "http://a.local/v1"),
@@ -322,7 +322,7 @@ def test_list_authenticated_providers_dedup_honors_base_url_env_override(monkeyp
             }
         },
     )
-    monkeypatch.setattr("hermes_cli.providers.HERMES_OVERLAYS", {})
+    monkeypatch.setattr("sparkii_cli.providers.HERMES_OVERLAYS", {})
 
     custom_providers = [
         {
@@ -378,7 +378,7 @@ def test_switch_model_resolves_user_provider_credentials(monkeypatch, tmp_path):
     
     # Mock validation to pass
     monkeypatch.setattr(
-        "hermes_cli.models.validate_requested_model",
+        "sparkii_cli.models.validate_requested_model",
         lambda *a, **k: {"accepted": True, "persist": True, "recognized": True, "message": None}
     )
     
@@ -440,14 +440,14 @@ def _run_user_provider_override_case(
         }
     }
 
-    with patch("hermes_cli.model_switch.resolve_alias", return_value=None), \
-         patch("hermes_cli.model_switch.list_provider_models", return_value=[]), \
-         patch("hermes_cli.model_switch.normalize_model_for_provider", side_effect=lambda model, provider: model), \
-         patch("hermes_cli.models.validate_requested_model", return_value=_REJECTED_VALIDATION), \
-         patch("hermes_cli.models.detect_provider_for_model", return_value=None), \
-         patch("hermes_cli.model_switch.get_model_info", return_value=None), \
-         patch("hermes_cli.model_switch.get_model_capabilities", return_value=None), \
-         patch("hermes_cli.runtime_provider.resolve_runtime_provider", return_value={"api_key": "***", "base_url": base_url, "api_mode": "anthropic_messages"}):
+    with patch("sparkii_cli.model_switch.resolve_alias", return_value=None), \
+         patch("sparkii_cli.model_switch.list_provider_models", return_value=[]), \
+         patch("sparkii_cli.model_switch.normalize_model_for_provider", side_effect=lambda model, provider: model), \
+         patch("sparkii_cli.models.validate_requested_model", return_value=_REJECTED_VALIDATION), \
+         patch("sparkii_cli.models.detect_provider_for_model", return_value=None), \
+         patch("sparkii_cli.model_switch.get_model_info", return_value=None), \
+         patch("sparkii_cli.model_switch.get_model_capabilities", return_value=None), \
+         patch("sparkii_cli.runtime_provider.resolve_runtime_provider", return_value={"api_key": "***", "base_url": base_url, "api_mode": "anthropic_messages"}):
         return switch_model(
             raw_input=raw_input,
             current_provider=slug,
@@ -473,7 +473,7 @@ def test_section3_probes_no_key_endpoint_without_explicit_models(monkeypatch):
     list because section 3 gated probing on ``api_url and api_key``.
     """
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
-    monkeypatch.setattr("hermes_cli.providers.HERMES_OVERLAYS", {})
+    monkeypatch.setattr("sparkii_cli.providers.HERMES_OVERLAYS", {})
 
     probed = {}
 
@@ -484,7 +484,7 @@ def test_section3_probes_no_key_endpoint_without_explicit_models(monkeypatch):
         probed["kwargs"] = kwargs
         return ["live-model-1", "live-model-2", "live-model-3"]
 
-    monkeypatch.setattr("hermes_cli.models.fetch_api_models", _fake_fetch)
+    monkeypatch.setattr("sparkii_cli.models.fetch_api_models", _fake_fetch)
 
     user_providers = {
         "local-llamacpp": {
@@ -520,7 +520,7 @@ def test_section3_probes_no_key_endpoint_with_singular_default_model(monkeypatch
     showed a one-line menu for local no-auth endpoints.
     """
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
-    monkeypatch.setattr("hermes_cli.providers.HERMES_OVERLAYS", {})
+    monkeypatch.setattr("sparkii_cli.providers.HERMES_OVERLAYS", {})
 
     probed = {}
 
@@ -529,7 +529,7 @@ def test_section3_probes_no_key_endpoint_with_singular_default_model(monkeypatch
         probed["api_key"] = api_key
         return ["live-model-1", "live-model-2", "live-model-3"]
 
-    monkeypatch.setattr("hermes_cli.models.fetch_api_models", _fake_fetch)
+    monkeypatch.setattr("sparkii_cli.models.fetch_api_models", _fake_fetch)
 
     user_providers = {
         "local-ollama": {
@@ -567,11 +567,11 @@ def test_current_custom_model_is_surfaced_in_builtin_provider_row(monkeypatch):
     current provider's list.
     """
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
-    monkeypatch.setattr("hermes_cli.providers.HERMES_OVERLAYS", {})
+    monkeypatch.setattr("sparkii_cli.providers.HERMES_OVERLAYS", {})
     monkeypatch.setenv("OPENROUTER_API_KEY", "sk-test")
     # Pin a small curated catalog so the assertion is deterministic.
     monkeypatch.setattr(
-        "hermes_cli.models.cached_provider_model_ids",
+        "sparkii_cli.models.cached_provider_model_ids",
         lambda slug, **kw: ["anthropic/claude-opus-4.8", "openai/gpt-5.5"]
         if slug == "openrouter"
         else [],
@@ -595,11 +595,11 @@ def test_current_custom_model_not_leaked_into_other_provider_rows(monkeypatch):
     """The current model is only injected into the CURRENT provider's row,
     never into other providers (which can't serve it)."""
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
-    monkeypatch.setattr("hermes_cli.providers.HERMES_OVERLAYS", {})
+    monkeypatch.setattr("sparkii_cli.providers.HERMES_OVERLAYS", {})
     monkeypatch.setenv("OPENROUTER_API_KEY", "sk-test")
     monkeypatch.setenv("NOUS_API_KEY", "sk-test")
     monkeypatch.setattr(
-        "hermes_cli.models.cached_provider_model_ids",
+        "sparkii_cli.models.cached_provider_model_ids",
         lambda slug, **kw: ["curated/one"],
     )
 

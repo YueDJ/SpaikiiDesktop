@@ -10,7 +10,7 @@ This is a library module (not an agent tool). It provides:
   - HubLockFile: Track provenance of installed hub skills
   - Hub state directory management (quarantine, audit log, taps, index cache)
 
-Used by hermes_cli/skills_hub.py for CLI commands and the /skills slash command.
+Used by sparkii_cli/skills_hub.py for CLI commands and the /skills slash command.
 """
 
 import hashlib
@@ -26,7 +26,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from hermes_constants import get_hermes_home
-from hermes_cli._subprocess_compat import windows_hide_flags
+from sparkii_cli._subprocess_compat import windows_hide_flags
 from agent.skill_utils import is_excluded_skill_path
 from typing import Any, Dict, List, Optional, Tuple, Union
 from urllib.parse import unquote, urljoin, urlparse, urlsplit, urlunparse
@@ -3692,7 +3692,7 @@ def _category_skill_dirs(directory: Path) -> List[str]:
     :func:`is_excluded_skill_path` so a lone ``node_modules`` or
     ``references/pkg/SKILL.md`` hit does not misclassify the directory as
     a category. Shared by the install-time category guard here and
-    ``hermes_cli.skills_hub._existing_categories``.
+    ``sparkii_cli.skills_hub._existing_categories``.
     """
     skill_dirs: List[str] = []
     for entry in directory.iterdir():

@@ -4,8 +4,8 @@ import base64
 import json
 import time
 
-import hermes_cli.auth as auth
-from hermes_cli.auth import (
+import sparkii_cli.auth as auth
+from sparkii_cli.auth import (
     NOUS_SESSION_TERMINAL,
     NOUS_SESSION_UNKNOWN,
     NOUS_SESSION_VALID,

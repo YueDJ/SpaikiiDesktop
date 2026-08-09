@@ -114,7 +114,7 @@ def test_remediation_never_raises_on_junk_cfg():
 
 
 def test_env_loader_prints_remediation_hint(tmp_path, monkeypatch, capsys):
-    from hermes_cli import env_loader
+    from sparkii_cli import env_loader
     from agent.secret_sources import registry
 
     registry._reset_registry_for_tests()

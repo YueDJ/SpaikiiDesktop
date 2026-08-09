@@ -3,7 +3,7 @@
 A *secret source* resolves credentials from an external secret manager
 (Bitwarden Secrets Manager, 1Password, an OS keystore, a user script, ...)
 into environment-variable-shaped values at process startup, AFTER
-``~/.hermes/.env`` has loaded and BEFORE the rest of Hermes reads
+``~/.sparkii/.env`` has loaded and BEFORE the rest of Hermes reads
 ``os.environ``.
 
 Scope of the contract (deliberate, please do not widen):
@@ -13,7 +13,7 @@ Scope of the contract (deliberate, please do not widen):
   mid-session secret API.  If a future need for rotation/refresh appears
   it will arrive as a versioned optional hook — do not bolt it on.
 * **Startup-time, synchronous.**  ``fetch()`` is called once per process
-  (per HERMES_HOME) by the orchestrator in
+  (per SPARKII_HOME) by the orchestrator in
   :mod:`agent.secret_sources.registry`, which enforces a wall-clock
   timeout around it.  Sources must not spawn background refreshers.
 * **Never raises, never prompts.**  ``fetch()`` returns a
@@ -52,7 +52,7 @@ from typing import Dict, FrozenSet, List, MutableMapping, Optional, Sequence
 SECRET_SOURCE_API_VERSION = 1
 
 _SOURCE_ENVIRONMENT: ContextVar[Optional[MutableMapping[str, str]]]
-_SOURCE_ENVIRONMENT = ContextVar("hermes_secret_source_environment", default=None)
+_SOURCE_ENVIRONMENT = ContextVar("sparkii_secret_source_environment", default=None)
 
 
 def set_source_environment(environ: MutableMapping[str, str]) -> Token:
@@ -81,7 +81,7 @@ DEFAULT_CLI_TIMEOUT_SECONDS = 30.0
 class ErrorKind(str, Enum):
     """Machine-readable failure taxonomy for :class:`FetchResult.error`.
 
-    A fixed vocabulary keeps startup warnings and ``hermes secrets status``
+    A fixed vocabulary keeps startup warnings and ``sparkii secrets status``
     uniform across backends, and lets the orchestrator implement
     kind-dependent policy (e.g. a future stale-cache fallback on
     ``NETWORK``/``TIMEOUT`` but not on ``AUTH_FAILED``) exactly once.
@@ -135,7 +135,7 @@ class SecretSource(ABC):
             Lowercase ``[a-z0-9_]+``.  Also the provenance label stored
             for every var this source supplies.
         label: Human-readable name used in startup messages and
-            ``hermes secrets status`` (e.g. ``"Bitwarden Secrets Manager"``).
+            ``sparkii secrets status`` (e.g. ``"Bitwarden Secrets Manager"``).
         shape: ``"mapped"`` when the user explicitly binds env-var names
             to refs (1Password ``env:`` map, command source) or
             ``"bulk"`` when the backend injects whole projects/folders
@@ -165,7 +165,7 @@ class SecretSource(ABC):
 
         ``cfg`` is the source's raw config section (``secrets.<name>``)
         from config.yaml — treat every field defensively, the section
-        may be malformed.  ``home_path`` is the resolved HERMES_HOME.
+        may be malformed.  ``home_path`` is the resolved SPARKII_HOME.
         """
 
     # -- optional hooks (defaults are correct for most sources) ------------
@@ -212,11 +212,11 @@ class SecretSource(ABC):
     def remediation(self, kind: Optional["ErrorKind"], cfg: dict) -> str:
         """One-line, actionable next step for a failed fetch.
 
-        Called by the startup status printer (and ``hermes secrets ...
+        Called by the startup status printer (and ``sparkii secrets ...
         status``) right after a fetch error is surfaced, so the user sees
         *what to run* next to fix it — not just what broke.  Sources
         should override this to point at their own CLI verbs (e.g.
-        ``hermes secrets bitwarden token`` for AUTH_FAILED).  Return an
+        ``sparkii secrets bitwarden token`` for AUTH_FAILED).  Return an
         empty string to suppress the hint.
 
         Must never raise and must not perform I/O — it's a pure
@@ -224,17 +224,17 @@ class SecretSource(ABC):
         """
         generic = {
             ErrorKind.NOT_CONFIGURED: (
-                f"Run `hermes secrets {self.name} setup` to finish configuration."
+                f"Run `sparkii secrets {self.name} setup` to finish configuration."
             ),
             ErrorKind.BINARY_MISSING: (
-                f"Run `hermes secrets {self.name} setup` to install the helper CLI."
+                f"Run `sparkii secrets {self.name} setup` to install the helper CLI."
             ),
             ErrorKind.AUTH_FAILED: (
-                f"Credentials rejected — run `hermes secrets {self.name} setup` "
+                f"Credentials rejected — run `sparkii secrets {self.name} setup` "
                 "to re-authenticate."
             ),
             ErrorKind.AUTH_EXPIRED: (
-                f"Credentials expired — run `hermes secrets {self.name} setup` "
+                f"Credentials expired — run `sparkii secrets {self.name} setup` "
                 "to re-authenticate."
             ),
             ErrorKind.NETWORK: (

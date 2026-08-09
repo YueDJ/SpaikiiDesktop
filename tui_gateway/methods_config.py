@@ -23,7 +23,7 @@ def _(rid, params: dict) -> dict:
         db = _get_db()
         if db is None:
             return _ok(rid, {"repos": []})
-        from hermes_cli import projects_db as pdb
+        from sparkii_cli import projects_db as pdb
 
         policy = _repo_discovery_policy()
         policy_key = _repo_discovery_policy_key(policy)
@@ -47,7 +47,7 @@ def _(rid, params: dict) -> dict:
     the merged repo list. The native crawl runs on the desktop (local fs); this
     caches the result so later reads are instant instead of re-walking disk."""
     try:
-        from hermes_cli import projects_db as pdb
+        from sparkii_cli import projects_db as pdb
 
         policy = _repo_discovery_policy()
         policy_key = _repo_discovery_policy_key(policy)
@@ -163,7 +163,7 @@ def _(rid, params: dict) -> dict:
     key = params.get("key", "")
     if key == "provider":
         try:
-            from hermes_cli.models import list_available_providers, normalize_provider
+            from sparkii_cli.models import list_available_providers, normalize_provider
 
             model = _resolve_model()
             parts = model.split("/", 1)
@@ -340,7 +340,7 @@ def _(rid, params: dict) -> dict:
 @method("setup.status")
 def _(rid, params: dict) -> dict:
     try:
-        from hermes_cli.main import _has_any_provider_configured
+        from sparkii_cli.main import _has_any_provider_configured
 
         return _ok(rid, {"provider_configured": bool(_has_any_provider_configured())})
     except Exception as e:
@@ -359,9 +359,9 @@ def _(rid, params: dict) -> dict:
     surface onboarding before the user submits a doomed prompt.
     """
     try:
-        from hermes_cli.runtime_provider import resolve_runtime_provider
-        from hermes_cli.auth import has_usable_secret
-        from hermes_cli.main import _has_any_provider_configured
+        from sparkii_cli.runtime_provider import resolve_runtime_provider
+        from sparkii_cli.auth import has_usable_secret
+        from sparkii_cli.main import _has_any_provider_configured
 
         requested = str(params.get("provider") or "").strip() or None
         runtime = resolve_runtime_provider(requested=requested)

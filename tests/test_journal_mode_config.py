@@ -30,7 +30,7 @@ def _disable_vulnerable_gate(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_database_journal_mode_has_a_canonical_default():
-    from hermes_cli.config import DEFAULT_CONFIG
+    from sparkii_cli.config import DEFAULT_CONFIG
 
     assert DEFAULT_CONFIG["database"]["journal_mode"] == "wal"
 
@@ -139,7 +139,7 @@ def test_real_db_openers_honor_configured_delete(monkeypatch, tmp_path):
     from cron import executions
     from gateway import delivery_ledger
     from gateway.platforms.api_server import ResponseStore
-    from hermes_cli import kanban_db, projects_db
+    from sparkii_cli import kanban_db, projects_db
     from hermes_state import SessionDB
     from plugins.memory.holographic.store import MemoryStore
     from plugins.platforms.discord.recovery import DiscordRecoveryStore

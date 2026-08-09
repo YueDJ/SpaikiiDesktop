@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 # ensure_mcp_discovery_started).  The first agent build briefly joins this so
 # already-spawning fast servers land before the agent snapshots its tool list
 # (see wait_for_mcp_discovery).  Stays None when discovery is delegated to the
-# shared owner in hermes_cli.mcp_startup — the wait/in-flight/join helpers
+# shared owner in sparkii_cli.mcp_startup — the wait/in-flight/join helpers
 # below consult both owners.
 _mcp_discovery_thread = None
 
@@ -37,7 +37,7 @@ _mcp_discovery_thread = None
 # configured and spawned discovery through the shared owner. Lets
 # wait_for_mcp_discovery re-invoke the (idempotent) spawn on later agent
 # builds so the retry-after-zero-connected allowance in
-# hermes_cli.mcp_startup.start_background_mcp_discovery can actually fire —
+# sparkii_cli.mcp_startup.start_background_mcp_discovery can actually fire —
 # without this, the single spawn is the only call and a first run that
 # connected nothing latches the process MCP-less. Kept as a flag (rather than
 # re-probing config) so non-MCP sessions never pay the tools.mcp_tool import
@@ -266,12 +266,12 @@ def wait_for_mcp_discovery(timeout: "float | None" = None) -> None:
     waited on beyond the bound.  No-op when no discovery thread was started.
 
     The bound comes from ``mcp_discovery_timeout`` in config (shared with the
-    CLI path via ``hermes_cli.mcp_startup``); ``timeout`` overrides it.
+    CLI path via ``sparkii_cli.mcp_startup``); ``timeout`` overrides it.
     """
     thread = _mcp_discovery_thread
     if thread is not None and thread.is_alive():
         try:
-            from hermes_cli.mcp_startup import _resolve_discovery_timeout
+            from sparkii_cli.mcp_startup import _resolve_discovery_timeout
 
             bound = _resolve_discovery_timeout(timeout)
         except Exception:
@@ -279,7 +279,7 @@ def wait_for_mcp_discovery(timeout: "float | None" = None) -> None:
         thread.join(timeout=bound)
         return
     # Discovery is spawned via the shared owner (ensure_mcp_discovery_started
-    # → hermes_cli.mcp_startup); wait on it so the first agent build still
+    # → sparkii_cli.mcp_startup); wait on it so the first agent build still
     # catches fast servers. Re-invoke the idempotent spawn first: if the
     # previous run finished with zero connected servers,
     # start_background_mcp_discovery's retry-after-zero-connected allowance
@@ -293,7 +293,7 @@ def wait_for_mcp_discovery(timeout: "float | None" = None) -> None:
     if not _mcp_discovery_enabled:
         return
     try:
-        from hermes_cli.mcp_startup import start_background_mcp_discovery
+        from sparkii_cli.mcp_startup import start_background_mcp_discovery
 
         start_background_mcp_discovery(
             logger=logger, thread_name="tui-mcp-discovery"
@@ -303,7 +303,7 @@ def wait_for_mcp_discovery(timeout: "float | None" = None) -> None:
             "TUI MCP discovery retry-spawn failed", exc_info=True
         )
     try:
-        from hermes_cli.mcp_startup import (
+        from sparkii_cli.mcp_startup import (
             wait_for_mcp_discovery as _startup_wait,
         )
 
@@ -324,7 +324,7 @@ def mcp_discovery_in_flight() -> bool:
     ``hermes --tui`` path spawns ITS thread here (``_mcp_discovery_thread``),
     while the desktop app + dashboard WebSocket sidecar (``tui_gateway/ws.py``)
     and ``hermes dashboard`` spawn theirs via
-    ``hermes_cli.mcp_startup.start_background_mcp_discovery``. The late-refresh
+    ``sparkii_cli.mcp_startup.start_background_mcp_discovery``. The late-refresh
     scheduler imports this function regardless of surface, so it MUST consult
     both — checking only the entry thread left the desktop/dashboard surfaces
     with no late refresh, so a slow MCP server's tools never surfaced for the
@@ -334,7 +334,7 @@ def mcp_discovery_in_flight() -> bool:
     if thread is not None and thread.is_alive():
         return True
     try:
-        from hermes_cli.mcp_startup import (
+        from sparkii_cli.mcp_startup import (
             mcp_discovery_in_flight as _startup_in_flight,
         )
 
@@ -352,7 +352,7 @@ def join_mcp_discovery(timeout: float | None = None) -> bool:
     the outcome, for the off-critical-path late-refresh waiter.
 
     Joins both discovery-thread owners (see ``mcp_discovery_in_flight``): the
-    entry thread first, then the ``hermes_cli.mcp_startup`` thread used by the
+    entry thread first, then the ``sparkii_cli.mcp_startup`` thread used by the
     desktop/dashboard surfaces. ``timeout`` bounds EACH join, mirroring the
     pre-#51587 single-owner behavior for the entry thread.
     """
@@ -362,7 +362,7 @@ def join_mcp_discovery(timeout: float | None = None) -> bool:
         thread.join(timeout=timeout)
         entry_done = not thread.is_alive()
     try:
-        from hermes_cli.mcp_startup import join_mcp_discovery as _startup_join
+        from sparkii_cli.mcp_startup import join_mcp_discovery as _startup_join
 
         startup_done = _startup_join(timeout=timeout)
     except Exception:
@@ -377,7 +377,7 @@ _recovery_times: list[float] = []
 
 def _has_configured_mcp_servers() -> bool:
     """Delegate to the shared native and portable MCP startup gate."""
-    from hermes_cli.mcp_startup import _has_configured_mcp_servers as configured
+    from sparkii_cli.mcp_startup import _has_configured_mcp_servers as configured
 
     return configured()
 
@@ -389,7 +389,7 @@ def ensure_mcp_discovery_started() -> None:
     entrypoints can accept sessions without running ``main()``, so the
     agent-build path (``server._start_agent_build``) also calls it AFTER
     binding the session profile's HERMES_HOME override — the shared owner in
-    ``hermes_cli.mcp_startup`` captures the caller's context-local override
+    ``sparkii_cli.mcp_startup`` captures the caller's context-local override
     and propagates it into the discovery thread, so discovery reads the
     SELECTED profile's ``mcp_servers``, not the launch profile's (#67605).
 
@@ -407,7 +407,7 @@ def ensure_mcp_discovery_started() -> None:
         return
     _mcp_discovery_enabled = True
     try:
-        from hermes_cli.mcp_startup import start_background_mcp_discovery
+        from sparkii_cli.mcp_startup import start_background_mcp_discovery
 
         start_background_mcp_discovery(
             logger=logger, thread_name="tui-mcp-discovery"
@@ -452,7 +452,7 @@ def main():
     # /model open blocks on serial /v1/models fetches. Fire-and-forget,
     # guarded once-per-process, fully exception-isolated.
     try:
-        from hermes_cli.model_switch import prewarm_picker_cache_async
+        from sparkii_cli.model_switch import prewarm_picker_cache_async
         prewarm_picker_cache_async()
     except Exception:
         logger.debug("picker cache prewarm (tui) failed to start", exc_info=True)

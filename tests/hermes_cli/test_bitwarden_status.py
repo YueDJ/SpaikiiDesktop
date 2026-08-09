@@ -21,7 +21,7 @@ def _bitwarden_config(*, enabled: bool = True, server_url: str = "") -> dict:
 
 
 def test_status_surfaces_failed_token_validation(monkeypatch, capsys):
-    from hermes_cli import secrets_cli
+    from sparkii_cli import secrets_cli
 
     seen = {}
 
@@ -67,7 +67,7 @@ def test_status_surfaces_failed_token_validation(monkeypatch, capsys):
 
 
 def test_status_warns_when_token_does_not_look_like_bsm_token(monkeypatch, capsys):
-    from hermes_cli import secrets_cli
+    from sparkii_cli import secrets_cli
 
     monkeypatch.setattr(secrets_cli, "load_config", lambda: _bitwarden_config())
     monkeypatch.setenv("BWS_ACCESS_TOKEN", "not-a-bitwarden-token")
@@ -92,7 +92,7 @@ def test_status_warns_when_token_does_not_look_like_bsm_token(monkeypatch, capsy
 
 
 def test_status_marks_validation_as_not_checked_without_bws_binary(monkeypatch, capsys):
-    from hermes_cli import secrets_cli
+    from sparkii_cli import secrets_cli
 
     monkeypatch.setattr(secrets_cli, "load_config", lambda: _bitwarden_config())
     monkeypatch.setenv("BWS_ACCESS_TOKEN", "0.token-present")

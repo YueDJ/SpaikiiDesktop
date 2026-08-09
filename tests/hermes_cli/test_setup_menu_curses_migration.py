@@ -9,8 +9,8 @@ from unittest.mock import patch
 
 
 def test_prompt_model_selection_uses_curses_radiolist():
-    from hermes_cli.auth import _prompt_model_selection
-    from hermes_cli.curses_ui import radio_item_plain
+    from sparkii_cli.auth import _prompt_model_selection
+    from sparkii_cli.curses_ui import radio_item_plain
 
     seen = {}
 
@@ -29,7 +29,7 @@ def test_prompt_model_selection_uses_curses_radiolist():
         seen["search_labels"] = search_labels
         return 1  # pick second model
 
-    with patch("hermes_cli.curses_ui.curses_radiolist", side_effect=_fake), \
+    with patch("sparkii_cli.curses_ui.curses_radiolist", side_effect=_fake), \
          patch("builtins.print"):
         result = _prompt_model_selection(["model-a", "model-b"])
 
@@ -45,10 +45,10 @@ def test_prompt_model_selection_uses_curses_radiolist():
 
 
 def test_prompt_model_selection_esc_cancels():
-    from hermes_cli.auth import _prompt_model_selection
+    from sparkii_cli.auth import _prompt_model_selection
 
     # curses_radiolist returns the cancel sentinel (-1) on ESC.
-    with patch("hermes_cli.curses_ui.curses_radiolist", return_value=-1), \
+    with patch("sparkii_cli.curses_ui.curses_radiolist", return_value=-1), \
          patch("builtins.print"):
         result = _prompt_model_selection(["model-a", "model-b"])
 
@@ -56,9 +56,9 @@ def test_prompt_model_selection_esc_cancels():
 
 
 def test_reasoning_effort_uses_curses_radiolist():
-    from hermes_cli.main import _prompt_reasoning_effort_selection
+    from sparkii_cli.main import _prompt_reasoning_effort_selection
 
-    with patch("hermes_cli.curses_ui.curses_radiolist", return_value=2), \
+    with patch("sparkii_cli.curses_ui.curses_radiolist", return_value=2), \
          patch("builtins.print"):
         result = _prompt_reasoning_effort_selection(["low", "medium", "high"], current_effort="")
 

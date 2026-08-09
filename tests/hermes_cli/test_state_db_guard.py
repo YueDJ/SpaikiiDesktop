@@ -9,7 +9,7 @@ import sqlite3
 
 import pytest
 
-from hermes_cli.backup import copy_db_and_verify, verify_sqlite_integrity
+from sparkii_cli.backup import copy_db_and_verify, verify_sqlite_integrity
 
 
 @pytest.fixture()
@@ -105,14 +105,14 @@ class TestPreUpdateBackupIntegrityGuard:
         monkeypatch.setenv("HERMES_HOME", str(root))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
         for mod in list(sys.modules.keys()):
-            if mod.startswith("hermes_cli.config") or mod == "hermes_constants":
+            if mod.startswith("sparkii_cli.config") or mod == "hermes_constants":
                 del sys.modules[mod]
         return root
 
     def test_healthy_db_stays_quiet(self, hermes_home, capsys):
         from argparse import Namespace
 
-        from hermes_cli.main import _run_pre_update_backup
+        from sparkii_cli.main import _run_pre_update_backup
 
         snap_id = _run_pre_update_backup(Namespace(no_backup=False, backup=False))
         out = capsys.readouterr().out
@@ -125,8 +125,8 @@ class TestPreUpdateBackupIntegrityGuard:
         guard must warn loudly instead of proceeding silently (exit-0 mask)."""
         from argparse import Namespace
 
-        import hermes_cli.backup as backup_mod
-        from hermes_cli.main import _run_pre_update_backup
+        import sparkii_cli.backup as backup_mod
+        from sparkii_cli.main import _run_pre_update_backup
 
         real_create = backup_mod.create_quick_snapshot
 

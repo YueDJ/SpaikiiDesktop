@@ -3,13 +3,13 @@
  *
  * Cheap "does this candidate backend actually work" checks used by
  * resolveSparkiiBackend (main.ts). The resolver walks a ladder of
- * candidates -- bootstrap marker, `hermes` on PATH, system Python with
- * hermes_cli installed -- and historically returned the first candidate
+ * candidates -- bootstrap marker, `sparkii` on PATH, system Python with
+ * sparkii_cli installed -- and historically returned the first candidate
  * whose binary existed on disk. That assumption breaks when a user has
  * a pre-installed Python 3.11-3.13 (so findSystemPython() returns a
- * path) but no hermes_cli in its site-packages: the resolver hands back
+ * path) but no sparkii_cli in its site-packages: the resolver hands back
  * a backend the spawn step can't actually run, and the user gets a
- * dead-on-arrival "ModuleNotFoundError: No module named 'hermes_cli'"
+ * dead-on-arrival "ModuleNotFoundError: No module named 'sparkii_cli'"
  * instead of the first-launch installer.
  *
  * These probes give the resolver a way to verify a candidate before
@@ -21,7 +21,7 @@
  *
  * Both probes are deliberately fast and forgiving:
  *   - default 15s timeout (5s was too short on cold Windows disks / AV;
- *     issue #61764 death-loop) with HERMES_PROBE_TIMEOUT_MS override
+ *     issue #61764 death-loop) with SPARKII_PROBE_TIMEOUT_MS override
  *   - one automatic retry after a timeout before declaring the runtime dead
  *   - stdio ignored (we only care about exit code; stdout/stderr are
  *     not surfaced to the user, just to recentSparkiiLog for forensics
@@ -40,10 +40,10 @@ const DEFAULT_PROBE_TIMEOUT_MS = 15_000
 
 /**
  * Resolve the backend probe timeout (ms).
- * Honours HERMES_PROBE_TIMEOUT_MS when it parses as a positive integer.
+ * Honours SPARKII_PROBE_TIMEOUT_MS when it parses as a positive integer.
  */
 function resolveProbeTimeoutMs(env: NodeJS.ProcessEnv = process.env): number {
-  const raw = env.HERMES_PROBE_TIMEOUT_MS
+  const raw = env.SPARKII_PROBE_TIMEOUT_MS
 
   if (raw == null || raw === '') {
     return DEFAULT_PROBE_TIMEOUT_MS
@@ -107,7 +107,7 @@ function execProbeSync(
       throw err
     }
 
-    // One cold-cache / AV miss should not force hermes-setup --update (#61764).
+    // One cold-cache / AV miss should not force sparkii-setup --update (#61764).
     execFileSync(command, args, options)
   }
 }
@@ -119,21 +119,21 @@ function execProbeSync(
  *
  * @returns {string}
  */
-function hermesRuntimeImportProbe() {
-  return 'import yaml; import dotenv; import hermes_cli.config'
+function sparkiiRuntimeImportProbe() {
+  return 'import yaml; import dotenv; import sparkii_cli.config'
 }
 
 /**
  * Return true iff the Sparkii runtime import probe exits 0.
  *
- * Used to gate the "fallback to system Python with hermes_cli installed"
+ * Used to gate the "fallback to system Python with sparkii_cli installed"
  * rung of resolveSparkiiBackend. Without this, a system Python 3.11-3.13
  * registered in PEP 514 makes findSystemPython() succeed regardless of
- * whether hermes_cli has actually been pip-installed into its
+ * whether sparkii_cli has actually been pip-installed into its
  * site-packages -- and the resolver returns a backend that immediately
  * dies on spawn.
  *
- * The probe intentionally imports hermes_cli.config, not just the top-level
+ * The probe intentionally imports sparkii_cli.config, not just the top-level
  * package: a broken/empty Windows launcher venv can still see the source tree
  * through PYTHONPATH but lack PyYAML, then die on the first real CLI import.
  *
@@ -147,7 +147,7 @@ function canImportSparkiiCli(pythonPath: string, opts: { env?: Record<string, st
   }
 
   try {
-    execProbeSync(pythonPath, ['-c', hermesRuntimeImportProbe()], {
+    execProbeSync(pythonPath, ['-c', sparkiiRuntimeImportProbe()], {
       env: { ...process.env, ...(opts.env || {}) },
       stdio: 'ignore',
       timeout: PROBE_TIMEOUT_MS,
@@ -163,16 +163,16 @@ function canImportSparkiiCli(pythonPath: string, opts: { env?: Record<string, st
 /**
  * Return true iff `<sparkiiCommand> --version` exits 0.
  *
- * Used to gate the "existing `hermes` on PATH" rung. Without this, a
- * stale hermes.cmd shim left behind by an uninstalled pip install (or
- * a half-built venv whose `hermes` entry-point points at a deleted
+ * Used to gate the "existing `sparkii` on PATH" rung. Without this, a
+ * stale sparkii.cmd shim left behind by an uninstalled pip install (or
+ * a half-built venv whose `sparkii` entry-point points at a deleted
  * Python) survives findOnPath() and gets selected as the backend.
  *
  * We intentionally avoid invoking the command with the dashboard args
  * here -- `--version` is the cheapest "is this binary alive" smoke
- * test that every hermes_cli entry-point has supported since 0.1.
+ * test that every sparkii_cli entry-point has supported since 0.1.
  *
- * @param {string} sparkiiCommand - Resolved absolute path to a hermes
+ * @param {string} sparkiiCommand - Resolved absolute path to a sparkii
  *   executable (or an interpreter+script wrapper).
  * @param {boolean} [opts.shell] - Whether to run through a shell. For
  *   .cmd/.bat shims on Windows execFileSync needs shell:true to find
@@ -213,7 +213,7 @@ export {
   canImportSparkiiCli,
   DEFAULT_PROBE_TIMEOUT_MS,
   execProbeSync,
-  hermesRuntimeImportProbe,
+  sparkiiRuntimeImportProbe,
   PROBE_TIMEOUT_MS,
   resolveProbeTimeoutMs,
   shouldTrustSparkiiOverride,

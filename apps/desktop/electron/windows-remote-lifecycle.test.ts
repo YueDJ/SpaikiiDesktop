@@ -42,7 +42,7 @@ test('platform detection preserves POSIX and falls back to Windows PowerShell', 
         os: 'Windows',
         arch: 'ARM64',
         sparkiiHome: 'C:\\h',
-        hermesPath: 'C:\\h\\hermes.exe',
+        sparkiiPath: 'C:\\h\\sparkii.exe',
         python: 'C:\\h\\python.exe'
       })
     })
@@ -83,14 +83,14 @@ test('platform detection surfaces transport failures as themselves, not unsuppor
 
 test('helper command uses the fixed remote Python entry point and quotes path data', () => {
   const command = helperCommand({ python: "C:\\Program Files\\Sparkii's\\python.exe" }, 'inspect', [
-    'C:\\x y\\hermes.exe'
+    'C:\\x y\\sparkii.exe'
   ])
 
   const encoded = command.split(' ').pop()!
   const script = Buffer.from(encoded, 'base64').toString('utf16le')
-  assert.match(script, /-m' 'hermes_cli\.windows_ssh_runtime' 'inspect'/)
+  assert.match(script, /-m' 'sparkii_cli\.windows_ssh_runtime' 'inspect'/)
   assert.match(script, /Sparkii''s/)
-  assert.match(script, /C:\\x y\\hermes\.exe/)
+  assert.match(script, /C:\\x y\\sparkii\.exe/)
 })
 
 test('Windows lock validation is scoped and exact', () => {
@@ -103,7 +103,7 @@ test('Windows lock validation is scoped and exact', () => {
     creationTimeNs: '1784219690452757504',
     port: 1234,
     tokenFingerprint: 'a'.repeat(32),
-    hermesPath: 'C:\\h\\hermes.exe',
+    sparkiiPath: 'C:\\h\\sparkii.exe',
     sparkiiHome: 'C:\\h'
   }
 
@@ -129,12 +129,12 @@ test('Windows SSH reuse requires the requested remote profile to match the lock'
     port: 1234,
     profile: 'default',
     tokenFingerprint: crypto.createHash('sha256').update(token).digest('hex').slice(0, 32),
-    hermesPath: 'C:\\h\\hermes.exe',
+    sparkiiPath: 'C:\\h\\sparkii.exe',
     sparkiiHome: 'C:\\h'
   }
 
   const state = { alive: true, owned: true }
-  const runtime = { hermesPath: lock.hermesPath, sparkiiHome: lock.sparkiiHome }
+  const runtime = { sparkiiPath: lock.sparkiiPath, sparkiiHome: lock.sparkiiHome }
 
   assert.equal(reusableWindowsLock(lock, state, 'default', token, runtime), true)
   assert.equal(reusableWindowsLock(lock, state, 'desktop-work', token, runtime), false)

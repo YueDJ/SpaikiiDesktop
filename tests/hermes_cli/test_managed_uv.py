@@ -1,4 +1,4 @@
-"""Tests for hermes_cli.managed_uv — one path, no guessing."""
+"""Tests for sparkii_cli.managed_uv — one path, no guessing."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ def _runtime_info(
     executable: Path,
     sqlite_version: tuple[int, int, int],
 ):
-    from hermes_cli.sqlite_runtime import SQLiteRuntimeInfo
+    from sparkii_cli.sqlite_runtime import SQLiteRuntimeInfo
 
     return SQLiteRuntimeInfo(
         executable=executable,
@@ -46,7 +46,7 @@ def _RRR(status):
     the repo .venv links vulnerable SQLite, so repair fires for real and
     re-invokes _install_uv (uv-refresh retry), breaking call-count asserts.
     """
-    from hermes_cli.managed_uv import RuntimeRepairResult
+    from sparkii_cli.managed_uv import RuntimeRepairResult
 
     return RuntimeRepairResult(status)
 
@@ -75,9 +75,9 @@ def _make_runtime_install(
 
 class TestManagedUvPath:
     def test_posix(self, tmp_path):
-        with patch("hermes_cli.managed_uv.get_hermes_home", return_value=tmp_path), \
-             patch("hermes_cli.managed_uv.platform.system", return_value="Linux"):
-            from hermes_cli.managed_uv import managed_uv_path
+        with patch("sparkii_cli.managed_uv.get_hermes_home", return_value=tmp_path), \
+             patch("sparkii_cli.managed_uv.platform.system", return_value="Linux"):
+            from sparkii_cli.managed_uv import managed_uv_path
             assert managed_uv_path() == tmp_path / "bin" / "uv"
 
 
@@ -89,8 +89,8 @@ class TestResolveUv:
 
     def test_existing_executable(self, tmp_path):
         _make_executable(tmp_path / "bin" / "uv")
-        with patch("hermes_cli.managed_uv.get_hermes_home", return_value=tmp_path):
-            from hermes_cli.managed_uv import resolve_uv
+        with patch("sparkii_cli.managed_uv.get_hermes_home", return_value=tmp_path):
+            from sparkii_cli.managed_uv import resolve_uv
             result = resolve_uv()
             assert result == str(tmp_path / "bin" / "uv")
 
@@ -100,8 +100,8 @@ class TestResolveUv:
         uv.write_text("not a binary")
         # Ensure no execute bit
         uv.chmod(0o644)
-        with patch("hermes_cli.managed_uv.get_hermes_home", return_value=tmp_path):
-            from hermes_cli.managed_uv import resolve_uv
+        with patch("sparkii_cli.managed_uv.get_hermes_home", return_value=tmp_path):
+            from sparkii_cli.managed_uv import resolve_uv
             assert resolve_uv() is None
 
 
@@ -112,21 +112,21 @@ class TestResolveUv:
 class TestEnsureUv:
 
     def test_installs_if_missing(self, tmp_path):
-        with patch("hermes_cli.managed_uv.get_hermes_home", return_value=tmp_path), \
-             patch("hermes_cli.managed_uv.repair_vulnerable_runtime", return_value=_RRR("not-applicable")), \
-             patch("hermes_cli.managed_uv._install_uv") as mock_install:
+        with patch("sparkii_cli.managed_uv.get_hermes_home", return_value=tmp_path), \
+             patch("sparkii_cli.managed_uv.repair_vulnerable_runtime", return_value=_RRR("not-applicable")), \
+             patch("sparkii_cli.managed_uv._install_uv") as mock_install:
             # Simulate the installer creating the binary
             def fake_install(target):
                 _make_executable(target)
             mock_install.side_effect = fake_install
 
-            from hermes_cli.managed_uv import ensure_uv
+            from sparkii_cli.managed_uv import ensure_uv
             path = ensure_uv()
             assert path == str(tmp_path / "bin" / "uv")
             mock_install.assert_called_once()
 
     def test_install_reports_runtime_repair_to_observer(self, tmp_path):
-        from hermes_cli.managed_uv import (
+        from sparkii_cli.managed_uv import (
             RuntimeRepairResult,
             ensure_uv,
         )
@@ -142,13 +142,13 @@ class TestEnsureUv:
 
         observed = []
         with patch(
-            "hermes_cli.managed_uv.get_hermes_home",
+            "sparkii_cli.managed_uv.get_hermes_home",
             return_value=tmp_path,
         ), patch(
-            "hermes_cli.managed_uv._install_uv",
+            "sparkii_cli.managed_uv._install_uv",
             side_effect=fake_install,
         ), patch(
-            "hermes_cli.managed_uv.repair_vulnerable_runtime",
+            "sparkii_cli.managed_uv.repair_vulnerable_runtime",
             return_value=repair,
         ):
             path = ensure_uv(repair_observer=observed.append)
@@ -162,7 +162,7 @@ class TestEnsureUvUpdateBoundary:
     ``(path, fresh_bootstrap)`` call conventions — **on POSIX**.
 
     ``hermes update`` runs the call site from the old, already-imported
-    ``hermes_cli.main`` against the freshly pulled ``managed_uv``. A release
+    ``sparkii_cli.main`` against the freshly pulled ``managed_uv``. A release
     parked on a ``(path, fresh)`` tuple runs ``uv_bin, fresh = ensure_uv()``
     against the single-value module; the path is an iterable ``str`` so the
     2-target unpack walked its characters and raised
@@ -178,30 +178,30 @@ class TestEnsureUvUpdateBoundary:
 
     def test_success_usable_as_single_value(self, tmp_path):
         _make_executable(tmp_path / "bin" / "uv")
-        with patch("hermes_cli.managed_uv.get_hermes_home", return_value=tmp_path), \
-             patch("hermes_cli.managed_uv.repair_vulnerable_runtime", return_value=_RRR("not-applicable")), \
-             patch("hermes_cli.managed_uv.platform.system", return_value="Linux"):
-            from hermes_cli.managed_uv import ensure_uv
+        with patch("sparkii_cli.managed_uv.get_hermes_home", return_value=tmp_path), \
+             patch("sparkii_cli.managed_uv.repair_vulnerable_runtime", return_value=_RRR("not-applicable")), \
+             patch("sparkii_cli.managed_uv.platform.system", return_value="Linux"):
+            from sparkii_cli.managed_uv import ensure_uv
             uv_bin = ensure_uv()
             assert uv_bin == str(tmp_path / "bin" / "uv")
             assert bool(uv_bin) is True
 
     def test_success_unpacks_as_legacy_two_tuple(self, tmp_path):
         _make_executable(tmp_path / "bin" / "uv")
-        with patch("hermes_cli.managed_uv.get_hermes_home", return_value=tmp_path), \
-             patch("hermes_cli.managed_uv.repair_vulnerable_runtime", return_value=_RRR("not-applicable")), \
-             patch("hermes_cli.managed_uv.platform.system", return_value="Linux"):
-            from hermes_cli.managed_uv import ensure_uv
+        with patch("sparkii_cli.managed_uv.get_hermes_home", return_value=tmp_path), \
+             patch("sparkii_cli.managed_uv.repair_vulnerable_runtime", return_value=_RRR("not-applicable")), \
+             patch("sparkii_cli.managed_uv.platform.system", return_value="Linux"):
+            from sparkii_cli.managed_uv import ensure_uv
             uv_bin, fresh = ensure_uv()  # old: uv_bin, fresh_bootstrap = ensure_uv()
             assert uv_bin == str(tmp_path / "bin" / "uv")
             assert fresh is False
 
     def test_failure_unpacks_without_raising(self, tmp_path):
-        with patch("hermes_cli.managed_uv.get_hermes_home", return_value=tmp_path), \
-             patch("hermes_cli.managed_uv.repair_vulnerable_runtime", return_value=_RRR("not-applicable")), \
-             patch("hermes_cli.managed_uv.platform.system", return_value="Linux"), \
-             patch("hermes_cli.managed_uv._install_uv", side_effect=RuntimeError("network down")):
-            from hermes_cli.managed_uv import ensure_uv
+        with patch("sparkii_cli.managed_uv.get_hermes_home", return_value=tmp_path), \
+             patch("sparkii_cli.managed_uv.repair_vulnerable_runtime", return_value=_RRR("not-applicable")), \
+             patch("sparkii_cli.managed_uv.platform.system", return_value="Linux"), \
+             patch("sparkii_cli.managed_uv._install_uv", side_effect=RuntimeError("network down")):
+            from sparkii_cli.managed_uv import ensure_uv
             uv_bin, fresh = ensure_uv()
             assert uv_bin is None
             assert fresh is False
@@ -228,7 +228,7 @@ class TestEnsureUvWindowsSafe:
         # change makes _UvResult char-iterable (and thus list2cmdline-safe),
         # the gate may be revisited.
         import subprocess
-        from hermes_cli.managed_uv import _UvResult
+        from sparkii_cli.managed_uv import _UvResult
         with pytest.raises(TypeError):
             subprocess.list2cmdline([_UvResult("C:\\hermes\\uv.exe"), "pip"])
 
@@ -236,10 +236,10 @@ class TestEnsureUvWindowsSafe:
         import subprocess
         # On (mocked) Windows the managed binary is uv.exe.
         _make_executable(tmp_path / "bin" / "uv.exe")
-        with patch("hermes_cli.managed_uv.get_hermes_home", return_value=tmp_path), \
-             patch("hermes_cli.managed_uv.repair_vulnerable_runtime", return_value=_RRR("not-applicable")), \
-             patch("hermes_cli.managed_uv.platform.system", return_value="Windows"):
-            from hermes_cli.managed_uv import _UvResult, ensure_uv
+        with patch("sparkii_cli.managed_uv.get_hermes_home", return_value=tmp_path), \
+             patch("sparkii_cli.managed_uv.repair_vulnerable_runtime", return_value=_RRR("not-applicable")), \
+             patch("sparkii_cli.managed_uv.platform.system", return_value="Windows"):
+            from sparkii_cli.managed_uv import _UvResult, ensure_uv
             uv_bin = ensure_uv()
             assert type(uv_bin) is str and not isinstance(uv_bin, _UvResult)
             # The exact operation that crashed in the field must now succeed.
@@ -258,7 +258,7 @@ class TestUpdateManagedUv:
     def test_fresh_stamp_skips_network_self_update_but_not_repair(self, tmp_path, monkeypatch):
         """A recent success stamp must skip `uv self update` entirely while the
         vulnerable-runtime repair probe still runs (CVE repair is never gated)."""
-        from hermes_cli.managed_uv import RuntimeRepairResult, update_managed_uv
+        from sparkii_cli.managed_uv import RuntimeRepairResult, update_managed_uv
 
         uv = tmp_path / "bin" / "uv"
         _make_executable(uv)
@@ -268,10 +268,10 @@ class TestUpdateManagedUv:
         stamp.parent.mkdir(parents=True, exist_ok=True)
         stamp.touch()
 
-        with patch("hermes_cli.managed_uv.get_hermes_home", return_value=tmp_path), \
-             patch("hermes_cli.managed_uv.subprocess.run") as mock_run, \
+        with patch("sparkii_cli.managed_uv.get_hermes_home", return_value=tmp_path), \
+             patch("sparkii_cli.managed_uv.subprocess.run") as mock_run, \
              patch(
-                 "hermes_cli.managed_uv.repair_vulnerable_runtime",
+                 "sparkii_cli.managed_uv.repair_vulnerable_runtime",
                  return_value=RuntimeRepairResult("skipped"),
              ) as mock_repair:
             result = update_managed_uv()
@@ -285,7 +285,7 @@ class TestUpdateManagedUv:
         import os as _os
         import time as _time
 
-        from hermes_cli.managed_uv import UV_SELF_UPDATE_INTERVAL_SECONDS, update_managed_uv
+        from sparkii_cli.managed_uv import UV_SELF_UPDATE_INTERVAL_SECONDS, update_managed_uv
 
         uv = tmp_path / "bin" / "uv"
         _make_executable(uv)
@@ -296,9 +296,9 @@ class TestUpdateManagedUv:
         old = _time.time() - UV_SELF_UPDATE_INTERVAL_SECONDS - 60
         _os.utime(stamp, (old, old))
 
-        with patch("hermes_cli.managed_uv.get_hermes_home", return_value=tmp_path), \
-             patch("hermes_cli.managed_uv.repair_vulnerable_runtime", return_value=_RRR("not-applicable")), \
-             patch("hermes_cli.managed_uv.subprocess.run") as mock_run:
+        with patch("sparkii_cli.managed_uv.get_hermes_home", return_value=tmp_path), \
+             patch("sparkii_cli.managed_uv.repair_vulnerable_runtime", return_value=_RRR("not-applicable")), \
+             patch("sparkii_cli.managed_uv.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(returncode=0, stdout="uv 0.2.0")
             update_managed_uv()
 
@@ -310,7 +310,7 @@ class TestUpdateManagedUv:
 
 class TestManagedPythonStore:
     def test_store_is_checkout_scoped_across_profiles(self, tmp_path, monkeypatch):
-        from hermes_cli.managed_uv import managed_python_install_dir
+        from sparkii_cli.managed_uv import managed_python_install_dir
 
         checkout = tmp_path / "checkout"
         monkeypatch.setenv("HERMES_HOME", str(tmp_path / "profiles" / "alpha"))
@@ -323,7 +323,7 @@ class TestManagedPythonStore:
         assert beta == expected
 
     def test_environment_is_private_and_sanitized(self, tmp_path):
-        from hermes_cli.managed_uv import managed_python_env
+        from sparkii_cli.managed_uv import managed_python_env
 
         checkout = tmp_path / "checkout"
         base_env = {
@@ -368,17 +368,17 @@ class TestManagedPythonStore:
 
 class TestRuntimeRepair:
     def test_safe_runtime_is_a_noop(self, tmp_path):
-        from hermes_cli.managed_uv import repair_vulnerable_runtime
+        from sparkii_cli.managed_uv import repair_vulnerable_runtime
 
         root, live, sentinel = _make_runtime_install(tmp_path)
         current = _runtime_info(live / "bin" / "python", (3, 53, 1))
-        with patch("hermes_cli.managed_uv.platform.system", return_value="Linux"), \
+        with patch("sparkii_cli.managed_uv.platform.system", return_value="Linux"), \
              patch(
-                 "hermes_cli.managed_uv.probe_sqlite_runtime",
+                 "sparkii_cli.managed_uv.probe_sqlite_runtime",
                  return_value=current,
              ), \
              patch(
-                 "hermes_cli.managed_uv._install_safe_python_generation"
+                 "sparkii_cli.managed_uv._install_safe_python_generation"
              ) as mock_install:
             result = repair_vulnerable_runtime("uv", project_root=root)
 
@@ -390,7 +390,7 @@ class TestRuntimeRepair:
         mock_install.assert_not_called()
 
     def test_stage_candidate_sync_keeps_uv_project_config(self, tmp_path):
-        from hermes_cli.managed_uv import _stage_candidate_venv
+        from sparkii_cli.managed_uv import _stage_candidate_venv
 
         root = tmp_path / "checkout"
         root.mkdir()
@@ -406,12 +406,12 @@ class TestRuntimeRepair:
             calls.append((list(argv), kwargs.get("env")))
             return MagicMock(returncode=0)
 
-        with patch("hermes_cli.managed_uv.subprocess.run", side_effect=fake_run), \
+        with patch("sparkii_cli.managed_uv.subprocess.run", side_effect=fake_run), \
              patch(
-                 "hermes_cli.managed_uv._smoke_candidate_venv",
+                 "sparkii_cli.managed_uv._smoke_candidate_venv",
                  return_value=(True, "", None),
              ), \
-             patch("hermes_cli.managed_uv.platform.system", return_value="Linux"):
+             patch("sparkii_cli.managed_uv.platform.system", return_value="Linux"):
             candidate = _stage_candidate_venv(
                 "uv",
                 project_root=root,
@@ -432,7 +432,7 @@ class TestRuntimeRepair:
         assert "UV_NO_CONFIG" not in sync_env
 
     def test_failed_candidate_preserves_live_venv(self, tmp_path):
-        from hermes_cli.managed_uv import (
+        from sparkii_cli.managed_uv import (
             _acquire_repair_lock,
             _release_repair_lock,
             repair_vulnerable_runtime,
@@ -446,17 +446,17 @@ class TestRuntimeRepair:
         candidate_python.write_text("candidate interpreter", encoding="utf-8")
         fixed = _runtime_info(candidate_python, (3, 53, 1))
 
-        with patch("hermes_cli.managed_uv.platform.system", return_value="Linux"), \
+        with patch("sparkii_cli.managed_uv.platform.system", return_value="Linux"), \
              patch(
-                 "hermes_cli.managed_uv.probe_sqlite_runtime",
+                 "sparkii_cli.managed_uv.probe_sqlite_runtime",
                  side_effect=[current, current],
              ), \
              patch(
-                 "hermes_cli.managed_uv._install_safe_python_generation",
+                 "sparkii_cli.managed_uv._install_safe_python_generation",
                  return_value=(generation, candidate_python, fixed),
              ), \
              patch(
-                 "hermes_cli.managed_uv._stage_candidate_venv",
+                 "sparkii_cli.managed_uv._stage_candidate_venv",
                  return_value=None,
              ):
             result = repair_vulnerable_runtime("uv", project_root=root)
@@ -478,7 +478,7 @@ class TestRuntimeRepair:
         import os
         import time as _time
 
-        from hermes_cli.managed_uv import repair_vulnerable_runtime
+        from sparkii_cli.managed_uv import repair_vulnerable_runtime
 
         root, live, sentinel = _make_runtime_install(tmp_path)
         old_backup = root / f"{live.name}.stale.runtime-1-2-aaaa"
@@ -491,9 +491,9 @@ class TestRuntimeRepair:
         (fresh_backup / "bin").mkdir(parents=True)
 
         current = _runtime_info(live / "bin" / "python", (3, 53, 1))
-        with patch("hermes_cli.managed_uv.platform.system", return_value="Linux"), \
+        with patch("sparkii_cli.managed_uv.platform.system", return_value="Linux"), \
              patch(
-                 "hermes_cli.managed_uv.probe_sqlite_runtime",
+                 "sparkii_cli.managed_uv.probe_sqlite_runtime",
                  return_value=current,
              ):
             result = repair_vulnerable_runtime("uv", project_root=root)
@@ -506,7 +506,7 @@ class TestRuntimeRepair:
     def test_successful_repair_removes_parked_backup(self, tmp_path):
         """After a successful cutover the parked venv is removed instead of
         leaking ~1 GB at the project root forever (issue #73109)."""
-        from hermes_cli.managed_uv import repair_vulnerable_runtime
+        from sparkii_cli.managed_uv import repair_vulnerable_runtime
 
         root, live, sentinel = _make_runtime_install(tmp_path)
         current = _runtime_info(live / "bin" / "python", (3, 50, 4))
@@ -521,21 +521,21 @@ class TestRuntimeRepair:
             "candidate venv interpreter", encoding="utf-8"
         )
 
-        with patch("hermes_cli.managed_uv.platform.system", return_value="Linux"), \
+        with patch("sparkii_cli.managed_uv.platform.system", return_value="Linux"), \
              patch(
-                 "hermes_cli.managed_uv.probe_sqlite_runtime",
+                 "sparkii_cli.managed_uv.probe_sqlite_runtime",
                  side_effect=[current, current],
              ), \
              patch(
-                 "hermes_cli.managed_uv._install_safe_python_generation",
+                 "sparkii_cli.managed_uv._install_safe_python_generation",
                  return_value=(generation, candidate_python, fixed),
              ), \
              patch(
-                 "hermes_cli.managed_uv._stage_candidate_venv",
+                 "sparkii_cli.managed_uv._stage_candidate_venv",
                  return_value=candidate_venv,
              ), \
              patch(
-                 "hermes_cli.managed_uv._smoke_candidate_venv",
+                 "sparkii_cli.managed_uv._smoke_candidate_venv",
                  return_value=(True, "", fixed),
              ):
             result = repair_vulnerable_runtime("uv", project_root=root)
@@ -551,7 +551,7 @@ class TestRuntimeRepair:
 
 class TestRuntimeCutover:
     def test_os_lock_blocks_concurrent_repair_and_releases(self, tmp_path):
-        from hermes_cli.managed_uv import _acquire_repair_lock, _release_repair_lock
+        from sparkii_cli.managed_uv import _acquire_repair_lock, _release_repair_lock
 
         runtime_root = tmp_path / ".hermes-runtime"
         first = _acquire_repair_lock(runtime_root)
@@ -566,7 +566,7 @@ class TestRuntimeCutover:
 
 
     def test_post_swap_smoke_failure_rolls_back_live_venv(self, tmp_path):
-        from hermes_cli.managed_uv import _cut_over_candidate
+        from sparkii_cli.managed_uv import _cut_over_candidate
 
         root, live, sentinel = _make_runtime_install(tmp_path)
         runtime_root = root / ".hermes-runtime"
@@ -576,7 +576,7 @@ class TestRuntimeCutover:
         rejected_info = _runtime_info(candidate / "bin" / "python", (3, 50, 4))
 
         with patch(
-            "hermes_cli.managed_uv._smoke_candidate_venv",
+            "sparkii_cli.managed_uv._smoke_candidate_venv",
             return_value=(False, "core import smoke failed", rejected_info),
         ):
             ok, backup, info, detail = _cut_over_candidate(
@@ -605,8 +605,8 @@ class TestRuntimeCutover:
 class TestInstallUvInternals:
     def test_posix_sets_uv_unmanaged_install(self, tmp_path):
         target = tmp_path / "bin" / "uv"
-        with patch("hermes_cli.managed_uv._install_uv_posix") as mock_posix:
-            from hermes_cli.managed_uv import _install_uv
+        with patch("sparkii_cli.managed_uv._install_uv_posix") as mock_posix:
+            from sparkii_cli.managed_uv import _install_uv
             _install_uv(target)
             mock_posix.assert_called_once()
             call_env = mock_posix.call_args[0][0]
@@ -624,7 +624,7 @@ class TestRuntimeRequestMinorLine:
     """
 
     def test_requests_minor_line(self):
-        from hermes_cli.managed_uv import _runtime_request
+        from sparkii_cli.managed_uv import _runtime_request
 
         info = _runtime_info(Path("/venv/bin/python"), (3, 50, 4))
         assert _runtime_request(info) == "3.11"
@@ -632,8 +632,8 @@ class TestRuntimeRequestMinorLine:
     @staticmethod
     def _run_generation(tmp_path, monkeypatch, current_version, candidate_version):
         """Drive _install_safe_python_generation with fakes; return result."""
-        import hermes_cli.managed_uv as managed_uv
-        from hermes_cli.sqlite_runtime import SQLiteRuntimeInfo
+        import sparkii_cli.managed_uv as managed_uv
+        from sparkii_cli.sqlite_runtime import SQLiteRuntimeInfo
 
         state = {}
 
@@ -695,8 +695,8 @@ class TestPatchRetryOnVulnerableCandidate:
         resolves to a DIFFERENT candidate Python version depending on which
         exact version string was requested, so retries with explicit
         patches can be distinguished from the initial bare-minor attempt."""
-        import hermes_cli.managed_uv as managed_uv
-        from hermes_cli.sqlite_runtime import SQLiteRuntimeInfo
+        import sparkii_cli.managed_uv as managed_uv
+        from sparkii_cli.sqlite_runtime import SQLiteRuntimeInfo
 
         state = {"requested": None}
 
@@ -739,8 +739,8 @@ class TestPatchRetryOnVulnerableCandidate:
         return fake_run, fake_probe
 
     def _run(self, tmp_path, monkeypatch, *, vulnerable_versions, patch_list):
-        import hermes_cli.managed_uv as managed_uv
-        from hermes_cli.sqlite_runtime import SQLiteRuntimeInfo
+        import sparkii_cli.managed_uv as managed_uv
+        from sparkii_cli.sqlite_runtime import SQLiteRuntimeInfo
 
         fake_run, fake_probe = self._versioned_probe_run(vulnerable_versions)
         current = SQLiteRuntimeInfo(
@@ -777,7 +777,7 @@ class TestPatchRetryOnVulnerableCandidate:
     def test_retry_is_bounded_by_max_retries_constant(self, tmp_path, monkeypatch):
         """A very long patch list must not result in unbounded retries --
         capped at _MAX_PATCH_RETRIES attempts."""
-        import hermes_cli.managed_uv as managed_uv
+        import sparkii_cli.managed_uv as managed_uv
 
         install_calls = []
         fake_run, fake_probe = self._versioned_probe_run({"3.11"})
@@ -788,7 +788,7 @@ class TestPatchRetryOnVulnerableCandidate:
                 install_calls.append(cmd[3])
             return original_fake_run(cmd, **kwargs)
 
-        from hermes_cli.sqlite_runtime import SQLiteRuntimeInfo
+        from sparkii_cli.sqlite_runtime import SQLiteRuntimeInfo
         current = SQLiteRuntimeInfo(
             executable=Path("/venv/bin/python"), base_prefix=Path("/venv"),
             python_version=(3, 11, 14), sqlite_version=(3, 50, 4),
@@ -839,7 +839,7 @@ class TestListAvailablePatches:
     )
 
     def test_parses_and_sorts_newest_first(self, tmp_path, monkeypatch):
-        import hermes_cli.managed_uv as managed_uv
+        import sparkii_cli.managed_uv as managed_uv
 
         def fake_run(cmd, **kwargs):
             return SimpleNamespace(returncode=0, stdout=self.SAMPLE_OUTPUT, stderr="")
@@ -852,7 +852,7 @@ class TestListAvailablePatches:
 
 
     def test_subprocess_exception_returns_empty_list(self, tmp_path, monkeypatch):
-        import hermes_cli.managed_uv as managed_uv
+        import sparkii_cli.managed_uv as managed_uv
 
         def fake_run(cmd, **kwargs):
             raise OSError("uv binary not found")
@@ -874,30 +874,30 @@ class TestRefreshManagedUvCatalog:
 
 
     def test_version_change_reports_true(self, tmp_path):
-        import hermes_cli.managed_uv as managed_uv
+        import sparkii_cli.managed_uv as managed_uv
 
         uv_path = tmp_path / "bin" / "uv"
         _make_executable(uv_path)
         versions = iter(["uv 0.1.0", "uv 0.2.0"])
-        with patch("hermes_cli.managed_uv.get_hermes_home", return_value=tmp_path), \
-             patch("hermes_cli.managed_uv.platform.system", return_value="Linux"), \
-             patch("hermes_cli.managed_uv._install_uv"), \
+        with patch("sparkii_cli.managed_uv.get_hermes_home", return_value=tmp_path), \
+             patch("sparkii_cli.managed_uv.platform.system", return_value="Linux"), \
+             patch("sparkii_cli.managed_uv._install_uv"), \
              patch(
-                 "hermes_cli.managed_uv._uv_version_string",
+                 "sparkii_cli.managed_uv._uv_version_string",
                  side_effect=lambda _uv: next(versions),
              ):
             assert managed_uv._refresh_managed_uv_catalog(str(uv_path)) is True
 
 
     def test_installer_failure_reports_false(self, tmp_path):
-        import hermes_cli.managed_uv as managed_uv
+        import sparkii_cli.managed_uv as managed_uv
 
         uv_path = tmp_path / "bin" / "uv"
         _make_executable(uv_path)
-        with patch("hermes_cli.managed_uv.get_hermes_home", return_value=tmp_path), \
-             patch("hermes_cli.managed_uv.platform.system", return_value="Linux"), \
+        with patch("sparkii_cli.managed_uv.get_hermes_home", return_value=tmp_path), \
+             patch("sparkii_cli.managed_uv.platform.system", return_value="Linux"), \
              patch(
-                 "hermes_cli.managed_uv._install_uv",
+                 "sparkii_cli.managed_uv._install_uv",
                  side_effect=RuntimeError("network down"),
              ):
             assert managed_uv._refresh_managed_uv_catalog(str(uv_path)) is False
@@ -906,7 +906,7 @@ class TestRefreshManagedUvCatalog:
 class TestRepairRetriesAfterUvRefresh:
     def _run_repair(self, tmp_path, *, refresh_result, second_attempt):
         """Drive repair with the first provisioning attempt failing."""
-        from hermes_cli.managed_uv import repair_vulnerable_runtime
+        from sparkii_cli.managed_uv import repair_vulnerable_runtime
 
         root, live, sentinel = _make_runtime_install(tmp_path)
         current = _runtime_info(live / "bin" / "python", (3, 50, 4))
@@ -919,21 +919,21 @@ class TestRepairRetriesAfterUvRefresh:
                 return None
             return second_attempt(project_root)
 
-        with patch("hermes_cli.managed_uv.platform.system", return_value="Linux"), \
+        with patch("sparkii_cli.managed_uv.platform.system", return_value="Linux"), \
              patch(
-                 "hermes_cli.managed_uv.probe_sqlite_runtime",
+                 "sparkii_cli.managed_uv.probe_sqlite_runtime",
                  return_value=current,
              ), \
              patch(
-                 "hermes_cli.managed_uv._install_safe_python_generation",
+                 "sparkii_cli.managed_uv._install_safe_python_generation",
                  side_effect=fake_install,
              ), \
              patch(
-                 "hermes_cli.managed_uv._refresh_managed_uv_catalog",
+                 "sparkii_cli.managed_uv._refresh_managed_uv_catalog",
                  return_value=refresh_result,
              ) as mock_refresh, \
              patch(
-                 "hermes_cli.managed_uv._stage_candidate_venv",
+                 "sparkii_cli.managed_uv._stage_candidate_venv",
                  return_value=None,
              ):
             result = repair_vulnerable_runtime("uv", project_root=root)
@@ -1003,19 +1003,19 @@ class TestDefaultLiveVenv:
         return root
 
     def test_dot_venv_only_is_targeted(self, tmp_path):
-        from hermes_cli.managed_uv import _default_live_venv
+        from sparkii_cli.managed_uv import _default_live_venv
 
         root = self._checkout(tmp_path, ".venv")
         assert _default_live_venv(root) == root / ".venv"
 
     def test_managed_venv_takes_precedence(self, tmp_path):
-        from hermes_cli.managed_uv import _default_live_venv
+        from sparkii_cli.managed_uv import _default_live_venv
 
         root = self._checkout(tmp_path, "venv", ".venv")
         assert _default_live_venv(root) == root / "venv"
 
     def test_neither_layout_keeps_not_applicable(self, tmp_path):
-        from hermes_cli.managed_uv import (
+        from sparkii_cli.managed_uv import (
             _default_live_venv,
             repair_vulnerable_runtime,
         )
@@ -1048,7 +1048,7 @@ class TestVenvPythonUpdateBoundary:
     def test_recovers_when_the_cached_module_predates_the_symbol(self, monkeypatch):
         import hermes_constants
 
-        from hermes_cli.managed_uv import _venv_python
+        from sparkii_cli.managed_uv import _venv_python
 
         # The stale in-memory module: the symbol the new code wants is absent,
         # exactly as on an install that booted the pre-upgrade checkout. The
@@ -1064,11 +1064,11 @@ class TestVenvPythonUpdateBoundary:
         """The reload must resolve through hermes_constants, not open-code it.
 
         Hand-rolling `Scripts`/`bin` here is what #76105 deduped away and what
-        `test_no_open_coded_venv_layout_remains_in_hermes_cli` bans.
+        `test_no_open_coded_venv_layout_remains_in_sparkii_cli` bans.
         """
         import hermes_constants
 
-        from hermes_cli.managed_uv import _venv_python
+        from sparkii_cli.managed_uv import _venv_python
 
         monkeypatch.delattr(hermes_constants, "venv_python_path", raising=False)
         monkeypatch.setattr("platform.system", lambda: "Linux")
@@ -1088,7 +1088,7 @@ class TestVenvPythonUpdateBoundary:
 
     def test_uses_the_real_helper_when_it_is_importable(self, monkeypatch):
         """The normal path never reloads — recovery stays a fallback."""
-        from hermes_cli.managed_uv import _venv_python
+        from sparkii_cli.managed_uv import _venv_python
 
         def _no_reload(module):  # pragma: no cover - must not run
             raise AssertionError("reload must not run when the import succeeds")

@@ -221,7 +221,7 @@ class TestAmbientAccountingContext:
 
 class TestAnalyticsAuxRows:
     def test_aux_usage_rows_and_merge(self, db):
-        from hermes_cli.web_server import (
+        from sparkii_cli.web_server import (
             _aux_task_summary,
             _aux_usage_rows,
             _merge_aux_into_by_model,

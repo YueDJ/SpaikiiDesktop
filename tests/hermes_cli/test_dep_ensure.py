@@ -5,12 +5,12 @@ from unittest.mock import patch
 
 def test_find_install_script_from_checkout(tmp_path):
     """_find_install_script finds scripts/install.sh in a git checkout."""
-    from hermes_cli.dep_ensure import _find_install_script
+    from sparkii_cli.dep_ensure import _find_install_script
     scripts_dir = tmp_path / "scripts"
     scripts_dir.mkdir()
     (scripts_dir / "install.sh").write_text("#!/bin/bash", encoding="utf-8")
-    with patch("hermes_cli.dep_ensure._IS_WINDOWS", False):
-        path, shell = _find_install_script(package_dir=tmp_path / "hermes_cli", repo_root=tmp_path)
+    with patch("sparkii_cli.dep_ensure._IS_WINDOWS", False):
+        path, shell = _find_install_script(package_dir=tmp_path / "sparkii_cli", repo_root=tmp_path)
     assert path is not None
     assert path.name == "install.sh"
     assert shell == "bash"
@@ -23,14 +23,14 @@ def test_find_install_script_from_checkout(tmp_path):
 
 
 def test_ensure_dependency_uses_powershell_on_windows(tmp_path):
-    from hermes_cli.dep_ensure import ensure_dependency
+    from sparkii_cli.dep_ensure import ensure_dependency
     scripts_dir = tmp_path / "scripts"
     scripts_dir.mkdir(parents=True)
     (scripts_dir / "install.ps1").write_text("# fake")
-    with patch("hermes_cli.dep_ensure._IS_WINDOWS", True), \
-         patch("hermes_cli.dep_ensure._DEP_CHECKS", {"node": lambda: False}), \
-         patch("hermes_cli.dep_ensure._find_install_script", return_value=(scripts_dir / "install.ps1", "powershell")), \
-         patch("hermes_cli.dep_ensure.shutil") as mock_shutil, \
+    with patch("sparkii_cli.dep_ensure._IS_WINDOWS", True), \
+         patch("sparkii_cli.dep_ensure._DEP_CHECKS", {"node": lambda: False}), \
+         patch("sparkii_cli.dep_ensure._find_install_script", return_value=(scripts_dir / "install.ps1", "powershell")), \
+         patch("sparkii_cli.dep_ensure.shutil") as mock_shutil, \
          patch("hermes_constants.get_hermes_home", return_value=tmp_path / "fakehome"), \
          patch("subprocess.run") as mock_run, \
          patch("sys.stdin") as mock_stdin:

@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from hermes_cli.models import get_copilot_model_context
+from sparkii_cli.models import get_copilot_model_context
 
 
 # Sample catalog items mimicking the Copilot /models API response
@@ -50,7 +50,7 @@ _SAMPLE_CATALOG = [
 @pytest.fixture(autouse=True)
 def _clear_cache():
     """Reset module-level cache before each test."""
-    import hermes_cli.models as mod
+    import sparkii_cli.models as mod
 
     mod._copilot_context_cache = {}
     mod._copilot_context_cache_time = 0.0
@@ -62,15 +62,15 @@ def _clear_cache():
 class TestGetCopilotModelContext:
     """Tests for get_copilot_model_context()."""
 
-    @patch("hermes_cli.models.fetch_github_model_catalog", return_value=_SAMPLE_CATALOG)
+    @patch("sparkii_cli.models.fetch_github_model_catalog", return_value=_SAMPLE_CATALOG)
     def test_returns_max_prompt_tokens(self, mock_fetch):
         assert get_copilot_model_context("claude-opus-4.6-1m") == 1_000_000
         assert get_copilot_model_context("gpt-4.1") == 128_000
 
 
-    @patch("hermes_cli.models.fetch_github_model_catalog", return_value=_SAMPLE_CATALOG)
+    @patch("sparkii_cli.models.fetch_github_model_catalog", return_value=_SAMPLE_CATALOG)
     def test_cache_expires(self, mock_fetch):
-        import hermes_cli.models as mod
+        import sparkii_cli.models as mod
 
         get_copilot_model_context("gpt-4.1")
         assert mock_fetch.call_count == 1
@@ -82,10 +82,10 @@ class TestGetCopilotModelContext:
 
 
 
-    @patch("hermes_cli.models._urlopen_model_catalog_request")
+    @patch("sparkii_cli.models._urlopen_model_catalog_request")
     def test_fetch_github_model_catalog_uses_short_lived_cache(self, mock_urlopen):
         import json as _json
-        import hermes_cli.models as mod
+        import sparkii_cli.models as mod
 
         mod._github_model_catalog_cache = None
         mod._github_model_catalog_cache_key = None
@@ -125,11 +125,11 @@ class TestGetCopilotModelContext:
         assert [item["id"] for item in third] == ["gpt-4.1"]
         assert mock_urlopen.call_count == 1
 
-    @patch("hermes_cli.models._urlopen_model_catalog_request")
+    @patch("sparkii_cli.models._urlopen_model_catalog_request")
     def test_fetch_github_model_catalog_cache_expires_after_ttl(self, mock_urlopen):
         import json as _json
         import time as _time
-        import hermes_cli.models as mod
+        import sparkii_cli.models as mod
 
         mod._github_model_catalog_cache = None
         mod._github_model_catalog_cache_key = None
@@ -165,10 +165,10 @@ class TestGetCopilotModelContext:
         mod.fetch_github_model_catalog(api_key="token")
         assert mock_urlopen.call_count == 2
 
-    @patch("hermes_cli.models._urlopen_model_catalog_request")
+    @patch("sparkii_cli.models._urlopen_model_catalog_request")
     def test_fetch_github_model_catalog_cache_misses_on_credential_change(self, mock_urlopen):
         import json as _json
-        import hermes_cli.models as mod
+        import sparkii_cli.models as mod
 
         mod._github_model_catalog_cache = None
         mod._github_model_catalog_cache_key = None
@@ -200,7 +200,7 @@ class TestGetCopilotModelContext:
         mod.fetch_github_model_catalog(api_key="token-b")
         assert mock_urlopen.call_count == 2
 
-    @patch("hermes_cli.models.fetch_github_model_catalog", return_value=[])
+    @patch("sparkii_cli.models.fetch_github_model_catalog", return_value=[])
     def test_returns_none_for_empty_catalog(self, mock_fetch):
         assert get_copilot_model_context("gpt-4.1") is None
 
@@ -208,7 +208,7 @@ class TestGetCopilotModelContext:
 class TestModelMetadataCopilotIntegration:
     """Test that get_model_context_length() uses Copilot live API for copilot provider."""
 
-    @patch("hermes_cli.models.fetch_github_model_catalog", return_value=_SAMPLE_CATALOG)
+    @patch("sparkii_cli.models.fetch_github_model_catalog", return_value=_SAMPLE_CATALOG)
     def test_copilot_provider_uses_live_api(self, mock_fetch):
         from agent.model_metadata import get_model_context_length
 

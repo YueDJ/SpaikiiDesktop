@@ -6,7 +6,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from hermes_cli import active_sessions
+from sparkii_cli import active_sessions
 
 
 def test_resolve_max_concurrent_sessions_values(caplog):
@@ -61,7 +61,7 @@ def test_cross_process_acquire_claims_only_one_last_slot(tmp_path, monkeypatch):
     script = (
         "import os, time\n"
         "from pathlib import Path\n"
-        "from hermes_cli.active_sessions import try_acquire_active_session\n"
+        "from sparkii_cli.active_sessions import try_acquire_active_session\n"
         "idx = os.environ['WORKER_INDEX']\n"
         "worker_count = int(os.environ['WORKER_COUNT'])\n"
         "delayed_worker = os.environ.get('DELAYED_WORKER_INDEX')\n"

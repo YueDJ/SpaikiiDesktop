@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import hermes_cli.main as m
+import sparkii_cli.main as m
 
 
 def test_marker_round_trip(tmp_path, monkeypatch):
@@ -40,7 +40,7 @@ def _stub_install_env(monkeypatch, m, seen):
 
     monkeypatch.setattr(m.subprocess, "run", lambda *a, **k: R())
     monkeypatch.setattr(m, "_is_termux_env", lambda *a, **k: False)
-    monkeypatch.setattr("hermes_cli.managed_uv.ensure_uv", lambda: None)
+    monkeypatch.setattr("sparkii_cli.managed_uv.ensure_uv", lambda: None)
     monkeypatch.setattr(
         m,
         "_install_python_dependencies_with_optional_fallback",

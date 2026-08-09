@@ -12,7 +12,7 @@ import pytest
 
 @pytest.fixture
 def main_mod():
-    import hermes_cli.main as main_mod
+    import sparkii_cli.main as main_mod
     return main_mod
 
 
@@ -32,7 +32,7 @@ class TestUnifiedDashboardRouting:
     def test_profile_launch_reexecs_machine_dashboard(self, main_mod, monkeypatch):
         monkeypatch.delenv("HERMES_HOME", raising=False)
         monkeypatch.setattr(
-            "hermes_cli.profiles.get_active_profile_name", lambda: "worker_x"
+            "sparkii_cli.profiles.get_active_profile_name", lambda: "worker_x"
         )
         monkeypatch.setattr(main_mod, "_dashboard_listening", lambda host, port: False)
         execs = []
@@ -68,7 +68,7 @@ class TestUnifiedDashboardRouting:
         loop. The guard keeps desktop pool backends per-profile."""
         monkeypatch.setenv("HERMES_DESKTOP", "1")
         monkeypatch.setattr(
-            "hermes_cli.profiles.get_active_profile_name", lambda: "worker_x"
+            "sparkii_cli.profiles.get_active_profile_name", lambda: "worker_x"
         )
         listening_calls = []
         monkeypatch.setattr(

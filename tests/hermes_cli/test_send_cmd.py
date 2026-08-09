@@ -1,7 +1,7 @@
 """Tests for the ``hermes send`` CLI subcommand.
 
 Covers the argument parsing / stdin / file / list behavior of
-``hermes_cli.send_cmd``. The underlying ``send_message_tool`` is stubbed so
+``sparkii_cli.send_cmd``. The underlying ``send_message_tool`` is stubbed so
 no network I/O or gateway is required.
 """
 
@@ -12,7 +12,7 @@ import json
 
 import pytest
 
-from hermes_cli import send_cmd
+from sparkii_cli import send_cmd
 
 
 # ---------------------------------------------------------------------------
@@ -225,7 +225,7 @@ def test_load_hermes_env_bridges_config_yaml_scalars(tmp_path, monkeypatch):
     # Force get_hermes_home() to re-resolve under the patched env.
     from importlib import reload
 
-    import hermes_cli.config as _hc_config
+    import sparkii_cli.config as _hc_config
     reload(_hc_config)
 
     send_cmd._load_hermes_env()
@@ -255,7 +255,7 @@ def test_load_hermes_env_utf8_bom_preserves_first_key(tmp_path, monkeypatch):
     monkeypatch.delenv("SEND_BOM_SECOND", raising=False)
 
     from importlib import reload
-    import hermes_cli.config as _hc_config
+    import sparkii_cli.config as _hc_config
     reload(_hc_config)
 
     send_cmd._load_hermes_env()
@@ -276,7 +276,7 @@ def test_load_hermes_env_bomless_utf8_still_loads(tmp_path, monkeypatch):
     monkeypatch.delenv("SEND_PLAIN_TOKEN", raising=False)
 
     from importlib import reload
-    import hermes_cli.config as _hc_config
+    import sparkii_cli.config as _hc_config
     reload(_hc_config)
 
     send_cmd._load_hermes_env()
@@ -302,7 +302,7 @@ def test_load_hermes_env_latin1_fallback_still_loads(tmp_path, monkeypatch):
     monkeypatch.delenv("SEND_L1_NOTE", raising=False)
 
     from importlib import reload
-    import hermes_cli.config as _hc_config
+    import sparkii_cli.config as _hc_config
     reload(_hc_config)
 
     send_cmd._load_hermes_env()
@@ -325,7 +325,7 @@ def test_load_hermes_env_latin1_fallback_overrides_shell(tmp_path, monkeypatch):
     monkeypatch.setenv("SEND_OVR_TOKEN", "stale-shell-value")
 
     from importlib import reload
-    import hermes_cli.config as _hc_config
+    import sparkii_cli.config as _hc_config
     reload(_hc_config)
 
     send_cmd._load_hermes_env()
@@ -350,7 +350,7 @@ def test_load_hermes_env_fallback_read_error_is_swallowed(tmp_path, monkeypatch)
     monkeypatch.setattr(Path, "read_bytes", _boom)
 
     from importlib import reload
-    import hermes_cli.config as _hc_config
+    import sparkii_cli.config as _hc_config
     reload(_hc_config)
 
     # Should not raise.
@@ -367,7 +367,7 @@ def test_load_hermes_env_bom_only_env_is_noop(tmp_path, monkeypatch):
     monkeypatch.setenv("HERMES_HOME", str(hermes_home))
 
     from importlib import reload
-    import hermes_cli.config as _hc_config
+    import sparkii_cli.config as _hc_config
     reload(_hc_config)
 
     before = dict(os.environ)

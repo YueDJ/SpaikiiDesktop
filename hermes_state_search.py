@@ -1,11 +1,11 @@
 """Full-text / trigram / CJK message search and FTS maintenance for SessionDB.
 
 Mixin contract: this is a plain mixin class consumed by
-``hermes_state.SessionDB``. It defines no ``__init__`` and no state of its
+``sparkii_state.SessionDB``. It defines no ``__init__`` and no state of its
 own; methods access the host's attributes (``self._conn``, ``self.db_path``,
 ``self._execute_write`` and other SessionDB methods) established by
-``SessionDB.__init__``. It must never import hermes_state (cycle) — shared
-module-level constants live in hermes_state_common.
+``SessionDB.__init__``. It must never import sparkii_state (cycle) — shared
+module-level constants live in sparkii_state_common.
 """
 
 import logging
@@ -17,7 +17,7 @@ import time
 from typing import Any, Callable, Collection, Dict, List, Optional, Tuple
 
 from agent.skill_commands import describe_skill_invocation
-from hermes_state_common import (
+from sparkii_state_common import (
     FTS_CJK_STALE_KEY,
     FTS_SQL,
     FTS_STORAGE_VERSION,
@@ -28,9 +28,9 @@ from hermes_state_common import (
     escape_like as _escape_like,
 )
 
-# Moved methods logged under the "hermes_state" logger before the split;
+# Moved methods logged under the "sparkii_state" logger before the split;
 # keep that logger identity so log filtering/capture behavior is unchanged.
-logger = logging.getLogger("hermes_state")
+logger = logging.getLogger("sparkii_state")
 
 # Characters FTS5's query grammar rejects outside a quoted phrase. Anything
 # missing from this set reaches MATCH raw and raises, which the execute site
@@ -1424,7 +1424,7 @@ class SessionSearchMixin:
         production latency stays attributable per query shape (the 2026-07
         session_search investigation needed trace archaeology to discover
         the LIKE full scans; this makes the next regression a grep).
-        Threshold: HERMES_SEARCH_SLOW_MS (default 1000; 0 logs every call).
+        Threshold: SPARKII_SEARCH_SLOW_MS (default 1000; 0 logs every call).
         """
         started = time.time()
         rows = None
@@ -1443,7 +1443,7 @@ class SessionSearchMixin:
             return rows
         finally:
             try:
-                threshold = float(os.getenv("HERMES_SEARCH_SLOW_MS", "1000"))
+                threshold = float(os.getenv("SPARKII_SEARCH_SLOW_MS", "1000"))
             except (TypeError, ValueError):
                 threshold = 1000.0
             elapsed_ms = (time.time() - started) * 1000.0
@@ -2205,7 +2205,7 @@ class SessionSearchMixin:
         index internally, then VACUUM returns the freed pages to the OS.
 
         Skips any FTS table that does not exist (e.g. the trigram index when
-        disabled via ``HERMES_DISABLE_FTS_TRIGRAM`` or not yet created), so
+        disabled via ``SPARKII_DISABLE_FTS_TRIGRAM`` or not yet created), so
         it is safe to call unconditionally.
 
         Returns the number of FTS indexes that were optimized.

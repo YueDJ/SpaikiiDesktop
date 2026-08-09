@@ -5,8 +5,8 @@ from unittest.mock import patch
 
 import pytest
 
-from hermes_cli import config as hermes_config
-from hermes_cli import main as hermes_main
+from sparkii_cli import config as hermes_config
+from sparkii_cli import main as hermes_main
 
 
 # ---------------------------------------------------------------------------
@@ -34,9 +34,9 @@ def _patch_managed_uv(request):
     def _fake_update_managed_uv(**kwargs):
         return None  # never actually self-update in tests
 
-    with patch("hermes_cli.managed_uv.resolve_uv", side_effect=_fake_resolve_uv), \
-         patch("hermes_cli.managed_uv.ensure_uv", side_effect=_fake_ensure_uv), \
-         patch("hermes_cli.managed_uv.update_managed_uv", side_effect=_fake_update_managed_uv):
+    with patch("sparkii_cli.managed_uv.resolve_uv", side_effect=_fake_resolve_uv), \
+         patch("sparkii_cli.managed_uv.ensure_uv", side_effect=_fake_ensure_uv), \
+         patch("sparkii_cli.managed_uv.update_managed_uv", side_effect=_fake_update_managed_uv):
         yield
 
 
@@ -76,11 +76,11 @@ def test_refresh_active_memory_provider_dependencies_reinstalls_active_provider(
     recorded = []
 
     monkeypatch.setattr(
-        "hermes_cli.config.load_config",
+        "sparkii_cli.config.load_config",
         lambda: {"memory": {"provider": "mem0"}},
     )
     monkeypatch.setattr(
-        "hermes_cli.memory_setup._install_dependencies",
+        "sparkii_cli.memory_setup._install_dependencies",
         lambda provider_name, force=False: recorded.append((provider_name, force)),
     )
 
@@ -266,7 +266,7 @@ def test_bootstrap_marker_not_autostashed_by_update(tmp_path):
     marker = tmp_path / ".hermes-bootstrap-complete"
     marker.write_text("")
 
-    # Exact flags used by hermes update (hermes_cli/main.py).
+    # Exact flags used by hermes update (sparkii_cli/main.py).
     git("stash", "push", "--include-untracked", "-m", "hermes-update-autostash")
 
     assert marker.exists(), (

@@ -1,4 +1,4 @@
-"""Tests for the shared byte formatter (hermes_cli.sizefmt).
+"""Tests for the shared byte formatter (sparkii_cli.sizefmt).
 
 Consolidates six near-identical formatters (backup, checkpoints, doctor,
 update_cmd, context_references, curator_backup). The contract below locks
@@ -9,7 +9,7 @@ previously rendered 1 TiB as '1024.0 GB').
 
 import pytest
 
-from hermes_cli.sizefmt import format_bytes
+from sparkii_cli.sizefmt import format_bytes
 
 
 @pytest.mark.parametrize(
@@ -51,9 +51,9 @@ def test_migrated_sites_render_through_the_shared_helper():
     """Behavior contract for the aliased call sites: the module-local names
     must render byte-identically to the shared helper (how they delegate is
     an implementation detail — only the rendering is pinned)."""
-    from hermes_cli.backup import _format_size as backup
-    from hermes_cli.checkpoints import _fmt_bytes as checkpoints
-    from hermes_cli.doctor import _human_bytes as doctor
+    from sparkii_cli.backup import _format_size as backup
+    from sparkii_cli.checkpoints import _fmt_bytes as checkpoints
+    from sparkii_cli.doctor import _human_bytes as doctor
 
     for n in (0, 512, 2048, 1234567, 1024**3, 1024**4):
         expected = format_bytes(n)

@@ -1,12 +1,12 @@
 """Tests for /init — generate or update AGENTS.md from a project scan.
 
-Covers the shared prompt builder (hermes_cli.init_command.build_init_prompt)
+Covers the shared prompt builder (sparkii_cli.init_command.build_init_prompt)
 and the slash-command registry wiring. /init has no engine and no model tool:
 it builds a guidance-laden prompt that the live agent runs as a normal turn
 (the /learn pattern), so these are the load-bearing behavior contracts.
 """
 
-from hermes_cli.init_command import (
+from sparkii_cli.init_command import (
     _QUALITY_BAR,
     build_init_prompt,
     build_init_prompt_for_cwd,
@@ -56,7 +56,7 @@ class TestBuildInitPromptForCwd:
 
 class TestInitRegistryWiring:
     def test_init_is_registered_and_resolves(self):
-        from hermes_cli.commands import resolve_command
+        from sparkii_cli.commands import resolve_command
 
         cmd = resolve_command("init")
         assert cmd is not None
@@ -65,7 +65,7 @@ class TestInitRegistryWiring:
 
     def test_init_works_on_the_gateway(self):
         # /init is a both-surfaces command like /learn, not CLI-only.
-        from hermes_cli.commands import GATEWAY_KNOWN_COMMANDS
+        from sparkii_cli.commands import GATEWAY_KNOWN_COMMANDS
 
         assert "init" in GATEWAY_KNOWN_COMMANDS
 

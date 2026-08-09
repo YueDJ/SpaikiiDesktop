@@ -14,7 +14,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from hermes_cli.tools_config import (  # noqa: E402
+from sparkii_cli.tools_config import (  # noqa: E402
     _CONFIG_ONLY_TOOLSETS,
     CONFIGURABLE_TOOLSETS,
     STT_MODEL_CATALOG,
@@ -45,7 +45,7 @@ class TestSttCategory:
 
 
     def test_managed_row_shares_tts_coverage_category(self):
-        from hermes_cli.nous_subscription import MANAGED_FEATURE_COVERAGE_CATEGORY
+        from sparkii_cli.nous_subscription import MANAGED_FEATURE_COVERAGE_CATEGORY
 
         managed = [p for p in _stt_cat()["providers"] if p.get("managed_nous_feature")]
         assert managed, "expected a Nous Subscription row"
@@ -66,7 +66,7 @@ class TestConfigWrites:
     def test_apply_provider_selection_stt(self):
         config = {}
         with patch(
-            "hermes_cli.tools_config.get_nous_subscription_features"
+            "sparkii_cli.tools_config.get_nous_subscription_features"
         ) as feats:
             feats.return_value = MagicMock(
                 nous_auth_present=False, account_info=None
@@ -99,7 +99,7 @@ class TestModelPicker:
     def test_configure_stt_model_defaults_to_current(self):
         config = {"stt": {"openai": {"model": "gpt-transcribe"}}}
         with patch(
-            "hermes_cli.tools_config._prompt_choice", return_value=0
+            "sparkii_cli.tools_config._prompt_choice", return_value=0
         ) as pc:
             _configure_stt_model("openai", config)
         # default index should point at the currently configured model
@@ -119,6 +119,6 @@ class TestConfigOnlyExclusion:
 
 class TestPostSetup:
     def test_faster_whisper_in_post_setup_ready(self):
-        from hermes_cli.tools_config import _POST_SETUP_READY
+        from sparkii_cli.tools_config import _POST_SETUP_READY
 
         assert "faster_whisper" in _POST_SETUP_READY

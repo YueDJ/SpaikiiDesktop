@@ -3,7 +3,7 @@
 Mounted at /api/plugins/kanban/ by the dashboard plugin system.
 
 This layer is intentionally thin: every handler is a small wrapper around
-``hermes_cli.kanban_db`` or a direct SQL query. Writes use the same code
+``sparkii_cli.kanban_db`` or a direct SQL query. Writes use the same code
 paths the CLI and gateway ``/kanban`` command use, so the three surfaces
 cannot drift.
 
@@ -24,7 +24,7 @@ browsers don't have to handle it manually.
 For the ``/events`` WebSocket we still require the session token as a
 ``?token=`` query parameter (browsers cannot set the ``Authorization``
 header on an upgrade request), matching the established pattern used by
-the in-browser PTY bridge in ``hermes_cli/web_server.py``.
+the in-browser PTY bridge in ``sparkii_cli/web_server.py``.
 
 This means ``hermes dashboard --host 0.0.0.0`` is safe to run on a LAN:
 plugin routes are no longer an unauthenticated exception. The auth still
@@ -48,8 +48,8 @@ from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile, Web
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
-from hermes_cli import kanban_db
-from hermes_cli import kanban_diagnostics as kd
+from sparkii_cli import kanban_db
+from sparkii_cli import kanban_diagnostics as kd
 
 log = logging.getLogger(__name__)
 
@@ -63,7 +63,7 @@ router = APIRouter()
 
 def _ws_upgrade_authorized(ws: "WebSocket") -> bool:
     """Authorize a WebSocket upgrade by delegating to the dashboard's canonical
-    WS auth gate (``hermes_cli.web_server._ws_auth_ok``).
+    WS auth gate (``sparkii_cli.web_server._ws_auth_ok``).
 
     Delegating (rather than re-implementing a ``_SESSION_TOKEN``-only check)
     means this endpoint transparently accepts whatever the core gate accepts
@@ -85,7 +85,7 @@ def _ws_upgrade_authorized(ws: "WebSocket") -> bool:
     the prior behaviour.
     """
     try:
-        from hermes_cli import web_server as _ws
+        from sparkii_cli import web_server as _ws
     except Exception:
         # No dashboard context (tests). Accept so the tail loop is still
         # testable; in production the dashboard module always imports
@@ -253,11 +253,11 @@ def _compute_task_diagnostics(
     and return ``{task_id: [diagnostic_dict, ...]}``.
 
     Tasks with no active diagnostics are omitted from the result.
-    Uses ``hermes_cli.kanban_diagnostics`` — see that module for the
+    Uses ``sparkii_cli.kanban_diagnostics`` — see that module for the
     rule definitions.
     """
-    from hermes_cli import kanban_diagnostics as kd
-    from hermes_cli.config import load_config
+    from sparkii_cli import kanban_diagnostics as kd
+    from sparkii_cli.config import load_config
 
     diag_config = kd.config_from_runtime_config(load_config())
 
@@ -325,7 +325,7 @@ def _warnings_summary_from_diagnostics(
     """
     if not diagnostics:
         return None
-    from hermes_cli.kanban_diagnostics import SEVERITY_ORDER
+    from sparkii_cli.kanban_diagnostics import SEVERITY_ORDER
 
     kinds: dict[str, int] = {}
     latest = 0
@@ -655,7 +655,7 @@ def create_task(payload: CreateTaskBody, board: Optional[str] = Query(None)):
         # and unassigned tasks can't be dispatched regardless.
         if task and task.status == "ready" and task.assignee:
             try:
-                from hermes_cli.kanban import _check_dispatcher_presence
+                from sparkii_cli.kanban import _check_dispatcher_presence
                 from hermes_constants import get_hermes_home
 
                 # Scope the probe to the request's active home. The dashboard
@@ -686,7 +686,7 @@ def create_task(payload: CreateTaskBody, board: Optional[str] = Query(None)):
 # implementation and cannot drift. ``_safe_attachment_name`` raises a plain
 # ``ValueError`` there; the upload handler's ``except ValueError`` below maps
 # it to a 400, preserving the previous response.
-from hermes_cli.kanban_db import (  # noqa: E402
+from sparkii_cli.kanban_db import (  # noqa: E402
     KANBAN_ATTACHMENT_MAX_BYTES,
     _collision_free_path,
     _safe_attachment_name,
@@ -1351,7 +1351,7 @@ def bulk_update(payload: BulkTaskBody, board: Optional[str] = Query(None)):
 
 # ---------------------------------------------------------------------------
 # Diagnostics — fleet-wide distress signals (hallucinations, crashes,
-# spawn failures, stuck-blocked). See hermes_cli.kanban_diagnostics for
+# spawn failures, stuck-blocked). See sparkii_cli.kanban_diagnostics for
 # the rule engine.
 # ---------------------------------------------------------------------------
 
@@ -1414,7 +1414,7 @@ def list_diagnostics(
                 "diagnostics": dl,
             })
         # Sort: highest severity first, then most recent.
-        from hermes_cli.kanban_diagnostics import SEVERITY_ORDER
+        from sparkii_cli.kanban_diagnostics import SEVERITY_ORDER
         sev_idx = {s: i for i, s in enumerate(SEVERITY_ORDER)}
         def _sort_key(row):
             top = row["diagnostics"][0]
@@ -1721,7 +1721,7 @@ def specify_task_endpoint(
     with kanban_db.scoped_current_board(board or kanban_db.DEFAULT_BOARD):
         # Import lazily so a missing auxiliary client at import time
         # doesn't break plugin load.
-        from hermes_cli import kanban_specify  # noqa: WPS433 (intentional)
+        from sparkii_cli import kanban_specify  # noqa: WPS433 (intentional)
 
         outcome = kanban_specify.specify_task(
             task_id,
@@ -1918,7 +1918,7 @@ def get_config():
     or set column-width preferences without a round-trip per page load.
     """
     try:
-        from hermes_cli.config import load_config
+        from sparkii_cli.config import load_config
         cfg = load_config() or {}
     except Exception:
         cfg = {}
@@ -1983,7 +1983,7 @@ def _configured_home_channels() -> list[dict]:
 def _active_profile_name() -> str:
     """Return the current Hermes profile name for notify-sub ownership."""
     try:
-        from hermes_cli.profiles import get_active_profile_name
+        from sparkii_cli.profiles import get_active_profile_name
         return get_active_profile_name() or "default"
     except Exception:
         return "default"
@@ -2203,7 +2203,7 @@ def model_options():
     """Authenticated providers + curated model lists for the task drawer's
     model-override dropdown.
 
-    Thin wrapper around ``hermes_cli.inventory.build_models_payload`` — the
+    Thin wrapper around ``sparkii_cli.inventory.build_models_payload`` — the
     same substrate the dashboard Models page and the TUI picker use, so the
     dropdown can never offer a model/provider pair the rest of Hermes
     wouldn't accept. Deliberately skips pricing/capability enrichment and
@@ -2211,7 +2211,7 @@ def model_options():
     columns (a slow/offline local endpoint must not hang the drawer).
     """
     try:
-        from hermes_cli.inventory import build_models_payload, load_picker_context
+        from sparkii_cli.inventory import build_models_payload, load_picker_context
 
         payload = build_models_payload(
             load_picker_context(),
@@ -2277,7 +2277,7 @@ def _resolve_project(ref: Optional[str]) -> tuple[Optional[str], Optional[str], 
     if not ref or not ref.strip():
         return None, None, None
     try:
-        from hermes_cli import projects_db as pdb
+        from sparkii_cli import projects_db as pdb
         with pdb.connect_closing() as pconn:
             proj = pdb.get_project(pconn, ref.strip())
     except Exception as exc:
@@ -2290,7 +2290,7 @@ def _resolve_project(ref: Optional[str]) -> tuple[Optional[str], Optional[str], 
 def _projects_by_id() -> dict[str, Any]:
     """Map every project id -> Project (archived included) for annotation."""
     try:
-        from hermes_cli import projects_db as pdb
+        from sparkii_cli import projects_db as pdb
         with pdb.connect_closing() as pconn:
             return {p.id: p for p in pdb.list_projects(pconn, include_archived=True)}
     except Exception:
@@ -2334,7 +2334,7 @@ def list_kanban_projects():
     Archived projects are excluded — a board can only be scoped to a live one.
     """
     try:
-        from hermes_cli import projects_db as pdb
+        from sparkii_cli import projects_db as pdb
         with pdb.connect_closing() as pconn:
             projects = pdb.list_projects(pconn, include_archived=False)
     except Exception as exc:
@@ -2530,7 +2530,7 @@ def list_profile_roster():
     just less precisely.
     """
     try:
-        from hermes_cli import profiles as profiles_mod
+        from sparkii_cli import profiles as profiles_mod
         profiles = profiles_mod.list_profiles()
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"failed to list profiles: {exc}")
@@ -2560,7 +2560,7 @@ def update_profile_description(profile_name: str, payload: DescribeBody):
     ``--overwrite``.
     """
     try:
-        from hermes_cli import profiles as profiles_mod
+        from sparkii_cli import profiles as profiles_mod
         canon = profiles_mod.normalize_profile_name(profile_name)
         if canon == "default":
             from hermes_constants import get_hermes_home  # type: ignore
@@ -2596,7 +2596,7 @@ def auto_describe_profile(profile_name: str, payload: DescribeAutoBody):
     config and retry without a page reload.
     """
     try:
-        from hermes_cli import profile_describer  # noqa: WPS433 (intentional)
+        from sparkii_cli import profile_describer  # noqa: WPS433 (intentional)
         outcome = profile_describer.describe_profile(
             profile_name,
             overwrite=bool(payload.overwrite),
@@ -2642,7 +2642,7 @@ def decompose_task_endpoint(
     # HERMES_KANBAN_BOARD env var would let concurrent requests for
     # different boards race and cross-write (issue #38323).
     with kanban_db.scoped_current_board(board or kanban_db.DEFAULT_BOARD):
-        from hermes_cli import kanban_decompose  # noqa: WPS433 (intentional)
+        from sparkii_cli import kanban_decompose  # noqa: WPS433 (intentional)
         outcome = kanban_decompose.decompose_task(
             task_id,
             author=(payload.author or None),
@@ -2675,7 +2675,7 @@ def get_orchestration_settings():
     """Return the current kanban orchestration knobs from config.yaml
     plus the resolved effective values (filling in fallbacks)."""
     try:
-        from hermes_cli.config import load_config
+        from sparkii_cli.config import load_config
         cfg = load_config() or {}
     except Exception:
         cfg = {}
@@ -2689,7 +2689,7 @@ def get_orchestration_settings():
     resolved_orch = explicit_orch
     resolved_default = explicit_default
     try:
-        from hermes_cli import profiles as profiles_mod
+        from sparkii_cli import profiles as profiles_mod
         active_default = profiles_mod.get_active_profile_name() or "default"
         if not resolved_orch or not profiles_mod.profile_exists(resolved_orch):
             resolved_orch = active_default
@@ -2723,7 +2723,7 @@ def set_orchestration_settings(payload: OrchestrationSettingsBody):
     profile.
     """
     try:
-        from hermes_cli.config import load_config, save_config
+        from sparkii_cli.config import load_config, save_config
         cfg = load_config() or {}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"failed to load config: {exc}")
@@ -2735,7 +2735,7 @@ def set_orchestration_settings(payload: OrchestrationSettingsBody):
 
     # Validate any non-empty profile names exist before saving.
     try:
-        from hermes_cli import profiles as profiles_mod
+        from sparkii_cli import profiles as profiles_mod
     except Exception:
         profiles_mod = None  # type: ignore
 

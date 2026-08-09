@@ -23,7 +23,7 @@ import types
 
 import pytest
 
-from hermes_cli import mcp_startup
+from sparkii_cli import mcp_startup
 
 
 @pytest.fixture(autouse=True)
@@ -47,7 +47,7 @@ def _reset_mcp_startup_state():
 
 def test_resolve_discovery_timeout_single_query_uses_larger_bound(monkeypatch):
     """Single-query mode reads the larger mcp_single_query_discovery_timeout."""
-    import hermes_cli.config as cfg
+    import sparkii_cli.config as cfg
 
     monkeypatch.setattr(
         cfg,
@@ -63,7 +63,7 @@ def test_resolve_discovery_timeout_single_query_uses_larger_bound(monkeypatch):
 
 def test_resolve_discovery_timeout_single_query_falls_back(monkeypatch):
     """Bad/absent single-query value falls back to DEFAULT_CONFIG, never hangs."""
-    import hermes_cli.config as cfg
+    import sparkii_cli.config as cfg
 
     default = float(cfg.DEFAULT_CONFIG.get("mcp_single_query_discovery_timeout", 15.0))
     monkeypatch.setattr(
@@ -92,7 +92,7 @@ def _stub_mcp_modules(monkeypatch):
     """Stub MCP-related modules for helper tests."""
     monkeypatch.setitem(
         sys.modules,
-        "hermes_cli.config",
+        "sparkii_cli.config",
         types.SimpleNamespace(
             read_raw_config=lambda: {"mcp_servers": {"demo": {"transport": "stdio"}}},
             load_config=lambda: {},
@@ -165,7 +165,7 @@ def test_ensure_helper_swallows_errors(monkeypatch):
     """A broken MCP config never aborts agent construction."""
     monkeypatch.setitem(
         sys.modules,
-        "hermes_cli.config",
+        "sparkii_cli.config",
         types.SimpleNamespace(
             read_raw_config=lambda: (_ for _ in ()).throw(RuntimeError("boom")),
             load_config=lambda: {},
@@ -186,7 +186,7 @@ def test_oneshot_calls_ensure_helper_before_aiagent(monkeypatch):
     before constructing AIAgent (#38448)."""
     import inspect
 
-    import hermes_cli.oneshot as oneshot_mod
+    import sparkii_cli.oneshot as oneshot_mod
 
     src = inspect.getsource(oneshot_mod._run_agent)
     helper_idx = src.find("ensure_mcp_discovery_before_agent_build")
@@ -207,7 +207,7 @@ def test_init_agent_calls_ensure_helper_before_aiagent(monkeypatch):
     ensure_mcp_discovery_before_agent_build before constructing AIAgent."""
     import inspect
 
-    from hermes_cli.cli_agent_setup_mixin import CLIAgentSetupMixin
+    from sparkii_cli.cli_agent_setup_mixin import CLIAgentSetupMixin
 
     src = inspect.getsource(CLIAgentSetupMixin._init_agent)
     helper_idx = src.find("ensure_mcp_discovery_before_agent_build")
@@ -280,7 +280,7 @@ def test_init_agent_defaults_to_interactive(monkeypatch):
 
 def test_wait_stays_bounded_when_discovery_is_slow(monkeypatch):
     """A slow/dead MCP server must not freeze startup: the wait is capped."""
-    import hermes_cli.config as cfg
+    import sparkii_cli.config as cfg
 
     monkeypatch.setattr(cfg, "load_config", lambda: {"mcp_single_query_discovery_timeout": 0.1})
 

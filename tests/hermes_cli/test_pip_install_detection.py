@@ -24,9 +24,9 @@ def test_code_scoped_stamp_wins_over_home_stamp(tmp_path):
     home.mkdir()
     (code / ".install_method").write_text("git\n")
     (home / ".install_method").write_text("docker\n")  # container contamination
-    with patch("hermes_cli.config.get_managed_system", return_value=None), \
-         patch("hermes_cli.config.get_hermes_home", return_value=home):
-        from hermes_cli.config import detect_install_method
+    with patch("sparkii_cli.config.get_managed_system", return_value=None), \
+         patch("sparkii_cli.config.get_hermes_home", return_value=home):
+        from sparkii_cli.config import detect_install_method
         assert detect_install_method(project_root=code) == "git"
 
 
@@ -40,8 +40,8 @@ def test_stamp_install_method_writes_code_scoped(tmp_path):
     home = tmp_path / "home"
     code.mkdir()
     home.mkdir()
-    with patch("hermes_cli.config.get_hermes_home", return_value=home):
-        from hermes_cli.config import stamp_install_method
+    with patch("sparkii_cli.config.get_hermes_home", return_value=home):
+        from sparkii_cli.config import stamp_install_method
         stamp_install_method("git", project_root=code)
     assert (code / ".install_method").read_text().strip() == "git"
     assert not (home / ".install_method").exists()
@@ -59,10 +59,10 @@ def test_container_without_stamp_is_not_docker(tmp_path):
     must resolve to ``git``.
     """
     (tmp_path / ".git").mkdir()
-    with patch("hermes_cli.config.get_managed_system", return_value=None), \
-         patch("hermes_cli.config.get_hermes_home", return_value=tmp_path), \
+    with patch("sparkii_cli.config.get_managed_system", return_value=None), \
+         patch("sparkii_cli.config.get_hermes_home", return_value=tmp_path), \
          patch("hermes_constants.is_container", return_value=True):
-        from hermes_cli.config import detect_install_method
+        from sparkii_cli.config import detect_install_method
         assert detect_install_method(project_root=tmp_path) == "git"
 
 

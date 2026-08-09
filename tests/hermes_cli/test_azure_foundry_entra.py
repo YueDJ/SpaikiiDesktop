@@ -71,7 +71,7 @@ def fake_azure_identity(monkeypatch):
 
 class TestResolveAzureFoundryRuntimeEntra:
     def test_returns_callable_api_key_for_entra(self, fake_azure_identity):
-        from hermes_cli.runtime_provider import _resolve_azure_foundry_runtime
+        from sparkii_cli.runtime_provider import _resolve_azure_foundry_runtime
         runtime = _resolve_azure_foundry_runtime(
             requested_provider="azure-foundry",
             model_cfg={
@@ -96,7 +96,7 @@ class TestResolveAzureFoundryRuntimeEntra:
         standard ``AZURE_*`` env vars read by azure-identity directly.
         Legacy ``model.entra.client_id`` / ``tenant_id`` / ``authority``
         keys in config.yaml are silently ignored."""
-        from hermes_cli.runtime_provider import _resolve_azure_foundry_runtime
+        from sparkii_cli.runtime_provider import _resolve_azure_foundry_runtime
         _resolve_azure_foundry_runtime(
             requested_provider="azure-foundry",
             model_cfg={
@@ -128,7 +128,7 @@ class TestResolveAzureFoundryRuntimeEntra:
         """Passing --api-key on the CLI overrides the entra path so a
         user can debug a single request with a static key without
         editing config.yaml."""
-        from hermes_cli.runtime_provider import _resolve_azure_foundry_runtime
+        from sparkii_cli.runtime_provider import _resolve_azure_foundry_runtime
         runtime = _resolve_azure_foundry_runtime(
             requested_provider="azure-foundry",
             model_cfg={
@@ -151,7 +151,7 @@ class TestResolveAzureFoundryRuntimeEntra:
 
 class TestResolveAzureFoundryRuntimeApiKey:
     def test_default_auth_mode_uses_static_key(self, monkeypatch):
-        from hermes_cli.runtime_provider import _resolve_azure_foundry_runtime
+        from sparkii_cli.runtime_provider import _resolve_azure_foundry_runtime
         monkeypatch.setenv("AZURE_FOUNDRY_API_KEY", "sk-azure-static-key")
         runtime = _resolve_azure_foundry_runtime(
             requested_provider="azure-foundry",
@@ -166,7 +166,7 @@ class TestResolveAzureFoundryRuntimeApiKey:
         assert "entra" not in runtime  # only present in entra mode
 
     def test_explicit_auth_mode_api_key(self, monkeypatch):
-        from hermes_cli.runtime_provider import _resolve_azure_foundry_runtime
+        from sparkii_cli.runtime_provider import _resolve_azure_foundry_runtime
         monkeypatch.setenv("AZURE_FOUNDRY_API_KEY", "sk-static")
         runtime = _resolve_azure_foundry_runtime(
             requested_provider="azure-foundry",
@@ -181,7 +181,7 @@ class TestResolveAzureFoundryRuntimeApiKey:
         assert runtime["auth_mode"] == "api_key"
 
     def test_anthropic_messages_strips_v1_suffix(self, monkeypatch):
-        from hermes_cli.runtime_provider import _resolve_azure_foundry_runtime
+        from sparkii_cli.runtime_provider import _resolve_azure_foundry_runtime
         monkeypatch.setenv("AZURE_FOUNDRY_API_KEY", "k")
         runtime = _resolve_azure_foundry_runtime(
             requested_provider="azure-foundry",
@@ -203,10 +203,10 @@ class TestAzureFoundryAuthStatus:
     def test_entra_status_does_not_mint_token(self, monkeypatch, tmp_path):
         """Structural check — must return logged_in=True based on
         importable + config, never call get_bearer_token_provider."""
-        from hermes_cli import auth as _auth
+        from sparkii_cli import auth as _auth
         # Force load_config to return our entra config.
         monkeypatch.setattr(
-            "hermes_cli.config.load_config",
+            "sparkii_cli.config.load_config",
             lambda: {
                 "model": {
                     "provider": "azure-foundry",
@@ -230,9 +230,9 @@ class TestAzureFoundryAuthStatus:
 
 
     def test_api_key_status_false_when_missing(self, monkeypatch):
-        from hermes_cli import auth as _auth
+        from sparkii_cli import auth as _auth
         monkeypatch.setattr(
-            "hermes_cli.config.load_config",
+            "sparkii_cli.config.load_config",
             lambda: {
                 "model": {
                     "provider": "azure-foundry",

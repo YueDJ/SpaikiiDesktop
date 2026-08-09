@@ -58,7 +58,7 @@ def _reset_registry():
 
 class TestPluginPickerInjection:
     def test_plugin_providers_returns_registered(self, monkeypatch):
-        from hermes_cli import tools_config
+        from sparkii_cli import tools_config
 
         image_gen_registry.register_provider(_FakeProvider("myimg"))
 
@@ -71,7 +71,7 @@ class TestPluginPickerInjection:
 
 
     def test_visible_providers_includes_plugins_for_image_gen(self, monkeypatch):
-        from hermes_cli import tools_config
+        from sparkii_cli import tools_config
 
         image_gen_registry.register_provider(_FakeProvider("someimg"))
 
@@ -82,7 +82,7 @@ class TestPluginPickerInjection:
 
 
     def test_post_setup_omitted_when_not_declared(self, monkeypatch):
-        from hermes_cli import tools_config
+        from sparkii_cli import tools_config
 
         image_gen_registry.register_provider(_FakeProvider("plain_img"))
 
@@ -93,7 +93,7 @@ class TestPluginPickerInjection:
 
 class TestPluginCatalog:
     def test_plugin_catalog_returns_models(self):
-        from hermes_cli import tools_config
+        from sparkii_cli import tools_config
 
         image_gen_registry.register_provider(_FakeProvider("catimg"))
 
@@ -106,7 +106,7 @@ class TestConfigPrompt:
     def test_image_gen_satisfied_by_plugin_provider(self, monkeypatch, tmp_path):
         """When a plugin provider reports is_available(), the picker should
         not force a setup prompt on the user."""
-        from hermes_cli import tools_config
+        from sparkii_cli import tools_config
 
         monkeypatch.setenv("HERMES_HOME", str(tmp_path))
         monkeypatch.delenv("FAL_KEY", raising=False)
@@ -121,7 +121,7 @@ class TestConfigWriting:
         """When a user picks a plugin-backed image_gen provider with no
         env vars needed, ``_configure_provider`` should write both
         ``image_gen.provider`` and ``image_gen.model``."""
-        from hermes_cli import tools_config
+        from sparkii_cli import tools_config
 
         monkeypatch.setenv("HERMES_HOME", str(tmp_path))
         image_gen_registry.register_provider(_FakeProvider("noenv", schema={
@@ -147,7 +147,7 @@ class TestConfigWriting:
 
 
     def test_plugin_provider_active_overrides_managed_nous_active_label(self, monkeypatch):
-        from hermes_cli import tools_config
+        from sparkii_cli import tools_config
 
         monkeypatch.setattr(
             tools_config,

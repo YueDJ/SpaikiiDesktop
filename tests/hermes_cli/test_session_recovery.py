@@ -13,8 +13,8 @@ import pytest
 
 import hermes_state
 from hermes_state import FTS_STORAGE_VERSION, SCHEMA_VERSION, SessionDB
-from hermes_cli import session_recovery
-from hermes_cli.session_recovery import (
+from sparkii_cli import session_recovery
+from sparkii_cli.session_recovery import (
     SessionRecoverySafetyError,
     SessionRecoverySourceError,
     inspect_session_database,
@@ -317,8 +317,8 @@ def test_snapshot_blocks_connections_opened_during_the_copy(
     """
     import threading
 
-    from hermes_cli import session_recovery as recovery_module
-    from hermes_cli.sqlite_safe_read import connect_tracked
+    from sparkii_cli import session_recovery as recovery_module
+    from sparkii_cli.sqlite_safe_read import connect_tracked
 
     source = tmp_path / "racy-state.db"
     snapshot_dir = tmp_path / "snapshot"
@@ -524,7 +524,7 @@ def test_cli_allow_partial_salvages_rows_across_a_corrupt_leaf(
         [
             sys.executable,
             "-m",
-            "hermes_cli.main",
+            "sparkii_cli.main",
             "sessions",
             "recover",
             "--source",

@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import pytest
 
-from hermes_cli.codex_runtime_plugin_migration import (
+from sparkii_cli.codex_runtime_plugin_migration import (
     MIGRATION_MARKER,
     MIGRATION_END_MARKER,
     _build_hermes_tools_mcp_entry,
@@ -167,7 +167,7 @@ class TestMigrate:
     def test_plugin_discovery_writes_plugin_blocks(self, tmp_path, monkeypatch):
         """Discovered curated plugins land as [plugins."<name>@<marketplace>"]
         blocks. This is what OpenClaw calls 'migrate native codex plugins.'"""
-        from hermes_cli import codex_runtime_plugin_migration as crpm
+        from sparkii_cli import codex_runtime_plugin_migration as crpm
 
         def fake_query(codex_home=None, timeout=8.0):
             return [
@@ -190,7 +190,7 @@ class TestMigrate:
     def test_plugin_discovery_failure_non_fatal(self, tmp_path, monkeypatch):
         """If codex isn't installed or RPC fails, MCP migration still
         completes. The error surfaces in the report but doesn't abort."""
-        from hermes_cli import codex_runtime_plugin_migration as crpm
+        from sparkii_cli import codex_runtime_plugin_migration as crpm
 
         def fake_query_fails(codex_home=None, timeout=8.0):
             return [], "codex CLI not available"
@@ -362,7 +362,7 @@ class TestStripUnmanagedPluginTables:
             )
 
         monkeypatch.setattr(
-            "hermes_cli.codex_runtime_plugin_migration._query_codex_plugins",
+            "sparkii_cli.codex_runtime_plugin_migration._query_codex_plugins",
             fake_query,
         )
         migrate({}, codex_home=tmp_path, discover_plugins=True, expose_hermes_tools=False)

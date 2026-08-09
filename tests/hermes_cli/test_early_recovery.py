@@ -1,9 +1,9 @@
-"""Tests for hermes_cli._early_recovery — the dependency-light bootstrap
-repair that runs BEFORE hermes_cli.main's third-party imports (#57828 / #58004).
+"""Tests for sparkii_cli._early_recovery — the dependency-light bootstrap
+repair that runs BEFORE sparkii_cli.main's third-party imports (#57828 / #58004).
 
 Covers:
 - entry-point lifecycle: a broken core import (dotenv) crashes the import of
-  hermes_cli.main WITHOUT early recovery, and imports fine when recovery runs
+  sparkii_cli.main WITHOUT early recovery, and imports fine when recovery runs
   first (proving main.py invokes recovery before its third-party imports)
 - recover_if_needed unit behavior: fast path, marker gating, update-argv skip,
   lock single-flight, no marker clearing, pinned repair specs
@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import _early_recovery as er
+from sparkii_cli import _early_recovery as er
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -55,7 +55,7 @@ def _run_lifecycle_subprocess(tmp_path: Path, *, repair: bool) -> subprocess.Com
 
             # _early_recovery must be importable on the corrupted venv
             # (stdlib-only) — this import itself is part of the contract.
-            import hermes_cli._early_recovery as er
+            import sparkii_cli._early_recovery as er
 
             REPAIR = {repair!r}
 
@@ -67,7 +67,7 @@ def _run_lifecycle_subprocess(tmp_path: Path, *, repair: bool) -> subprocess.Com
 
             er.recover_if_needed = recorder
 
-            import hermes_cli.main  # noqa: F401
+            import sparkii_cli.main  # noqa: F401
             print("MAIN_IMPORTED_OK", flush=True)
             """
         ),
@@ -89,7 +89,7 @@ def _run_lifecycle_subprocess(tmp_path: Path, *, repair: bool) -> subprocess.Com
 
 
 def test_broken_dotenv_crashes_main_import_without_repair(tmp_path):
-    """Negative control: the shadow really breaks importing hermes_cli.main,
+    """Negative control: the shadow really breaks importing sparkii_cli.main,
     and recovery was invoked BEFORE the crash (i.e. before third-party
     imports) — so a real repair at that point can save the launch."""
     result = _run_lifecycle_subprocess(tmp_path, repair=False)
@@ -111,7 +111,7 @@ def test_early_recovery_module_is_stdlib_only(tmp_path):
             import builtins
             import sys
 
-            STDLIB = set(sys.stdlib_module_names) | {"hermes_cli"}
+            STDLIB = set(sys.stdlib_module_names) | {"sparkii_cli"}
             real_import = builtins.__import__
 
             def guard(name, *args, **kwargs):
@@ -121,7 +121,7 @@ def test_early_recovery_module_is_stdlib_only(tmp_path):
                 return real_import(name, *args, **kwargs)
 
             builtins.__import__ = guard
-            import hermes_cli._early_recovery  # noqa: F401
+            import sparkii_cli._early_recovery  # noqa: F401
             print("STDLIB_ONLY_OK")
             """
         ),

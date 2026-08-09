@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 import pytest
 
-import hermes_cli.mem_trim as mem_trim
+import sparkii_cli.mem_trim as mem_trim
 
 
 @pytest.fixture(autouse=True)
@@ -44,7 +44,7 @@ def test_config_kill_switch_overrides_force_from_config_file(monkeypatch, tmp_pa
 
 
 def test_default_config_declares_memory_trim_controls():
-    from hermes_cli.config import DEFAULT_CONFIG
+    from sparkii_cli.config import DEFAULT_CONFIG
 
     context = DEFAULT_CONFIG["context"]
     assert isinstance(context, dict)
@@ -96,7 +96,7 @@ def test_success_logs_memory_snapshot_and_trim_result(monkeypatch, caplog):
     )
     monkeypatch.setattr(mem_trim, "collect_memory_snapshot", lambda: next(snapshots))
 
-    with caplog.at_level("INFO", logger="hermes_cli.mem_trim"):
+    with caplog.at_level("INFO", logger="sparkii_cli.mem_trim"):
         assert mem_trim.trim_memory(reason="test turn") is True
 
     assert "reason=test turn" in caplog.text
@@ -118,7 +118,7 @@ def test_force_logs_even_when_periodic_log_sampling_skips(monkeypatch, caplog):
         lambda: {"rss_kib": 4096, "rss_anon_kib": 3072, "thread_count": 3},
     )
 
-    with caplog.at_level("INFO", logger="hermes_cli.mem_trim"):
+    with caplog.at_level("INFO", logger="sparkii_cli.mem_trim"):
         assert mem_trim.trim_memory(reason="periodic") is True
         assert mem_trim.trim_memory(force=True, reason="close") is True
 
@@ -147,7 +147,7 @@ def test_config_cooldown_controls_rate_limit(monkeypatch):
     monkeypatch.setattr(mem_trim, "_last_trim_monotonic", 1.0)
     monkeypatch.setattr(mem_trim.time, "monotonic", lambda: 100.0)
     monkeypatch.setattr(
-        "hermes_cli.config.load_config_readonly",
+        "sparkii_cli.config.load_config_readonly",
         lambda: {
             "context": {
                 "memory_trim": {"enabled": True, "cooldown_seconds": 120.0}
@@ -164,7 +164,7 @@ def test_legacy_environment_switch_does_not_control_behavior(monkeypatch):
     monkeypatch.setattr(mem_trim, "_malloc_trim", trim)
     monkeypatch.setenv("HERMES_DISABLE_MEMORY_TRIM", "1")
     monkeypatch.setattr(
-        "hermes_cli.config.load_config_readonly",
+        "sparkii_cli.config.load_config_readonly",
         lambda: {"context": {"memory_trim": {"enabled": True}}},
     )
 

@@ -42,13 +42,13 @@ from typing import Any, List, Optional
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from hermes_constants import get_hermes_home
-from hermes_cli._subprocess_compat import windows_hide_flags
-from hermes_cli.config import (
+from sparkii_cli._subprocess_compat import windows_hide_flags
+from sparkii_cli.config import (
     _expand_env_vars,
     cron_model_drift_guard_enabled,
     load_config,
 )
-from hermes_cli.fallback_config import get_fallback_chain
+from sparkii_cli.fallback_config import get_fallback_chain
 from hermes_time import now as _hermes_now
 from agent.interrupt_compat import request_hard_interrupt
 from agent.delegation_context import (
@@ -207,10 +207,10 @@ def _merge_mcp_into_per_job_toolsets(per_job: list[str], cfg: dict) -> list[str]
     result = [t for t in per_job if t != "no_mcp"]
     if "no_mcp" in per_job:
         return result
-    # lazy import: avoid heavy hermes_cli import at cron module load (matches
+    # lazy import: avoid heavy sparkii_cli import at cron module load (matches
     # _resolve_cron_enabled_toolsets' fallback) and share one MCP-membership
     # computation with the gateway/CLI platform resolver.
-    from hermes_cli.tools_config import enabled_mcp_server_names
+    from sparkii_cli.tools_config import enabled_mcp_server_names
     enabled_mcp = enabled_mcp_server_names(cfg)
     if set(result) & enabled_mcp:
         return result
@@ -243,7 +243,7 @@ def _resolve_cron_enabled_toolsets(job: dict, cfg: dict) -> list[str] | None:
     if per_job:
         return _merge_mcp_into_per_job_toolsets(list(per_job), cfg or {})
     try:
-        from hermes_cli.tools_config import _get_platform_tools  # lazy: avoid heavy import at cron module load
+        from sparkii_cli.tools_config import _get_platform_tools  # lazy: avoid heavy import at cron module load
         return sorted(_get_platform_tools(cfg or {}, "cron"))
     except Exception as exc:
         logger.warning(
@@ -1141,7 +1141,7 @@ def _plugin_cron_env_var(platform_name: str) -> str:
     support without editing this module.
     """
     try:
-        from hermes_cli.plugins import discover_plugins
+        from sparkii_cli.plugins import discover_plugins
         discover_plugins()  # idempotent
         from gateway.platform_registry import platform_registry
         entry = platform_registry.get(platform_name.lower())
@@ -1225,7 +1225,7 @@ def _iter_home_target_platforms():
     for name in _HOME_TARGET_ENV_VARS:
         yield name
     try:
-        from hermes_cli.plugins import discover_plugins
+        from sparkii_cli.plugins import discover_plugins
         discover_plugins()  # idempotent
         from gateway.platform_registry import platform_registry
         for entry in platform_registry.plugin_entries():
@@ -2979,10 +2979,10 @@ def _preflight_check_provider_key(job: dict, cfg: dict) -> Optional[str]:
     )
     model = job.get("model") or os.getenv("HERMES_MODEL") or ""
 
-    from hermes_cli.auth import AuthError
+    from sparkii_cli.auth import AuthError
 
     try:
-        from hermes_cli.runtime_provider import resolve_runtime_provider
+        from sparkii_cli.runtime_provider import resolve_runtime_provider
 
         kwargs = {"requested": requested, "target_model": model}
         if job.get("base_url"):
@@ -3370,7 +3370,7 @@ def run_job(
                 )
         if _session_db_timeout is None:
             try:
-                from hermes_cli.config import load_config
+                from sparkii_cli.config import load_config
                 _cfg = load_config() or {}
                 _cron_cfg = _cfg.get("cron", {}) if isinstance(_cfg, dict) else {}
                 _configured = _cron_cfg.get("session_db_timeout_seconds")
@@ -3632,7 +3632,7 @@ def run_job(
         # is set (mirrors startup), and the Bitwarden value-cache keeps the
         # forced re-pull off the network. load_hermes_dotenv also handles the
         # utf-8/latin-1 encoding fallback internally.
-        from hermes_cli.env_loader import (
+        from sparkii_cli.env_loader import (
             load_hermes_dotenv,
             reset_secret_source_cache,
         )
@@ -3668,7 +3668,7 @@ def run_job(
         _cfg = {}
         _model_cfg = {}
         try:
-            from hermes_cli.config import read_user_config_raw
+            from sparkii_cli.config import read_user_config_raw
             _cfg_path = str(_get_hermes_home() / "config.yaml")
             if os.path.exists(_cfg_path):
                 _cfg = read_user_config_raw(Path(_cfg_path))
@@ -3677,7 +3677,7 @@ def run_job(
                 # builds its own dict, so overlay managed values via the shared
                 # helper (fail-open, no-op when no managed scope).
                 try:
-                    from hermes_cli import managed_scope
+                    from sparkii_cli import managed_scope
                     _cfg = managed_scope.apply_managed_overlay(_cfg)
                 except Exception:
                     pass
@@ -3765,11 +3765,11 @@ def run_job(
         # Provider routing
         pr = _cfg.get("provider_routing") or {}
 
-        from hermes_cli.runtime_provider import (
+        from sparkii_cli.runtime_provider import (
             resolve_runtime_provider,
             format_runtime_provider_error,
         )
-        from hermes_cli.auth import AuthError
+        from sparkii_cli.auth import AuthError
 
         # F8 runtime backstop: never resolve a stored provider/base_url pair that
         # would ship a named provider's stored credential to an off-host endpoint
@@ -3902,7 +3902,7 @@ def run_job(
                 if not fb_provider or not fb_model:
                     continue
                 try:
-                    from hermes_cli.fallback_config import resolve_entry_api_key
+                    from sparkii_cli.fallback_config import resolve_entry_api_key
 
                     fb_kwargs = {
                         "requested": fb_provider,

@@ -66,7 +66,7 @@ def test_check_website_access_matches_parent_domain_subdomains(tmp_path):
 
 
 def test_default_config_exposes_website_blocklist_shape():
-    from hermes_cli.config import DEFAULT_CONFIG
+    from sparkii_cli.config import DEFAULT_CONFIG
 
     website_blocklist = DEFAULT_CONFIG["security"]["website_blocklist"]
     assert website_blocklist["enabled"] is False

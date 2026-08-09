@@ -1,4 +1,4 @@
-"""Host-specific gating in ``hermes_cli.gateway._all_platforms()``.
+"""Host-specific gating in ``sparkii_cli.gateway._all_platforms()``.
 
 Some messaging platforms can't function on every host. The gate lives
 in one place — ``_all_platforms()`` — so the setup wizard, the curses
@@ -16,7 +16,7 @@ Currently:
 class TestMatrixHiddenOnWindows:
     def test_matrix_present_on_linux(self, monkeypatch):
         """Sanity: matrix is still in the picker on Linux/macOS."""
-        import hermes_cli.gateway as gateway_mod
+        import sparkii_cli.gateway as gateway_mod
 
         monkeypatch.setattr(gateway_mod.sys, "platform", "linux")
         platforms = gateway_mod._all_platforms()
@@ -26,7 +26,7 @@ class TestMatrixHiddenOnWindows:
 
     def test_other_platforms_unaffected_on_windows(self, monkeypatch):
         """Gating must only drop matrix, not collateral damage."""
-        import hermes_cli.gateway as gateway_mod
+        import sparkii_cli.gateway as gateway_mod
 
         monkeypatch.setattr(gateway_mod.sys, "platform", "win32")
         platforms = gateway_mod._all_platforms()

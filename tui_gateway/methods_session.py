@@ -1474,7 +1474,7 @@ def _(rid, params: dict) -> dict:
         from agent.pet.render import PetRenderer
 
         try:
-            from hermes_cli.config import load_config
+            from sparkii_cli.config import load_config
 
             cfg = load_config()
             display = cfg.get("display", {}) if isinstance(cfg.get("display"), dict) else {}
@@ -1581,7 +1581,7 @@ def _(rid, params: dict) -> dict:
         from agent.pet import store
 
         try:
-            from hermes_cli.config import load_config
+            from sparkii_cli.config import load_config
 
             cfg = load_config()
             display = cfg.get("display", {}) if isinstance(cfg.get("display"), dict) else {}
@@ -1659,7 +1659,7 @@ def _(rid, params: dict) -> dict:
     try:
         from agent.pet import store
         from agent.pet.manifest import ManifestError
-        from hermes_cli.pets import _set_active
+        from sparkii_cli.pets import _set_active
 
         try:
             pet = store.install_pet(slug)
@@ -1686,7 +1686,7 @@ def _(rid, params: dict) -> dict:
         return _err(rid, 4004, "missing slug")
     try:
         from agent.pet import store
-        from hermes_cli.pets import _clear_active_if
+        from sparkii_cli.pets import _clear_active_if
 
         removed = store.remove_pet(slug)
 
@@ -1755,7 +1755,7 @@ def _(rid, params: dict) -> dict:
         # in config so surfaces don't point at the old (now-missing) directory.
         if new_slug != slug:
             try:
-                from hermes_cli.pets import _rename_active_if
+                from sparkii_cli.pets import _rename_active_if
 
                 _rename_active_if(slug, new_slug)
             except Exception as exc:  # noqa: BLE001 - rename already succeeded
@@ -1807,7 +1807,7 @@ def _(rid, params: dict) -> dict:
 def _(rid, params: dict) -> dict:
     """Turn the pet off from the desktop picker (``display.pet.enabled=false``)."""
     try:
-        from hermes_cli.pets import _set_enabled
+        from sparkii_cli.pets import _set_enabled
 
         _set_enabled(False)
         return _ok(rid, {"ok": True})
@@ -1826,7 +1826,7 @@ def _(rid, params: dict) -> dict:
     terminal surfaces on their next read.
     """
     try:
-        from hermes_cli.pets import set_pet_scale
+        from sparkii_cli.pets import set_pet_scale
 
         scale, err = set_pet_scale(params.get("scale"))
         if err:
@@ -2150,7 +2150,7 @@ def _(rid, params: dict) -> dict:
     drives the device step-up exactly like the mutations.
     """
     from agent.subscription_view import subscription_change_preview_from_payload
-    from hermes_cli.nous_billing import BillingError, post_subscription_preview
+    from sparkii_cli.nous_billing import BillingError, post_subscription_preview
 
     tier_id = params.get("subscription_type_id")
     if not tier_id:
@@ -2174,7 +2174,7 @@ def _(rid, params: dict) -> dict:
     same-price change OR a cancellation at period end (chargeless). Requires
     billing:manage.
     """
-    from hermes_cli.nous_billing import BillingError, put_subscription_pending_change
+    from sparkii_cli.nous_billing import BillingError, put_subscription_pending_change
 
     cancel = bool(params.get("cancel"))
     tier_id = params.get("subscription_type_id")
@@ -2196,7 +2196,7 @@ def _(rid, params: dict) -> dict:
     Clears a scheduled downgrade or cancellation (resume / undo). Chargeless, but it
     re-enables recurring spend → requires billing:manage and honors the kill-switch.
     """
-    from hermes_cli.nous_billing import BillingError, delete_subscription_pending_change
+    from sparkii_cli.nous_billing import BillingError, delete_subscription_pending_change
 
     try:
         result = delete_subscription_pending_change()
@@ -2218,7 +2218,7 @@ def _(rid, params: dict) -> dict:
     the TUI reuses it on retry of the SAME upgrade. Requires billing:manage.
     """
     from agent.billing_view import new_idempotency_key
-    from hermes_cli.nous_billing import BillingError, post_subscription_upgrade
+    from sparkii_cli.nous_billing import BillingError, post_subscription_upgrade
 
     tier_id = params.get("subscription_type_id")
     if not tier_id:
@@ -2253,7 +2253,7 @@ def _(rid, params: dict) -> dict:
     supplied, the server-side core mints a fresh one and returns it so the TUI can
     reuse it on retry of the SAME purchase.
     """
-    from hermes_cli.nous_billing import BillingError, post_charge
+    from sparkii_cli.nous_billing import BillingError, post_charge
     from agent.billing_view import new_idempotency_key
 
     amount = params.get("amount_usd")
@@ -2277,7 +2277,7 @@ def _(rid, params: dict) -> dict:
 
     The poll. Caller drives the 2s/5-min cadence; this is a single status read.
     """
-    from hermes_cli.nous_billing import BillingError, get_charge_status
+    from sparkii_cli.nous_billing import BillingError, get_charge_status
 
     charge_id = params.get("charge_id")
     if not charge_id:
@@ -2306,7 +2306,7 @@ def _(rid, params: dict) -> dict:
 
     params: {enabled: bool, threshold: number, top_up_amount: number}.
     """
-    from hermes_cli.nous_billing import BillingError, patch_auto_top_up
+    from sparkii_cli.nous_billing import BillingError, patch_auto_top_up
 
     try:
         enabled = bool(params.get("enabled"))
@@ -2338,8 +2338,8 @@ def _(rid, params: dict) -> dict:
     """
     sid = params.get("session_id") or ""
     try:
-        from hermes_cli.auth import step_up_nous_billing_scope
-        from hermes_cli.nous_billing import BillingError
+        from sparkii_cli.auth import step_up_nous_billing_scope
+        from sparkii_cli.nous_billing import BillingError
 
         def _on_verification(url: str, code: str) -> None:
             _emit(

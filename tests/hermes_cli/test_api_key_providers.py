@@ -5,7 +5,7 @@ import os
 
 import pytest
 
-from hermes_cli.auth import (
+from sparkii_cli.auth import (
     PROVIDER_REGISTRY,
     resolve_provider,
     get_api_key_provider_status,
@@ -19,7 +19,7 @@ from hermes_cli.auth import (
     STEPFUN_STEP_PLAN_CN_BASE_URL,
     _resolve_kimi_base_url,
 )
-from hermes_cli.copilot_auth import _try_gh_cli_token
+from sparkii_cli.copilot_auth import _try_gh_cli_token
 
 
 # =============================================================================
@@ -132,7 +132,7 @@ class TestProviderRegistry:
 # new provider (and its env var) is added — a hand-maintained tuple here was
 # missing HF_TOKEN/DEEPINFRA_API_KEY, which made the auto-detection tests
 # env-dependent (they failed on any machine with HF_TOKEN exported).
-from hermes_cli.auth import PROVIDER_REGISTRY as _REGISTRY
+from sparkii_cli.auth import PROVIDER_REGISTRY as _REGISTRY
 
 _EXTRA_ENV_VARS = (
     # Checked directly in resolve_provider("auto"), not via the registry.
@@ -156,7 +156,7 @@ PROVIDER_ENV_VARS = tuple(
 def _clear_provider_env(monkeypatch):
     for key in PROVIDER_ENV_VARS:
         monkeypatch.delenv(key, raising=False)
-    monkeypatch.setattr("hermes_cli.auth._load_auth_store", lambda: {})
+    monkeypatch.setattr("sparkii_cli.auth._load_auth_store", lambda: {})
 
 
 class TestResolveProvider:
@@ -341,13 +341,13 @@ class TestResolveApiKeyProviderCredentials:
 
 
     def test_try_gh_cli_token_uses_homebrew_path_when_not_on_path(self, monkeypatch):
-        monkeypatch.setattr("hermes_cli.copilot_auth.shutil.which", lambda command: None)
+        monkeypatch.setattr("sparkii_cli.copilot_auth.shutil.which", lambda command: None)
         monkeypatch.setattr(
-            "hermes_cli.copilot_auth.os.path.isfile",
+            "sparkii_cli.copilot_auth.os.path.isfile",
             lambda path: path == "/opt/homebrew/bin/gh",
         )
         monkeypatch.setattr(
-            "hermes_cli.copilot_auth.os.access",
+            "sparkii_cli.copilot_auth.os.access",
             lambda path, mode: path == "/opt/homebrew/bin/gh" and mode == os.X_OK,
         )
 
@@ -361,7 +361,7 @@ class TestResolveApiKeyProviderCredentials:
             calls.append(cmd)
             return _Result()
 
-        monkeypatch.setattr("hermes_cli.copilot_auth.subprocess.run", _fake_run)
+        monkeypatch.setattr("sparkii_cli.copilot_auth.subprocess.run", _fake_run)
 
         assert _try_gh_cli_token() == "gh-cli-secret"
         assert calls == [["/opt/homebrew/bin/gh", "auth", "token"]]
@@ -404,7 +404,7 @@ class TestRuntimeProviderResolution:
 
     def test_runtime_zai(self, monkeypatch):
         monkeypatch.setenv("GLM_API_KEY", "glm-key")
-        from hermes_cli.runtime_provider import resolve_runtime_provider
+        from sparkii_cli.runtime_provider import resolve_runtime_provider
         result = resolve_runtime_provider(requested="zai")
         assert result["provider"] == "zai"
         assert result["api_mode"] == "chat_completions"
@@ -415,14 +415,14 @@ class TestRuntimeProviderResolution:
 
     def test_runtime_minimax(self, monkeypatch):
         monkeypatch.setenv("MINIMAX_API_KEY", "mm-key")
-        from hermes_cli.runtime_provider import resolve_runtime_provider
+        from sparkii_cli.runtime_provider import resolve_runtime_provider
         result = resolve_runtime_provider(requested="minimax")
         assert result["provider"] == "minimax"
         assert result["api_key"] == "mm-key"
 
     def test_runtime_ai_gateway(self, monkeypatch):
         monkeypatch.setenv("AI_GATEWAY_API_KEY", "gw-key")
-        from hermes_cli.runtime_provider import resolve_runtime_provider
+        from sparkii_cli.runtime_provider import resolve_runtime_provider
         result = resolve_runtime_provider(requested="ai-gateway")
         assert result["provider"] == "ai-gateway"
         assert result["api_mode"] == "chat_completions"
@@ -431,7 +431,7 @@ class TestRuntimeProviderResolution:
 
     def test_runtime_kilocode(self, monkeypatch):
         monkeypatch.setenv("KILOCODE_API_KEY", "kilo-key")
-        from hermes_cli.runtime_provider import resolve_runtime_provider
+        from sparkii_cli.runtime_provider import resolve_runtime_provider
         result = resolve_runtime_provider(requested="kilocode")
         assert result["provider"] == "kilocode"
         assert result["api_mode"] == "chat_completions"
@@ -440,7 +440,7 @@ class TestRuntimeProviderResolution:
 
     def test_runtime_gmi(self, monkeypatch):
         monkeypatch.setenv("GMI_API_KEY", "gmi-key")
-        from hermes_cli.runtime_provider import resolve_runtime_provider
+        from sparkii_cli.runtime_provider import resolve_runtime_provider
         result = resolve_runtime_provider(requested="gmi")
         assert result["provider"] == "gmi"
         assert result["api_mode"] == "chat_completions"
@@ -449,14 +449,14 @@ class TestRuntimeProviderResolution:
 
     def test_runtime_auto_detects_api_key_provider(self, monkeypatch):
         monkeypatch.setenv("KIMI_API_KEY", "auto-kimi-key")
-        from hermes_cli.runtime_provider import resolve_runtime_provider
+        from sparkii_cli.runtime_provider import resolve_runtime_provider
         result = resolve_runtime_provider(requested="auto")
         assert result["provider"] == "kimi-coding"
         assert result["api_key"] == "auto-kimi-key"
 
     def test_runtime_copilot_uses_gh_cli_token(self, monkeypatch):
-        monkeypatch.setattr("hermes_cli.copilot_auth._try_gh_cli_token", lambda: "gho_cli_secret")
-        from hermes_cli.runtime_provider import resolve_runtime_provider
+        monkeypatch.setattr("sparkii_cli.copilot_auth._try_gh_cli_token", lambda: "gho_cli_secret")
+        from sparkii_cli.runtime_provider import resolve_runtime_provider
         result = resolve_runtime_provider(requested="copilot")
         assert result["provider"] == "copilot"
         assert result["api_mode"] == "chat_completions"
@@ -464,13 +464,13 @@ class TestRuntimeProviderResolution:
         assert result["base_url"] == "https://api.githubcopilot.com"
 
     def test_runtime_copilot_uses_responses_for_gpt_5_4(self, monkeypatch):
-        monkeypatch.setattr("hermes_cli.copilot_auth._try_gh_cli_token", lambda: "gho_cli_secret")
+        monkeypatch.setattr("sparkii_cli.copilot_auth._try_gh_cli_token", lambda: "gho_cli_secret")
         monkeypatch.setattr(
-            "hermes_cli.runtime_provider._get_model_config",
+            "sparkii_cli.runtime_provider._get_model_config",
             lambda: {"provider": "copilot", "default": "gpt-5.4"},
         )
         monkeypatch.setattr(
-            "hermes_cli.models.fetch_github_model_catalog",
+            "sparkii_cli.models.fetch_github_model_catalog",
             lambda api_key=None, timeout=5.0: [
                 {
                     "id": "gpt-5.4",
@@ -479,7 +479,7 @@ class TestRuntimeProviderResolution:
                 }
             ],
         )
-        from hermes_cli.runtime_provider import resolve_runtime_provider
+        from sparkii_cli.runtime_provider import resolve_runtime_provider
 
         result = resolve_runtime_provider(requested="copilot")
 
@@ -487,10 +487,10 @@ class TestRuntimeProviderResolution:
         assert result["api_mode"] == "codex_responses"
 
     def test_runtime_copilot_acp_uses_process_runtime(self, monkeypatch):
-        monkeypatch.setattr("hermes_cli.auth.shutil.which", lambda command: f"/usr/local/bin/{command}")
+        monkeypatch.setattr("sparkii_cli.auth.shutil.which", lambda command: f"/usr/local/bin/{command}")
         monkeypatch.setenv("HERMES_COPILOT_ACP_ARGS", "--acp --stdio --debug")
 
-        from hermes_cli.runtime_provider import resolve_runtime_provider
+        from sparkii_cli.runtime_provider import resolve_runtime_provider
 
         result = resolve_runtime_provider(requested="copilot-acp")
 
@@ -513,13 +513,13 @@ class TestHasAnyProviderConfigured:
 
     def test_claude_code_creds_ignored_on_fresh_install(self, monkeypatch, tmp_path):
         """Claude Code credentials should NOT skip the wizard when Hermes is unconfigured."""
-        from hermes_cli import config as config_module
-        from hermes_cli.auth import PROVIDER_REGISTRY
+        from sparkii_cli import config as config_module
+        from sparkii_cli.auth import PROVIDER_REGISTRY
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
         monkeypatch.setattr(config_module, "get_env_path", lambda: hermes_home / ".env")
         monkeypatch.setattr(config_module, "get_hermes_home", lambda: hermes_home)
-        monkeypatch.setattr("hermes_cli.copilot_auth.resolve_copilot_token", lambda: ("", ""))
+        monkeypatch.setattr("sparkii_cli.copilot_auth.resolve_copilot_token", lambda: ("", ""))
         # Clear all provider env vars so earlier checks don't short-circuit
         _all_vars = {"OPENROUTER_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY",
                       "ANTHROPIC_TOKEN", "OPENAI_BASE_URL"}
@@ -529,7 +529,7 @@ class TestHasAnyProviderConfigured:
         for var in _all_vars:
             monkeypatch.delenv(var, raising=False)
         # Prevent gh-cli / copilot auth fallback from leaking in
-        monkeypatch.setattr("hermes_cli.auth.get_auth_status", lambda _pid: {})
+        monkeypatch.setattr("sparkii_cli.auth.get_auth_status", lambda _pid: {})
         # Simulate valid Claude Code credentials
         monkeypatch.setattr(
             "agent.anthropic_adapter.read_claude_code_credentials",
@@ -539,13 +539,13 @@ class TestHasAnyProviderConfigured:
             "agent.anthropic_adapter.is_claude_code_token_valid",
             lambda creds: True,
         )
-        from hermes_cli.main import _has_any_provider_configured
+        from sparkii_cli.main import _has_any_provider_configured
         assert _has_any_provider_configured() is False
 
     def test_config_provider_counts(self, monkeypatch, tmp_path):
         """config.yaml with model.provider set should count as configured."""
         import yaml
-        from hermes_cli import config as config_module
+        from sparkii_cli import config as config_module
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
         config_file = hermes_home / "config.yaml"
@@ -559,13 +559,13 @@ class TestHasAnyProviderConfigured:
         for var in ("OPENROUTER_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY",
                      "ANTHROPIC_TOKEN", "OPENAI_BASE_URL"):
             monkeypatch.delenv(var, raising=False)
-        from hermes_cli.main import _has_any_provider_configured
+        from sparkii_cli.main import _has_any_provider_configured
         assert _has_any_provider_configured() is True
 
     @staticmethod
     def _clear_provider_env(monkeypatch):
         """Clear every provider env var so early checks can't short-circuit."""
-        from hermes_cli.auth import PROVIDER_REGISTRY
+        from sparkii_cli.auth import PROVIDER_REGISTRY
         _all_vars = {"OPENROUTER_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY",
                      "ANTHROPIC_TOKEN", "OPENAI_BASE_URL"}
         for pconfig in PROVIDER_REGISTRY.values():
@@ -575,7 +575,7 @@ class TestHasAnyProviderConfigured:
             monkeypatch.delenv(var, raising=False)
 
     def _setup_home(self, monkeypatch, tmp_path):
-        from hermes_cli import config as config_module
+        from sparkii_cli import config as config_module
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
         monkeypatch.setattr(config_module, "get_env_path", lambda: hermes_home / ".env")
@@ -604,8 +604,8 @@ class TestHasAnyProviderConfigured:
             sweep_calls.append(provider_id)
             raise AssertionError("sweep must be skipped")
 
-        monkeypatch.setattr("hermes_cli.auth.get_auth_status", _trap)
-        from hermes_cli.main import _has_any_provider_configured
+        monkeypatch.setattr("sparkii_cli.auth.get_auth_status", _trap)
+        from sparkii_cli.main import _has_any_provider_configured
         assert _has_any_provider_configured() is True
         assert sweep_calls == [], (
             f"provider registry sweep ran before config short-circuit: {sweep_calls}"
@@ -629,8 +629,8 @@ class TestHasAnyProviderConfigured:
             sweep_calls.append(provider_id)
             raise AssertionError("sweep must be skipped")
 
-        monkeypatch.setattr("hermes_cli.auth.get_auth_status", _trap)
-        from hermes_cli.main import _has_any_provider_configured
+        monkeypatch.setattr("sparkii_cli.auth.get_auth_status", _trap)
+        from sparkii_cli.main import _has_any_provider_configured
         assert _has_any_provider_configured() is True
         assert sweep_calls == [], (
             f"provider registry sweep ran before config short-circuit: {sweep_calls}"
@@ -653,8 +653,8 @@ class TestHasAnyProviderConfigured:
             assert provider_id == "nous", "sweep must be skipped"
             return {"logged_in": True}
 
-        monkeypatch.setattr("hermes_cli.auth.get_auth_status", _guarded_status)
-        from hermes_cli.main import _has_any_provider_configured
+        monkeypatch.setattr("sparkii_cli.auth.get_auth_status", _guarded_status)
+        from sparkii_cli.main import _has_any_provider_configured
         assert _has_any_provider_configured() is True
         assert calls == ["nous"], (
             f"provider registry sweep ran before auth.json short-circuit: {calls}"
@@ -707,7 +707,7 @@ class TestKimiCodeCredentialAutoDetect:
     def test_non_kimi_providers_unaffected(self, monkeypatch):
         """Ensure the auto-detect logic doesn't leak to other providers."""
         monkeypatch.setenv("GLM_API_KEY", "sk-kim...isnt")
-        monkeypatch.setattr("hermes_cli.auth.detect_zai_endpoint", lambda *a, **kw: None)
+        monkeypatch.setattr("sparkii_cli.auth.detect_zai_endpoint", lambda *a, **kw: None)
         creds = resolve_api_key_provider_credentials("zai")
         assert creds["base_url"] == "https://api.z.ai/api/paas/v4"
 
@@ -727,14 +727,14 @@ class TestZaiEndpointAutoDetect:
             probe_called = True
             return None
 
-        monkeypatch.setattr("hermes_cli.auth.detect_zai_endpoint", _never_called)
+        monkeypatch.setattr("sparkii_cli.auth.detect_zai_endpoint", _never_called)
         creds = resolve_api_key_provider_credentials("zai")
         assert creds["base_url"] == "https://custom.example/v4"
         assert not probe_called
 
     def test_no_key_skips_probe(self, monkeypatch):
         """Without an API key, no probe should occur."""
-        monkeypatch.setattr("hermes_cli.auth.detect_zai_endpoint", lambda *a, **kw: None)
+        monkeypatch.setattr("sparkii_cli.auth.detect_zai_endpoint", lambda *a, **kw: None)
         creds = resolve_api_key_provider_credentials("zai")
         assert creds["api_key"] == ""
 
@@ -762,14 +762,14 @@ class TestZaiParallelProbe:
     def test_candidate_model_fallback_within_endpoint(self, monkeypatch):
         """A worker must try its endpoint's later candidate models when the
         first ones fail — the fallback the scalar-model version dropped."""
-        from hermes_cli.auth import ZAI_ENDPOINTS, detect_zai_endpoint
+        from sparkii_cli.auth import ZAI_ENDPOINTS, detect_zai_endpoint
 
         coding_global = next(ep for ep in ZAI_ENDPOINTS if ep[0] == "coding-global")
         base = coding_global[1]
         last_model = coding_global[2][-1]
         # Only the LAST candidate model of coding-global succeeds.
         monkeypatch.setattr(
-            "hermes_cli.auth.httpx.post",
+            "sparkii_cli.auth.httpx.post",
             self._mock_post({(base, last_model): True}),
         )
         result = detect_zai_endpoint("test-key", timeout=1.0)
@@ -782,7 +782,7 @@ class TestZaiParallelProbe:
         ZAI_ENDPOINTS order must win, even if another finishes earlier."""
         import time as _time
 
-        from hermes_cli.auth import ZAI_ENDPOINTS, detect_zai_endpoint
+        from sparkii_cli.auth import ZAI_ENDPOINTS, detect_zai_endpoint
 
         first = ZAI_ENDPOINTS[0]
         last = ZAI_ENDPOINTS[-1]
@@ -797,15 +797,15 @@ class TestZaiParallelProbe:
                 _time.sleep(0.15)  # first-priority endpoint finishes LAST
             return inner(url, headers=headers, json=json, timeout=timeout)
 
-        monkeypatch.setattr("hermes_cli.auth.httpx.post", _slow_first)
+        monkeypatch.setattr("sparkii_cli.auth.httpx.post", _slow_first)
         result = detect_zai_endpoint("test-key", timeout=1.0)
         assert result is not None
         assert result["id"] == first[0]
 
     def test_all_fail_returns_none(self, monkeypatch):
-        from hermes_cli.auth import detect_zai_endpoint
+        from sparkii_cli.auth import detect_zai_endpoint
 
-        monkeypatch.setattr("hermes_cli.auth.httpx.post", self._mock_post({}))
+        monkeypatch.setattr("sparkii_cli.auth.httpx.post", self._mock_post({}))
         assert detect_zai_endpoint("bad-key", timeout=1.0) is None
 
     def test_early_exit_does_not_wait_for_slow_losers(self, monkeypatch):
@@ -813,7 +813,7 @@ class TestZaiParallelProbe:
         return without waiting for slow lower-priority probes to finish."""
         import time as _time
 
-        from hermes_cli.auth import ZAI_ENDPOINTS, detect_zai_endpoint
+        from sparkii_cli.auth import ZAI_ENDPOINTS, detect_zai_endpoint
 
         first = ZAI_ENDPOINTS[0]
         inner = self._mock_post({(first[1], first[2][0]): True})
@@ -823,7 +823,7 @@ class TestZaiParallelProbe:
                 _time.sleep(2.0)  # slow lower-priority endpoints
             return inner(url, headers=headers, json=json, timeout=timeout)
 
-        monkeypatch.setattr("hermes_cli.auth.httpx.post", _slow_losers)
+        monkeypatch.setattr("sparkii_cli.auth.httpx.post", _slow_losers)
         t0 = _time.perf_counter()
         result = detect_zai_endpoint("test-key", timeout=5.0)
         elapsed = _time.perf_counter() - t0
@@ -839,14 +839,14 @@ class TestKimiMoonshotModelListIsolation:
     """Moonshot (legacy) users must not see Coding Plan-only models."""
 
     def test_moonshot_list_excludes_coding_plan_only_models(self):
-        from hermes_cli.main import _PROVIDER_MODELS
+        from sparkii_cli.main import _PROVIDER_MODELS
         moonshot_models = _PROVIDER_MODELS["moonshot"]
         coding_plan_only = {"kimi-for-coding", "kimi-k2-thinking-turbo"}
         leaked = set(moonshot_models) & coding_plan_only
         assert not leaked, f"Moonshot list contains Coding Plan-only models: {leaked}"
 
     def test_moonshot_list_non_empty(self):
-        from hermes_cli.main import _PROVIDER_MODELS
+        from sparkii_cli.main import _PROVIDER_MODELS
         assert len(_PROVIDER_MODELS["moonshot"]) >= 1
 
 
@@ -860,13 +860,13 @@ class TestHuggingFaceModels:
 
     def test_model_lists_match(self):
         """Model lists in main.py and models.py should be identical."""
-        from hermes_cli.main import _PROVIDER_MODELS as main_models
-        from hermes_cli.models import _PROVIDER_MODELS as models_models
+        from sparkii_cli.main import _PROVIDER_MODELS as main_models
+        from sparkii_cli.models import _PROVIDER_MODELS as models_models
         assert main_models["huggingface"] == models_models["huggingface"]
 
     def test_model_metadata_has_context_lengths(self):
         """Every HF model should have a context length entry."""
-        from hermes_cli.models import _PROVIDER_MODELS
+        from sparkii_cli.models import _PROVIDER_MODELS
         from agent.model_metadata import DEFAULT_CONTEXT_LENGTHS
         lower_keys = {k.lower() for k in DEFAULT_CONTEXT_LENGTHS}
         hf_models = _PROVIDER_MODELS["huggingface"]
@@ -898,7 +898,7 @@ class TestNovitaProvider:
 
     def test_novita_pricing_cache(self, monkeypatch):
         """_fetch_novita_pricing should cache results in _pricing_cache."""
-        from hermes_cli import models as models_mod
+        from sparkii_cli import models as models_mod
         monkeypatch.setenv("NOVITA_API_KEY", "sk-test-key")
         monkeypatch.setenv("NOVITA_BASE_URL", "https://api.novita.ai/openai/v1")
         models_mod._pricing_cache.pop("https://api.novita.ai/openai/v1", None)
@@ -1000,7 +1000,7 @@ def _deepinfra_cache_isolation(monkeypatch):
     reset too, so a test that simulates an unreachable catalog can't suppress
     a later test's fetch within the failure TTL.
     """
-    import hermes_cli.models as _models_mod
+    import sparkii_cli.models as _models_mod
     monkeypatch.setattr(_models_mod, "_deepinfra_catalog_cache", {})
     monkeypatch.setattr(_models_mod, "_deepinfra_catalog_neg_cache", {})
     yield
@@ -1026,11 +1026,11 @@ class TestFetchDeepInfraModels:
                     {"id": "stabilityai/stable-diffusion-xl-base-1.0", "metadata": {}},
                 ]}).encode()
 
-        import hermes_cli.models as models
+        import sparkii_cli.models as models
         monkeypatch.setattr(
             models, "_urlopen_model_catalog_request", lambda *a, **kw: _Resp()
         )
-        from hermes_cli.models import _fetch_deepinfra_models
+        from sparkii_cli.models import _fetch_deepinfra_models
         result = _fetch_deepinfra_models()
 
         assert result is not None
@@ -1043,7 +1043,7 @@ class TestFetchDeepInfraModels:
 
 
     def test_catalog_uses_credential_safe_opener(self, monkeypatch):
-        import hermes_cli.models as models
+        import sparkii_cli.models as models
 
         seen = {}
 
@@ -1114,8 +1114,8 @@ class TestDeepInfraTagFiltering:
             # null metadata — stub model, must be skipped
             {"id": "stub-model", "metadata": None},
         ]}
-        from hermes_cli.models import _fetch_deepinfra_models_by_tag
-        import hermes_cli.models as _m
+        from sparkii_cli.models import _fetch_deepinfra_models_by_tag
+        import sparkii_cli.models as _m
 
         for surface in ("chat", "image-gen", "tts", "stt", "embed"):
             monkeypatch.setattr(
@@ -1167,13 +1167,13 @@ class TestDeepInfraPricingFetcher:
             # non-chat — must not appear
             {"id": "vendor/model-image", "metadata": {"tags": ["image-gen"], "pricing": {"per_image_unit": 0.05}}},
         ]}
-        import hermes_cli.models as models
+        import sparkii_cli.models as models
         monkeypatch.setattr(
             models,
             "_urlopen_model_catalog_request",
             _make_urlopen_returning(payload),
         )
-        from hermes_cli.models import get_pricing_for_provider
+        from sparkii_cli.models import get_pricing_for_provider
 
         # get_pricing_for_provider → _fetch_deepinfra_pricing dispatch path
         result = get_pricing_for_provider("deepinfra")
@@ -1191,9 +1191,9 @@ class TestDeepInfraProviderProfile:
     def test_profile_registered_with_alias_and_aux(self):
         from providers import get_provider_profile
         from agent.auxiliary_client import _get_aux_model_for_provider
-        from hermes_cli.auth import PROVIDER_REGISTRY, resolve_provider
-        from hermes_cli.config import OPTIONAL_ENV_VARS
-        from hermes_cli.models import CANONICAL_PROVIDERS
+        from sparkii_cli.auth import PROVIDER_REGISTRY, resolve_provider
+        from sparkii_cli.config import OPTIONAL_ENV_VARS
+        from sparkii_cli.models import CANONICAL_PROVIDERS
 
         profile = get_provider_profile("deepinfra")
         assert profile is not None

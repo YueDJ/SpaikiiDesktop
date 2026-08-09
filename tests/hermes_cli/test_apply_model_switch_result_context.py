@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from hermes_cli.model_switch import ModelSwitchResult
+from sparkii_cli.model_switch import ModelSwitchResult
 
 
 class _FakeModelInfo:
@@ -164,7 +164,7 @@ def test_global_switch_clears_context_pin_owned_by_previous_route(monkeypatch):
             "agent.model_metadata.get_model_context_length",
             return_value=256_000,
         ),
-        patch("hermes_cli.config.load_config_readonly", return_value=configured),
+        patch("sparkii_cli.config.load_config_readonly", return_value=configured),
     ):
         cli_mod.HermesCLI._apply_model_switch_result(cli, result, True)
 

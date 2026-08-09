@@ -23,22 +23,22 @@ def profile_env(tmp_path, monkeypatch):
 
 
 def _pconfig(name="deepseek"):
-    from hermes_cli.auth import PROVIDER_REGISTRY
+    from sparkii_cli.auth import PROVIDER_REGISTRY
     return PROVIDER_REGISTRY[name]
 
 
 def _run_prompt(existing_key, choice, new_key="", provider_id="", pconfig_name="deepseek"):
     """Invoke _prompt_api_key with mocked input()/getpass() responses."""
-    from hermes_cli import main as m
+    from sparkii_cli import main as m
 
     pconfig = _pconfig(pconfig_name)
     with patch("builtins.input", return_value=choice), \
-         patch("hermes_cli.secret_prompt.masked_secret_prompt", return_value=new_key):
+         patch("sparkii_cli.secret_prompt.masked_secret_prompt", return_value=new_key):
         return m._prompt_api_key(pconfig, existing_key, provider_id=provider_id)
 
 
 def test_pool_only_key_does_not_offer_or_execute_clear(profile_env, monkeypatch, capsys):
-    from hermes_cli import main as m
+    from sparkii_cli import main as m
 
     pconfig = _pconfig("deepseek")
     prompts = []
@@ -48,7 +48,7 @@ def test_pool_only_key_does_not_offer_or_execute_clear(profile_env, monkeypatch,
         return "c"
 
     monkeypatch.setattr("builtins.input", choose_clear)
-    with patch("hermes_cli.config.save_env_value") as save_env:
+    with patch("sparkii_cli.config.save_env_value") as save_env:
         key, abort = m._prompt_api_key(
             pconfig,
             "pool-secret",
@@ -77,7 +77,7 @@ def test_pool_only_key_does_not_offer_or_execute_clear(profile_env, monkeypatch,
 
 
 def test_clear_wipes_env_and_aborts(profile_env):
-    from hermes_cli.config import get_env_value, save_env_value
+    from sparkii_cli.config import get_env_value, save_env_value
     save_env_value("DEEPSEEK_API_KEY", "sk-existing")
     save_env_value("OTHER_VAR", "keep-me")
 
@@ -94,8 +94,8 @@ def test_clear_wipes_env_and_aborts(profile_env):
 # LM Studio no-auth placeholder ────────────────────────────────────────────────
 
 def test_lmstudio_first_time_empty_uses_placeholder(profile_env):
-    from hermes_cli.auth import LMSTUDIO_NOAUTH_PLACEHOLDER
-    from hermes_cli.config import get_env_value
+    from sparkii_cli.auth import LMSTUDIO_NOAUTH_PLACEHOLDER
+    from sparkii_cli.config import get_env_value
 
     key, abort = _run_prompt(
         existing_key="", choice="", new_key="",

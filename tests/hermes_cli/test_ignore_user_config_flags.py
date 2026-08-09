@@ -141,7 +141,7 @@ class TestIgnoreRulesEnvGate:
 
 
 class TestCmdChatWiring:
-    """The wiring inside ``cmd_chat()`` in ``hermes_cli/main.py`` must set
+    """The wiring inside ``cmd_chat()`` in ``sparkii_cli/main.py`` must set
     both env vars before importing ``cli`` (which evaluates
     ``load_cli_config()`` at module import).
     """

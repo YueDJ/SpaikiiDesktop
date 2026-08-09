@@ -26,7 +26,7 @@ import pytest
 
 @pytest.fixture
 def temp_pyproject(tmp_path, monkeypatch):
-    """Point hermes_cli.main.PROJECT_ROOT at a tmp dir with a minimal pyproject.
+    """Point sparkii_cli.main.PROJECT_ROOT at a tmp dir with a minimal pyproject.
 
     The verification helper opens ``PROJECT_ROOT / 'pyproject.toml'`` directly;
     redirecting PROJECT_ROOT keeps the test hermetic.
@@ -42,7 +42,7 @@ def temp_pyproject(tmp_path, monkeypatch):
           "ptyprocess>=0.7.0,<1; sys_platform != 'win32'",
         ]
     """))
-    import hermes_cli.main as main_mod
+    import sparkii_cli.main as main_mod
     monkeypatch.setattr(main_mod, "PROJECT_ROOT", tmp_path)
     return tmp_path
 
@@ -77,12 +77,12 @@ class TestVerifyCoreDependencies:
 
         # Force sys.platform to look like Windows so the marker filters
         # ptyprocess out. (We need the actual marker.evaluate() to see win32.)
-        with patch("hermes_cli.main._resolve_install_target_python", return_value=py), \
-             patch("hermes_cli.main.subprocess.run", side_effect=fake_subprocess_run), \
-             patch("hermes_cli.main._run_install_with_heartbeat"), \
+        with patch("sparkii_cli.main._resolve_install_target_python", return_value=py), \
+             patch("sparkii_cli.main.subprocess.run", side_effect=fake_subprocess_run), \
+             patch("sparkii_cli.main._run_install_with_heartbeat"), \
              patch("sys.platform", "win32"):
 
-            from hermes_cli.main import _verify_core_dependencies_installed
+            from sparkii_cli.main import _verify_core_dependencies_installed
             _verify_core_dependencies_installed(["uv", "pip"], env=env)
 
         # Find the probe argv — it's the call that passed the dep names.
@@ -101,12 +101,12 @@ class TestVerifyCoreDependencies:
     def test_no_pyproject_is_noop(self, tmp_path, monkeypatch):
         """If pyproject.toml is missing (unusual but possible in some test
         envs), the verification step must short-circuit, not crash."""
-        import hermes_cli.main as main_mod
+        import sparkii_cli.main as main_mod
         monkeypatch.setattr(main_mod, "PROJECT_ROOT", tmp_path)
         # No pyproject.toml in tmp_path.
-        with patch("hermes_cli.main._resolve_install_target_python") as mock_resolve, \
-             patch("hermes_cli.main._run_install_with_heartbeat") as mock_install:
-            from hermes_cli.main import _verify_core_dependencies_installed
+        with patch("sparkii_cli.main._resolve_install_target_python") as mock_resolve, \
+             patch("sparkii_cli.main._run_install_with_heartbeat") as mock_install:
+            from sparkii_cli.main import _verify_core_dependencies_installed
             _verify_core_dependencies_installed(["uv", "pip"], env={})
             assert not mock_resolve.called
             assert not mock_install.called
@@ -125,8 +125,8 @@ class TestResolveInstallTargetPython:
         py = scripts / "python.exe"
         py.write_text("fake")
 
-        with patch("hermes_cli.main._is_windows", return_value=True):
-            from hermes_cli.main import _resolve_install_target_python
+        with patch("sparkii_cli.main._is_windows", return_value=True):
+            from sparkii_cli.main import _resolve_install_target_python
             result = _resolve_install_target_python(
                 ["uv", "pip"], env={"VIRTUAL_ENV": str(venv_root)}
             )
@@ -136,8 +136,8 @@ class TestResolveInstallTargetPython:
         """If the path we'd point at doesn't exist (uv install failed before
         the python shim landed), return None so the verification step
         cleanly short-circuits instead of crashing on FileNotFoundError."""
-        with patch("hermes_cli.main._is_windows", return_value=True):
-            from hermes_cli.main import _resolve_install_target_python
+        with patch("sparkii_cli.main._is_windows", return_value=True):
+            from sparkii_cli.main import _resolve_install_target_python
             result = _resolve_install_target_python(
                 ["uv", "pip"], env={"VIRTUAL_ENV": str(tmp_path / "does_not_exist")}
             )

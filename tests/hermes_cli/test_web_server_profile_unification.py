@@ -14,7 +14,7 @@ import yaml
 def isolated_profiles(tmp_path, monkeypatch, _isolate_hermes_home):
     """Isolated default home + one named profile, each with config + .env."""
     from hermes_constants import get_hermes_home
-    from hermes_cli import profiles
+    from sparkii_cli import profiles
 
     default_home = get_hermes_home()
     profiles_root = default_home / "profiles"
@@ -38,7 +38,7 @@ def client(monkeypatch, isolated_profiles):
 
     import hermes_state
     from hermes_constants import get_hermes_home
-    from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+    from sparkii_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
     monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
     c = TestClient(app)
@@ -130,7 +130,7 @@ class TestProfileScopedMcp:
     ):
         """An `auth: oauth` server that serves tools/list anonymously must not
         false-green: a successful probe with no token on disk reports needs-auth."""
-        import hermes_cli.mcp_config as mcp_config
+        import sparkii_cli.mcp_config as mcp_config
 
         (isolated_profiles["worker_beta"] / "config.yaml").write_text(
             "mcp_servers:\n  oauth-srv:\n    url: http://x/sse\n    auth: oauth\n",
@@ -198,7 +198,7 @@ class TestProfileScopedPostSetup:
         """Post-setup runs in a -p scoped subprocess so hooks that read
         config / write per-profile state see the same HERMES_HOME the rest
         of the drawer's writes targeted."""
-        import hermes_cli.web_server as web_server
+        import sparkii_cli.web_server as web_server
 
         calls = []
 
@@ -211,7 +211,7 @@ class TestProfileScopedPostSetup:
             lambda subcommand, name: calls.append(list(subcommand)) or _FakeProc(),
         )
         monkeypatch.setattr(
-            "hermes_cli.tools_config.valid_post_setup_keys",
+            "sparkii_cli.tools_config.valid_post_setup_keys",
             lambda: {"agent_browser"},
         )
         resp = client.post(
@@ -226,7 +226,7 @@ class TestProfileScopedPostSetup:
     def test_post_setup_without_profile_keeps_legacy_argv(
         self, client, isolated_profiles, monkeypatch
     ):
-        import hermes_cli.web_server as web_server
+        import sparkii_cli.web_server as web_server
 
         calls = []
 
@@ -239,7 +239,7 @@ class TestProfileScopedPostSetup:
             lambda subcommand, name: calls.append(list(subcommand)) or _FakeProc(),
         )
         monkeypatch.setattr(
-            "hermes_cli.tools_config.valid_post_setup_keys",
+            "sparkii_cli.tools_config.valid_post_setup_keys",
             lambda: {"agent_browser"},
         )
         resp = client.post(
@@ -255,7 +255,7 @@ class TestProfileScopedGateway:
     def test_status_reads_requested_profile_home(
         self, client, isolated_profiles, monkeypatch
     ):
-        import hermes_cli.web_server as web_server
+        import sparkii_cli.web_server as web_server
         from hermes_constants import get_hermes_home
 
         seen_homes = []
@@ -286,7 +286,7 @@ class TestProfileScopedGateway:
     def test_status_uses_runtime_pid_when_profile_pid_file_is_missing(
         self, client, isolated_profiles, monkeypatch
     ):
-        import hermes_cli.web_server as web_server
+        import sparkii_cli.web_server as web_server
 
         worker_home = isolated_profiles["worker_beta"]
         (worker_home / ".env").write_text(
@@ -339,7 +339,7 @@ class TestProfileScopedTelegramOnboarding:
         self, client, isolated_profiles, monkeypatch
     ):
         import time
-        import hermes_cli.web_server as web_server
+        import sparkii_cli.web_server as web_server
 
         with web_server._telegram_onboarding_lock:
             web_server._telegram_onboarding_pairings.clear()
@@ -394,10 +394,10 @@ class TestProfileScopedTelegramOnboarding:
 
 class TestProfileScopedChatPty:
     def test_chat_argv_scopes_hermes_home(self, isolated_profiles, monkeypatch):
-        import hermes_cli.web_server as web_server
+        import sparkii_cli.web_server as web_server
 
         monkeypatch.setattr(
-            "hermes_cli.main._make_tui_argv",
+            "sparkii_cli.main._make_tui_argv",
             lambda root, tui_dev=False: (["cat"], None),
             raising=False,
         )

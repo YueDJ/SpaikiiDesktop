@@ -1,4 +1,4 @@
-"""Tests for hermes_cli/webhook.py — webhook subscription CLI."""
+"""Tests for sparkii_cli/webhook.py — webhook subscription CLI."""
 
 import json
 import os
@@ -6,7 +6,7 @@ import pytest
 import stat
 from argparse import Namespace
 
-from hermes_cli.webhook import (
+from sparkii_cli.webhook import (
     webhook_command,
     _get_webhook_base_url,
     _load_subscriptions,
@@ -20,7 +20,7 @@ def _isolate(tmp_path, monkeypatch):
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     # Default: webhooks enabled (most tests need this)
     monkeypatch.setattr(
-        "hermes_cli.webhook._is_webhook_enabled", lambda: True
+        "sparkii_cli.webhook._is_webhook_enabled", lambda: True
     )
 
 
@@ -45,7 +45,7 @@ def _make_args(**kwargs):
 @pytest.mark.parametrize("host", [None, "", "0.0.0.0", "::"])
 def test_webhook_base_url_maps_wildcard_hosts_to_localhost(monkeypatch, host):
     monkeypatch.setattr(
-        "hermes_cli.webhook._get_webhook_config",
+        "sparkii_cli.webhook._get_webhook_config",
         lambda: {"extra": {"host": host, "port": 9123}},
     )
     assert _get_webhook_base_url() == "http://localhost:9123"
@@ -129,7 +129,7 @@ class TestPersistence:
 class TestWebhookEnabledGate:
 
     def test_blocks_list_when_disabled(self, capsys, monkeypatch):
-        monkeypatch.setattr("hermes_cli.webhook._is_webhook_enabled", lambda: False)
+        monkeypatch.setattr("sparkii_cli.webhook._is_webhook_enabled", lambda: False)
         webhook_command(_make_args(webhook_action="list"))
         out = capsys.readouterr().out
         assert "not enabled" in out.lower()
@@ -143,13 +143,13 @@ class TestWebhookEnabledGate:
 
     def test_real_check_disabled(self, monkeypatch):
         monkeypatch.setattr(
-            "hermes_cli.webhook._get_webhook_config",
+            "sparkii_cli.webhook._get_webhook_config",
             lambda: {},
         )
         monkeypatch.setattr(
-            "hermes_cli.webhook._is_webhook_enabled",
+            "sparkii_cli.webhook._is_webhook_enabled",
             lambda: bool({}.get("enabled")),
         )
-        import hermes_cli.webhook as wh_mod
+        import sparkii_cli.webhook as wh_mod
         assert wh_mod._is_webhook_enabled() is False
 

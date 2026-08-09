@@ -402,7 +402,7 @@ def install_deps() -> bool:
 
     print("Installing Google Chat dependencies...")
     try:
-        from hermes_cli.tools_config import _pip_install
+        from sparkii_cli.tools_config import _pip_install
 
         result = _pip_install(["--quiet"] + missing)
         if result.returncode != 0:

@@ -1,4 +1,4 @@
-"""Tests for hermes_cli.tools_config platform tool persistence."""
+"""Tests for sparkii_cli.tools_config platform tool persistence."""
 
 import logging
 from types import SimpleNamespace
@@ -6,9 +6,9 @@ from unittest.mock import patch
 
 import pytest
 
-from hermes_cli.nous_account import NousPortalAccountInfo, NousToolAccessInfo
-from hermes_cli.nous_subscription import NousSubscriptionFeatures
-from hermes_cli.tools_config import (
+from sparkii_cli.nous_account import NousPortalAccountInfo, NousToolAccessInfo
+from sparkii_cli.nous_subscription import NousSubscriptionFeatures
+from sparkii_cli.tools_config import (
     _DEFAULT_OFF_TOOLSETS,
     _RECENTLY_SHIPPED_TOOLSETS,
     _apply_toolset_change,
@@ -37,13 +37,13 @@ def test_all_invalid_platform_toolsets_logs_runtime_warning(caplog):
     """#38798: an explicit platform config whose toolset names are all invalid
     (e.g. 'hermes' instead of 'hermes-cli') must warn at resolve time so an
     already-corrupted config is caught at runtime, not just during migration."""
-    import hermes_cli.tools_config as _tc
+    import sparkii_cli.tools_config as _tc
     # The runtime warning fires once per platform per process; clear the guard
     # so this test is deterministic regardless of prior resolutions.
     _tc._warned_invalid_platform_toolsets.discard("cli")
     config = {"platform_toolsets": {"cli": ["hermes"]}}
 
-    with caplog.at_level(logging.WARNING, logger="hermes_cli.tools_config"):
+    with caplog.at_level(logging.WARNING, logger="sparkii_cli.tools_config"):
         _get_platform_tools(config, "cli")
 
     warnings = [r.getMessage() for r in caplog.records if r.levelno >= logging.WARNING]
@@ -54,7 +54,7 @@ def test_valid_platform_toolsets_no_runtime_warning(caplog):
     """A correctly-configured platform must not emit the #38798 warning."""
     config = {"platform_toolsets": {"cli": ["hermes-cli"]}}
 
-    with caplog.at_level(logging.WARNING, logger="hermes_cli.tools_config"):
+    with caplog.at_level(logging.WARNING, logger="sparkii_cli.tools_config"):
         _get_platform_tools(config, "cli")
 
     assert not any("#38798" in r.getMessage() for r in caplog.records)
@@ -66,7 +66,7 @@ def test_partially_valid_platform_toolsets_no_runtime_warning(caplog):
     flags the individual bad name)."""
     config = {"platform_toolsets": {"cli": ["hermes-cli", "bogus"]}}
 
-    with caplog.at_level(logging.WARNING, logger="hermes_cli.tools_config"):
+    with caplog.at_level(logging.WARNING, logger="sparkii_cli.tools_config"):
         _get_platform_tools(config, "cli")
 
     assert not any("#38798" in r.getMessage() for r in caplog.records)
@@ -168,7 +168,7 @@ def test_save_platform_tools_preserves_mcp_server_names():
 
     new_selection = {"web", "browser"}
 
-    with patch("hermes_cli.tools_config.save_config"):
+    with patch("sparkii_cli.tools_config.save_config"):
         _save_platform_tools(config, "cli", new_selection)
 
     saved_toolsets = config["platform_toolsets"]["cli"]
@@ -207,7 +207,7 @@ def test_first_install_nous_auto_configures_video_gen(monkeypatch):
     video_gen.use_gateway so the FAL plugin can route through the gateway
     at runtime.  Regression test for the bug where video_gen was marked as
     auto-configured but no config was actually written."""
-    monkeypatch.setattr("hermes_cli.nous_subscription.managed_nous_tools_enabled", lambda: True)
+    monkeypatch.setattr("sparkii_cli.nous_subscription.managed_nous_tools_enabled", lambda: True)
     config = {
         "model": {"provider": "nous"},
         "platform_toolsets": {"cli": []},
@@ -228,16 +228,16 @@ def test_first_install_nous_auto_configures_video_gen(monkeypatch):
         monkeypatch.delenv(env_var, raising=False)
 
     monkeypatch.setattr(
-        "hermes_cli.tools_config._prompt_toolset_checklist",
+        "sparkii_cli.tools_config._prompt_toolset_checklist",
         lambda *args, **kwargs: {"video_gen"},
     )
-    monkeypatch.setattr("hermes_cli.tools_config.save_config", lambda config: None)
+    monkeypatch.setattr("sparkii_cli.tools_config.save_config", lambda config: None)
     monkeypatch.setattr(
-        "hermes_cli.tools_config._get_enabled_platforms",
+        "sparkii_cli.tools_config._get_enabled_platforms",
         lambda: ["cli"],
     )
     monkeypatch.setattr(
-        "hermes_cli.nous_subscription.get_nous_portal_account_info",
+        "sparkii_cli.nous_subscription.get_nous_portal_account_info",
         lambda *args, **kwargs: NousPortalAccountInfo(
             logged_in=True,
             source="jwt",
@@ -248,7 +248,7 @@ def test_first_install_nous_auto_configures_video_gen(monkeypatch):
 
     configured = []
     monkeypatch.setattr(
-        "hermes_cli.tools_config._configure_toolset",
+        "sparkii_cli.tools_config._configure_toolset",
         lambda ts_key, config: configured.append(ts_key),
     )
 
@@ -267,7 +267,7 @@ class TestPlatformToolsetConsistency:
 
     def test_all_platforms_have_toolset_definitions(self):
         """Each platform's default_toolset must exist in TOOLSETS."""
-        from hermes_cli.tools_config import PLATFORMS
+        from sparkii_cli.tools_config import PLATFORMS
         from toolsets import TOOLSETS
 
         for platform, meta in PLATFORMS.items():
@@ -279,7 +279,7 @@ class TestPlatformToolsetConsistency:
 
     def test_gateway_toolset_includes_all_messaging_platforms(self):
         """hermes-gateway includes list should cover all messaging platforms."""
-        from hermes_cli.tools_config import PLATFORMS
+        from sparkii_cli.tools_config import PLATFORMS
         from toolsets import TOOLSETS
 
         gateway_includes = set(TOOLSETS["hermes-gateway"]["includes"])
@@ -296,8 +296,8 @@ class TestPlatformToolsetConsistency:
 
     def test_skills_config_covers_tools_config_platforms(self):
         """skills_config.PLATFORMS should have entries for all gateway platforms."""
-        from hermes_cli.tools_config import PLATFORMS as TOOLS_PLATFORMS
-        from hermes_cli.skills_config import PLATFORMS as SKILLS_PLATFORMS
+        from sparkii_cli.tools_config import PLATFORMS as TOOLS_PLATFORMS
+        from sparkii_cli.skills_config import PLATFORMS as SKILLS_PLATFORMS
 
         non_messaging = {"api_server"}
         for platform in TOOLS_PLATFORMS:
@@ -349,12 +349,12 @@ class TestImagegenBackendRegistry:
     """IMAGEGEN_BACKENDS tags drive the model picker flow in tools_config."""
 
     def test_fal_backend_registered(self):
-        from hermes_cli.tools_config import IMAGEGEN_BACKENDS
+        from sparkii_cli.tools_config import IMAGEGEN_BACKENDS
         assert "fal" in IMAGEGEN_BACKENDS
 
     def test_fal_catalog_loads_lazily(self):
         """catalog_fn should defer import to avoid import cycles."""
-        from hermes_cli.tools_config import IMAGEGEN_BACKENDS
+        from sparkii_cli.tools_config import IMAGEGEN_BACKENDS
         catalog, default = IMAGEGEN_BACKENDS["fal"]["catalog_fn"]()
         assert default == "fal-ai/flux-2/klein/9b"
         assert "fal-ai/flux-2/klein/9b" in catalog
@@ -363,7 +363,7 @@ class TestImagegenBackendRegistry:
     def test_image_gen_providers_tagged_with_fal_backend(self):
         """Both Nous Subscription and FAL.ai providers must carry the
         imagegen_backend tag so _configure_provider fires the picker."""
-        from hermes_cli.tools_config import TOOL_CATEGORIES
+        from sparkii_cli.tools_config import TOOL_CATEGORIES
         providers = TOOL_CATEGORIES["image_gen"]["providers"]
         for p in providers:
             assert p.get("imagegen_backend") == "fal", (
@@ -376,10 +376,10 @@ class TestImagegenModelPicker:
     curses fallback semantics (returns default when stdin isn't a TTY)."""
 
     def test_picker_writes_chosen_model_to_config(self):
-        from hermes_cli.tools_config import _configure_imagegen_model
+        from sparkii_cli.tools_config import _configure_imagegen_model
         config = {}
         # Force _prompt_choice to pick index 1 (second-in-ordered-list).
-        with patch("hermes_cli.tools_config._prompt_choice", return_value=1):
+        with patch("sparkii_cli.tools_config._prompt_choice", return_value=1):
             _configure_imagegen_model("fal", config)
         # ordered[0] == current (default klein), ordered[1] == first non-default
         assert config["image_gen"]["model"] != "fal-ai/flux-2/klein/9b"
@@ -388,7 +388,7 @@ class TestImagegenModelPicker:
     def test_picker_with_gpt_image_does_not_prompt_quality(self):
         """GPT-Image quality is pinned to medium in the tool's defaults —
         no follow-up prompt, no config write for quality_setting."""
-        from hermes_cli.tools_config import (
+        from sparkii_cli.tools_config import (
             _configure_imagegen_model,
             IMAGEGEN_BACKENDS,
         )
@@ -404,7 +404,7 @@ class TestImagegenModelPicker:
             return gpt_idx
 
         config = {}
-        with patch("hermes_cli.tools_config._prompt_choice", side_effect=fake_prompt):
+        with patch("sparkii_cli.tools_config._prompt_choice", side_effect=fake_prompt):
             _configure_imagegen_model("fal", config)
 
         assert call_count["n"] == 1, (
@@ -417,9 +417,9 @@ class TestImagegenModelPicker:
     def test_picker_repairs_corrupt_config_section(self):
         """When image_gen is a non-dict (user-edit YAML), the picker should
         replace it with a fresh dict rather than crash."""
-        from hermes_cli.tools_config import _configure_imagegen_model
+        from sparkii_cli.tools_config import _configure_imagegen_model
         config = {"image_gen": "some-garbage-string"}
-        with patch("hermes_cli.tools_config._prompt_choice", return_value=0):
+        with patch("sparkii_cli.tools_config._prompt_choice", return_value=0):
             _configure_imagegen_model("fal", config)
         assert isinstance(config["image_gen"], dict)
         assert config["image_gen"]["model"] == "fal-ai/flux-2/klein/9b"
@@ -435,7 +435,7 @@ def test_get_effective_configurable_toolsets_dedupes_bundled_plugins():
     them twice — otherwise `hermes tools` → "reconfigure existing" shows
     the same toolset two rows in a row.
     """
-    from hermes_cli.tools_config import _get_effective_configurable_toolsets
+    from sparkii_cli.tools_config import _get_effective_configurable_toolsets
 
     all_ts = _get_effective_configurable_toolsets()
     keys = [ts_key for ts_key, _, _ in all_ts]
@@ -504,8 +504,8 @@ def test_kanban_not_reported_as_removed_in_diff():
 def test_vision_picker_custom_endpoint(tmp_path, monkeypatch):
     """Custom endpoint writes base_url+model to config and the key to env."""
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    import hermes_cli.tools_config as tc
-    from hermes_cli.config import load_config
+    import sparkii_cli.tools_config as tc
+    from sparkii_cli.config import load_config
 
     seq = iter([2])  # Custom OpenAI-compatible endpoint
     prompts = iter(["https://my.endpoint/v1", "sk-secret", "my-vision-model"])
@@ -546,7 +546,7 @@ def _fake_features(*, logged_in: bool, paid: bool = True):
 
 
 def test_visible_providers_reuses_logged_out_feature_snapshot(monkeypatch):
-    import hermes_cli.tools_config as tools_config
+    import sparkii_cli.tools_config as tools_config
 
     account = NousPortalAccountInfo(
         logged_in=False,
@@ -578,7 +578,7 @@ def test_visible_providers_reuses_logged_out_feature_snapshot(monkeypatch):
 
 
 def test_visible_providers_reuses_pool_video_feature_snapshot(monkeypatch):
-    import hermes_cli.tools_config as tools_config
+    import sparkii_cli.tools_config as tools_config
 
     account = NousPortalAccountInfo(
         logged_in=True,
@@ -657,7 +657,7 @@ _requires_recently_shipped = pytest.mark.skipif(
 
 def _saved_list_from_before(platform="cli"):
     """A saved explicit list as it looked before the new toolsets existed."""
-    from hermes_cli.tools_config import (
+    from sparkii_cli.tools_config import (
         _CONFIG_ONLY_TOOLSETS,
         _toolset_allowed_for_platform,
     )
@@ -698,7 +698,7 @@ def test_unchecking_the_new_toolset_sticks():
     decline instead of turning it back on."""
     config = {"platform_toolsets": {"cli": ["hermes-cli"]}}
     enabled = _get_platform_tools(config, "cli", include_default_mcp_servers=False)
-    with patch("hermes_cli.tools_config.save_config"):
+    with patch("sparkii_cli.tools_config.save_config"):
         _save_platform_tools(config, "cli", enabled - _RECENTLY_SHIPPED_TOOLSETS)
 
     reread = _get_platform_tools(config, "cli", include_default_mcp_servers=False)

@@ -4,8 +4,8 @@ import threading
 from pathlib import Path
 from types import SimpleNamespace
 
-from hermes_cli import web_server
-from hermes_cli import plugins_cmd
+from sparkii_cli import web_server
+from sparkii_cli import plugins_cmd
 from tools import registry as tools_registry
 
 
@@ -143,7 +143,7 @@ def test_plugins_hub_short_ttl_cache_collapses_duplicate_fetches(monkeypatch):
 def test_plugin_install_endpoint_invalidates_hub_cache(monkeypatch):
     import asyncio
 
-    from hermes_cli.web_models import _AgentPluginInstallBody
+    from sparkii_cli.web_models import _AgentPluginInstallBody
 
     tools_registry.invalidate_check_fn_cache()
     web_server._invalidate_plugins_hub_cache()

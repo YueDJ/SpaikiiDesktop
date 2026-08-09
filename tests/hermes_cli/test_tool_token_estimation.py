@@ -29,14 +29,14 @@ _needs_tiktoken = pytest.mark.skipif(not _has_tiktoken, reason="tiktoken not ins
 
 def test_status_fn_empty_selection():
     """Status function with no tools selected should return ~0 tokens."""
-    import hermes_cli.tools_config as tc
+    import sparkii_cli.tools_config as tc
 
     tc._tool_token_cache = None
     tokens = tc._estimate_tool_tokens()
     if not tokens:
         pytest.skip("tiktoken unavailable")
 
-    from hermes_cli.tools_config import CONFIGURABLE_TOOLSETS
+    from sparkii_cli.tools_config import CONFIGURABLE_TOOLSETS
     from toolsets import resolve_toolset
 
     ts_keys = [ts_key for ts_key, _, _ in CONFIGURABLE_TOOLSETS]
@@ -59,7 +59,7 @@ def test_status_fn_empty_selection():
 
 def test_curses_checklist_numbered_fallback_shows_status(monkeypatch, capsys):
     """The numbered fallback should print the status_fn output."""
-    from hermes_cli.curses_ui import _numbered_fallback
+    from sparkii_cli.curses_ui import _numbered_fallback
 
     def my_status(chosen):
         return f"Selected {len(chosen)} items"

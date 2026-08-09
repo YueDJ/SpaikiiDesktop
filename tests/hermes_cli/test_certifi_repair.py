@@ -22,7 +22,7 @@ from pathlib import Path
 
 import pytest
 
-import hermes_cli._early_recovery as er
+import sparkii_cli._early_recovery as er
 
 
 def _fake_certifi(monkeypatch, bundle_path: Path):
@@ -76,7 +76,7 @@ class TestUpdateProbeScriptChecksBundle:
     def _run_probe_script(self, monkeypatch, tmp_path, bundle_path):
         """Extract the generated probe script and run it in-process against a
         fake certifi that points at bundle_path."""
-        from hermes_cli import main as main_mod
+        from sparkii_cli import main as main_mod
 
         captured = {}
 
@@ -130,7 +130,7 @@ class TestUpdateProbeScriptChecksBundle:
 
 class TestDoctorCertificates:
     def test_broken_bundle_fails_without_fix(self, monkeypatch, capsys, tmp_path):
-        from hermes_cli import doctor as doctor_mod
+        from sparkii_cli import doctor as doctor_mod
 
         monkeypatch.setenv("SSL_CERT_FILE", str(tmp_path / "missing.pem"))
         issues = []
@@ -141,7 +141,7 @@ class TestDoctorCertificates:
         assert any("doctor --fix" in i for i in issues)
 
     def test_fix_reinstalls_certifi_and_reverifies(self, monkeypatch, capsys, tmp_path):
-        from hermes_cli import doctor as doctor_mod
+        from sparkii_cli import doctor as doctor_mod
 
         # First verification fails, post-reinstall verification succeeds.
         calls = {"verify": 0, "pip": []}
@@ -181,7 +181,7 @@ class TestDoctorCertificates:
 
 
     def test_healthy_bundle_never_touches_pip(self, monkeypatch, capsys):
-        from hermes_cli import doctor as doctor_mod
+        from sparkii_cli import doctor as doctor_mod
 
         def _fail_run(*a, **k):
             raise AssertionError("healthy bundle must not trigger a reinstall")

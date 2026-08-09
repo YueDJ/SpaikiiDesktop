@@ -153,14 +153,14 @@ class TestBranchCommandDef:
 
     def test_branch_in_registry(self):
         """The branch command should be in the command registry."""
-        from hermes_cli.commands import COMMAND_REGISTRY
+        from sparkii_cli.commands import COMMAND_REGISTRY
         names = [c.name for c in COMMAND_REGISTRY]
         assert "branch" in names
 
 
     def test_branch_in_session_category(self):
         """The branch command should be in the Session category."""
-        from hermes_cli.commands import COMMAND_REGISTRY
+        from sparkii_cli.commands import COMMAND_REGISTRY
         branch = next(c for c in COMMAND_REGISTRY if c.name == "branch")
         assert branch.category == "Session"
 

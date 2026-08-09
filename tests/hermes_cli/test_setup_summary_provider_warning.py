@@ -8,11 +8,11 @@ working model configured (consumer-onboarding audit finding #7, Aug 2026).
 
 from unittest.mock import patch
 
-from hermes_cli.auth import AuthError
+from sparkii_cli.auth import AuthError
 
 
 def _summary_output(capsys, provider_ready: bool):
-    from hermes_cli import setup as setup_mod
+    from sparkii_cli import setup as setup_mod
 
     if provider_ready:
         resolver = lambda *a, **k: "openrouter"  # noqa: E731
@@ -24,7 +24,7 @@ def _summary_output(capsys, provider_ready: bool):
             )
 
     # Keep the summary fast/hermetic: stub the heavier feature probes.
-    with patch("hermes_cli.auth.resolve_provider", resolver), \
+    with patch("sparkii_cli.auth.resolve_provider", resolver), \
          patch.object(setup_mod, "get_nous_subscription_features") as feats:
         feats.side_effect = Exception("stubbed")
         try:

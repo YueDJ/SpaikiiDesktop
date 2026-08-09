@@ -98,7 +98,7 @@ def check_react_requirements() -> bool:
     reads the right config whether that gateway is local, SSH, URL, or cloud.
     """
     try:
-        from hermes_cli.config import load_config_readonly
+        from sparkii_cli.config import load_config_readonly
 
         display = load_config_readonly().get("display")
     except Exception:

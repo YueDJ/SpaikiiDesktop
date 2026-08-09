@@ -602,8 +602,8 @@ class SessionManager:
             return self._agent_factory()
 
         from run_agent import AIAgent
-        from hermes_cli.config import load_config
-        from hermes_cli.runtime_provider import resolve_runtime_provider
+        from sparkii_cli.config import load_config
+        from sparkii_cli.runtime_provider import resolve_runtime_provider
 
         config = load_config()
         model_cfg = config.get("model")
@@ -664,7 +664,7 @@ class SessionManager:
         # server can't block — servers that miss the bound are picked up by
         # the automatic late-refresh (see HermesACPAgent._schedule_mcp_late_refresh).
         try:
-            from hermes_cli.mcp_startup import ensure_mcp_discovery_before_agent_build
+            from sparkii_cli.mcp_startup import ensure_mcp_discovery_before_agent_build
 
             ensure_mcp_discovery_before_agent_build(
                 logger=logger,

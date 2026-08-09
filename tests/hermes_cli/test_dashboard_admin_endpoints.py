@@ -17,7 +17,7 @@ def _client():
         pytest.skip("fastapi/starlette not installed")
     import hermes_state
     from hermes_constants import get_hermes_home
-    from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+    from sparkii_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
     client = TestClient(app)
     client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
@@ -86,7 +86,7 @@ class TestMcpEndpoints:
         assert response.status_code == 200
         assert response.json()["auth"] == "oauth"
 
-        from hermes_cli.mcp_config import _get_mcp_servers
+        from sparkii_cli.mcp_config import _get_mcp_servers
 
         assert _get_mcp_servers()["oauth-server"]["auth"] == "oauth"
 
@@ -158,8 +158,8 @@ class TestCredentialPoolEndpoints:
         source and suppress (provider, source).
         """
         from agent.credential_pool import load_pool
-        from hermes_cli.auth import is_source_suppressed
-        from hermes_cli.config import save_env_value
+        from sparkii_cli.auth import is_source_suppressed
+        from sparkii_cli.config import save_env_value
 
         fake_key = "sk-or-" + "x" * 20  # constructed, never a real key shape
         save_env_value("OPENROUTER_API_KEY", fake_key)
@@ -187,8 +187,8 @@ class TestCredentialPoolEndpoints:
         silently blocked from env re-seeding.
         """
         from agent.credential_pool import load_pool
-        from hermes_cli.auth import is_source_suppressed
-        from hermes_cli.config import save_env_value
+        from sparkii_cli.auth import is_source_suppressed
+        from sparkii_cli.config import save_env_value
 
         fake_key = "sk-or-" + "y" * 20
         save_env_value("OPENROUTER_API_KEY", fake_key)
@@ -324,7 +324,7 @@ class TestWebhookEndpoints:
 
 
     def test_create_webhook_persists_script(self):
-        from hermes_cli.config import load_config, save_config
+        from sparkii_cli.config import load_config, save_config
 
         cfg = load_config()
         cfg.setdefault("platforms", {})["webhook"] = {
@@ -348,8 +348,8 @@ class TestWebhookEndpoints:
         assert subs[0]["script"] == "todoist_filter.py"
 
     def test_enable_platform_starts_gateway_restart(self, monkeypatch):
-        import hermes_cli.web_server as ws
-        from hermes_cli.config import load_config
+        import sparkii_cli.web_server as ws
+        from sparkii_cli.config import load_config
 
         ws._ACTION_PROCS.pop("gateway-restart", None)
         restart_calls = []
@@ -381,8 +381,8 @@ class TestWebhookEndpoints:
 
 
     def test_enable_platform_reuses_inflight_gateway_restart(self, monkeypatch):
-        import hermes_cli.web_server as ws
-        from hermes_cli.config import load_config
+        import sparkii_cli.web_server as ws
+        from sparkii_cli.config import load_config
 
         ws._ACTION_PROCS.pop("gateway-restart", None)
 
@@ -417,7 +417,7 @@ class TestOpsEndpoints:
 
 
     def test_hooks_list_reads_config(self):
-        from hermes_cli.config import load_config, save_config
+        from sparkii_cli.config import load_config, save_config
 
         cfg = load_config()
         cfg["hooks"] = {
@@ -648,7 +648,7 @@ class TestSkillsHubPreviewEndpoint:
         bundle = _FakeBundle("github/owner/repo/x")
         meta = _FakeMeta("github/owner/repo/x")
         monkeypatch.setattr(
-            "hermes_cli.skills_hub._resolve_source_meta_and_bundle",
+            "sparkii_cli.skills_hub._resolve_source_meta_and_bundle",
             lambda ident, sources: (meta, bundle, None),
         )
         r = self.client.get(
@@ -667,7 +667,7 @@ class TestSkillsHubPreviewEndpoint:
             "tools.skills_hub.create_source_router", lambda: []
         )
         monkeypatch.setattr(
-            "hermes_cli.skills_hub._resolve_source_meta_and_bundle",
+            "sparkii_cli.skills_hub._resolve_source_meta_and_bundle",
             lambda ident, sources: (None, None, None),
         )
         r = self.client.get("/api/skills/hub/preview?identifier=nope/x")
@@ -688,7 +688,7 @@ class TestSkillsHubScanEndpoint:
         )
         bundle = _FakeBundle("github/owner/repo/x", trust_level="community")
         monkeypatch.setattr(
-            "hermes_cli.skills_hub._resolve_source_meta_and_bundle",
+            "sparkii_cli.skills_hub._resolve_source_meta_and_bundle",
             lambda ident, sources: (None, bundle, None),
         )
 
@@ -742,7 +742,7 @@ class TestWebhookToggleEndpoint:
     def _setup(self, _isolate_hermes_home):
         self.client, _ = _client()
         # Enable the webhook platform so a subscription can be created.
-        from hermes_cli.config import load_config, save_config
+        from sparkii_cli.config import load_config, save_config
 
         cfg = load_config()
         cfg.setdefault("platforms", {})["webhook"] = {
@@ -758,7 +758,7 @@ class TestAdminEndpointsAuthGate:
     @pytest.fixture(autouse=True)
     def _setup(self, _isolate_hermes_home):
         from starlette.testclient import TestClient
-        from hermes_cli.web_server import app
+        from sparkii_cli.web_server import app
 
         # No session header → must be rejected.
         self.client = TestClient(app)
@@ -777,11 +777,11 @@ class TestUpdateCheckEndpoint:
         self.client, _ = _client()
 
     def test_git_install_reports_behind_count(self, monkeypatch):
-        import hermes_cli.web_server as ws
+        import sparkii_cli.web_server as ws
 
         monkeypatch.setattr(ws, "detect_install_method", lambda *a, **k: "git")
         # Stub the shared checker so the contract is deterministic (no network).
-        import hermes_cli.banner as banner
+        import sparkii_cli.banner as banner
 
         monkeypatch.setattr(banner, "check_for_updates", lambda: 5)
 
@@ -806,7 +806,7 @@ class TestUpdateCheckEndpoint:
 
 
     def test_managed_runtime_dashboard_is_not_applyable(self, monkeypatch):
-        import hermes_cli.web_server as ws
+        import sparkii_cli.web_server as ws
 
         monkeypatch.setattr(ws, "_dashboard_local_update_managed_externally", lambda: True)
         monkeypatch.setattr(
@@ -844,28 +844,28 @@ class TestDebugShareEndpoint:
 
 
     def test_redact_false_is_honored(self, monkeypatch):
-        import hermes_cli.debug as dbg
+        import sparkii_cli.debug as dbg
 
         monkeypatch.setattr(
             dbg, "upload_to_pastebin", lambda c, expiry_days=7: "https://paste.rs/x"
         )
         monkeypatch.setattr(dbg, "_schedule_auto_delete", lambda *a, **k: None)
         monkeypatch.setattr(dbg, "_best_effort_sweep_expired_pastes", lambda: None)
-        monkeypatch.setattr("hermes_cli.dump.run_dump", lambda a: None)
+        monkeypatch.setattr("sparkii_cli.dump.run_dump", lambda a: None)
 
         r = self.client.post("/api/ops/debug-share", json={"redact": False})
         assert r.status_code == 200
         assert r.json()["redacted"] is False
 
     def test_default_body_redacts(self, monkeypatch):
-        import hermes_cli.debug as dbg
+        import sparkii_cli.debug as dbg
 
         monkeypatch.setattr(
             dbg, "upload_to_pastebin", lambda c, expiry_days=7: "https://paste.rs/x"
         )
         monkeypatch.setattr(dbg, "_schedule_auto_delete", lambda *a, **k: None)
         monkeypatch.setattr(dbg, "_best_effort_sweep_expired_pastes", lambda: None)
-        monkeypatch.setattr("hermes_cli.dump.run_dump", lambda a: None)
+        monkeypatch.setattr("sparkii_cli.dump.run_dump", lambda a: None)
 
         # No JSON body at all — should default redact=True.
         r = self.client.post("/api/ops/debug-share")
@@ -873,7 +873,7 @@ class TestDebugShareEndpoint:
         assert r.json()["redacted"] is True
 
     def test_upload_failure_returns_502(self, monkeypatch):
-        import hermes_cli.debug as dbg
+        import sparkii_cli.debug as dbg
 
         monkeypatch.setattr(
             dbg,
@@ -882,7 +882,7 @@ class TestDebugShareEndpoint:
         )
         monkeypatch.setattr(dbg, "_schedule_auto_delete", lambda *a, **k: None)
         monkeypatch.setattr(dbg, "_best_effort_sweep_expired_pastes", lambda: None)
-        monkeypatch.setattr("hermes_cli.dump.run_dump", lambda a: None)
+        monkeypatch.setattr("sparkii_cli.dump.run_dump", lambda a: None)
 
         r = self.client.post("/api/ops/debug-share", json={"redact": True})
         assert r.status_code == 502
@@ -901,7 +901,7 @@ class TestToolsConfigEndpoints:
 
 
     def test_save_env_writes_key_and_validates_allowlist(self):
-        from hermes_cli.config import get_env_value
+        from sparkii_cli.config import get_env_value
 
         cfg = self.client.get("/api/tools/toolsets/web/config").json()
         # Find a real env-var key from the visible provider matrix.
@@ -947,7 +947,7 @@ def test_spawn_hermes_action_scrubs_gateway_loop_guard_env(monkeypatch, tmp_path
     it, or the in-process restart-loop guard rejects the restart and it silently
     fails (#52470).
     """
-    import hermes_cli.web_server as ws
+    import sparkii_cli.web_server as ws
 
     monkeypatch.setenv("_HERMES_GATEWAY", "1")
     monkeypatch.setattr(ws, "_ACTION_LOG_DIR", tmp_path)

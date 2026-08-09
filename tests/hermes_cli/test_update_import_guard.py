@@ -20,8 +20,8 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import main as hermes_main
-from hermes_cli import update_cmd
+from sparkii_cli import main as hermes_main
+from sparkii_cli import update_cmd
 from hermes_constants import partial_update_hint
 
 

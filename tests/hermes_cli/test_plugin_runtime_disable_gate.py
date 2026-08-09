@@ -19,7 +19,7 @@ from unittest.mock import patch, AsyncMock
 
 import pytest
 
-from hermes_cli import web_server
+from sparkii_cli import web_server
 
 
 @pytest.fixture(autouse=True)
@@ -38,7 +38,7 @@ def test_client(monkeypatch, tmp_path):
     except ImportError:
         pytest.skip("fastapi/starlette not installed")
 
-    from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+    from sparkii_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
     # Isolate HERMES_HOME so config reads go to our tmp.
     monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
@@ -119,8 +119,8 @@ class TestPluginApiRuntimeGate:
         call_next = AsyncMock(return_value=JSONResponse({"ok": True}))
 
         with patch.object(web_server, "_get_dashboard_plugins", return_value=[fake_plugin]), \
-             patch("hermes_cli.plugins_cmd._get_enabled_set", return_value={"hot"}), \
-             patch("hermes_cli.plugins_cmd._get_disabled_set", return_value={"hot"}):
+             patch("sparkii_cli.plugins_cmd._get_enabled_set", return_value={"hot"}), \
+             patch("sparkii_cli.plugins_cmd._get_disabled_set", return_value={"hot"}):
             response = await web_server._plugin_api_runtime_gate(request, call_next)
 
         assert response.status_code == 404
@@ -171,8 +171,8 @@ class TestPluginApiRuntimeGate:
         call_next = AsyncMock(return_value=JSONResponse({"ok": True}))
 
         with patch.object(web_server, "_get_dashboard_plugins", return_value=[]), \
-             patch("hermes_cli.plugins_cmd._get_enabled_set", return_value=set()), \
-             patch("hermes_cli.plugins_cmd._get_disabled_set", return_value=set()):
+             patch("sparkii_cli.plugins_cmd._get_enabled_set", return_value=set()), \
+             patch("sparkii_cli.plugins_cmd._get_disabled_set", return_value=set()):
             response = await web_server._plugin_api_runtime_gate(request, call_next)
 
         assert response.status_code == 404
@@ -203,9 +203,9 @@ class TestBundledPluginAssetGate:
         with patch.object(web_server, "_get_dashboard_plugins", return_value=[fake_plugin]):
             # Sanity: asset is served when not disabled.
             with patch(
-                "hermes_cli.plugins_cmd._get_enabled_set", return_value=set()
+                "sparkii_cli.plugins_cmd._get_enabled_set", return_value=set()
             ), patch(
-                "hermes_cli.plugins_cmd._get_disabled_set", return_value=set()
+                "sparkii_cli.plugins_cmd._get_disabled_set", return_value=set()
             ):
                 resp = test_client.get("/dashboard-plugins/bundledx/dist/index.js")
                 assert resp.status_code == 200, (
@@ -214,9 +214,9 @@ class TestBundledPluginAssetGate:
 
             # Disable it.
             with patch(
-                "hermes_cli.plugins_cmd._get_enabled_set", return_value=set()
+                "sparkii_cli.plugins_cmd._get_enabled_set", return_value=set()
             ), patch(
-                "hermes_cli.plugins_cmd._get_disabled_set", return_value={"bundledx"}
+                "sparkii_cli.plugins_cmd._get_disabled_set", return_value={"bundledx"}
             ):
                 resp = test_client.get("/dashboard-plugins/bundledx/dist/index.js")
                 assert resp.status_code == 404, (
@@ -237,9 +237,9 @@ class TestBundledPluginAssetGate:
 
         with patch.object(web_server, "_get_dashboard_plugins", return_value=[fake_plugin]):
             with patch(
-                "hermes_cli.plugins_cmd._get_enabled_set", return_value=set()
+                "sparkii_cli.plugins_cmd._get_enabled_set", return_value=set()
             ), patch(
-                "hermes_cli.plugins_cmd._get_disabled_set", return_value=set()
+                "sparkii_cli.plugins_cmd._get_disabled_set", return_value=set()
             ):
                 resp = test_client.get("/dashboard-plugins/goodbundled/dist/index.js")
                 assert resp.status_code == 200

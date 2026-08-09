@@ -11,7 +11,7 @@ import time
 
 import pytest
 
-import hermes_cli.auth as auth
+import sparkii_cli.auth as auth
 
 
 @pytest.fixture(autouse=True)

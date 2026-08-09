@@ -1,15 +1,15 @@
 """Invariant tests for registry-owned slash execution (CommandDef.execute).
 
 Every ``CommandDef`` with ``execute`` set must:
-  * name a key that exists in :data:`hermes_cli.slash_exec.EXECUTORS`, and
+  * name a key that exists in :data:`sparkii_cli.slash_exec.EXECUTORS`, and
   * produce IDENTICAL core text across surfaces for a fixed context — the
     executor may only vary on ``args``/``options``, never on ``surface``.
 """
 
 import pytest
 
-from hermes_cli.commands import COMMAND_REGISTRY, resolve_command
-from hermes_cli.slash_exec import (
+from sparkii_cli.commands import COMMAND_REGISTRY, resolve_command
+from sparkii_cli.slash_exec import (
     EXECUTORS,
     CommandContext,
     CommandReply,

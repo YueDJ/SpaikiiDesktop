@@ -22,7 +22,7 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 
-@patch("hermes_cli.plugins.invoke_hook")
+@patch("sparkii_cli.plugins.invoke_hook")
 def test_cleanup_forwards_session_messages(mock_invoke_hook):
     """_run_cleanup forwards a populated ``_session_messages`` list."""
     import cli as cli_mod
@@ -51,7 +51,7 @@ def test_cleanup_forwards_session_messages(mock_invoke_hook):
 
 
 
-@patch("hermes_cli.plugins.invoke_hook")
+@patch("sparkii_cli.plugins.invoke_hook")
 def test_cleanup_provider_exception_is_swallowed(mock_invoke_hook):
     """A raising ``shutdown_memory_provider`` must not crash CLI exit."""
     import cli as cli_mod

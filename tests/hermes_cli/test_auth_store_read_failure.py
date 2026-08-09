@@ -16,7 +16,7 @@ import logging
 
 import pytest
 
-import hermes_cli.auth as auth
+import sparkii_cli.auth as auth
 
 
 @pytest.fixture
@@ -88,7 +88,7 @@ def test_log_does_not_claim_a_backup_that_was_not_written(
 
     monkeypatch.setattr(shutil, "copy2", _no_copy)
 
-    with caplog.at_level(logging.WARNING, logger="hermes_cli.auth"):
+    with caplog.at_level(logging.WARNING, logger="sparkii_cli.auth"):
         result = auth._load_auth_store(store_file)
 
     assert result == {"version": auth.AUTH_STORE_VERSION, "providers": {}}

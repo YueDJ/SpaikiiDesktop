@@ -1,4 +1,4 @@
-"""Tests for the Kanban DB layer (hermes_cli.kanban_db)."""
+"""Tests for the Kanban DB layer (sparkii_cli.kanban_db)."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 
 import hermes_state
-from hermes_cli import kanban_db as kb
+from sparkii_cli import kanban_db as kb
 
 
 @pytest.fixture
@@ -206,7 +206,7 @@ def test_stale_claim_reclaim_event_records_diagnostic_payload(
     (#23025: previous payload only had ``stale_lock`` which gives no
     timing context)."""
     import json
-    import hermes_cli.kanban_db as _kb
+    import sparkii_cli.kanban_db as _kb
 
     with kb.connect() as conn:
         t = kb.create_task(conn, title="x", assignee="a")
@@ -262,7 +262,7 @@ def test_rate_limit_exit_requeues_without_counting_failure(
     """A rate-limit sentinel exit releases the task to ``ready`` and leaves
     ``consecutive_failures`` untouched — the breaker must never trip on a
     transient throttle, even across many quota-wall hits."""
-    import hermes_cli.kanban_db as _kb
+    import sparkii_cli.kanban_db as _kb
 
     monkeypatch.setattr(_kb, "_pid_alive", lambda _pid: False)
     monkeypatch.setenv("HERMES_KANBAN_CRASH_GRACE_SECONDS", "0")
@@ -326,7 +326,7 @@ def test_respawn_guard_defers_rate_limited_within_cooldown(
     """Within the cooldown after a rate-limit requeue, the guard defers the
     respawn; after the cooldown it allows a probe — and crucially does NOT
     fall into ``blocker_auth`` (which would defer forever)."""
-    import hermes_cli.kanban_db as _kb
+    import sparkii_cli.kanban_db as _kb
 
     monkeypatch.setenv("HERMES_KANBAN_RATE_LIMIT_COOLDOWN_SECONDS", "300")
     now = 5_000_000
@@ -923,7 +923,7 @@ def test_connect_falls_back_to_delete_on_locking_protocol(tmp_path, monkeypatch,
             *args, factory=_WalBlockingConnection, **kwargs
         )
 
-    with _patch("hermes_cli.kanban_db.sqlite3.connect", side_effect=wal_blocking_connect):
+    with _patch("sparkii_cli.kanban_db.sqlite3.connect", side_effect=wal_blocking_connect):
         with caplog.at_level("ERROR", logger="hermes_state"):
             conn = kb.connect()
 
@@ -977,7 +977,7 @@ def test_connect_works_when_wal_is_silently_refused(tmp_path, monkeypatch, caplo
         )
 
     with _patch(
-        "hermes_cli.kanban_db.sqlite3.connect",
+        "sparkii_cli.kanban_db.sqlite3.connect",
         side_effect=wal_silent_noop_connect,
     ):
         with caplog.at_level("ERROR", logger="hermes_state"):
@@ -1135,7 +1135,7 @@ def test_migrate_add_optional_columns_tolerates_concurrent_migration(kanban_home
 
 
 def test_resolve_hermes_argv_falls_back_to_module_form_when_no_path_shim(monkeypatch):
-    """When the shim is not on PATH, fall back to `python -m hermes_cli.main`.
+    """When the shim is not on PATH, fall back to `python -m sparkii_cli.main`.
 
     Pins the correct module name (NOT `hermes` — there is no top-level
     `hermes` package). Regression for #23198: the original PR shipped
@@ -1144,25 +1144,25 @@ def test_resolve_hermes_argv_falls_back_to_module_form_when_no_path_shim(monkeyp
     """
     import shutil
     import sys
-    import hermes_cli.kanban_db as kb
+    import sparkii_cli.kanban_db as kb
 
     monkeypatch.delenv("HERMES_BIN", raising=False)
     monkeypatch.setattr(shutil, "which", lambda name: None)
     argv = kb._resolve_hermes_argv()
-    assert argv == [sys.executable, "-m", "hermes_cli.main"]
+    assert argv == [sys.executable, "-m", "sparkii_cli.main"]
 
 
 def test_resolve_hermes_argv_module_actually_runs():
     """The fallback module name must be importable + runnable.
 
     A unit test that pins the literal string is necessary but not
-    sufficient — if `hermes_cli.main` ever loses `if __name__ == "__main__"`
-    handling or its argparse setup, `python -m hermes_cli.main --version`
+    sufficient — if `sparkii_cli.main` ever loses `if __name__ == "__main__"`
+    handling or its argparse setup, `python -m sparkii_cli.main --version`
     would fail and so would every dispatcher spawn that hits the fallback.
     Run it as a real subprocess to catch that regression.
     """
     import subprocess
-    import hermes_cli.kanban_db as kb
+    import sparkii_cli.kanban_db as kb
     import shutil
     import unittest.mock as mock
 
@@ -1377,7 +1377,7 @@ def test_maybe_emit_scratch_tip_fires_once_per_install(kanban_home, caplog):
     # Sentinel must not exist yet on a fresh install.
     assert not kb._scratch_tip_shown()
 
-    with caplog.at_level(logging.WARNING, logger="hermes_cli.kanban_db"):
+    with caplog.at_level(logging.WARNING, logger="sparkii_cli.kanban_db"):
         with kb.connect() as conn:
             kb._maybe_emit_scratch_tip(conn, t1, "scratch")
 
@@ -1409,7 +1409,7 @@ def test_maybe_emit_scratch_tip_fires_once_per_install(kanban_home, caplog):
 
     # Second scratch materialization on the same install stays silent.
     caplog.clear()
-    with caplog.at_level(logging.WARNING, logger="hermes_cli.kanban_db"):
+    with caplog.at_level(logging.WARNING, logger="sparkii_cli.kanban_db"):
         with kb.connect() as conn:
             kb._maybe_emit_scratch_tip(conn, t2, "scratch")
     tip_records2 = [
@@ -1519,8 +1519,8 @@ def test_write_txn_check_reads_correct_header_fields(tmp_path):
     way the file must never come back clean.
     """
     import struct
-    from hermes_cli.kanban_db import connect
-    from hermes_cli.sqlite_safe_read import file_length_matches_header
+    from sparkii_cli.kanban_db import connect
+    from sparkii_cli.sqlite_safe_read import file_length_matches_header
 
     db = tmp_path / "synthetic.db"
     conn = connect(db_path=db)

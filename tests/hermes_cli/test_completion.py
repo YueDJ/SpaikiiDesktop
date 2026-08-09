@@ -1,4 +1,4 @@
-"""Tests for hermes_cli/completion.py — shell completion script generation."""
+"""Tests for sparkii_cli/completion.py — shell completion script generation."""
 
 import argparse
 import os
@@ -9,7 +9,7 @@ import tempfile
 
 import pytest
 
-from hermes_cli.completion import _walk, generate_bash, generate_zsh, generate_fish
+from sparkii_cli.completion import _walk, generate_bash, generate_zsh, generate_fish
 
 
 # ---------------------------------------------------------------------------

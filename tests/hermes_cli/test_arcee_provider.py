@@ -4,7 +4,7 @@ import types
 
 import pytest
 
-from hermes_cli.auth import (
+from sparkii_cli.auth import (
     PROVIDER_REGISTRY,
     resolve_provider,
     get_api_key_provider_status,
@@ -50,7 +50,7 @@ class TestArceeAliases:
         assert resolve_provider(alias) == "arcee"
 
     def test_normalize_provider_models_py(self):
-        from hermes_cli.models import normalize_provider
+        from sparkii_cli.models import normalize_provider
         assert normalize_provider("arcee-ai") == "arcee"
         assert normalize_provider("arceeai") == "arcee"
 
@@ -92,12 +92,12 @@ class TestArceeModelCatalog:
         """Arcee has a static _PROVIDER_MODELS catalog entry. Specific model
         names change with releases and don't belong in tests.
         """
-        from hermes_cli.models import _PROVIDER_MODELS
+        from sparkii_cli.models import _PROVIDER_MODELS
         assert "arcee" in _PROVIDER_MODELS
         assert len(_PROVIDER_MODELS["arcee"]) >= 1
 
     def test_canonical_provider_entry(self):
-        from hermes_cli.models import CANONICAL_PROVIDERS
+        from sparkii_cli.models import CANONICAL_PROVIDERS
         slugs = [p.slug for p in CANONICAL_PROVIDERS]
         assert "arcee" in slugs
 
@@ -109,12 +109,12 @@ class TestArceeModelCatalog:
 
 class TestArceeNormalization:
     def test_in_matching_prefix_strip_set(self):
-        from hermes_cli.model_normalize import _MATCHING_PREFIX_STRIP_PROVIDERS
+        from sparkii_cli.model_normalize import _MATCHING_PREFIX_STRIP_PROVIDERS
         assert "arcee" in _MATCHING_PREFIX_STRIP_PROVIDERS
 
 
     def test_bare_name_unchanged(self):
-        from hermes_cli.model_normalize import normalize_model_for_provider
+        from sparkii_cli.model_normalize import normalize_model_for_provider
         assert normalize_model_for_provider("trinity-mini", "arcee") == "trinity-mini"
 
 
@@ -145,7 +145,7 @@ class TestArceeURLMapping:
 
 class TestArceeProvidersModule:
     def test_overlay_exists(self):
-        from hermes_cli.providers import HERMES_OVERLAYS
+        from sparkii_cli.providers import HERMES_OVERLAYS
         assert "arcee" in HERMES_OVERLAYS
         overlay = HERMES_OVERLAYS["arcee"]
         assert overlay.transport == "openai_chat"

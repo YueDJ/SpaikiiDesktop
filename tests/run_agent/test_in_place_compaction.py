@@ -240,7 +240,7 @@ class TestInPlaceConfigDefault:
     def test_flag_defaults_on(self):
         """In-place is the default as of #38763 (rotation is now opt-out via
         compression.in_place: false)."""
-        from hermes_cli.config import DEFAULT_CONFIG
+        from sparkii_cli.config import DEFAULT_CONFIG
 
         assert DEFAULT_CONFIG["compression"].get("in_place") is True
 

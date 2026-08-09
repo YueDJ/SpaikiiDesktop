@@ -39,7 +39,7 @@ export type ScanOutcome =
 // ---------------------------------------------------------------------------
 
 const SCAN_TIMEOUT_MS = 15000
-const SCAN_MODULE = 'hermes_cli._scan_venv_blockers'
+const SCAN_MODULE = 'sparkii_cli._scan_venv_blockers'
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -209,6 +209,6 @@ export function formatProbeFailedMessage(): string {
     'Update aborted: Desktop could not verify the Sparkii installation is free.\n' +
     '\n' +
     'Close other Sparkii windows and terminals, then retry.  If the problem\n' +
-    'persists, run `hermes update` in a terminal for detailed diagnostics.'
+    'persists, run `sparkii update` in a terminal for detailed diagnostics.'
   )
 }

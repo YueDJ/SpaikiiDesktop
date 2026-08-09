@@ -5,8 +5,8 @@ columns + Free/Pro badges and gate paid models on free Nous accounts, the
 same way the `hermes model` CLI picker does.
 """
 
-import hermes_cli.inventory as inv
-import hermes_cli.models as models_mod
+import sparkii_cli.inventory as inv
+import sparkii_cli.models as models_mod
 
 
 def _patch_pricing(monkeypatch, *, free_tier, pricing, unavailable=None):

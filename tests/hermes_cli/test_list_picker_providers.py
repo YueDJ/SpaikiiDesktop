@@ -16,13 +16,13 @@ network or auth state is required.
 """
 
 import pytest
-from hermes_cli import model_switch
+from sparkii_cli import model_switch
 
 
 @pytest.fixture(autouse=True)
 def _disable_live_custom_provider_model_probe(monkeypatch):
     """Keep custom-provider picker fixtures independent of local model servers."""
-    monkeypatch.setattr("hermes_cli.models.fetch_api_models", lambda *_a, **_kw: None)
+    monkeypatch.setattr("sparkii_cli.models.fetch_api_models", lambda *_a, **_kw: None)
 
 
 def _make_provider(slug, name=None, models=None, *, is_current=False,
@@ -72,7 +72,7 @@ def test_passthrough_kwargs_to_base(monkeypatch):
         return []
 
     monkeypatch.setattr(model_switch, "list_authenticated_providers", _capture)
-    monkeypatch.setattr("hermes_cli.models.fetch_openrouter_models",
+    monkeypatch.setattr("sparkii_cli.models.fetch_openrouter_models",
                         lambda *a, **kw: [])
 
     model_switch.list_picker_providers(
@@ -117,7 +117,7 @@ def _stub_kimi_discovery(monkeypatch, *, canonical):
     the 2b cross-check pass should iterate.
     """
     import agent.models_dev as md
-    import hermes_cli.models as hm
+    import sparkii_cli.models as hm
 
     kimi_map = {
         "kimi": "kimi-for-coding",
@@ -137,7 +137,7 @@ def _stub_kimi_discovery(monkeypatch, *, canonical):
         name = "Kimi For Coding"
 
     monkeypatch.setattr(md, "get_provider_info", lambda _pid: _PInfo())
-    monkeypatch.setattr("hermes_cli.providers.HERMES_OVERLAYS", {})
+    monkeypatch.setattr("sparkii_cli.providers.HERMES_OVERLAYS", {})
     monkeypatch.setattr(hm, "CANONICAL_PROVIDERS", canonical)
     monkeypatch.setattr(hm, "cached_provider_model_ids",
                         lambda *a, **k: ["kimi-k2.6", "kimi-k2.5"])
@@ -146,7 +146,7 @@ def _stub_kimi_discovery(monkeypatch, *, canonical):
 
 def test_single_kimi_credential_yields_one_canonical_row(monkeypatch):
     """One Kimi key yields a single row under the canonical 'kimi-coding' slug."""
-    import hermes_cli.models as hm
+    import sparkii_cli.models as hm
 
     _stub_kimi_discovery(
         monkeypatch,
@@ -173,7 +173,7 @@ def test_distinct_kimi_china_credential_still_listed(monkeypatch):
     Negative-control guard: the de-dup must collapse only the alias/canonical
     pair that share a credential, not legitimately distinct providers.
     """
-    import hermes_cli.models as hm
+    import sparkii_cli.models as hm
 
     _stub_kimi_discovery(
         monkeypatch,

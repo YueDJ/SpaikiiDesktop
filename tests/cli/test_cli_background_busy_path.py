@@ -118,14 +118,14 @@ class TestBackgroundBusyPolicyContract:
     """The registry already declares the intent this detector implements."""
 
     def test_background_declares_dispatch_while_busy(self):
-        from hermes_cli.commands import resolve_command
+        from sparkii_cli.commands import resolve_command
 
         cmd = resolve_command("background")
         assert cmd is not None
         assert cmd.busy_policy == "dispatch"
 
     def test_aliases_resolve_to_background(self):
-        from hermes_cli.commands import resolve_command
+        from sparkii_cli.commands import resolve_command
 
         for alias in ("bg", "btw"):
             cmd = resolve_command(alias)

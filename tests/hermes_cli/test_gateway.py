@@ -1,4 +1,4 @@
-"""Tests for hermes_cli.gateway."""
+"""Tests for sparkii_cli.gateway."""
 
 import argparse
 import os
@@ -10,7 +10,7 @@ from types import ModuleType, SimpleNamespace
 
 import pytest
 
-import hermes_cli.gateway as gateway
+import sparkii_cli.gateway as gateway
 
 
 def _install_fake_gateway_run(monkeypatch, start_gateway):
@@ -77,7 +77,7 @@ def test_gateway_run_subprocess_preserves_daemon_exit_codes(
         import sys
         import types
 
-        import hermes_cli.gateway as gateway_cli
+        import sparkii_cli.gateway as gateway_cli
 
         outcome = os.environ["HERMES_TEST_GATEWAY_OUTCOME"]
 
@@ -170,8 +170,8 @@ def test_s6_runtime_snapshot_reports_supervised_service(monkeypatch, tmp_path):
 
     monkeypatch.setattr(gateway, "is_linux", lambda: True)
     monkeypatch.setattr("hermes_constants.is_container", lambda: True)
-    monkeypatch.setattr("hermes_cli.service_manager.detect_service_manager", lambda: "s6")
-    monkeypatch.setattr("hermes_cli.service_manager.get_service_manager", lambda: FakeS6Manager())
+    monkeypatch.setattr("sparkii_cli.service_manager.detect_service_manager", lambda: "s6")
+    monkeypatch.setattr("sparkii_cli.service_manager.get_service_manager", lambda: FakeS6Manager())
     monkeypatch.setattr(gateway, "find_gateway_pids", lambda: [123])
     monkeypatch.setattr(gateway, "_profile_suffix", lambda: "")
 
@@ -430,4 +430,4 @@ class TestStopProfileGateway:
 def test_module_has_logger():
     """Verify module has a logger instance (regression guard for #27154)."""
     assert hasattr(gateway, "logger")
-    assert gateway.logger.name == "hermes_cli.gateway"
+    assert gateway.logger.name == "sparkii_cli.gateway"

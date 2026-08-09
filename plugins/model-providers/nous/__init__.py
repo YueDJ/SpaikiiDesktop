@@ -21,7 +21,7 @@ class NousProfile(ProviderProfile):
         fallback, so this is cheap to call and safe offline.
         """
         try:
-            from hermes_cli.models import get_nous_recommended_aux_model
+            from sparkii_cli.models import get_nous_recommended_aux_model
 
             return get_nous_recommended_aux_model(vision=vision) or ""
         except Exception:

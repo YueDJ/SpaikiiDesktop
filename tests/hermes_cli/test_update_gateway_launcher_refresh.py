@@ -8,7 +8,7 @@ forever" gap:
    to the sibling console ``python.exe`` so respawns and regenerated
    launchers use the hidden-console design (#54220/#56747) and don't die
    with ``RuntimeError: sys.stderr is None`` (#71671).
-2. ``hermes_cli.main._refresh_windows_gateway_launchers`` — ``hermes
+2. ``sparkii_cli.main._refresh_windows_gateway_launchers`` — ``hermes
    update`` regenerates the installed Scheduled Task / Startup launcher
    scripts instead of leaving install-time artifacts stale forever.
 
@@ -21,8 +21,8 @@ from __future__ import annotations
 from pathlib import Path
 from unittest import mock
 
-import hermes_cli.gateway_windows as gateway_windows
-import hermes_cli.main as cli_main
+import sparkii_cli.gateway_windows as gateway_windows
+import sparkii_cli.main as cli_main
 
 
 # ---------------------------------------------------------------------------
@@ -63,13 +63,13 @@ def test_restart_spec_normalizes_legacy_pythonw_argv(tmp_path):
     # instead of re-importing under the win32 platform patch (see the
     # TestWindowlessGatewayRestartSpec comment in
     # tests/tools/test_windows_native_support.py).
-    import hermes_cli.config  # noqa: F401
-    import hermes_cli.gateway  # noqa: F401
+    import sparkii_cli.config  # noqa: F401
+    import sparkii_cli.gateway  # noqa: F401
 
-    argv = [str(pythonw), "-m", "hermes_cli.main", "gateway", "run"]
+    argv = [str(pythonw), "-m", "sparkii_cli.main", "gateway", "run"]
     with mock.patch.object(gateway_windows.sys, "platform", "win32"), mock.patch.object(
         gateway_windows, "_stable_gateway_working_dir", return_value=str(tmp_path)
-    ), mock.patch("hermes_cli.config.get_hermes_home", return_value=str(tmp_path)):
+    ), mock.patch("sparkii_cli.config.get_hermes_home", return_value=str(tmp_path)):
         new_argv, cwd, env = gateway_windows.windowless_gateway_restart_spec(list(argv))
 
     assert new_argv[0] == str(python)

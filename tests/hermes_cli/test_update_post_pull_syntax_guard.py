@@ -1,13 +1,13 @@
 """Tests for the post-pull syntax guard in ``hermes update``.
 
 When a bad commit lands on ``main`` with a syntax error in a critical file
-(e.g. orphan merge-conflict markers in ``hermes_cli/config.py``), the CLI
+(e.g. orphan merge-conflict markers in ``sparkii_cli/config.py``), the CLI
 becomes unbootable — every ``hermes`` invocation imports those files at
 startup. The guard validates them after ``git pull`` and rolls back to the
 pre-pull SHA on failure so the user's install stays runnable.
 
 Reference incident: PR #28452 (May 18, 2026) shipped unresolved conflict
-markers in ``hermes_cli/config.py``; users who ran ``hermes update`` in
+markers in ``sparkii_cli/config.py``; users who ran ``hermes update`` in
 the 7-minute window before #28458 landed could not run any ``hermes``
 command afterward.
 """
@@ -17,7 +17,7 @@ from __future__ import annotations
 from pathlib import Path
 from types import SimpleNamespace
 
-from hermes_cli import main as hermes_main
+from sparkii_cli import main as hermes_main
 
 
 # ---------------------------------------------------------------------------

@@ -6,7 +6,7 @@ from fastapi.responses import Response
 from fastapi.testclient import TestClient
 from starlette.requests import Request
 
-from hermes_cli.dashboard_auth.cookies import (
+from sparkii_cli.dashboard_auth.cookies import (
     PKCE_COOKIE,
     SESSION_AT_COOKIE,
     SESSION_PROVIDER_COOKIE,

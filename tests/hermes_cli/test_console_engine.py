@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli.console_engine import HermesConsoleEngine, run_console_repl
+from sparkii_cli.console_engine import HermesConsoleEngine, run_console_repl
 
 
 EXPECTED_CONSOLE_COMMANDS = {
@@ -477,7 +477,7 @@ def test_repl_runs_non_interactive_lines_without_prompts(_isolate_hermes_home):
 
 
 def test_capture_output_surfaces_string_exit_code_as_command_error():
-    from hermes_cli.console_engine import ConsoleCommandError, _capture_output
+    from sparkii_cli.console_engine import ConsoleCommandError, _capture_output
 
     def _boom():
         sys.exit("No credential matching \"nope\".")
@@ -489,7 +489,7 @@ def test_capture_output_surfaces_string_exit_code_as_command_error():
 
 
 def test_capture_output_preserves_integer_exit_code_message():
-    from hermes_cli.console_engine import ConsoleCommandError, _capture_output
+    from sparkii_cli.console_engine import ConsoleCommandError, _capture_output
 
     with pytest.raises(ConsoleCommandError) as exc_info:
         _capture_output(lambda: sys.exit(3))

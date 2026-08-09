@@ -241,7 +241,7 @@ class TestRunJobKanbanIsolation:
         fake_mod.AIAgent = agent_cls or FakeAgent
         monkeypatch.setitem(sys.modules, "run_agent", fake_mod)
 
-        from hermes_cli import runtime_provider as _rtp
+        from sparkii_cli import runtime_provider as _rtp
 
         monkeypatch.setattr(
             _rtp, "resolve_runtime_provider",
@@ -385,7 +385,7 @@ def test_every_dispatcher_kanban_var_is_identity_gated():
 
     Fails loudly if a new dispatcher var is added without registering it.
     """
-    import hermes_cli.kanban_db as kanban_db
+    import sparkii_cli.kanban_db as kanban_db
     from agent.delegation_context import KANBAN_ENV_KEYS
 
     source = ast.parse(open(kanban_db.__file__, encoding="utf-8").read())

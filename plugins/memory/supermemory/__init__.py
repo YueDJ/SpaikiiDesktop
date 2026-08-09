@@ -603,8 +603,8 @@ class SupermemoryMemoryProvider(MemoryProvider):
     def post_setup(self, hermes_home: str, config: dict) -> None:
         from pathlib import Path
 
-        from hermes_cli.config import save_config
-        from hermes_cli.memory_setup import _prompt, _write_env_vars
+        from sparkii_cli.config import save_config
+        from sparkii_cli.memory_setup import _prompt, _write_env_vars
 
         print("\n  Configuring supermemory:\n")
         print(f"  Get your API key at {_API_KEY_URL}\n")

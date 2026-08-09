@@ -1,11 +1,11 @@
 """Session listing/rich rows, export, and import (portability) for SessionDB.
 
 Mixin contract: this is a plain mixin class consumed by
-``hermes_state.SessionDB``. It defines no ``__init__`` and no state of its
+``sparkii_state.SessionDB``. It defines no ``__init__`` and no state of its
 own; methods access the host's attributes (``self._conn``, ``self.db_path``,
 ``self._execute_write`` and other SessionDB methods) established by
-``SessionDB.__init__``. It must never import hermes_state (cycle) — shared
-module-level constants live in hermes_state_common.
+``SessionDB.__init__``. It must never import sparkii_state (cycle) — shared
+module-level constants live in sparkii_state_common.
 """
 
 import logging
@@ -14,16 +14,16 @@ import time
 from typing import Any, Dict, List, Optional
 
 from agent.skill_commands import SKILL_SCAFFOLD_SQL_LIKE
-from hermes_state_common import (
+from sparkii_state_common import (
     SCHEMA_SQL,
     _PREVIEW_RAW_SELECT,
     _shape_preview,
     _sql_session_last_active,
 )
 
-# Moved methods logged under the "hermes_state" logger before the split;
+# Moved methods logged under the "sparkii_state" logger before the split;
 # keep that logger identity so log filtering/capture behavior is unchanged.
-logger = logging.getLogger("hermes_state")
+logger = logging.getLogger("sparkii_state")
 
 
 class SessionPortabilityMixin:

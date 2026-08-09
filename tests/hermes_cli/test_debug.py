@@ -32,7 +32,7 @@ def hermes_home(tmp_path, monkeypatch):
         "2026-04-12 17:00:10 INFO gateway.run: started\n"
     )
     (logs_dir / "gui.log").write_text(
-        "2026-04-12 17:00:12 INFO hermes_cli.web_server: dashboard request\n"
+        "2026-04-12 17:00:12 INFO sparkii_cli.web_server: dashboard request\n"
     )
     (logs_dir / "desktop.log").write_text(
         "2026-04-12 17:00:15 INFO desktop: backend spawned\n"
@@ -49,24 +49,24 @@ class TestUploadPasteRs:
     """Test paste.rs upload path."""
 
     def test_upload_paste_rs_success(self):
-        from hermes_cli.debug import _upload_paste_rs
+        from sparkii_cli.debug import _upload_paste_rs
 
         mock_resp = MagicMock()
         mock_resp.read.return_value = b"https://paste.rs/abc123\n"
         mock_resp.__enter__ = lambda s: s
         mock_resp.__exit__ = MagicMock(return_value=False)
 
-        with patch("hermes_cli.debug.urllib.request.urlopen", return_value=mock_resp):
+        with patch("sparkii_cli.debug.urllib.request.urlopen", return_value=mock_resp):
             url = _upload_paste_rs("hello world")
 
         assert url == "https://paste.rs/abc123"
 
 
     def test_upload_paste_rs_network_error(self):
-        from hermes_cli.debug import _upload_paste_rs
+        from sparkii_cli.debug import _upload_paste_rs
 
         with patch(
-            "hermes_cli.debug.urllib.request.urlopen",
+            "sparkii_cli.debug.urllib.request.urlopen",
             side_effect=urllib.error.URLError("connection refused"),
         ):
             with pytest.raises(urllib.error.URLError):
@@ -80,11 +80,11 @@ class TestUploadToPastebin:
 
 
     def test_falls_back_to_dpaste_com(self):
-        from hermes_cli.debug import upload_to_pastebin
+        from sparkii_cli.debug import upload_to_pastebin
 
-        with patch("hermes_cli.debug._upload_paste_rs",
+        with patch("sparkii_cli.debug._upload_paste_rs",
                     side_effect=Exception("down")), \
-             patch("hermes_cli.debug._upload_dpaste_com",
+             patch("sparkii_cli.debug._upload_dpaste_com",
                     return_value="https://dpaste.com/TEST") as dp:
             url = upload_to_pastebin("content")
 
@@ -92,11 +92,11 @@ class TestUploadToPastebin:
         dp.assert_called_once()
 
     def test_raises_when_both_fail(self):
-        from hermes_cli.debug import upload_to_pastebin
+        from sparkii_cli.debug import upload_to_pastebin
 
-        with patch("hermes_cli.debug._upload_paste_rs",
+        with patch("sparkii_cli.debug._upload_paste_rs",
                     side_effect=Exception("err1")), \
-             patch("hermes_cli.debug._upload_dpaste_com",
+             patch("sparkii_cli.debug._upload_dpaste_com",
                     side_effect=Exception("err2")):
             with pytest.raises(RuntimeError, match="Failed to upload"):
                 upload_to_pastebin("content")
@@ -115,7 +115,7 @@ class TestCaptureLogSnapshot:
     def test_race_truncate_after_resolve_reports_empty(self, hermes_home, monkeypatch):
         """If the log is truncated between resolve and stat, say 'empty', not 'missing'."""
         log_path = hermes_home / "logs" / "agent.log"
-        from hermes_cli import debug
+        from sparkii_cli import debug
 
         monkeypatch.setattr(debug, "_resolve_log_path", lambda _name: log_path)
         log_path.write_text("")
@@ -128,7 +128,7 @@ class TestCaptureLogSnapshot:
 
     def test_keeps_first_line_when_truncation_on_boundary(self, hermes_home):
         """When truncation lands on a line boundary, keep the first full line."""
-        from hermes_cli.debug import _capture_log_snapshot
+        from sparkii_cli.debug import _capture_log_snapshot
 
         # File must exceed the initial chunk_size (8192) used by the
         # backward-reading loop so the truncation path actually fires.
@@ -155,7 +155,7 @@ class TestMissingLogNote:
     """
 
     def test_backend_written_log_reports_plain_absence(self, hermes_home):
-        from hermes_cli.debug import _capture_log_snapshot
+        from sparkii_cli.debug import _capture_log_snapshot
 
         (hermes_home / "logs" / "agent.log").unlink()
 
@@ -164,7 +164,7 @@ class TestMissingLogNote:
         assert snap.tail_text == "(file not found)"
 
     def test_client_written_log_names_its_writer_and_path(self, hermes_home):
-        from hermes_cli.debug import _capture_log_snapshot
+        from sparkii_cli.debug import _capture_log_snapshot
 
         (hermes_home / "logs" / "desktop.log").unlink()
 
@@ -177,7 +177,7 @@ class TestMissingLogNote:
 
     def test_present_client_log_is_captured_normally(self, hermes_home):
         """A local backend still reads desktop.log — the note is only for a miss."""
-        from hermes_cli.debug import _capture_log_snapshot
+        from sparkii_cli.debug import _capture_log_snapshot
 
         snap = _capture_log_snapshot("desktop", tail_lines=10)
         assert "backend spawned" in snap.tail_text
@@ -185,7 +185,7 @@ class TestMissingLogNote:
 
     def test_empty_client_log_is_empty_not_absent(self, hermes_home):
         """An empty file means the app ran and logged nothing — a different fact."""
-        from hermes_cli.debug import _capture_log_snapshot
+        from sparkii_cli.debug import _capture_log_snapshot
 
         (hermes_home / "logs" / "desktop.log").write_text("")
 
@@ -194,7 +194,7 @@ class TestMissingLogNote:
 
     def test_report_carries_the_note_for_a_remote_backend(self, hermes_home):
         """The uploaded report — what people paste into support — must explain it."""
-        from hermes_cli.debug import collect_debug_report
+        from sparkii_cli.debug import collect_debug_report
 
         (hermes_home / "logs" / "desktop.log").unlink()
 
@@ -240,7 +240,7 @@ class TestCaptureLogSnapshotRedaction:
         return home
 
     def test_default_redacts_tail_and_full_text(self, hermes_home_with_secret):
-        from hermes_cli.debug import _capture_log_snapshot
+        from sparkii_cli.debug import _capture_log_snapshot
 
         snap = _capture_log_snapshot("agent", tail_lines=10)
 
@@ -250,7 +250,7 @@ class TestCaptureLogSnapshotRedaction:
         assert _REDACT_FIXTURE_TOKEN not in snap.full_text
 
     def test_redact_false_passes_through(self, hermes_home_with_secret):
-        from hermes_cli.debug import _capture_log_snapshot
+        from sparkii_cli.debug import _capture_log_snapshot
 
         snap = _capture_log_snapshot("agent", tail_lines=10, redact=False)
 
@@ -274,7 +274,7 @@ class TestCaptureLogSnapshotRedaction:
         # not the default-on path.
         monkeypatch.setenv("HERMES_REDACT_SECRETS", "false")
 
-        from hermes_cli.debug import _capture_log_snapshot
+        from sparkii_cli.debug import _capture_log_snapshot
 
         assert os.environ.get("HERMES_REDACT_SECRETS", "") == "false"
 
@@ -287,7 +287,7 @@ class TestCaptureLogSnapshotRedaction:
     def test_default_redacts_email_addresses_for_public_share(
         self, hermes_home_with_secret
     ):
-        from hermes_cli.debug import _capture_log_snapshot
+        from sparkii_cli.debug import _capture_log_snapshot
 
         log_path = hermes_home_with_secret / "logs" / "agent.log"
         log_path.write_text(
@@ -304,7 +304,7 @@ class TestCaptureLogSnapshotRedaction:
         assert "person@example.com" not in snap.full_text
 
     def test_no_redact_preserves_email_addresses(self, hermes_home_with_secret):
-        from hermes_cli.debug import _capture_log_snapshot
+        from sparkii_cli.debug import _capture_log_snapshot
 
         log_path = hermes_home_with_secret / "logs" / "agent.log"
         log_path.write_text(
@@ -321,7 +321,7 @@ class TestCaptureLogSnapshotRedaction:
     def test_capture_default_log_snapshots_threads_redact(
         self, hermes_home_with_secret
     ):
-        from hermes_cli.debug import _capture_default_log_snapshots
+        from sparkii_cli.debug import _capture_default_log_snapshots
 
         snaps = _capture_default_log_snapshots(50)
 
@@ -332,7 +332,7 @@ class TestCaptureLogSnapshotRedaction:
     def test_capture_default_log_snapshots_no_redact_passes_through(
         self, hermes_home_with_secret
     ):
-        from hermes_cli.debug import _capture_default_log_snapshots
+        from sparkii_cli.debug import _capture_default_log_snapshots
 
         snaps = _capture_default_log_snapshots(50, redact=False)
 
@@ -348,9 +348,9 @@ class TestCollectDebugReport:
     """Test the debug report builder."""
 
     def test_report_includes_dump_output(self, hermes_home):
-        from hermes_cli.debug import collect_debug_report
+        from sparkii_cli.debug import collect_debug_report
 
-        with patch("hermes_cli.dump.run_dump") as mock_dump:
+        with patch("sparkii_cli.dump.run_dump") as mock_dump:
             mock_dump.side_effect = lambda args: print(
                 "--- hermes dump ---\nversion: 0.8.0\n--- end dump ---"
             )
@@ -369,7 +369,7 @@ class TestRunDebugShare:
 
     def test_share_sweeps_expired_pastes(self, hermes_home, capsys):
         """Slash-command path should sweep old pending deletes before uploading."""
-        from hermes_cli.debug import run_debug_share
+        from sparkii_cli.debug import run_debug_share
 
         args = MagicMock()
         args.lines = 50
@@ -377,9 +377,9 @@ class TestRunDebugShare:
         args.local = False
         args.nous = False
 
-        with patch("hermes_cli.dump.run_dump"), \
-             patch("hermes_cli.debug._sweep_expired_pastes", return_value=(0, 0)) as mock_sweep, \
-             patch("hermes_cli.debug.upload_to_pastebin",
+        with patch("sparkii_cli.dump.run_dump"), \
+             patch("sparkii_cli.debug._sweep_expired_pastes", return_value=(0, 0)) as mock_sweep, \
+             patch("sparkii_cli.debug.upload_to_pastebin",
                     return_value="https://paste.rs/test"):
             run_debug_share(args)
 
@@ -390,7 +390,7 @@ class TestRunDebugShare:
 
     def test_share_uploads_five_pastes(self, hermes_home, capsys):
         """Successful share uploads report + agent.log + gateway.log + gui.log + desktop.log."""
-        from hermes_cli.debug import run_debug_share
+        from sparkii_cli.debug import run_debug_share
 
         args = MagicMock()
         args.lines = 50
@@ -405,8 +405,8 @@ class TestRunDebugShare:
             uploaded_content.append(content)
             return f"https://paste.rs/paste{call_count[0]}"
 
-        with patch("hermes_cli.dump.run_dump") as mock_dump, \
-             patch("hermes_cli.debug.upload_to_pastebin",
+        with patch("sparkii_cli.dump.run_dump") as mock_dump, \
+             patch("sparkii_cli.debug.upload_to_pastebin",
                     side_effect=_mock_upload):
             mock_dump.side_effect = lambda a: print("--- hermes dump ---\nversion: test\n--- end dump ---")
             run_debug_share(args)
@@ -472,7 +472,7 @@ class TestRunDebugShareRedaction:
         self, hermes_home_with_secret, capsys
     ):
         """The uploaded report and full-log pastes do not contain the raw token."""
-        from hermes_cli.debug import run_debug_share
+        from sparkii_cli.debug import run_debug_share
 
         args = MagicMock()
         args.lines = 50
@@ -487,9 +487,9 @@ class TestRunDebugShareRedaction:
             captured.append(content)
             return f"https://paste.rs/{len(captured)}"
 
-        with patch("hermes_cli.dump.run_dump"), \
-             patch("hermes_cli.debug._sweep_expired_pastes", return_value=(0, 0)), \
-             patch("hermes_cli.debug.upload_to_pastebin", side_effect=fake_upload):
+        with patch("sparkii_cli.dump.run_dump"), \
+             patch("sparkii_cli.debug._sweep_expired_pastes", return_value=(0, 0)), \
+             patch("sparkii_cli.debug.upload_to_pastebin", side_effect=fake_upload):
             run_debug_share(args)
 
         # At least the report plus one full log paste reached the upload path.
@@ -503,7 +503,7 @@ class TestRunDebugShareRedaction:
         self, hermes_home_with_secret, capsys
     ):
         """Each upload-bound paste carries the visible redaction banner."""
-        from hermes_cli.debug import run_debug_share
+        from sparkii_cli.debug import run_debug_share
 
         args = MagicMock()
         args.lines = 50
@@ -518,9 +518,9 @@ class TestRunDebugShareRedaction:
             captured.append(content)
             return f"https://paste.rs/{len(captured)}"
 
-        with patch("hermes_cli.dump.run_dump"), \
-             patch("hermes_cli.debug._sweep_expired_pastes", return_value=(0, 0)), \
-             patch("hermes_cli.debug.upload_to_pastebin", side_effect=fake_upload):
+        with patch("sparkii_cli.dump.run_dump"), \
+             patch("sparkii_cli.debug._sweep_expired_pastes", return_value=(0, 0)), \
+             patch("sparkii_cli.debug.upload_to_pastebin", side_effect=fake_upload):
             run_debug_share(args)
 
         for content in captured:
@@ -532,7 +532,7 @@ class TestRunDebugShareRedaction:
         self, hermes_home_with_secret, capsys
     ):
         """--no-redact preserves original log content and omits the banner."""
-        from hermes_cli.debug import run_debug_share
+        from sparkii_cli.debug import run_debug_share
 
         args = MagicMock()
         args.lines = 50
@@ -547,9 +547,9 @@ class TestRunDebugShareRedaction:
             captured.append(content)
             return f"https://paste.rs/{len(captured)}"
 
-        with patch("hermes_cli.dump.run_dump"), \
-             patch("hermes_cli.debug._sweep_expired_pastes", return_value=(0, 0)), \
-             patch("hermes_cli.debug.upload_to_pastebin", side_effect=fake_upload):
+        with patch("sparkii_cli.dump.run_dump"), \
+             patch("sparkii_cli.debug._sweep_expired_pastes", return_value=(0, 0)), \
+             patch("sparkii_cli.debug.upload_to_pastebin", side_effect=fake_upload):
             run_debug_share(args)
 
         # The agent.log paste should now contain the raw token.
@@ -569,7 +569,7 @@ class TestRunDebugShareRedaction:
 
 class TestRunDebug:
     def test_no_subcommand_shows_usage(self, capsys):
-        from hermes_cli.debug import run_debug
+        from sparkii_cli.debug import run_debug
 
         args = MagicMock()
         args.debug_command = None
@@ -582,7 +582,7 @@ class TestRunDebug:
         assert "delete" in out
 
     def test_share_subcommand_routes(self, hermes_home):
-        from hermes_cli.debug import run_debug
+        from sparkii_cli.debug import run_debug
 
         args = MagicMock()
         args.debug_command = "share"
@@ -591,7 +591,7 @@ class TestRunDebug:
         args.local = True
         args.nous = False
 
-        with patch("hermes_cli.dump.run_dump"):
+        with patch("sparkii_cli.dump.run_dump"):
             run_debug(args)
 
 
@@ -605,25 +605,25 @@ class TestRunDebug:
 
 class TestExtractPasteId:
     def test_paste_rs_url(self):
-        from hermes_cli.debug import _extract_paste_id
+        from sparkii_cli.debug import _extract_paste_id
         assert _extract_paste_id("https://paste.rs/abc123") == "abc123"
 
 
     def test_empty_returns_none(self):
-        from hermes_cli.debug import _extract_paste_id
+        from sparkii_cli.debug import _extract_paste_id
         assert _extract_paste_id("") is None
 
 
 class TestDeletePaste:
     def test_delete_sends_delete_request(self):
-        from hermes_cli.debug import delete_paste
+        from sparkii_cli.debug import delete_paste
 
         mock_resp = MagicMock()
         mock_resp.status = 200
         mock_resp.__enter__ = lambda s: s
         mock_resp.__exit__ = MagicMock(return_value=False)
 
-        with patch("hermes_cli.debug.urllib.request.urlopen",
+        with patch("sparkii_cli.debug.urllib.request.urlopen",
                     return_value=mock_resp) as mock_open:
             result = delete_paste("https://paste.rs/abc123")
 
@@ -648,7 +648,7 @@ class TestScheduleAutoDelete:
 
     def test_records_pending_to_json(self, hermes_home):
         """Scheduled URLs are persisted to pending.json with expiration."""
-        from hermes_cli.debug import _schedule_auto_delete, _pending_file
+        from sparkii_cli.debug import _schedule_auto_delete, _pending_file
         import json
 
         _schedule_auto_delete(
@@ -674,7 +674,7 @@ class TestScheduleAutoDelete:
 
     def test_dedupes_same_url(self, hermes_home):
         """Same URL recorded twice → one entry with the later expire_at."""
-        from hermes_cli.debug import _schedule_auto_delete, _load_pending
+        from sparkii_cli.debug import _schedule_auto_delete, _load_pending
 
         _schedule_auto_delete(["https://paste.rs/dup"], delay_seconds=10)
         _schedule_auto_delete(["https://paste.rs/dup"], delay_seconds=100)
@@ -689,7 +689,7 @@ class TestSweepExpiredPastes:
 
 
     def test_sweep_deletes_expired_entries(self, hermes_home):
-        from hermes_cli.debug import (
+        from sparkii_cli.debug import (
             _sweep_expired_pastes,
             _save_pending,
             _load_pending,
@@ -708,7 +708,7 @@ class TestSweepExpiredPastes:
             delete_calls.append(url)
             return True
 
-        with patch("hermes_cli.debug.delete_paste", side_effect=fake_delete):
+        with patch("sparkii_cli.debug.delete_paste", side_effect=fake_delete):
             deleted, remaining = _sweep_expired_pastes()
 
         assert delete_calls == ["https://paste.rs/expired"]
@@ -720,7 +720,7 @@ class TestSweepExpiredPastes:
         assert urls == {"https://paste.rs/future"}
 
     def test_sweep_leaves_future_entries_alone(self, hermes_home):
-        from hermes_cli.debug import _sweep_expired_pastes, _save_pending
+        from sparkii_cli.debug import _sweep_expired_pastes, _save_pending
         import time
 
         _save_pending([
@@ -728,7 +728,7 @@ class TestSweepExpiredPastes:
             {"url": "https://paste.rs/future2", "expire_at": time.time() + 7200},
         ])
 
-        with patch("hermes_cli.debug.delete_paste") as mock_delete:
+        with patch("sparkii_cli.debug.delete_paste") as mock_delete:
             deleted, remaining = _sweep_expired_pastes()
 
         mock_delete.assert_not_called()
@@ -737,7 +737,7 @@ class TestSweepExpiredPastes:
 
     def test_sweep_survives_network_failure(self, hermes_home):
         """Failed DELETEs stay in pending.json until the 24h grace window."""
-        from hermes_cli.debug import (
+        from sparkii_cli.debug import (
             _sweep_expired_pastes,
             _save_pending,
             _load_pending,
@@ -749,7 +749,7 @@ class TestSweepExpiredPastes:
         ])
 
         with patch(
-            "hermes_cli.debug.delete_paste",
+            "sparkii_cli.debug.delete_paste",
             side_effect=Exception("network down"),
         ):
             deleted, remaining = _sweep_expired_pastes()
@@ -764,12 +764,12 @@ class TestRunDebugSweepsOnInvocation:
     """``run_debug`` must sweep expired pastes on every invocation."""
 
     def test_run_debug_calls_sweep(self, hermes_home):
-        from hermes_cli.debug import run_debug
+        from sparkii_cli.debug import run_debug
 
         args = MagicMock()
         args.debug_command = None  # default → prints help
 
-        with patch("hermes_cli.debug._sweep_expired_pastes") as mock_sweep:
+        with patch("sparkii_cli.debug._sweep_expired_pastes") as mock_sweep:
             run_debug(args)
 
         mock_sweep.assert_called_once()
@@ -778,12 +778,12 @@ class TestRunDebugSweepsOnInvocation:
 class TestRunDebugDelete:
 
     def test_handles_delete_failure(self, capsys):
-        from hermes_cli.debug import run_debug_delete
+        from sparkii_cli.debug import run_debug_delete
 
         args = MagicMock()
         args.urls = ["https://paste.rs/abc"]
 
-        with patch("hermes_cli.debug.delete_paste",
+        with patch("sparkii_cli.debug.delete_paste",
                     side_effect=Exception("network error")):
             run_debug_delete(args)
 
@@ -796,7 +796,7 @@ class TestShareIncludesAutoDelete:
 
 
     def test_share_shows_privacy_notice(self, hermes_home, capsys):
-        from hermes_cli.debug import run_debug_share
+        from sparkii_cli.debug import run_debug_share
 
         args = MagicMock()
         args.lines = 50
@@ -804,10 +804,10 @@ class TestShareIncludesAutoDelete:
         args.local = False
         args.nous = False
 
-        with patch("hermes_cli.dump.run_dump"), \
-             patch("hermes_cli.debug.upload_to_pastebin",
+        with patch("sparkii_cli.dump.run_dump"), \
+             patch("sparkii_cli.debug.upload_to_pastebin",
                     return_value="https://paste.rs/test"), \
-             patch("hermes_cli.debug._schedule_auto_delete"):
+             patch("sparkii_cli.debug._schedule_auto_delete"):
             run_debug_share(args)
 
         out = capsys.readouterr().out
@@ -831,7 +831,7 @@ class TestBuildDebugShare:
 
 
     def test_redaction_keeps_secrets_out_of_payload(self, hermes_home):
-        from hermes_cli.debug import build_debug_share
+        from sparkii_cli.debug import build_debug_share
 
         secret = "sk-proj-SUPERSECRETtoken1234567890"
         (hermes_home / "logs" / "agent.log").write_text(
@@ -844,9 +844,9 @@ class TestBuildDebugShare:
             uploaded.append(content)
             return "https://paste.rs/x"
 
-        with patch("hermes_cli.dump.run_dump"), patch(
-            "hermes_cli.debug.upload_to_pastebin", side_effect=_upload
-        ), patch("hermes_cli.debug._schedule_auto_delete"):
+        with patch("sparkii_cli.dump.run_dump"), patch(
+            "sparkii_cli.debug.upload_to_pastebin", side_effect=_upload
+        ), patch("sparkii_cli.debug._schedule_auto_delete"):
             result = build_debug_share(log_lines=50, redact=True)
 
         assert result.redacted is True
@@ -854,7 +854,7 @@ class TestBuildDebugShare:
         assert secret not in joined, "secret leaked into upload payload"
 
     def test_optional_log_failure_is_collected_not_raised(self, hermes_home):
-        from hermes_cli.debug import build_debug_share
+        from sparkii_cli.debug import build_debug_share
 
         count = [0]
 
@@ -865,9 +865,9 @@ class TestBuildDebugShare:
                 raise RuntimeError("paste service hiccup")
             return f"https://paste.rs/p{count[0]}"
 
-        with patch("hermes_cli.dump.run_dump"), patch(
-            "hermes_cli.debug.upload_to_pastebin", side_effect=_upload
-        ), patch("hermes_cli.debug._schedule_auto_delete"):
+        with patch("sparkii_cli.dump.run_dump"), patch(
+            "sparkii_cli.debug.upload_to_pastebin", side_effect=_upload
+        ), patch("sparkii_cli.debug._schedule_auto_delete"):
             result = build_debug_share(log_lines=50, redact=True)
 
         assert "Report" in result.urls
@@ -883,21 +883,21 @@ class TestBuildDebugShare:
 class TestCollectShareBundle:
 
     def test_no_redact_omits_banner(self, hermes_home):
-        from hermes_cli.debug import collect_share_bundle
+        from sparkii_cli.debug import collect_share_bundle
 
-        with patch("hermes_cli.dump.run_dump"):
+        with patch("sparkii_cli.dump.run_dump"):
             bundle = collect_share_bundle(log_lines=50, redact=False)
 
         assert "redacted at upload time" not in bundle["report"]
 
     def test_redaction_keeps_secrets_out(self, hermes_home):
-        from hermes_cli.debug import collect_share_bundle
+        from sparkii_cli.debug import collect_share_bundle
 
         secret = "sk-proj-abcdefghijklmnopqrstuvwxyz1234567890"
         (hermes_home / "logs" / "agent.log").write_text(
             f"line one\nOPENAI_API_KEY={secret}\nline three\n"
         )
-        with patch("hermes_cli.dump.run_dump"):
+        with patch("sparkii_cli.dump.run_dump"):
             redacted = collect_share_bundle(log_lines=50, redact=True)
             unredacted = collect_share_bundle(log_lines=50, redact=False)
 
@@ -914,7 +914,7 @@ class TestBuildNousBundle:
         import gzip
         import json as _json
 
-        from hermes_cli.debug import build_nous_bundle
+        from sparkii_cli.debug import build_nous_bundle
 
         files = {"report": "hello", "agent.log": "log line"}
         blob = build_nous_bundle(files, redact=True)
@@ -931,7 +931,7 @@ class TestBuildNousBundle:
         import gzip
         import json as _json
 
-        from hermes_cli.debug import build_nous_bundle
+        from sparkii_cli.debug import build_nous_bundle
 
         blob = build_nous_bundle({"report": "x"}, redact=False)
         envelope = _json.loads(gzip.decompress(blob).decode())
@@ -954,15 +954,15 @@ class TestRunDebugShareNous:
         return a
 
     def test_nous_success_prints_view_url(self, hermes_home, capsys):
-        from hermes_cli.debug import run_debug_share
+        from sparkii_cli.debug import run_debug_share
 
         res = {
             "id": "id-1",
             "viewUrl": "https://support.example.com/diagnostics/id-1",
             "expiresAt": "2026-06-20T00:00:00Z",
         }
-        with patch("hermes_cli.dump.run_dump"), patch(
-            "hermes_cli.diagnostics_upload.share_to_nous", return_value=res
+        with patch("sparkii_cli.dump.run_dump"), patch(
+            "sparkii_cli.diagnostics_upload.share_to_nous", return_value=res
         ) as share:
             run_debug_share(self._args())
 
@@ -975,10 +975,10 @@ class TestRunDebugShareNous:
         assert isinstance(blob, (bytes, bytearray)) and blob[:2] == b"\x1f\x8b"
 
     def test_nous_failure_suggests_local(self, hermes_home, capsys):
-        from hermes_cli.debug import run_debug_share
+        from sparkii_cli.debug import run_debug_share
 
-        with patch("hermes_cli.dump.run_dump"), patch(
-            "hermes_cli.diagnostics_upload.share_to_nous",
+        with patch("sparkii_cli.dump.run_dump"), patch(
+            "sparkii_cli.diagnostics_upload.share_to_nous",
             side_effect=RuntimeError("service down"),
         ):
             with pytest.raises(SystemExit) as exc:
@@ -989,12 +989,12 @@ class TestRunDebugShareNous:
         assert "--local" in err
 
     def test_nous_does_not_touch_pastebin(self, hermes_home):
-        from hermes_cli.debug import run_debug_share
+        from sparkii_cli.debug import run_debug_share
 
         res = {"id": "id-1", "viewUrl": "https://v"}
-        with patch("hermes_cli.dump.run_dump"), patch(
-            "hermes_cli.diagnostics_upload.share_to_nous", return_value=res
-        ), patch("hermes_cli.debug.upload_to_pastebin") as paste:
+        with patch("sparkii_cli.dump.run_dump"), patch(
+            "sparkii_cli.diagnostics_upload.share_to_nous", return_value=res
+        ), patch("sparkii_cli.debug.upload_to_pastebin") as paste:
             run_debug_share(self._args())
         paste.assert_not_called()
 
@@ -1009,7 +1009,7 @@ class TestDebugSlashCommand:
     """
 
     def _handler(self):
-        from hermes_cli.cli_commands_mixin import CLICommandsMixin
+        from sparkii_cli.cli_commands_mixin import CLICommandsMixin
 
         class _Stub(CLICommandsMixin):
             pass
@@ -1022,7 +1022,7 @@ class TestDebugSlashCommand:
         def _fake_run(args):
             captured.update(vars(args))
 
-        with patch("hermes_cli.debug.run_debug_share", _fake_run):
+        with patch("sparkii_cli.debug.run_debug_share", _fake_run):
             self._handler()(cmd_original)
         return captured
 
@@ -1067,12 +1067,12 @@ class TestShareConsentGate:
 
     def test_non_interactive_requires_yes(self, hermes_home, capsys, monkeypatch):
         """No TTY + no --yes → exit(1), never upload silently."""
-        from hermes_cli.debug import run_debug_share
+        from sparkii_cli.debug import run_debug_share
 
         monkeypatch.setattr("sys.stdin.isatty", lambda: False)
 
-        with patch("hermes_cli.dump.run_dump"), \
-             patch("hermes_cli.debug.upload_to_pastebin") as mock_upload:
+        with patch("sparkii_cli.dump.run_dump"), \
+             patch("sparkii_cli.debug.upload_to_pastebin") as mock_upload:
             with pytest.raises(SystemExit) as exc:
                 run_debug_share(self._args())
 
@@ -1085,15 +1085,15 @@ class TestShareConsentGate:
 
     def test_local_never_prompts(self, hermes_home, capsys, monkeypatch):
         """--local renders to stdout and must not prompt or upload."""
-        from hermes_cli.debug import run_debug_share
+        from sparkii_cli.debug import run_debug_share
 
         def _boom(_):
             raise AssertionError("input() must not be called for --local")
 
         monkeypatch.setattr("builtins.input", _boom)
 
-        with patch("hermes_cli.dump.run_dump"), \
-             patch("hermes_cli.debug.upload_to_pastebin") as mock_upload:
+        with patch("sparkii_cli.dump.run_dump"), \
+             patch("sparkii_cli.debug.upload_to_pastebin") as mock_upload:
             run_debug_share(self._args(local=True))
 
         mock_upload.assert_not_called()

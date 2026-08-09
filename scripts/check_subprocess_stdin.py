@@ -40,7 +40,7 @@ TUI_CONTEXT_DIRS = [
 # User plugin roots — scanned at runtime if they exist.  Plugins load from
 # ``get_hermes_home() / "plugins"`` (user) and ``./.hermes/plugins/`` (project,
 # gated behind ``HERMES_ENABLE_PROJECT_PLUGINS``) — see
-# ``hermes_cli/plugins.py:10-12``.  The guard only checked the bundled
+# ``sparkii_cli/plugins.py:10-12``.  The guard only checked the bundled
 # ``plugins/`` dir, missing user-installed code that spawns subprocesses
 # (gap reported in #67639).
 #
@@ -78,7 +78,7 @@ SKIP_DIRS = {
     "scripts/",
     "skills/",
     "optional-skills/",
-    "hermes_cli/",
+    "sparkii_cli/",
     "gateway/",
     "cron/",
 }

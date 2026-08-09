@@ -1,4 +1,4 @@
-"""Tests for the Hermes plugin system (hermes_cli.plugins)."""
+"""Tests for the Hermes plugin system (sparkii_cli.plugins)."""
 
 import logging
 import json
@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import yaml
 
-from hermes_cli.plugins import (
+from sparkii_cli.plugins import (
     ENTRY_POINTS_GROUP,
     VALID_HOOKS,
     PluginContext,
@@ -24,7 +24,7 @@ from hermes_cli.plugins import (
     resolve_plugin_command_result,
     _portable_skill_namespace,
 )
-from hermes_cli.middleware import (
+from sparkii_cli.middleware import (
     VALID_MIDDLEWARE,
     apply_llm_request_middleware,
     apply_tool_request_middleware,
@@ -106,8 +106,8 @@ class TestPluginDiscovery:
     def test_enabled_portable_plugin_registers_components(
         self, tmp_path, monkeypatch
     ):
-        from hermes_cli.agent_plugins import MCP_SCHEMA_V1, PLUGIN_SCHEMA_V1
-        from hermes_cli import plugins as plugins_mod
+        from sparkii_cli.agent_plugins import MCP_SCHEMA_V1, PLUGIN_SCHEMA_V1
+        from sparkii_cli import plugins as plugins_mod
 
         home = tmp_path / "home"
         plugin = home / "plugins" / "portable"
@@ -158,8 +158,8 @@ class TestPluginDiscovery:
         assert manager._plugins["native"].module is not None
 
     def test_disabled_portable_plugin_registers_nothing(self, tmp_path, monkeypatch):
-        from hermes_cli.agent_plugins import PLUGIN_SCHEMA_V1
-        from hermes_cli import plugins as plugins_mod
+        from sparkii_cli.agent_plugins import PLUGIN_SCHEMA_V1
+        from sparkii_cli import plugins as plugins_mod
 
         home = tmp_path / "home"
         plugin = home / "plugins" / "portable"
@@ -193,8 +193,8 @@ class TestPluginDiscovery:
     def test_portable_author_object_is_normalized_to_stable_string(
         self, tmp_path, monkeypatch
     ):
-        from hermes_cli.agent_plugins import PLUGIN_SCHEMA_V1
-        from hermes_cli import plugins as plugins_mod
+        from sparkii_cli.agent_plugins import PLUGIN_SCHEMA_V1
+        from sparkii_cli import plugins as plugins_mod
 
         home = tmp_path / "home"
         plugin = home / "plugins" / "portable"
@@ -276,7 +276,7 @@ class TestPluginDiscovery:
 
     def test_middleware_helpers_skip_no_listener_work(self, monkeypatch):
         manager = types.SimpleNamespace(_middleware={})
-        monkeypatch.setattr("hermes_cli.plugins.get_plugin_manager", lambda: manager)
+        monkeypatch.setattr("sparkii_cli.plugins.get_plugin_manager", lambda: manager)
 
         request = {"messages": []}
         args = {"path": "README.md"}
@@ -526,7 +526,7 @@ class TestPreToolCallBlocking:
 
     def test_block_message_returned_for_valid_directive(self, monkeypatch):
         monkeypatch.setattr(
-            "hermes_cli.plugins.invoke_hook",
+            "sparkii_cli.plugins.invoke_hook",
             lambda hook_name, **kwargs: [{"action": "block", "message": "blocked by plugin"}],
         )
         assert get_pre_tool_call_block_message("todo", {}, task_id="t1") == "blocked by plugin"
@@ -536,8 +536,8 @@ class TestPreToolCallDirective:
     """Tests for the extended (block | approve) directive helper."""
 
     def test_first_party_observer_receives_pre_tool_call(self, monkeypatch):
-        from hermes_cli import observability
-        from hermes_cli.plugins import get_pre_tool_call_directive
+        from sparkii_cli import observability
+        from sparkii_cli.plugins import get_pre_tool_call_directive
 
         observed = []
         monkeypatch.setattr(
@@ -546,7 +546,7 @@ class TestPreToolCallDirective:
             lambda hook_name, **kwargs: observed.append((hook_name, kwargs)),
         )
         monkeypatch.setattr(
-            "hermes_cli.plugins.invoke_hook",
+            "sparkii_cli.plugins.invoke_hook",
             lambda hook_name, **kwargs: [],
         )
 
@@ -574,9 +574,9 @@ class TestPreToolCallDirective:
         ]
 
     def test_approve_directive_returned(self, monkeypatch):
-        from hermes_cli.plugins import get_pre_tool_call_directive
+        from sparkii_cli.plugins import get_pre_tool_call_directive
         monkeypatch.setattr(
-            "hermes_cli.plugins.invoke_hook",
+            "sparkii_cli.plugins.invoke_hook",
             lambda hook_name, **kwargs: [
                 {"action": "approve", "message": "needs human ok"}
             ],
@@ -586,9 +586,9 @@ class TestPreToolCallDirective:
 
     def test_approve_without_message_is_valid(self, monkeypatch):
         """approve may omit a message (block may not)."""
-        from hermes_cli.plugins import get_pre_tool_call_directive
+        from sparkii_cli.plugins import get_pre_tool_call_directive
         monkeypatch.setattr(
-            "hermes_cli.plugins.invoke_hook",
+            "sparkii_cli.plugins.invoke_hook",
             lambda hook_name, **kwargs: [{"action": "approve"}],
         )
         assert get_pre_tool_call_directive("write_file", {}) == ("approve", None)
@@ -600,12 +600,12 @@ class TestResolvePreToolBlock:
 
 
     def test_approve_gate_receives_tool_observability_context(self, monkeypatch):
-        from hermes_cli.plugins import resolve_pre_tool_block
+        from sparkii_cli.plugins import resolve_pre_tool_block
         from tools import approval
 
         seen = {}
         monkeypatch.setattr(
-            "hermes_cli.plugins.invoke_hook",
+            "sparkii_cli.plugins.invoke_hook",
             lambda hook_name, **kwargs: [
                 {"action": "approve", "message": "why"}
             ],
@@ -627,12 +627,12 @@ class TestResolvePreToolBlock:
         assert seen == {"turn_id": "turn-1", "tool_call_id": "call-1"}
 
     def test_approve_passes_plugin_rule_key_to_gate(self, monkeypatch):
-        from hermes_cli.plugins import resolve_pre_tool_block
+        from sparkii_cli.plugins import resolve_pre_tool_block
 
         seen = {}
 
         monkeypatch.setattr(
-            "hermes_cli.plugins.invoke_hook",
+            "sparkii_cli.plugins.invoke_hook",
             lambda hook_name, **kwargs: [
                 {
                     "action": "approve",
@@ -659,9 +659,9 @@ class TestResolvePreToolBlock:
 
 
     def test_approve_gate_exception_fails_closed(self, monkeypatch):
-        from hermes_cli.plugins import resolve_pre_tool_block
+        from sparkii_cli.plugins import resolve_pre_tool_block
         monkeypatch.setattr(
-            "hermes_cli.plugins.invoke_hook",
+            "sparkii_cli.plugins.invoke_hook",
             lambda hook_name, **kwargs: [{"action": "approve", "message": "why"}],
         )
         def _boom(*a, **k):
@@ -676,7 +676,7 @@ class TestGetPreVerifyContinueMessage:
 
 
     def test_none_when_no_hooks(self, monkeypatch):
-        monkeypatch.setattr("hermes_cli.plugins.invoke_hook", lambda hook_name, **kwargs: [])
+        monkeypatch.setattr("sparkii_cli.plugins.invoke_hook", lambda hook_name, **kwargs: [])
         assert get_pre_verify_continue_message() is None
 
     def test_forwards_scope_signals_to_hooks(self, monkeypatch):
@@ -686,7 +686,7 @@ class TestGetPreVerifyContinueMessage:
             seen.update(kwargs)
             return []
 
-        monkeypatch.setattr("hermes_cli.plugins.invoke_hook", capture)
+        monkeypatch.setattr("sparkii_cli.plugins.invoke_hook", capture)
         get_pre_verify_continue_message(coding=True, attempt=2, changed_paths=["a.py"])
         assert seen["coding"] is True
         assert seen["attempt"] == 2
@@ -697,13 +697,13 @@ class TestThreadToolWhitelist:
     """Tests for the thread-local tool whitelist used by background review forks."""
 
     def test_allowed_tool_passes_through_to_hooks(self, monkeypatch):
-        from hermes_cli.plugins import (
+        from sparkii_cli.plugins import (
             set_thread_tool_whitelist,
             clear_thread_tool_whitelist,
         )
 
         monkeypatch.setattr(
-            "hermes_cli.plugins.invoke_hook",
+            "sparkii_cli.plugins.invoke_hook",
             lambda hook_name, **kwargs: [],
         )
         set_thread_tool_whitelist({"memory", "skill_manage"})
@@ -714,13 +714,13 @@ class TestThreadToolWhitelist:
 
 
     def test_clear_restores_unrestricted_behavior(self, monkeypatch):
-        from hermes_cli.plugins import (
+        from sparkii_cli.plugins import (
             set_thread_tool_whitelist,
             clear_thread_tool_whitelist,
         )
 
         monkeypatch.setattr(
-            "hermes_cli.plugins.invoke_hook",
+            "sparkii_cli.plugins.invoke_hook",
             lambda hook_name, **kwargs: [],
         )
         set_thread_tool_whitelist({"memory"})
@@ -733,13 +733,13 @@ class TestThreadToolWhitelist:
         """Setting a whitelist in one thread must NOT leak into another."""
         import threading
 
-        from hermes_cli.plugins import (
+        from sparkii_cli.plugins import (
             set_thread_tool_whitelist,
             clear_thread_tool_whitelist,
         )
 
         monkeypatch.setattr(
-            "hermes_cli.plugins.invoke_hook",
+            "sparkii_cli.plugins.invoke_hook",
             lambda hook_name, **kwargs: [],
         )
 
@@ -781,7 +781,7 @@ class TestPluginContext:
         ``shell_exec``, ``write_file``) without the operator's knowledge.
         """
         from tools.registry import registry
-        from hermes_cli.plugins import PluginToolOverrideError
+        from sparkii_cli.plugins import PluginToolOverrideError
 
         registry.register(
             name="gated_override_target",
@@ -825,7 +825,7 @@ class TestPluginContext:
 
             # And the raise path itself works for callers that invoke
             # register_tool directly without going through PluginManager.
-            from hermes_cli.plugins import PluginContext, PluginManifest
+            from sparkii_cli.plugins import PluginContext, PluginManifest
             manifest = PluginManifest(name="evil_override_plugin", source="user")
             ctx = PluginContext(manager=mgr, manifest=manifest)
             with pytest.raises(PluginToolOverrideError) as excinfo:
@@ -922,7 +922,7 @@ class TestPluginToolVisibility:
         listing. 'Reachable' therefore means: present directly OR listed
         in the tool_search bridge description.
         """
-        import hermes_cli.plugins as plugins_mod
+        import sparkii_cli.plugins as plugins_mod
 
         plugins_dir = tmp_path / "hermes_test" / "plugins"
         plugin_dir = plugins_dir / "vis_plugin"
@@ -1126,7 +1126,7 @@ class TestPluginCommands:
         manifest = PluginManifest(name="test-plugin", source="user")
         ctx = PluginContext(manifest, mgr)
 
-        with caplog.at_level(logging.WARNING, logger="hermes_cli.plugins"):
+        with caplog.at_level(logging.WARNING, logger="sparkii_cli.plugins"):
             ctx.register_command("", lambda a: a)
         assert len(mgr._plugin_commands) == 0
         assert "empty name" in caplog.text
@@ -1168,7 +1168,7 @@ class TestPluginCommands:
         )
         monkeypatch.setenv("HERMES_HOME", str(hermes_home))
 
-        import hermes_cli.plugins as plugins_mod
+        import sparkii_cli.plugins as plugins_mod
 
         with patch.object(plugins_mod, "_plugin_manager", None):
             engine = plugins_mod.get_plugin_context_engine()
@@ -1190,7 +1190,7 @@ class TestPluginCommandResultResolution:
         async def _handler():
             return "threaded-ok"
 
-        monkeypatch.setattr("hermes_cli.plugins.asyncio.get_running_loop", lambda: _Loop())
+        monkeypatch.setattr("sparkii_cli.plugins.asyncio.get_running_loop", lambda: _Loop())
         assert resolve_plugin_command_result(_handler()) == "threaded-ok"
 
     def test_running_loop_timeout_does_not_hang_forever(self, monkeypatch):
@@ -1204,8 +1204,8 @@ class TestPluginCommandResultResolution:
             await _asyncio.sleep(10)
             return "should-not-reach"
 
-        monkeypatch.setattr("hermes_cli.plugins.asyncio.get_running_loop", lambda: _Loop())
-        monkeypatch.setattr("hermes_cli.plugins._PLUGIN_COMMAND_AWAIT_TIMEOUT_SECS", 0.1)
+        monkeypatch.setattr("sparkii_cli.plugins.asyncio.get_running_loop", lambda: _Loop())
+        monkeypatch.setattr("sparkii_cli.plugins._PLUGIN_COMMAND_AWAIT_TIMEOUT_SECS", 0.1)
 
         with pytest.raises(TimeoutError):
             resolve_plugin_command_result(_slow_handler())
@@ -1226,7 +1226,7 @@ class TestPluginDispatchTool:
         mock_registry = MagicMock()
         mock_registry.dispatch.return_value = '{"result": "ok"}'
 
-        with patch("hermes_cli.plugins.PluginContext.dispatch_tool.__module__", "hermes_cli.plugins"):
+        with patch("sparkii_cli.plugins.PluginContext.dispatch_tool.__module__", "sparkii_cli.plugins"):
             with patch.dict("sys.modules", {}):
                 with patch("tools.registry.registry", mock_registry):
                     result = ctx.dispatch_tool("web_search", {"query": "test"})
@@ -1263,7 +1263,7 @@ class TestPluginDebugLogging:
     def test_debug_handler_not_installed_when_env_var_absent(self, monkeypatch):
         """Without the env var, no stderr handler is attached."""
         monkeypatch.delenv("HERMES_PLUGINS_DEBUG", raising=False)
-        from hermes_cli import plugins as plugins_mod
+        from sparkii_cli import plugins as plugins_mod
 
         # Snapshot, then force a re-evaluation.
         original_installed = plugins_mod._DEBUG_HANDLER_INSTALLED

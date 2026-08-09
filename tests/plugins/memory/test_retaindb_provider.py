@@ -62,7 +62,7 @@ def _capture_initialized_client(monkeypatch, tmp_path):
 
 
 def test_retaindb_config_loader_uses_readonly_config(monkeypatch):
-    import hermes_cli.config as config_mod
+    import sparkii_cli.config as config_mod
     import plugins.memory.retaindb as retaindb_module
 
     backing_config = {

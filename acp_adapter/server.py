@@ -109,13 +109,13 @@ def _named_custom_provider_catalogs() -> list[tuple[str, str, list[tuple[str, st
     unchanged.
     """
     try:
-        from hermes_cli.config import (
+        from sparkii_cli.config import (
             get_compatible_custom_providers,
             is_provider_enabled,
             load_config,
         )
-        from hermes_cli.models import cached_fetch_api_models
-        from hermes_cli.providers import custom_provider_slug
+        from sparkii_cli.models import cached_fetch_api_models
+        from sparkii_cli.providers import custom_provider_slug
     except ImportError:
         return []
 
@@ -191,7 +191,7 @@ def _named_custom_provider_catalogs() -> list[tuple[str, str, list[tuple[str, st
     return catalogs
 
 try:
-    from hermes_cli import __version__ as HERMES_VERSION
+    from sparkii_cli import __version__ as HERMES_VERSION
 except Exception:
     HERMES_VERSION = "0.0.0"
 
@@ -205,7 +205,7 @@ _LIST_SESSIONS_PAGE_SIZE = 50
 # Per-provider cap for the ACP model selector. ACP clients (Zed, Buzz) render
 # the whole `availableModels` array in one dropdown, so an unbounded
 # cross-provider catalog degrades the picker. Mirrors the cap the MoA picker
-# already uses (`hermes_cli/moa_cmd.py`). This bounds each provider's row, not
+# already uses (`sparkii_cli/moa_cmd.py`). This bounds each provider's row, not
 # the total; aggregator providers stay intentionally uncapped inside the shared
 # inventory, and the current model is always kept via the fallback insert below.
 ACP_MAX_MODELS_PER_PROVIDER = 200
@@ -707,8 +707,8 @@ class HermesACPAgent(acp.Agent):
         provider = getattr(state.agent, "provider", None) or detect_provider() or "openrouter"
 
         try:
-            from hermes_cli.inventory import build_models_payload, load_picker_context
-            from hermes_cli.models import normalize_provider, provider_label
+            from sparkii_cli.inventory import build_models_payload, load_picker_context
+            from sparkii_cli.models import normalize_provider, provider_label
 
             normalized_provider = normalize_provider(provider)
             context = load_picker_context().with_overrides(
@@ -827,7 +827,7 @@ class HermesACPAgent(acp.Agent):
         new_model = raw_model.strip()
 
         try:
-            from hermes_cli.models import detect_provider_for_model, parse_model_input
+            from sparkii_cli.models import detect_provider_for_model, parse_model_input
 
             target_provider, new_model = parse_model_input(new_model, current_provider)
             if target_provider == current_provider:
@@ -1066,7 +1066,7 @@ class HermesACPAgent(acp.Agent):
         registry was unchanged, or when the session was closed while waiting.
         """
         try:
-            from hermes_cli.mcp_startup import mcp_discovery_in_flight
+            from sparkii_cli.mcp_startup import mcp_discovery_in_flight
         except Exception:
             return
         if not mcp_discovery_in_flight():
@@ -1079,7 +1079,7 @@ class HermesACPAgent(acp.Agent):
 
         def _wait_then_refresh() -> None:
             try:
-                from hermes_cli.mcp_startup import join_mcp_discovery
+                from sparkii_cli.mcp_startup import join_mcp_discovery
 
                 if not join_mcp_discovery(timeout=30.0):
                     return

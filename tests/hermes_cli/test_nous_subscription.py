@@ -1,7 +1,7 @@
 """Tests for Nous subscription feature detection."""
 
-from hermes_cli.nous_account import NousPortalAccountInfo, NousToolAccessInfo
-from hermes_cli import nous_subscription as ns
+from sparkii_cli.nous_account import NousPortalAccountInfo, NousToolAccessInfo
+from sparkii_cli import nous_subscription as ns
 
 
 _POOL_COVERAGE = {
@@ -115,11 +115,11 @@ def _capture_checklist(monkeypatch, *, selected_idx):
         captured["pre_selected"] = list(pre_selected or [])
         return list(selected_idx)
 
-    import hermes_cli.setup as setup_mod
+    import sparkii_cli.setup as setup_mod
 
     monkeypatch.setattr(setup_mod, "prompt_checklist", _fake_checklist, raising=False)
     monkeypatch.setattr(
-        "hermes_cli.config.save_config", lambda cfg: None, raising=False
+        "sparkii_cli.config.save_config", lambda cfg: None, raising=False
     )
     return captured
 

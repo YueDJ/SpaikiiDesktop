@@ -10,7 +10,7 @@ import pytest
 from starlette.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
-from hermes_cli import web_server
+from sparkii_cli import web_server
 
 
 @pytest.fixture

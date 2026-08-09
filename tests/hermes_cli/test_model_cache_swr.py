@@ -18,7 +18,7 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def _reset_swr_state():
-    import hermes_cli.models as models_mod
+    import sparkii_cli.models as models_mod
     with models_mod._swr_refresh_lock:
         models_mod._swr_refresh_inflight.clear()
     yield
@@ -31,7 +31,7 @@ class TestProviderModelsSWR:
         return {"fp": fp, "at": time.time() - age_seconds, "models": list(models)}
 
     def test_fresh_entry_served_without_refresh(self):
-        import hermes_cli.models as mod
+        import sparkii_cli.models as mod
 
         cache = {"openrouter": self._cache_entry(["m1"], age_seconds=10)}
         with patch.object(mod, "_load_provider_models_cache", return_value=cache), \
@@ -44,7 +44,7 @@ class TestProviderModelsSWR:
         live.assert_not_called()
 
     def test_stale_entry_served_immediately_with_background_refresh(self):
-        import hermes_cli.models as mod
+        import sparkii_cli.models as mod
 
         # 2h old — beyond the 1h TTL, within the 7d stale-serve window.
         cache = {"openrouter": self._cache_entry(["m1", "m2"], age_seconds=7200)}
@@ -58,7 +58,7 @@ class TestProviderModelsSWR:
         live.assert_not_called()  # the caller thread never hit the network
 
     def test_too_old_entry_blocks_on_live_fetch(self):
-        import hermes_cli.models as mod
+        import sparkii_cli.models as mod
 
         age = mod._PROVIDER_MODELS_STALE_SERVE_MAX + 60
         cache = {"openrouter": self._cache_entry(["ancient"], age_seconds=age)}
@@ -73,7 +73,7 @@ class TestProviderModelsSWR:
         live.assert_called_once()
 
     def test_credential_rotation_still_busts_stale_entry(self):
-        import hermes_cli.models as mod
+        import sparkii_cli.models as mod
 
         # Stale entry with a DIFFERENT fingerprint (key rotated) must NOT be
         # served — it reflects the old credentials' catalog.
@@ -88,7 +88,7 @@ class TestProviderModelsSWR:
         spawn.assert_not_called()
 
     def test_force_refresh_bypasses_swr(self):
-        import hermes_cli.models as mod
+        import sparkii_cli.models as mod
 
         cache = {"openrouter": self._cache_entry(["m1"], age_seconds=7200)}
         with patch.object(mod, "_load_provider_models_cache", return_value=cache), \
@@ -102,7 +102,7 @@ class TestProviderModelsSWR:
         live.assert_called_once_with("openrouter", force_refresh=True)
 
     def test_swr_refresh_dedupes_inflight(self):
-        import hermes_cli.models as mod
+        import sparkii_cli.models as mod
 
         started = []
 
@@ -121,7 +121,7 @@ class TestProviderModelsSWR:
         assert started == ["model-cache-swr-openrouter", "model-cache-swr-nous"]
 
     def test_swr_refresh_writes_cache_and_clears_inflight(self):
-        import hermes_cli.models as mod
+        import sparkii_cli.models as mod
 
         saved = {}
 
@@ -150,7 +150,7 @@ class TestProviderModelsSWR:
 
 class TestCatalogSWR:
     def test_stale_disk_catalog_served_with_background_refresh(self, tmp_path, monkeypatch):
-        import hermes_cli.model_catalog as mc
+        import sparkii_cli.model_catalog as mc
 
         manifest = {"version": 1, "providers": {"nous": {"models": [{"id": "hermes-4"}]}}}
         monkeypatch.setattr(mc, "_catalog_cache", None)
@@ -167,7 +167,7 @@ class TestCatalogSWR:
         fetch.assert_not_called()
 
     def test_cold_cache_still_blocks_on_fetch(self, monkeypatch):
-        import hermes_cli.model_catalog as mc
+        import sparkii_cli.model_catalog as mc
 
         manifest = {"version": 1, "providers": {}}
         monkeypatch.setattr(mc, "_catalog_cache", None)
@@ -192,7 +192,7 @@ class TestCorruptCacheRowDegradation:
 
     @pytest.mark.parametrize("bad_at", ["yesterday", None, True])
     def test_corrupt_at_falls_back_to_live_fetch(self, bad_at):
-        import hermes_cli.models as mod
+        import sparkii_cli.models as mod
 
         cache = {"openrouter": {"fp": "fp", "at": bad_at, "models": ["corrupt-row"]}}
         with patch.object(mod, "_load_provider_models_cache", return_value=cache), \

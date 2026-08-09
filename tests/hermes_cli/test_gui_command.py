@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 import pytest
 
-from hermes_cli import main as cli_main
+from sparkii_cli import main as cli_main
 
 
 def _ns(**kw):
@@ -60,12 +60,12 @@ def test_gui_installs_packages_and_launches_desktop_app(tmp_path, monkeypatch):
     pack_ok = subprocess.CompletedProcess(["npm", "run", "pack"], 0)
     launch_ok = subprocess.CompletedProcess([str(packaged_exe)], 0)
 
-    with patch("hermes_cli.main.shutil.which", return_value="/usr/bin/npm"), \
-         patch("hermes_cli.main._run_npm_install_deterministic", return_value=install_ok) as mock_install, \
-         patch("hermes_cli.main._desktop_build_needed", return_value=True), \
-         patch("hermes_cli.main._write_desktop_build_stamp"), \
-         patch("hermes_cli.main._desktop_macos_relaunchable_fixup"), \
-         patch("hermes_cli.main.subprocess.run", side_effect=[pack_ok, launch_ok]) as mock_run, \
+    with patch("sparkii_cli.main.shutil.which", return_value="/usr/bin/npm"), \
+         patch("sparkii_cli.main._run_npm_install_deterministic", return_value=install_ok) as mock_install, \
+         patch("sparkii_cli.main._desktop_build_needed", return_value=True), \
+         patch("sparkii_cli.main._write_desktop_build_stamp"), \
+         patch("sparkii_cli.main._desktop_macos_relaunchable_fixup"), \
+         patch("sparkii_cli.main.subprocess.run", side_effect=[pack_ok, launch_ok]) as mock_run, \
          pytest.raises(SystemExit) as exc:
         cli_main.cmd_gui(_ns())
 
@@ -107,11 +107,11 @@ def test_gui_install_env_prepends_managed_node_on_bare_path(tmp_path, monkeypatc
     install_ok = subprocess.CompletedProcess(["npm", "ci"], 0)
     launch_ok = subprocess.CompletedProcess(["hermes"], 0)
 
-    with patch("hermes_cli.main._resolve_node_runtime_npm", return_value="/usr/bin/npm"), \
-         patch("hermes_cli.main._run_npm_install_deterministic", return_value=install_ok) as mock_install, \
-         patch("hermes_cli.main._desktop_build_needed", return_value=True), \
-         patch("hermes_cli.main._write_desktop_build_stamp"), \
-         patch("hermes_cli.main.subprocess.run", side_effect=[subprocess.CompletedProcess([], 0), launch_ok]), \
+    with patch("sparkii_cli.main._resolve_node_runtime_npm", return_value="/usr/bin/npm"), \
+         patch("sparkii_cli.main._run_npm_install_deterministic", return_value=install_ok) as mock_install, \
+         patch("sparkii_cli.main._desktop_build_needed", return_value=True), \
+         patch("sparkii_cli.main._write_desktop_build_stamp"), \
+         patch("sparkii_cli.main.subprocess.run", side_effect=[subprocess.CompletedProcess([], 0), launch_ok]), \
          pytest.raises(SystemExit):
         cli_main.cmd_gui(_ns(skip_build=False))
 
@@ -202,12 +202,12 @@ def test_gui_does_not_retry_after_packaged_executable_exists(tmp_path, monkeypat
     install_ok = subprocess.CompletedProcess(["npm", "ci"], 0)
     pack_fail = subprocess.CompletedProcess(["npm", "run", "pack"], 1)
 
-    with patch("hermes_cli.main.shutil.which", return_value="/usr/bin/npm"), \
-         patch("hermes_cli.main._run_npm_install_deterministic", return_value=install_ok), \
-         patch("hermes_cli.main._desktop_macos_relaunchable_fixup"), \
-         patch("hermes_cli.main._purge_electron_build_cache", return_value=[Path("/c/electron.zip")]) as mock_purge, \
-         patch("hermes_cli.main._redownload_electron_dist", return_value=True) as mock_dl, \
-         patch("hermes_cli.main.subprocess.run", return_value=pack_fail) as mock_run, \
+    with patch("sparkii_cli.main.shutil.which", return_value="/usr/bin/npm"), \
+         patch("sparkii_cli.main._run_npm_install_deterministic", return_value=install_ok), \
+         patch("sparkii_cli.main._desktop_macos_relaunchable_fixup"), \
+         patch("sparkii_cli.main._purge_electron_build_cache", return_value=[Path("/c/electron.zip")]) as mock_purge, \
+         patch("sparkii_cli.main._redownload_electron_dist", return_value=True) as mock_dl, \
+         patch("sparkii_cli.main.subprocess.run", return_value=pack_fail) as mock_run, \
          pytest.raises(SystemExit) as exc:
         cli_main.cmd_gui(_ns())
 
@@ -394,18 +394,18 @@ def test_gui_registers_linux_desktop_entry_before_launch(tmp_path, monkeypatch):
     packaged_exe = _make_packaged_executable(root, monkeypatch, platform="linux")
 
     registered: list[Path] = []
-    monkeypatch.setattr("hermes_cli.linux_desktop_entry.is_supported", lambda: True)
+    monkeypatch.setattr("sparkii_cli.linux_desktop_entry.is_supported", lambda: True)
     monkeypatch.setattr(
-        "hermes_cli.linux_desktop_entry.install_desktop_entry",
+        "sparkii_cli.linux_desktop_entry.install_desktop_entry",
         lambda project_root: registered.append(project_root) or (tmp_path / "hermes.desktop"),
     )
 
     launch_ok = subprocess.CompletedProcess([str(packaged_exe)], 0)
 
-    with patch("hermes_cli.main._desktop_build_needed", return_value=False), \
-         patch("hermes_cli.main._resolve_node_runtime_npm", return_value="/usr/bin/npm"), \
-         patch("hermes_cli.main._desktop_linux_sandbox_fixup", return_value=True), \
-         patch("hermes_cli.main.subprocess.run", return_value=launch_ok), \
+    with patch("sparkii_cli.main._desktop_build_needed", return_value=False), \
+         patch("sparkii_cli.main._resolve_node_runtime_npm", return_value="/usr/bin/npm"), \
+         patch("sparkii_cli.main._desktop_linux_sandbox_fixup", return_value=True), \
+         patch("sparkii_cli.main.subprocess.run", return_value=launch_ok), \
          pytest.raises(SystemExit):
         cli_main.cmd_gui(_ns())
 
@@ -421,15 +421,15 @@ def test_gui_launches_even_when_desktop_entry_install_fails(tmp_path, monkeypatc
     def boom(_project_root):
         raise OSError("read-only /home")
 
-    monkeypatch.setattr("hermes_cli.linux_desktop_entry.is_supported", lambda: True)
-    monkeypatch.setattr("hermes_cli.linux_desktop_entry.install_desktop_entry", boom)
+    monkeypatch.setattr("sparkii_cli.linux_desktop_entry.is_supported", lambda: True)
+    monkeypatch.setattr("sparkii_cli.linux_desktop_entry.install_desktop_entry", boom)
 
     launch_ok = subprocess.CompletedProcess([str(packaged_exe)], 0)
 
-    with patch("hermes_cli.main._desktop_build_needed", return_value=False), \
-         patch("hermes_cli.main._resolve_node_runtime_npm", return_value="/usr/bin/npm"), \
-         patch("hermes_cli.main._desktop_linux_sandbox_fixup", return_value=True), \
-         patch("hermes_cli.main.subprocess.run", return_value=launch_ok) as mock_run, \
+    with patch("sparkii_cli.main._desktop_build_needed", return_value=False), \
+         patch("sparkii_cli.main._resolve_node_runtime_npm", return_value="/usr/bin/npm"), \
+         patch("sparkii_cli.main._desktop_linux_sandbox_fixup", return_value=True), \
+         patch("sparkii_cli.main.subprocess.run", return_value=launch_ok) as mock_run, \
          pytest.raises(SystemExit) as exc:
         cli_main.cmd_gui(_ns())
 
@@ -442,19 +442,19 @@ def test_gui_skips_desktop_entry_off_linux(tmp_path, monkeypatch):
     monkeypatch.setattr(cli_main, "PROJECT_ROOT", root)
     packaged_exe = _make_packaged_executable(root, monkeypatch, platform="darwin")
 
-    monkeypatch.setattr("hermes_cli.linux_desktop_entry.is_supported", lambda: False)
+    monkeypatch.setattr("sparkii_cli.linux_desktop_entry.is_supported", lambda: False)
 
     def fail(_project_root):
         raise AssertionError("must not install a desktop entry off Linux")
 
-    monkeypatch.setattr("hermes_cli.linux_desktop_entry.install_desktop_entry", fail)
+    monkeypatch.setattr("sparkii_cli.linux_desktop_entry.install_desktop_entry", fail)
 
     launch_ok = subprocess.CompletedProcess([str(packaged_exe)], 0)
 
-    with patch("hermes_cli.main._desktop_build_needed", return_value=False), \
-         patch("hermes_cli.main._resolve_node_runtime_npm", return_value="/usr/bin/npm"), \
-         patch("hermes_cli.main._desktop_macos_relaunchable_fixup"), \
-         patch("hermes_cli.main.subprocess.run", return_value=launch_ok), \
+    with patch("sparkii_cli.main._desktop_build_needed", return_value=False), \
+         patch("sparkii_cli.main._resolve_node_runtime_npm", return_value="/usr/bin/npm"), \
+         patch("sparkii_cli.main._desktop_macos_relaunchable_fixup"), \
+         patch("sparkii_cli.main.subprocess.run", return_value=launch_ok), \
          pytest.raises(SystemExit) as exc:
         cli_main.cmd_gui(_ns())
 

@@ -81,11 +81,11 @@ class TestSessionDbInitTimeout:
 
         with patch("cron.scheduler._hermes_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("hermes_cli.env_loader.load_hermes_dotenv"), \
-             patch("hermes_cli.env_loader.reset_secret_source_cache"), \
+             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
+             patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
              patch("hermes_state.SessionDB"), \
              patch(
-                 "hermes_cli.runtime_provider.resolve_runtime_provider",
+                 "sparkii_cli.runtime_provider.resolve_runtime_provider",
                  return_value=_RUNTIME,
              ), \
              patch("run_agent.AIAgent") as mock_agent_cls, \
@@ -116,11 +116,11 @@ class TestSessionDbInitTimeout:
 
         with patch("cron.scheduler._hermes_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("hermes_cli.env_loader.load_hermes_dotenv"), \
-             patch("hermes_cli.env_loader.reset_secret_source_cache"), \
+             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
+             patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
              patch("hermes_state.SessionDB", return_value=fake_db), \
              patch(
-                 "hermes_cli.runtime_provider.resolve_runtime_provider",
+                 "sparkii_cli.runtime_provider.resolve_runtime_provider",
                  return_value=_RUNTIME,
              ), \
              patch("run_agent.AIAgent") as mock_agent_cls, \
@@ -159,11 +159,11 @@ class TestSessionDbInitTimeout:
 
         with patch("cron.scheduler._hermes_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("hermes_cli.env_loader.load_hermes_dotenv"), \
-             patch("hermes_cli.env_loader.reset_secret_source_cache"), \
+             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
+             patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
              patch("hermes_state.SessionDB"), \
              patch(
-                 "hermes_cli.runtime_provider.resolve_runtime_provider",
+                 "sparkii_cli.runtime_provider.resolve_runtime_provider",
                  return_value=_RUNTIME,
              ), \
              patch("run_agent.AIAgent") as mock_agent_cls, \
@@ -209,11 +209,11 @@ class TestDispatchGuardReleasedAfterHang:
         try:
             with patch("cron.scheduler._hermes_home", tmp_path), \
                  patch("cron.scheduler._resolve_origin", return_value=None), \
-                 patch("hermes_cli.env_loader.load_hermes_dotenv"), \
-                 patch("hermes_cli.env_loader.reset_secret_source_cache"), \
+                 patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
+                 patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
                  patch("hermes_state.SessionDB"), \
                  patch(
-                     "hermes_cli.runtime_provider.resolve_runtime_provider",
+                     "sparkii_cli.runtime_provider.resolve_runtime_provider",
                      return_value=_RUNTIME,
                  ), \
                  patch("run_agent.AIAgent") as mock_agent_cls, \

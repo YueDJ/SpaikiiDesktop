@@ -6,8 +6,8 @@ import json
 from unittest.mock import patch
 
 from agent.auxiliary_client import _normalize_aux_provider
-from hermes_cli import runtime_provider as rp
-from hermes_cli.auth import (
+from sparkii_cli import runtime_provider as rp
+from sparkii_cli.auth import (
     ACTUAL_LOCAL_NOAUTH_PLACEHOLDER,
     DEFAULT_ACTUAL_BASE_URL,
     DEFAULT_ACTUAL_LOCAL_BASE_URL,
@@ -16,11 +16,11 @@ from hermes_cli.auth import (
     resolve_api_key_provider_credentials,
     resolve_provider,
 )
-from hermes_cli.models import normalize_provider as normalize_model_provider
-from hermes_cli.models import provider_model_ids
-from hermes_cli.providers import determine_api_mode
-from hermes_cli.providers import get_label
-from hermes_cli.providers import normalize_provider as normalize_overlay_provider
+from sparkii_cli.models import normalize_provider as normalize_model_provider
+from sparkii_cli.models import provider_model_ids
+from sparkii_cli.providers import determine_api_mode
+from sparkii_cli.providers import get_label
+from sparkii_cli.providers import normalize_provider as normalize_overlay_provider
 from providers import get_provider_profile
 
 

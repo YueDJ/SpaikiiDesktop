@@ -13,16 +13,16 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
-from hermes_constants import get_hermes_home
+from sparkii_constants import get_sparkii_home
 
 logger = logging.getLogger(__name__)
 
-SESSION_SCOPE = "hermes.session"
-TURN_SCOPE = "hermes.turn"
-LOGICAL_LLM_SCOPE = "hermes.logical_llm_call"
-RUNTIME_SCHEMA_KEY = "hermes.relay.schema_version"
-RUNTIME_SCHEMA_VERSION = "hermes.relay.runtime.v1"
-RUNTIME_INSTANCE_KEY = "hermes.relay.runtime_instance"
+SESSION_SCOPE = "sparkii.session"
+TURN_SCOPE = "sparkii.turn"
+LOGICAL_LLM_SCOPE = "sparkii.logical_llm_call"
+RUNTIME_SCHEMA_KEY = "sparkii.relay.schema_version"
+RUNTIME_SCHEMA_VERSION = "sparkii.relay.runtime.v1"
+RUNTIME_INSTANCE_KEY = "sparkii.relay.runtime_instance"
 _PROFILE_KEY_CACHE: dict[str, str] = {}
 
 
@@ -489,7 +489,7 @@ class RelayTurnContext:
 
 
 _CURRENT_TURN: contextvars.ContextVar[RelayTurnContext | None] = contextvars.ContextVar(
-    "hermes_relay_turn", default=None
+    "sparkii_relay_turn", default=None
 )
 
 
@@ -560,7 +560,7 @@ class RelaySessionCoordinator:
                     "model": model,
                 }
                 self._prepare_session(host, session_context)
-                metadata = {"hermes.execution_surface": platform or "unknown"}
+                metadata = {"sparkii.execution_surface": platform or "unknown"}
                 if parent_session_id and parent_session_id != session_id:
                     session = host.register_subagent(
                         {
@@ -631,7 +631,7 @@ class RelaySessionCoordinator:
                     metadata={
                         RUNTIME_SCHEMA_KEY: RUNTIME_SCHEMA_VERSION,
                         RUNTIME_INSTANCE_KEY: lease.host.runtime_id,
-                        "hermes.execution_surface": lease.platform or "unknown",
+                        "sparkii.execution_surface": lease.platform or "unknown",
                     },
                 )
             except Exception:
@@ -1009,7 +1009,7 @@ def get_host(
 
 def current_profile_key() -> str:
     """Return the canonical profile identity used for runtime isolation."""
-    home = get_hermes_home().expanduser()
+    home = get_sparkii_home().expanduser()
     if not home.is_absolute():
         return str(home.resolve())
     raw = str(home)

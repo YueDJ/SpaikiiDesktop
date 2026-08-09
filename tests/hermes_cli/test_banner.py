@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from rich.console import Console
 
-import hermes_cli.banner as banner
+import sparkii_cli.banner as banner
 import model_tools
 import tools.mcp_tool
 
@@ -29,7 +29,7 @@ def test_build_welcome_banner_title_falls_back_when_no_tag():
     """Without a resolvable tag, the panel title renders as plain text (no hyperlink escape)."""
     import io
     from unittest.mock import patch as _patch
-    import hermes_cli.banner as _banner
+    import sparkii_cli.banner as _banner
     import model_tools as _mt
     import tools.mcp_tool as _mcp
 

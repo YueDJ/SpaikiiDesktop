@@ -128,7 +128,7 @@ async def _self_post_chat_completion(
         "X-Hermes-Session-Id": session_id,
     }
     payload = {
-        "model": str(getattr(adapter, "_model_name", "") or "hermes-agent"),
+        "model": str(getattr(adapter, "_model_name", "") or "sparkii-agent"),
         "messages": [{"role": "user", "content": text}],
         "stream": False,
     }

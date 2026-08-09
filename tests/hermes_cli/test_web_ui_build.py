@@ -5,8 +5,8 @@ The freshness check uses a SHA-256 content hash of the web source tree
 NOT mtime comparison — so ``git pull`` / ``hermes update`` that rewrite
 source mtimes without changing content no longer fool it.
 
-Critical invariant: the dashboard Vite build outputs to hermes_cli/web_dist/
-(vite.config.ts: outDir: "../../hermes_cli/web_dist"), NOT web/dist/.
+Critical invariant: the dashboard Vite build outputs to sparkii_cli/web_dist/
+(vite.config.ts: outDir: "../../sparkii_cli/web_dist"), NOT web/dist/.
 The sentinel must be checked in the correct output directory or the
 freshness check is a no-op and the OOM rebuild always runs.
 """
@@ -18,7 +18,7 @@ from unittest.mock import patch
 
 import pytest
 
-from hermes_cli.main import (
+from sparkii_cli.main import (
     _web_ui_build_needed,
     _build_web_ui,
     _compute_web_ui_content_hash,
@@ -50,7 +50,7 @@ def _make_web_dir(tmp_path: Path) -> tuple[Path, Path]:
     web_dir = tmp_path / "web"
     web_dir.mkdir(parents=True)
     (web_dir / "package.json").touch()
-    dist_dir = tmp_path / "hermes_cli" / "web_dist"
+    dist_dir = tmp_path / "sparkii_cli" / "web_dist"
     return web_dir, dist_dir
 
 
@@ -142,9 +142,9 @@ class TestBuildWebUISkipsWhenFresh:
 
         install_cp = __import__("subprocess").CompletedProcess([], 0, stdout="", stderr="")
         build_cp = __import__("subprocess").CompletedProcess([], 0, stdout="", stderr="")
-        with patch("hermes_cli.main.shutil.which", return_value="/usr/bin/npm"), \
-             patch("hermes_cli.main.subprocess.run", return_value=install_cp) as mock_run, \
-             patch("hermes_cli.main._run_with_idle_timeout", return_value=build_cp):
+        with patch("sparkii_cli.main.shutil.which", return_value="/usr/bin/npm"), \
+             patch("sparkii_cli.main.subprocess.run", return_value=install_cp) as mock_run, \
+             patch("sparkii_cli.main._run_with_idle_timeout", return_value=build_cp):
             result = _build_web_ui(web_dir)
 
         assert result is True
@@ -164,9 +164,9 @@ class TestBuildWebUISkipsWhenFresh:
 
         install_cp = __import__("subprocess").CompletedProcess([], 0, stdout="", stderr="")
         build_cp = __import__("subprocess").CompletedProcess([], 0, stdout="", stderr="")
-        with patch("hermes_cli.main.shutil.which", return_value="/usr/bin/npm"), \
-             patch("hermes_cli.main.subprocess.run", return_value=install_cp), \
-             patch("hermes_cli.main._run_with_idle_timeout", return_value=build_cp) as mock_idle:
+        with patch("sparkii_cli.main.shutil.which", return_value="/usr/bin/npm"), \
+             patch("sparkii_cli.main.subprocess.run", return_value=install_cp), \
+             patch("sparkii_cli.main._run_with_idle_timeout", return_value=build_cp) as mock_idle:
             result = _build_web_ui(web_dir)
 
         assert result is True
@@ -188,10 +188,10 @@ class TestBuildWebUIRetryAndStaleFallback:
         # build attempt 1: fail; build attempt 2: success.
         build_fail = Subprocess.CompletedProcess([], 1, stdout="EPERM", stderr="")
         build_ok = Subprocess.CompletedProcess([], 0, stdout="", stderr="")
-        with patch("hermes_cli.main.shutil.which", return_value="/usr/bin/npm"), \
-             patch("hermes_cli.main._time.sleep") as mock_sleep, \
-             patch("hermes_cli.main.subprocess.run", return_value=install_ok), \
-             patch("hermes_cli.main._run_with_idle_timeout",
+        with patch("sparkii_cli.main.shutil.which", return_value="/usr/bin/npm"), \
+             patch("sparkii_cli.main._time.sleep") as mock_sleep, \
+             patch("sparkii_cli.main.subprocess.run", return_value=install_ok), \
+             patch("sparkii_cli.main._run_with_idle_timeout",
                    side_effect=[build_fail, build_ok]) as mock_idle:
             result = _build_web_ui(web_dir)
 
@@ -208,10 +208,10 @@ class TestBuildWebUIRetryAndStaleFallback:
         Subprocess = __import__("subprocess")
         install_ok = Subprocess.CompletedProcess([], 0, stdout="", stderr="")
         build_fail = Subprocess.CompletedProcess([], 1, stdout="vite ENOMEM", stderr="")
-        with patch("hermes_cli.main.shutil.which", return_value="/usr/bin/npm"), \
-             patch("hermes_cli.main._time.sleep"), \
-             patch("hermes_cli.main.subprocess.run", return_value=install_ok), \
-             patch("hermes_cli.main._run_with_idle_timeout",
+        with patch("sparkii_cli.main.shutil.which", return_value="/usr/bin/npm"), \
+             patch("sparkii_cli.main._time.sleep"), \
+             patch("sparkii_cli.main.subprocess.run", return_value=install_ok), \
+             patch("sparkii_cli.main._run_with_idle_timeout",
                    side_effect=[build_fail, build_fail]):
             result = _build_web_ui(web_dir, fatal=True)
 
@@ -241,7 +241,7 @@ class TestBuildWebUIFlock:
         the winner's output and skips a duplicate build."""
         import fcntl
         import threading
-        from hermes_cli.main import _build_web_ui as build
+        from sparkii_cli.main import _build_web_ui as build
 
         web_dir, dist_dir = _make_web_dir(tmp_path)
         # No dist yet — contender must take the blocking-wait path.
@@ -258,8 +258,8 @@ class TestBuildWebUIFlock:
         t = threading.Timer(0.2, release_after_building)
         t.start()
         try:
-            with patch("hermes_cli.main.shutil.which", return_value="/usr/bin/npm"), \
-                 patch("hermes_cli.main.subprocess.run") as mock_run:
+            with patch("sparkii_cli.main.shutil.which", return_value="/usr/bin/npm"), \
+                 patch("sparkii_cli.main.subprocess.run") as mock_run:
                 result = build(web_dir)
         finally:
             t.join()
@@ -337,12 +337,12 @@ class TestBuildRecoversFromMissingToolchain:
         )
         build_ok = __import__("subprocess").CompletedProcess([], 0, stdout="", stderr="")
 
-        with patch("hermes_cli.main._resolve_node_runtime_npm", return_value="/usr/bin/npm"), \
-             patch("hermes_cli.main._run_npm_install_deterministic", return_value=install_ok) as mock_install, \
-             patch("hermes_cli.main._run_with_idle_timeout", side_effect=[build_fail, build_ok]) as mock_build, \
-             patch("hermes_cli.main._web_ui_build_needed", return_value=True), \
-             patch("hermes_cli.main._write_web_ui_build_stamp"), \
-             patch("hermes_cli.main._time.sleep"):
+        with patch("sparkii_cli.main._resolve_node_runtime_npm", return_value="/usr/bin/npm"), \
+             patch("sparkii_cli.main._run_npm_install_deterministic", return_value=install_ok) as mock_install, \
+             patch("sparkii_cli.main._run_with_idle_timeout", side_effect=[build_fail, build_ok]) as mock_build, \
+             patch("sparkii_cli.main._web_ui_build_needed", return_value=True), \
+             patch("sparkii_cli.main._write_web_ui_build_stamp"), \
+             patch("sparkii_cli.main._time.sleep"):
             result = _build_web_ui(web_dir)
 
         assert result is True
@@ -357,11 +357,11 @@ class TestBuildRecoversFromMissingToolchain:
         install_ok = __import__("subprocess").CompletedProcess([], 0, stdout="", stderr="")
         build_ok = __import__("subprocess").CompletedProcess([], 0, stdout="", stderr="")
 
-        with patch("hermes_cli.main._resolve_node_runtime_npm", return_value="/usr/bin/npm"), \
-             patch("hermes_cli.main._run_npm_install_deterministic", return_value=install_ok) as mock_install, \
-             patch("hermes_cli.main._run_with_idle_timeout", return_value=build_ok) as mock_build, \
-             patch("hermes_cli.main._web_ui_build_needed", return_value=True), \
-             patch("hermes_cli.main._write_web_ui_build_stamp"):
+        with patch("sparkii_cli.main._resolve_node_runtime_npm", return_value="/usr/bin/npm"), \
+             patch("sparkii_cli.main._run_npm_install_deterministic", return_value=install_ok) as mock_install, \
+             patch("sparkii_cli.main._run_with_idle_timeout", return_value=build_ok) as mock_build, \
+             patch("sparkii_cli.main._web_ui_build_needed", return_value=True), \
+             patch("sparkii_cli.main._write_web_ui_build_stamp"):
             result = _build_web_ui(web_dir)
 
         assert result is True

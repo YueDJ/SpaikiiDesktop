@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from hermes_cli.dashboard_auth.base import (
+from sparkii_cli.dashboard_auth.base import (
     DashboardAuthProvider,
     Session,
     LoginStart,
@@ -90,7 +90,7 @@ class _CompliantProvider(DashboardAuthProvider):
 # ---------------------------------------------------------------------------
 
 
-from hermes_cli.dashboard_auth import (  # noqa: E402  (after-imports for clarity)
+from sparkii_cli.dashboard_auth import (  # noqa: E402  (after-imports for clarity)
     register_provider,
     get_provider,
     list_providers,

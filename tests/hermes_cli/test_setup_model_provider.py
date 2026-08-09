@@ -1,15 +1,15 @@
 """Regression tests for interactive setup provider/model persistence.
 
 Since setup_model_provider delegates to select_provider_and_model()
-from hermes_cli.main, these tests mock the delegation point and verify
+from sparkii_cli.main, these tests mock the delegation point and verify
 that the setup wizard correctly syncs config from disk after the call.
 """
 
 from __future__ import annotations
 
-from hermes_cli.config import load_config, save_config, save_env_value
-from hermes_cli.nous_subscription import NousFeatureState, NousSubscriptionFeatures
-from hermes_cli.setup import _print_setup_summary, setup_model_provider
+from sparkii_cli.config import load_config, save_config, save_env_value
+from sparkii_cli.nous_subscription import NousFeatureState, NousSubscriptionFeatures
+from sparkii_cli.setup import _print_setup_summary, setup_model_provider
 
 
 def _maybe_keep_current_tts(question, choices):
@@ -38,11 +38,11 @@ def _clear_provider_env(monkeypatch):
 
 
 def _stub_tts(monkeypatch):
-    monkeypatch.setattr("hermes_cli.setup.prompt_choice", lambda q, c, d=0: (
+    monkeypatch.setattr("sparkii_cli.setup.prompt_choice", lambda q, c, d=0: (
         _maybe_keep_current_tts(q, c) if _maybe_keep_current_tts(q, c) is not None
         else d
     ))
-    monkeypatch.setattr("hermes_cli.setup.prompt_yes_no", lambda *a, **kw: False)
+    monkeypatch.setattr("sparkii_cli.setup.prompt_yes_no", lambda *a, **kw: False)
 
 
 def _write_model_config(provider, base_url="", model_name="test-model"):
@@ -84,7 +84,7 @@ def test_setup_model_provider_preserves_auxiliary_choices_written_by_picker(tmp_
     def fake_select():
         _write_aux_config("compression", "gemini", "gemini-2.5-flash")
 
-    monkeypatch.setattr("hermes_cli.main.select_provider_and_model", fake_select)
+    monkeypatch.setattr("sparkii_cli.main.select_provider_and_model", fake_select)
 
     setup_model_provider(config, quick=True)
     save_config(config)  # mirrors run_setup_wizard(section="model") final save
@@ -118,10 +118,10 @@ def test_setup_copilot_acp_skips_same_provider_pool_step(tmp_path, monkeypatch):
             raise AssertionError("same-provider pool prompt should not appear for copilot-acp")
         return False
 
-    monkeypatch.setattr("hermes_cli.setup.prompt_choice", fake_prompt_choice)
-    monkeypatch.setattr("hermes_cli.setup.prompt_yes_no", fake_prompt_yes_no)
-    monkeypatch.setattr("hermes_cli.setup.prompt", lambda *args, **kwargs: "")
-    monkeypatch.setattr("hermes_cli.auth.get_active_provider", lambda: None)
+    monkeypatch.setattr("sparkii_cli.setup.prompt_choice", fake_prompt_choice)
+    monkeypatch.setattr("sparkii_cli.setup.prompt_yes_no", fake_prompt_yes_no)
+    monkeypatch.setattr("sparkii_cli.setup.prompt", lambda *args, **kwargs: "")
+    monkeypatch.setattr("sparkii_cli.auth.get_active_provider", lambda: None)
     monkeypatch.setattr("agent.auxiliary_client.get_available_vision_backends", lambda: [])
 
     setup_model_provider(config)
@@ -151,9 +151,9 @@ def test_setup_summary_local_browser_unavailable_without_chromium(
     save_config(cfg)
 
     # Only stub the readiness probes; the feature resolver itself is real.
-    monkeypatch.setattr("hermes_cli.nous_subscription._has_agent_browser", lambda: True)
+    monkeypatch.setattr("sparkii_cli.nous_subscription._has_agent_browser", lambda: True)
     monkeypatch.setattr(
-        "hermes_cli.nous_subscription.get_nous_portal_account_info",
+        "sparkii_cli.nous_subscription.get_nous_portal_account_info",
         lambda *a, **k: None,
     )
     monkeypatch.setattr("tools.browser_tool._chromium_installed", lambda: False)

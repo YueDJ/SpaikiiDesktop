@@ -4,7 +4,7 @@ cannot initialize (e.g. non-TTY, curses unavailable, terminal error)."""
 import subprocess
 from types import SimpleNamespace
 
-from hermes_cli.config import load_config, save_config
+from sparkii_cli.config import load_config, save_config
 
 
 def _raise_menu(*args, **kwargs):
@@ -16,11 +16,11 @@ def _raise_menu(*args, **kwargs):
 
 
 def test_prompt_model_selection_requires_expensive_confirmation(monkeypatch, capsys):
-    from hermes_cli.auth import _prompt_model_selection
+    from sparkii_cli.auth import _prompt_model_selection
 
-    monkeypatch.setattr("hermes_cli.curses_ui.curses_radiolist", _raise_menu)
+    monkeypatch.setattr("sparkii_cli.curses_ui.curses_radiolist", _raise_menu)
     monkeypatch.setattr(
-        "hermes_cli.model_cost_guard.expensive_model_warning",
+        "sparkii_cli.model_cost_guard.expensive_model_warning",
         lambda *_args, **_kwargs: SimpleNamespace(message="EXPENSIVE MODEL WARNING"),
     )
     responses = iter(["1", "n"])
@@ -37,10 +37,10 @@ def test_prompt_model_selection_requires_expensive_confirmation(monkeypatch, cap
 
 
 def test_remove_custom_provider_falls_back_on_menu_runtime_error(tmp_path, monkeypatch):
-    from hermes_cli.main import _remove_custom_provider
+    from sparkii_cli.main import _remove_custom_provider
 
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.setattr("hermes_cli.curses_ui.curses_radiolist", _raise_menu)
+    monkeypatch.setattr("sparkii_cli.curses_ui.curses_radiolist", _raise_menu)
 
     cfg = load_config()
     cfg["custom_providers"] = [

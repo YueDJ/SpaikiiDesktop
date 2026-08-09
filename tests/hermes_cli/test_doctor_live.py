@@ -10,8 +10,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from hermes_cli import doctor_live
-from hermes_cli.doctor_live import (
+from sparkii_cli import doctor_live
+from sparkii_cli.doctor_live import (
     ProbeResult,
     maybe_run_live_checks,
     run_live_checks,
@@ -36,7 +36,7 @@ def _clean_env(monkeypatch):
 
 class TestLiveFlagGating:
     def test_parser_has_live_flag_default_false(self):
-        from hermes_cli.subcommands.doctor import build_doctor_parser
+        from sparkii_cli.subcommands.doctor import build_doctor_parser
 
         parser = argparse.ArgumentParser()
         sub = parser.add_subparsers(dest="command")

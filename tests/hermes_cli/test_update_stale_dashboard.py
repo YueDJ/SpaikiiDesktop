@@ -20,7 +20,7 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-from hermes_cli.main import (
+from sparkii_cli.main import (
     _finish_dashboard_update_cleanup,
     _find_stale_dashboard_pids,
     _kill_stale_dashboard_processes,
@@ -31,13 +31,13 @@ from hermes_cli.main import (
 
 @pytest.fixture(autouse=True)
 def _refresh_bindings_against_live_module():
-    """Rebind module-level names to the *current* ``hermes_cli.main``.
+    """Rebind module-level names to the *current* ``sparkii_cli.main``.
 
     Other tests in the suite (notably ``test_env_loader.py`` and
-    ``test_skills_subparser.py``) reload or delete ``hermes_cli.main`` from
+    ``test_skills_subparser.py``) reload or delete ``sparkii_cli.main`` from
     ``sys.modules``.  When that happens on the same xdist worker before we
-    run, our top-of-file ``from hermes_cli.main import ...`` bindings end
-    up pointing at the *old* module object.  ``patch(\"hermes_cli.main.X\")``
+    run, our top-of-file ``from sparkii_cli.main import ...`` bindings end
+    up pointing at the *old* module object.  ``patch(\"sparkii_cli.main.X\")``
     then patches the *new* module, but the function we call still resolves
     ``_find_stale_dashboard_pids`` via its stale ``__globals__``, so every
     patch becomes a no-op and the kill path silently returns early.
@@ -53,9 +53,9 @@ def _refresh_bindings_against_live_module():
     global _restart_managed_dashboard_service
     global _warn_stale_dashboard_processes
 
-    live = sys.modules.get("hermes_cli.main")
+    live = sys.modules.get("sparkii_cli.main")
     if live is None:
-        live = importlib.import_module("hermes_cli.main")
+        live = importlib.import_module("sparkii_cli.main")
 
     _finish_dashboard_update_cleanup = live._finish_dashboard_update_cleanup
     _find_stale_dashboard_pids = live._find_stale_dashboard_pids
@@ -96,7 +96,7 @@ class TestFindStaleDashboardPids:
             mock_run.return_value = MagicMock(
                 returncode=0,
                 stdout="\n".join([
-                    _ps_line(os.getpid(), "python3 -m hermes_cli.main dashboard"),
+                    _ps_line(os.getpid(), "python3 -m sparkii_cli.main dashboard"),
                     _ps_line(12345, "hermes dashboard --port 9119"),
                 ]) + "\n",
                 stderr="",
@@ -133,7 +133,7 @@ class TestKillStaleDashboardPosix:
                 raise ProcessLookupError
             # SIGTERM itself: succeed silently.
 
-        with patch("hermes_cli.main._find_stale_dashboard_pids",
+        with patch("sparkii_cli.main._find_stale_dashboard_pids",
                    return_value=[12345, 12346]), \
              patch("os.kill", side_effect=fake_kill), \
              patch("time.sleep"):
@@ -175,7 +175,7 @@ class TestKillStaleDashboardPosix:
             raise AssertionError(f"unexpected subprocess.run call: {args}")
 
         with patch("subprocess.run", side_effect=fake_run), \
-             patch("hermes_cli.main._find_stale_dashboard_pids", return_value=[12345]) as find_pids, \
+             patch("sparkii_cli.main._find_stale_dashboard_pids", return_value=[12345]) as find_pids, \
              patch("os.kill") as kill:
             _kill_stale_dashboard_processes(restart_managed=True)
 
@@ -203,7 +203,7 @@ class TestKillStaleDashboardWindows:
             # taskkill returns 0 on success
             return MagicMock(returncode=0, stdout="", stderr="")
 
-        with patch("hermes_cli.main._find_stale_dashboard_pids",
+        with patch("sparkii_cli.main._find_stale_dashboard_pids",
                    return_value=[12345, 12346]), \
              patch("subprocess.run", side_effect=fake_run) as mock_run:
             _kill_stale_dashboard_processes()
@@ -235,7 +235,7 @@ class TestDashboardUpdateCleanup:
 
     def test_all_failed_stops_do_not_claim_the_dashboard_was_stopped(self, capsys):
         with patch(
-            "hermes_cli.main._kill_stale_dashboard_processes",
+            "sparkii_cli.main._kill_stale_dashboard_processes",
             return_value={"matched": [12345], "killed": [], "failed": [(12345, "denied")],
                           "unrecovered": []},
         ):
@@ -258,7 +258,7 @@ class TestWindowsWmicEncoding:
             mock_run.return_value = MagicMock(
                 returncode=0,
                 stdout=(
-                    "CommandLine=python -m hermes_cli.main dashboard\n"
+                    "CommandLine=python -m sparkii_cli.main dashboard\n"
                     "ProcessId=12345\n"
                 ),
                 stderr="",
@@ -286,7 +286,7 @@ class TestSupervisedBackendRestart:
     Restart=on-failure never fires on its own."""
 
     def _live(self):
-        return sys.modules["hermes_cli.main"]
+        return sys.modules["sparkii_cli.main"]
 
     def test_supervised_pid_restarts_owning_unit(self, capsys):
         """A killed PID whose cgroup names a custom unit → systemctl restart."""
@@ -321,7 +321,7 @@ class TestManualBackendRespawn:
     kill and are respawned detached after the update (#40449)."""
 
     def _live(self):
-        return sys.modules["hermes_cli.main"]
+        return sys.modules["sparkii_cli.main"]
 
 
     def test_argv_capture_failure_falls_back_to_hint(self, capsys):
@@ -381,12 +381,12 @@ class TestCmdlineCapture:
     """_dashboard_cmdline_for_pid reads /proc on Linux, ps on macOS."""
 
     def _live(self):
-        return sys.modules["hermes_cli.main"]
+        return sys.modules["sparkii_cli.main"]
 
     def test_reads_proc_cmdline_when_available(self, tmp_path, monkeypatch):
         live = self._live()
         proc_file = tmp_path / "cmdline"
-        proc_file.write_bytes(b"/usr/bin/python3\x00-m\x00hermes_cli.main\x00serve\x00")
+        proc_file.write_bytes(b"/usr/bin/python3\x00-m\x00sparkii_cli.main\x00serve\x00")
 
         real_exists = os.path.exists
 
@@ -406,7 +406,7 @@ class TestCmdlineCapture:
              patch("builtins.open", fake_open):
             argv = live._dashboard_cmdline_for_pid(777)
 
-        assert argv == ["/usr/bin/python3", "-m", "hermes_cli.main", "serve"]
+        assert argv == ["/usr/bin/python3", "-m", "sparkii_cli.main", "serve"]
 
     def test_falls_back_to_ps_without_proc(self, monkeypatch):
         live = self._live()

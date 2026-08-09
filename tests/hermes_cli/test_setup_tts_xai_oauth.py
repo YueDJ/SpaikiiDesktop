@@ -46,7 +46,7 @@ def test_run_xai_oauth_login_from_setup_does_not_hijack_active_provider(
     )
 
     monkeypatch.setattr(
-        "hermes_cli.auth._xai_oauth_device_code_login",
+        "sparkii_cli.auth._xai_oauth_device_code_login",
         lambda **kwargs: {
             "tokens": {
                 "access_token": "tts-xai-access",
@@ -60,10 +60,10 @@ def test_run_xai_oauth_login_from_setup_does_not_hijack_active_provider(
             "last_refresh": "2026-07-25T12:00:00Z",
         },
     )
-    monkeypatch.setattr("hermes_cli.auth._is_remote_session", lambda: True)
+    monkeypatch.setattr("sparkii_cli.auth._is_remote_session", lambda: True)
 
-    from hermes_cli.auth import is_source_suppressed, suppress_credential_source
-    from hermes_cli.setup import _run_xai_oauth_login_from_setup
+    from sparkii_cli.auth import is_source_suppressed, suppress_credential_source
+    from sparkii_cli.setup import _run_xai_oauth_login_from_setup
 
     suppress_credential_source("xai-oauth", "device_code")
     assert is_source_suppressed("xai-oauth", "device_code") is True

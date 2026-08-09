@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import update_cmd
+from sparkii_cli import update_cmd
 from hermes_constants import venv_bin_dir, venv_python_path
 
 
@@ -151,13 +151,13 @@ def test_venv_helpers_are_platform_consistent():
 
 
 def test_managed_uv_helper_delegates_to_the_shared_one():
-    from hermes_cli.managed_uv import _venv_python
+    from sparkii_cli.managed_uv import _venv_python
 
     v = Path("/opt/proj/venv")
     assert _venv_python(v) == venv_python_path(v)
 
 
-def test_no_open_coded_venv_layout_remains_in_hermes_cli():
+def test_no_open_coded_venv_layout_remains_in_sparkii_cli():
     """Fails if a new call site hand-rolls Scripts/bin again (#76105).
 
     Uses AST rather than substring matching: an earlier `"if" in line` version
@@ -169,10 +169,10 @@ def test_no_open_coded_venv_layout_remains_in_hermes_cli():
     (which branches on the host platform) would be the wrong tool there.
     """
     import ast
-    import hermes_cli
+    import sparkii_cli
 
     exempt = {"stdio.py"}
-    pkg = Path(hermes_cli.__file__).parent
+    pkg = Path(sparkii_cli.__file__).parent
     offenders = []
     for py in pkg.rglob("*.py"):
         if py.name in exempt:
@@ -313,7 +313,7 @@ def test_venv_helpers_honour_an_explicit_platform_verdict():
     """Callers must be able to override the platform check (#76107 CI).
 
     The suite exercises Windows paths on Linux CI by patching predicates like
-    `hermes_cli.main._is_windows`. A helper that reads `sys.platform`
+    `sparkii_cli.main._is_windows`. A helper that reads `sys.platform`
     unconditionally silently drops those paths out of coverage -- and broke
     `test_verify_core_dependencies.py::test_uses_virtual_env_from_environment`,
     which patches `_is_windows` and then asserts on a `Scripts/python.exe`
@@ -335,7 +335,7 @@ def test_patched_is_windows_reaches_the_venv_path_derivation():
     """End-to-end: patching the module predicate must change the derived path."""
     from unittest.mock import patch
 
-    from hermes_cli import main as hermes_main
+    from sparkii_cli import main as hermes_main
 
     with patch.object(hermes_main, "_is_windows", return_value=True):
         got = hermes_main._resolve_install_target_python(

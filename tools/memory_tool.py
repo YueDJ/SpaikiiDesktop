@@ -900,7 +900,7 @@ def load_on_disk_store() -> "MemoryStore":
     memory_char_limit = 2200
     user_char_limit = 1375
     try:
-        from hermes_cli.config import load_config
+        from sparkii_cli.config import load_config
 
         mem_cfg = (load_config() or {}).get("memory", {}) or {}
         memory_char_limit = int(mem_cfg.get("memory_char_limit", memory_char_limit))

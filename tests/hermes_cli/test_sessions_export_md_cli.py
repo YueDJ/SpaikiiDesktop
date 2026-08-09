@@ -2,7 +2,7 @@ import sys
 
 
 def test_sessions_export_md_writes_single_session(monkeypatch, tmp_path, capsys):
-    import hermes_cli.main as main_mod
+    import sparkii_cli.main as main_mod
     import hermes_state
 
     captured = {}
@@ -67,7 +67,7 @@ def test_sessions_export_md_writes_single_session(monkeypatch, tmp_path, capsys)
 
 def test_sessions_export_redact_scrubs_secrets(monkeypatch, tmp_path):
     """--redact runs exported content through force-mode secret redaction."""
-    import hermes_cli.main as main_mod
+    import sparkii_cli.main as main_mod
     import hermes_state
 
     secret = "sk-proj-Zz12345678901234567890123456789012345678"

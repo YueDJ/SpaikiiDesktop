@@ -14,8 +14,8 @@ from __future__ import annotations
 
 import pytest
 
-from hermes_cli.config import DEFAULT_CONFIG, load_config
-from hermes_cli.main import (
+from sparkii_cli.config import DEFAULT_CONFIG, load_config
+from sparkii_cli.main import (
     _AUX_TASKS,
     _format_aux_current,
     _reset_aux_to_auto,
@@ -94,7 +94,7 @@ def test_leave_unchanged_replaces_cancel_label(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     (tmp_path / ".hermes").mkdir(exist_ok=True)
 
-    from hermes_cli import main as main_mod
+    from sparkii_cli import main as main_mod
 
     captured: list[list[str]] = []
 

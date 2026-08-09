@@ -30,7 +30,7 @@ SOUL = "# Persona\n\nYou are a careful, terse assistant.\n"
 def client(tmp_path, monkeypatch):
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "soul-test-token")
-    from hermes_cli import web_server
+    from sparkii_cli import web_server
 
     with TestClient(web_server.app, raise_server_exceptions=False) as c:
         c.headers["Authorization"] = "Bearer soul-test-token"
@@ -41,7 +41,7 @@ def client(tmp_path, monkeypatch):
 def profile_dir(tmp_path, monkeypatch) -> Path:
     """Create a real profile directory under the test HERMES_HOME."""
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    from hermes_cli import profiles as profiles_mod
+    from sparkii_cli import profiles as profiles_mod
 
     d = profiles_mod.get_profile_dir("demo")
     d.mkdir(parents=True, exist_ok=True)

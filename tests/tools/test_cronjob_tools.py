@@ -283,7 +283,7 @@ class TestUnifiedCronjobTool:
 
     @staticmethod
     def _patch_named_legit(monkeypatch):
-        import hermes_cli.runtime_provider as rp
+        import sparkii_cli.runtime_provider as rp
         monkeypatch.setattr(rp, "has_named_custom_provider", lambda n: True)
         monkeypatch.setattr(
             rp, "_get_named_custom_provider",
@@ -502,7 +502,7 @@ class TestValidateCronBaseUrl:
 
     @staticmethod
     def _patch_named_legit(monkeypatch):
-        import hermes_cli.runtime_provider as rp
+        import sparkii_cli.runtime_provider as rp
         monkeypatch.setattr(rp, "has_named_custom_provider", lambda n: True)
         monkeypatch.setattr(
             rp, "_get_named_custom_provider",

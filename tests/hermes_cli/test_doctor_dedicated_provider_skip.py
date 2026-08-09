@@ -4,7 +4,7 @@ OpenRouter, Bedrock).
 
 Anthropic's native API requires `x-api-key` + `anthropic-version` headers;
 the generic loop sends `Authorization: Bearer ...` which Anthropic answers
-with HTTP 404. The dedicated check at hermes_cli/doctor.py already covers
+with HTTP 404. The dedicated check at sparkii_cli/doctor.py already covers
 Anthropic with the right headers, so the pluggable profile must be
 skipped by `_build_apikey_providers_list()`.
 
@@ -15,7 +15,7 @@ from __future__ import annotations
 
 
 def test_build_apikey_providers_list_skips_dedicated_check_providers():
-    from hermes_cli import doctor
+    from sparkii_cli import doctor
 
     # Force a rebuild — the module caches the list on first call.
     doctor._APIKEY_PROVIDERS_CACHE = None

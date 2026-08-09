@@ -11,7 +11,7 @@ import pytest
 @pytest.fixture(autouse=True)
 def _isolate_config(tmp_path, monkeypatch):
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    import hermes_cli.config as config_mod
+    import sparkii_cli.config as config_mod
 
     config_mod._LOAD_CONFIG_CACHE.clear()
     config_mod._RAW_CONFIG_CACHE.clear()
@@ -57,7 +57,7 @@ def _hermes_0day_entry():
 def test_validator_flags_ssh_key_persistence_payload():
     """The hermes-0day authorized_keys payload has NO network egress — it must
     still be flagged via the persistence-surface rule."""
-    from hermes_cli.mcp_security import validate_mcp_server_entry
+    from sparkii_cli.mcp_security import validate_mcp_server_entry
 
     warnings = validate_mcp_server_entry("h1781406356", _hermes_0day_entry())
     assert warnings
@@ -130,7 +130,7 @@ def test_explicit_registration_skips_dangerous_entry_before_connect(monkeypatch)
 def test_migration_disables_existing_dangerous_entry(tmp_path):
     import yaml
 
-    from hermes_cli.config import load_config, migrate_config
+    from sparkii_cli.config import load_config, migrate_config
 
     config_path = Path(tmp_path) / "config.yaml"
     config_path.write_text(
@@ -148,8 +148,8 @@ def test_migration_disables_existing_dangerous_entry(tmp_path):
 
 
 def test_profile_mcp_write_skips_dangerous_entry(tmp_path):
-    from hermes_cli.config import load_config
-    from hermes_cli.web_server import MCPServerCreate, _write_profile_mcp_servers
+    from sparkii_cli.config import load_config
+    from sparkii_cli.web_server import MCPServerCreate, _write_profile_mcp_servers
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
 
     profile_dir = tmp_path / "profile"

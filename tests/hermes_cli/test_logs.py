@@ -1,9 +1,9 @@
-"""Tests for hermes_cli.logs — log viewing and filtering."""
+"""Tests for sparkii_cli.logs — log viewing and filtering."""
 
 from datetime import datetime, timedelta
 
 
-from hermes_cli.logs import (
+from sparkii_cli.logs import (
     LOG_FILES,
     _extract_level,
     _extract_logger_name,

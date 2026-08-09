@@ -452,7 +452,7 @@ def _get_beep_volume() -> float:
     breaks the voice loop on a degenerate config.
     """
     try:
-        from hermes_cli.config import load_config
+        from sparkii_cli.config import load_config
         voice_cfg = load_config().get("voice", {})
         if not isinstance(voice_cfg, dict):
             return _DEFAULT_BEEP_VOLUME
@@ -577,7 +577,7 @@ _thinking_stop: Optional[threading.Event] = None
 def thinking_sound_enabled() -> bool:
     """Config gate: ``voice.thinking_sound`` (default True)."""
     try:
-        from hermes_cli.config import load_config
+        from sparkii_cli.config import load_config
         from utils import is_truthy_value
 
         voice_cfg = load_config().get("voice", {})
@@ -1274,7 +1274,7 @@ def _load_voice_stop_phrases() -> tuple:
     default rather than crashing the voice loop.
     """
     try:
-        from hermes_cli.config import load_config
+        from sparkii_cli.config import load_config
         voice_cfg = load_config().get("voice", {})
         if isinstance(voice_cfg, dict):
             raw = voice_cfg.get("stop_phrases", DEFAULT_VOICE_STOP_PHRASES)
@@ -2213,7 +2213,7 @@ def _check_plugin_stt_provider(provider: str) -> bool:
         return False
     try:
         from agent.transcription_registry import get_provider
-        from hermes_cli.plugins import _ensure_plugins_discovered
+        from sparkii_cli.plugins import _ensure_plugins_discovered
 
         _ensure_plugins_discovered()
         plugin_provider = get_provider(key)

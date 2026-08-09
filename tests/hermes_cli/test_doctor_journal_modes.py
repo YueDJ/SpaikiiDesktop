@@ -13,7 +13,7 @@ import sqlite3
 
 import pytest
 
-import hermes_cli.doctor as doctor
+import sparkii_cli.doctor as doctor
 
 VULNERABLE = (3, 50, 4)
 FIXED_VERSIONS = [(3, 51, 3), (3, 52, 0), (3, 50, 7), (3, 44, 6)]

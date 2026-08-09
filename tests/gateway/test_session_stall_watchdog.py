@@ -455,7 +455,7 @@ def test_resolve_idle_rejects_nonfinite_seconds_since_activity():
 
 
 def test_session_stall_timeout_in_default_config():
-    from hermes_cli.config import DEFAULT_CONFIG
+    from sparkii_cli.config import DEFAULT_CONFIG
 
     timeout = DEFAULT_CONFIG["agent"]["session_stall_timeout"]
     assert isinstance(timeout, (int, float))

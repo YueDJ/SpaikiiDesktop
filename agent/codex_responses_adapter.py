@@ -271,7 +271,7 @@ def _clamp_responses_call_id(call_id: str) -> str:
 
     The codex app-server namespaces MCP tool call ids as
     ``codex_mcp__<server>__<tool>_<codex_call_id>``; with an ``exec-<uuid>``
-    component the built-in ``hermes-tools`` server already overflows 64 chars,
+    component the built-in ``sparkii-tools`` server already overflows 64 chars,
     and the Responses API rejects the whole payload with a non-retryable HTTP
     400 that then replays every turn — permanently bricking the session.
 
@@ -1611,7 +1611,7 @@ def _normalize_codex_response(
         # are queued/in_progress/incomplete, reasoning alone is a valid final
         # state — forcing "incomplete" causes multi-minute stalls as the
         # continuation path re-issues calls (3 retries × up to 240s each).
-        # See https://github.com/NousResearch/hermes-agent/issues/64434
+        # See https://github.com/NousResearch/sparkii-agent/issues/64434
         if response_status == "completed" and issuer_kind not in (
             "codex_backend",
             "xai_responses",

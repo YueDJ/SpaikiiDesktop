@@ -1,4 +1,4 @@
-"""Tests for hermes_cli.container_boot — the cont-init.d-time
+"""Tests for sparkii_cli.container_boot — the cont-init.d-time
 reconciliation that recreates per-profile gateway s6 service slots
 from the persistent profiles directory.
 
@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli.container_boot import (
+from sparkii_cli.container_boot import (
     ReconcileAction,
     reconcile_profile_gateways,
 )
@@ -43,7 +43,7 @@ def _hermetic_container_argv(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch ``_read_container_argv`` themselves (both override this).
     """
     monkeypatch.setattr(
-        "hermes_cli.container_boot._read_container_argv",
+        "sparkii_cli.container_boot._read_container_argv",
         lambda: (),
     )
 
@@ -253,7 +253,7 @@ def test_main_skips_reconcile_in_dashboard_container_s6v3(
     reconciled, and it started its own gateway-default (dual Telegram
     getUpdates 409). Asserting the slot is absent proves the skip fires.
     """
-    from hermes_cli import container_boot
+    from sparkii_cli import container_boot
 
     scandir = tmp_path / "run-service"; scandir.mkdir()
     _make_profile(tmp_path, "worker", state="running")

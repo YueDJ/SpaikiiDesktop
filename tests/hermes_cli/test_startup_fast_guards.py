@@ -1,10 +1,10 @@
-"""Guards for hermes_cli._startup_fast — the pre-import version fast path.
+"""Guards for sparkii_cli._startup_fast — the pre-import version fast path.
 
 Two invariants, each of which has been broken before:
 
 1. IMPORT WEIGHT: _startup_fast must stay stdlib-only. The whole point of
    the module is to run before main.py's heavy import wall; one careless
-   ``from hermes_cli.config import ...`` silently makes `hermes --version`
+   ``from sparkii_cli.config import ...`` silently makes `hermes --version`
    slow again for everyone (the regression would be invisible — everything
    still works, just 40x slower).
 
@@ -27,8 +27,8 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 # Modules that must NEVER be imported by the fast path. Each one either
 # pulls yaml/argparse/logging config or is itself a god-module.
 _FORBIDDEN_MODULES = (
-    "hermes_cli.config",
-    "hermes_cli.main",
+    "sparkii_cli.config",
+    "sparkii_cli.main",
     "yaml",
     "argparse",
     "cli",
@@ -43,7 +43,7 @@ def test_startup_fast_import_weight():
     """Importing _startup_fast must not drag in any heavy module."""
     probe = (
         "import sys, json\n"
-        "import hermes_cli._startup_fast\n"
+        "import sparkii_cli._startup_fast\n"
         "print(json.dumps(sorted(sys.modules.keys())))\n"
     )
     result = subprocess.run(
@@ -57,7 +57,7 @@ def test_startup_fast_import_weight():
     loaded = set(json.loads(result.stdout))
     offenders = [m for m in _FORBIDDEN_MODULES if m in loaded]
     assert not offenders, (
-        f"hermes_cli._startup_fast imported heavy modules: {offenders} — "
+        f"sparkii_cli._startup_fast imported heavy modules: {offenders} — "
         "the fast path must stay stdlib-only (see module docstring)."
     )
 
@@ -66,7 +66,7 @@ def _run_version(env_overrides: dict) -> subprocess.CompletedProcess:
     env = {**os.environ, **env_overrides}
     env.pop("HERMES_DEV", None)
     return subprocess.run(
-        [sys.executable, "-m", "hermes_cli.main", "--version"],
+        [sys.executable, "-m", "sparkii_cli.main", "--version"],
         capture_output=True,
         text=True,
         timeout=60,

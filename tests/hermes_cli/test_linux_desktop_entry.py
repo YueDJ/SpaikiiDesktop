@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import linux_desktop_entry as lde
+from sparkii_cli import linux_desktop_entry as lde
 
 
 @pytest.fixture
@@ -41,7 +41,7 @@ def test_install_writes_entry_with_absolute_exec_and_icon(tmp_path, xdg_home, mo
     hermes_bin.parent.mkdir()
     hermes_bin.write_text("", encoding="utf-8")
     monkeypatch.setattr(
-        "hermes_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
+        "sparkii_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -68,7 +68,7 @@ def test_install_writes_entry_with_absolute_exec_and_icon(tmp_path, xdg_home, mo
 
 def test_installed_entry_is_executable(tmp_path, xdg_home, monkeypatch):
     root = _make_project(tmp_path)
-    monkeypatch.setattr("hermes_cli.relaunch.resolve_hermes_bin", lambda: "/usr/bin/hermes")
+    monkeypatch.setattr("sparkii_cli.relaunch.resolve_hermes_bin", lambda: "/usr/bin/hermes")
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
@@ -78,19 +78,19 @@ def test_installed_entry_is_executable(tmp_path, xdg_home, monkeypatch):
 
 def test_exec_falls_back_to_interpreter_module(tmp_path, xdg_home, monkeypatch):
     root = _make_project(tmp_path)
-    monkeypatch.setattr("hermes_cli.relaunch.resolve_hermes_bin", lambda: None)
+    monkeypatch.setattr("sparkii_cli.relaunch.resolve_hermes_bin", lambda: None)
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
     exec_line = _parse(entry.read_text(encoding="utf-8"))["Exec"]
 
-    assert exec_line.endswith("-m hermes_cli.main desktop")
+    assert exec_line.endswith("-m sparkii_cli.main desktop")
     assert Path(exec_line.split(" ")[0]).is_absolute()
 
 
 def test_install_is_idempotent_and_skips_cache_refresh(tmp_path, xdg_home, monkeypatch):
     root = _make_project(tmp_path)
-    monkeypatch.setattr("hermes_cli.relaunch.resolve_hermes_bin", lambda: "/usr/bin/hermes")
+    monkeypatch.setattr("sparkii_cli.relaunch.resolve_hermes_bin", lambda: "/usr/bin/hermes")
     calls: list[Path] = []
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda d: calls.append(d) or [])
 
@@ -105,7 +105,7 @@ def test_install_is_idempotent_and_skips_cache_refresh(tmp_path, xdg_home, monke
 def test_install_without_source_icon_uses_themed_name(tmp_path, xdg_home, monkeypatch):
     root = tmp_path / "hermes-agent"
     root.mkdir()
-    monkeypatch.setattr("hermes_cli.relaunch.resolve_hermes_bin", lambda: "/usr/bin/hermes")
+    monkeypatch.setattr("sparkii_cli.relaunch.resolve_hermes_bin", lambda: "/usr/bin/hermes")
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
@@ -188,7 +188,7 @@ def test_exec_arg_quoting_handles_spaces(tmp_path, xdg_home, monkeypatch):
     spaced = tmp_path / "my apps" / "hermes"
     spaced.parent.mkdir()
     spaced.write_text("", encoding="utf-8")
-    monkeypatch.setattr("hermes_cli.relaunch.resolve_hermes_bin", lambda: str(spaced))
+    monkeypatch.setattr("sparkii_cli.relaunch.resolve_hermes_bin", lambda: str(spaced))
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)

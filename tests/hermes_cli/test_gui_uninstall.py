@@ -1,4 +1,4 @@
-"""Tests for hermes_cli.gui_uninstall — GUI-only uninstall + install discovery.
+"""Tests for sparkii_cli.gui_uninstall — GUI-only uninstall + install discovery.
 
 Covers the cross-platform artifact discovery, the agent/GUI detection the
 desktop UI gates options on, and that ``uninstall_gui`` removes only GUI
@@ -11,14 +11,14 @@ from pathlib import Path
 
 import pytest
 
-import hermes_cli.gui_uninstall as gu
+import sparkii_cli.gui_uninstall as gu
 
 
 def _make_agent(hermes_home: Path) -> Path:
     """Create a fake agent install: source package + venv."""
     agent_root = hermes_home / "hermes-agent"
-    (agent_root / "hermes_cli").mkdir(parents=True)
-    (agent_root / "hermes_cli" / "__init__.py").write_text("")
+    (agent_root / "sparkii_cli").mkdir(parents=True)
+    (agent_root / "sparkii_cli" / "__init__.py").write_text("")
     (agent_root / "venv" / "bin").mkdir(parents=True)
     return agent_root
 
@@ -74,7 +74,7 @@ def test_linux_discovery_includes_launcher_entry(tmp_path, monkeypatch):
     monkeypatch.setattr(gu.sys, "platform", "linux")
     monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "xdg"))
 
-    from hermes_cli import linux_desktop_entry as lde
+    from sparkii_cli import linux_desktop_entry as lde
 
     assert lde.desktop_entry_path() in gu.packaged_gui_app_paths()
 
@@ -83,7 +83,7 @@ def test_uninstall_removes_launcher_entry_and_refreshes_cache(tmp_path, monkeypa
     monkeypatch.setattr(gu.sys, "platform", "linux")
     monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "xdg"))
 
-    from hermes_cli import linux_desktop_entry as lde
+    from sparkii_cli import linux_desktop_entry as lde
 
     entry = lde.desktop_entry_path()
     entry.parent.mkdir(parents=True, exist_ok=True)
@@ -108,14 +108,14 @@ def test_uninstall_removes_launcher_entry_and_refreshes_cache(tmp_path, monkeypa
     # The icon lives in the checkout. A GUI uninstall must not delete it.
     assert lde.icon_path(hermes_home / "hermes-agent").exists()
     # The agent itself survives a GUI uninstall.
-    assert (hermes_home / "hermes-agent" / "hermes_cli").is_dir()
+    assert (hermes_home / "hermes-agent" / "sparkii_cli").is_dir()
 
 
 def test_uninstall_skips_cache_refresh_when_no_launcher_entry(tmp_path, monkeypatch):
     monkeypatch.setattr(gu.sys, "platform", "linux")
     monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "xdg"))
 
-    from hermes_cli import linux_desktop_entry as lde
+    from sparkii_cli import linux_desktop_entry as lde
 
     refreshed: list[Path] = []
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda d: refreshed.append(d) or [])
@@ -156,7 +156,7 @@ class _Args:
 
 def test_uninstall_args_namespace_mode_mapping():
     """_UninstallArgs maps mode → the gui/full flags run_uninstall reads."""
-    import hermes_cli.uninstall as uninstall
+    import sparkii_cli.uninstall as uninstall
 
     gui = uninstall._UninstallArgs(mode="gui")
     assert gui.gui is True and gui.full is False and gui.yes is True

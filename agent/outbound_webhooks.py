@@ -24,23 +24,23 @@ Design notes
   GitHub webhooks.
 * No consent prompt: unlike shell hooks, an outbound target executes no
   code on this machine — it POSTs JSON to a URL the user themselves put
-  in config.  ``HERMES_SAFE_MODE=1`` still skips registration, matching
+  in config.  ``SPARKII_SAFE_MODE=1`` still skips registration, matching
   plugins / MCP / shell hooks.
 * Registration is idempotent — safe to invoke from both the CLI entry
   point and the gateway entry point.
 
-Config schema (``~/.hermes/config.yaml``)::
+Config schema (``~/.sparkii/config.yaml``)::
 
     hooks:
       outbound:
-        - url: https://ci.example.com/hermes-events
+        - url: https://ci.example.com/sparkii-events
           events: [on_session_end, subagent_stop]
           # secret literal (discouraged) or env var name (preferred):
-          secret_env: HERMES_OUTBOUND_WEBHOOK_SECRET
+          secret_env: SPARKII_OUTBOUND_WEBHOOK_SECRET
           # optional regex, honored for pre/post_tool_call only:
           matcher: "terminal|delegate_task"
           timeout: 10       # per-attempt seconds, clamped to [1, 60]
-          name: ci-notify   # optional label for logs / `hermes hooks list`
+          name: ci-notify   # optional label for logs / `sparkii hooks list`
 
 Wire format (POST body)::
 
@@ -168,8 +168,8 @@ def register_from_config(cfg: Optional[Dict[str, Any]]) -> List[WebhookTarget]:
 
     from utils import env_var_enabled
 
-    if env_var_enabled("HERMES_SAFE_MODE"):
-        logger.info("HERMES_SAFE_MODE=1 — outbound webhook registration skipped")
+    if env_var_enabled("SPARKII_SAFE_MODE"):
+        logger.info("SPARKII_SAFE_MODE=1 — outbound webhook registration skipped")
         return []
 
     hooks_cfg = cfg.get("hooks")
@@ -179,7 +179,7 @@ def register_from_config(cfg: Optional[Dict[str, Any]]) -> List[WebhookTarget]:
     if not targets:
         return []
 
-    from hermes_cli.plugins import get_plugin_manager
+    from sparkii_cli.plugins import get_plugin_manager
 
     manager = get_plugin_manager()
 
@@ -209,7 +209,7 @@ def register_from_config(cfg: Optional[Dict[str, Any]]) -> List[WebhookTarget]:
 
 def iter_configured_targets(cfg: Optional[Dict[str, Any]]) -> List[WebhookTarget]:
     """Parse ``hooks.outbound`` without registering anything.
-    Used by ``hermes hooks list``."""
+    Used by ``sparkii hooks list``."""
     if not isinstance(cfg, dict):
         return []
     hooks_cfg = cfg.get("hooks")
@@ -266,7 +266,7 @@ def _parse_outbound_block(raw: Any) -> List[WebhookTarget]:
 
 
 def _parse_single_target(index: int, raw: Any) -> Optional[WebhookTarget]:
-    from hermes_cli.plugins import VALID_HOOKS
+    from sparkii_cli.plugins import VALID_HOOKS
 
     if not isinstance(raw, dict):
         logger.warning(

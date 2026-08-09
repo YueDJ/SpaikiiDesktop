@@ -1,11 +1,11 @@
-"""Tests for hermes_cli.context_switch_guard."""
+"""Tests for sparkii_cli.context_switch_guard."""
 
 from __future__ import annotations
 
 from types import SimpleNamespace
 
-from hermes_cli.context_switch_guard import merge_preflight_compression_warning
-from hermes_cli.model_switch import ModelSwitchResult
+from sparkii_cli.context_switch_guard import merge_preflight_compression_warning
+from sparkii_cli.model_switch import ModelSwitchResult
 
 
 def _result(*, model: str = "small-model") -> ModelSwitchResult:
@@ -43,11 +43,11 @@ def _compressor(monkeypatch, *, context_length: int = 200_000):
 
 def test_merge_appends_to_existing_warning(monkeypatch):
     monkeypatch.setattr(
-        "hermes_cli.context_switch_guard._estimate_tokens",
+        "sparkii_cli.context_switch_guard._estimate_tokens",
         lambda *a, **k: 90_000,
     )
     monkeypatch.setattr(
-        "hermes_cli.context_switch_guard.resolve_display_context_length",
+        "sparkii_cli.context_switch_guard.resolve_display_context_length",
         lambda *a, **k: 32_000,
     )
     cc = _compressor(monkeypatch)
@@ -94,7 +94,7 @@ def test_custom_provider_context_avoids_false_shrink_warning(monkeypatch):
         lambda *a, **k: None,
     )
     monkeypatch.setattr(
-        "hermes_cli.context_switch_guard._estimate_tokens",
+        "sparkii_cli.context_switch_guard._estimate_tokens",
         lambda *a, **k: 147_053,
     )
     cc = _compressor(monkeypatch, context_length=1_000_000)

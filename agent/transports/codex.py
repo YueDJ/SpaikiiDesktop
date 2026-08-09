@@ -50,7 +50,7 @@ def _bounded_prompt_cache_key(value: Any) -> Optional[str]:
 # server-side tool (incomplete hang or HTTP 400 duplicate names); this alias
 # avoids that while still dispatching through Hermes's configured provider
 # (Firecrawl / Tavily / …). Mapped back to ``web_search`` in normalize_response.
-_XAI_CLIENT_WEB_SEARCH_ALIAS = "hermes_web_search"
+_XAI_CLIENT_WEB_SEARCH_ALIAS = "sparkii_web_search"
 
 
 def _xai_prefers_native_web_search() -> bool:
@@ -330,7 +330,7 @@ class ResponsesApiTransport(ProviderTransport):
         # 2. **Client** (Firecrawl / Tavily / Exa / … configured or resolved):
         #    keep Hermes dispatch so ``web.backend`` / ``web.search_backend``
         #    is honored, but rename the wire tool to
-        #    ``hermes_web_search`` so Grok cannot hijack the name. The alias
+        #    ``sparkii_web_search`` so Grok cannot hijack the name. The alias
         #    is mapped back to ``web_search`` in ``normalize_response``.
         if is_xai_responses and response_tools:
             has_client_web_search = any(

@@ -23,14 +23,14 @@ class TestNoOverlayFlag:
 
 
     def test_explicit_true_overrides(self):
-        with patch("hermes_cli.config.load_config",
+        with patch("sparkii_cli.config.load_config",
                    return_value={"computer_use": {"no_overlay": True}}):
             assert cua_backend._cua_no_overlay() is True
 
 
     def test_config_load_failure_falls_through_to_auto_detect(self):
         """Unreadable config => auto-detect (macOS defaults to disabled)."""
-        with patch("hermes_cli.config.load_config",
+        with patch("sparkii_cli.config.load_config",
                    side_effect=RuntimeError("boom")), \
              patch.object(sys, "platform", "darwin"):
             assert cua_backend._cua_no_overlay() is True

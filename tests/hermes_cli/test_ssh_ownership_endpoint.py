@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from hermes_cli import web_server
+from sparkii_cli import web_server
 
 
 def test_ssh_ownership_endpoint_requires_token_and_returns_exact_nonce(monkeypatch):

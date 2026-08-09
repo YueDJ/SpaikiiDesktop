@@ -1,4 +1,4 @@
-"""Tests for hermes_cli.build_info — baked-in build SHA resolution.
+"""Tests for sparkii_cli.build_info — baked-in build SHA resolution.
 
 The build SHA is written by the Dockerfile's ``HERMES_GIT_SHA`` build-arg
 into ``<project_root>/.hermes_build_sha``.  These tests cover the read-side
@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 def test_get_build_sha_returns_none_when_file_absent(tmp_path):
     """Source installs: no file present → None, callers fall back to git."""
-    from hermes_cli import build_info
+    from sparkii_cli import build_info
 
     missing = tmp_path / ".hermes_build_sha"  # never created
 
@@ -21,7 +21,7 @@ def test_get_build_sha_returns_none_when_file_absent(tmp_path):
 
 def test_get_build_sha_respects_short_argument(tmp_path):
     """``short=N`` truncates to N chars; ``short<=0`` returns full SHA."""
-    from hermes_cli import build_info
+    from sparkii_cli import build_info
 
     sha_file = tmp_path / ".hermes_build_sha"
     full_sha = "abcdef1234567890abcdef1234567890abcdef12"

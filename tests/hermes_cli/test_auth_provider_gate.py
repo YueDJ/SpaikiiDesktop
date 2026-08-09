@@ -48,7 +48,7 @@ def test_ambient_pool_source_does_not_count_as_explicit(tmp_path, monkeypatch):
         },
     })
 
-    from hermes_cli.auth import is_provider_explicitly_configured
+    from sparkii_cli.auth import is_provider_explicitly_configured
     assert is_provider_explicitly_configured("copilot") is False
 
 
@@ -71,7 +71,7 @@ def test_returns_true_when_moa_reference_slot_uses_provider(tmp_path, monkeypatc
     })
     _write_auth_store(tmp_path, {"version": 1, "providers": {}, "active_provider": "openai-codex"})
 
-    from hermes_cli.auth import is_provider_explicitly_configured
+    from sparkii_cli.auth import is_provider_explicitly_configured
     assert is_provider_explicitly_configured("anthropic") is True
 
 
@@ -94,7 +94,7 @@ def test_stale_env_pool_entry_does_not_count_when_var_unset(tmp_path, monkeypatc
         },
     })
 
-    from hermes_cli.auth import is_provider_explicitly_configured
+    from sparkii_cli.auth import is_provider_explicitly_configured
     assert is_provider_explicitly_configured("deepseek") is False
 
 

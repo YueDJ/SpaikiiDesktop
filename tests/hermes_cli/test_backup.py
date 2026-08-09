@@ -16,7 +16,7 @@ import pytest
 # ---------------------------------------------------------------------------
 
 def _advance_backup_clock(seconds: float = 1.1) -> None:
-    """Skew hermes_cli.backup's datetime forward instead of sleeping.
+    """Skew sparkii_cli.backup's datetime forward instead of sleeping.
 
     Snapshot ids have 1-second resolution; tests that need two distinct
     timestamps previously slept >1s. This installs (once) a datetime shim in
@@ -24,7 +24,7 @@ def _advance_backup_clock(seconds: float = 1.1) -> None:
     """
     import datetime as _dt
 
-    import hermes_cli.backup as _backup
+    import sparkii_cli.backup as _backup
 
     shim = getattr(_backup.datetime, "_hermes_test_shim", None)
     if shim is None:
@@ -111,21 +111,21 @@ def _symlink_file_or_skip(link: Path, target: Path) -> None:
 
 class TestShouldExclude:
     def test_excludes_hermes_agent(self):
-        from hermes_cli.backup import _should_exclude
+        from sparkii_cli.backup import _should_exclude
         assert _should_exclude(Path("hermes-agent/run_agent.py"))
         assert _should_exclude(Path("hermes-agent/.git/HEAD"))
 
 
     def test_excludes_backups_dir(self):
         """backups/ is excluded so pre-update backups don't nest exponentially."""
-        from hermes_cli.backup import _should_exclude
+        from sparkii_cli.backup import _should_exclude
         assert _should_exclude(Path("backups/pre-update-2026-04-27-063400.zip"))
 
     def test_excludes_sqlite_sidecars(self):
         """SQLite WAL/SHM/journal sidecars must not ship alongside the
         safe-copied .db — pairing a fresh snapshot with stale sidecar state
         produces a torn restore."""
-        from hermes_cli.backup import _should_exclude
+        from sparkii_cli.backup import _should_exclude
         assert _should_exclude(Path("state.db-wal"))
         assert _should_exclude(Path("state.db-shm"))
         assert _should_exclude(Path("state.db-journal"))
@@ -157,7 +157,7 @@ class TestBackup:
         out_zip = out_dir / "backup.zip"
         args = Namespace(output=str(out_zip))
 
-        import hermes_cli.backup as backup_mod
+        import sparkii_cli.backup as backup_mod
         staged_dirs = []
         real_ntf = backup_mod.tempfile.NamedTemporaryFile
 
@@ -186,7 +186,7 @@ class TestBackup:
         out_zip = hermes_home / "backups" / "pre-update-test.zip"
         out_zip.parent.mkdir(parents=True, exist_ok=True)
 
-        import hermes_cli.backup as backup_mod
+        import sparkii_cli.backup as backup_mod
         staged_dirs = []
         real_ntf = backup_mod.tempfile.NamedTemporaryFile
 
@@ -221,7 +221,7 @@ class TestBackup:
         out_zip = tmp_path / "backup.zip"
         args = Namespace(output=str(out_zip))
 
-        from hermes_cli.backup import run_backup
+        from sparkii_cli.backup import run_backup
         run_backup(args)
 
         with zipfile.ZipFile(out_zip, "r") as zf:
@@ -242,7 +242,7 @@ class TestValidateBackupZip:
 
     def test_state_db_passes(self, tmp_path):
         """A zip containing state.db is accepted as a valid Hermes backup."""
-        from hermes_cli.backup import _validate_backup_zip
+        from sparkii_cli.backup import _validate_backup_zip
         zip_path = tmp_path / "backup.zip"
         self._make_zip(zip_path, ["state.db", "sessions/abc.json"])
         with zipfile.ZipFile(zip_path, "r") as zf:
@@ -291,7 +291,7 @@ class TestImport:
 
         args = Namespace(zipfile=str(zip_path), force=True)
 
-        from hermes_cli.backup import run_import
+        from sparkii_cli.backup import run_import
         run_import(args)
 
         # Profile config is restored, but its live gateway state is preserved.
@@ -324,7 +324,7 @@ class TestImport:
 
         args = Namespace(zipfile=str(zip_path), force=True)
 
-        from hermes_cli.backup import run_import
+        from sparkii_cli.backup import run_import
         run_import(args)
 
         # Live runtime files are untouched; the backup's foreign ones never land.
@@ -355,7 +355,7 @@ class TestImport:
 
         args = Namespace(zipfile=str(zip_path), force=True)
 
-        from hermes_cli.backup import run_import
+        from sparkii_cli.backup import run_import
         run_import(args)
 
         for rel in (".env", "auth.json", "state.db", "profiles/coder/.env"):
@@ -380,7 +380,7 @@ class TestRoundTrip:
 
         # Backup
         out_zip = tmp_path / "roundtrip.zip"
-        from hermes_cli.backup import run_backup, run_import
+        from sparkii_cli.backup import run_backup, run_import
 
         run_backup(Namespace(output=str(out_zip)))
         assert out_zip.exists()
@@ -415,16 +415,16 @@ class TestRoundTrip:
 
 class TestFormatSize:
     def test_bytes(self):
-        from hermes_cli.backup import _format_size
+        from sparkii_cli.backup import _format_size
         assert _format_size(512) == "512 B"
 
     def test_kilobytes(self):
-        from hermes_cli.backup import _format_size
+        from sparkii_cli.backup import _format_size
         assert "KB" in _format_size(2048)
 
 
     def test_terabytes(self):
-        from hermes_cli.backup import _format_size
+        from sparkii_cli.backup import _format_size
         assert "TB" in _format_size(2 * 1024 ** 4)
 
 
@@ -432,7 +432,7 @@ class TestValidation:
     def test_validate_with_config(self):
         """Zip with config.yaml passes validation."""
         import io
-        from hermes_cli.backup import _validate_backup_zip
+        from sparkii_cli.backup import _validate_backup_zip
 
         buf = io.BytesIO()
         with zipfile.ZipFile(buf, "w") as zf:
@@ -447,7 +447,7 @@ class TestValidation:
     def test_detect_prefix_only_dirs(self):
         """Prefix detection returns empty for zip with only directory entries."""
         import io
-        from hermes_cli.backup import _detect_prefix
+        from sparkii_cli.backup import _detect_prefix
 
         buf = io.BytesIO()
         with zipfile.ZipFile(buf, "w") as zf:
@@ -479,7 +479,7 @@ class TestBackupEdgeCases:
 
         args = Namespace(output=str(tmp_path / "out.zip"))
 
-        from hermes_cli.backup import run_backup
+        from sparkii_cli.backup import run_backup
         run_backup(args)
 
         # No zip should be created
@@ -503,7 +503,7 @@ class TestBackupEdgeCases:
         out_zip = tmp_path / "out.zip"
         args = Namespace(output=str(out_zip))
 
-        from hermes_cli.backup import run_backup
+        from sparkii_cli.backup import run_backup
         run_backup(args)
 
         # Zip should still be created with the valid files
@@ -536,7 +536,7 @@ class TestImportEdgeCases:
 
         args = Namespace(zipfile=str(zip_path), force=False)
 
-        from hermes_cli.backup import run_import
+        from sparkii_cli.backup import run_import
         with patch("builtins.input", side_effect=EOFError):
             with pytest.raises(SystemExit):
                 run_import(args)
@@ -559,7 +559,7 @@ class TestImportEdgeCases:
 
         args = Namespace(zipfile=str(zip_path), force=True)
 
-        from hermes_cli.backup import run_import
+        from sparkii_cli.backup import run_import
         run_import(args)
 
         assert (hermes_home / "config.yaml").exists()
@@ -596,7 +596,7 @@ class TestProfileRestoration:
 
         args = Namespace(zipfile=str(zip_path), force=True)
 
-        from hermes_cli.backup import run_import
+        from sparkii_cli.backup import run_import
         run_import(args)
 
         # Only valid profile should get a wrapper
@@ -610,7 +610,7 @@ class TestProfileRestoration:
 
 class TestSafeCopyDb:
     def test_copies_valid_database(self, tmp_path):
-        from hermes_cli.backup import _safe_copy_db
+        from sparkii_cli.backup import _safe_copy_db
         src = tmp_path / "test.db"
         dst = tmp_path / "copy.db"
 
@@ -630,7 +630,7 @@ class TestSafeCopyDb:
 
 
     def test_is_zeroed_sqlite_file_detects_nul_header(self, tmp_path):
-        from hermes_cli.backup import is_zeroed_sqlite_file
+        from sparkii_cli.backup import is_zeroed_sqlite_file
         p = tmp_path / "state.db"
         p.write_bytes(bytes(4096))  # all NULs
         assert is_zeroed_sqlite_file(p) is True
@@ -667,7 +667,7 @@ class TestQuickSnapshot:
 
 
     def test_state_db_safely_copied(self, hermes_home):
-        from hermes_cli.backup import create_quick_snapshot
+        from sparkii_cli.backup import create_quick_snapshot
         snap_id = create_quick_snapshot(hermes_home=hermes_home)
         db_copy = hermes_home / "state-snapshots" / snap_id / "state.db"
         assert db_copy.exists()
@@ -679,7 +679,7 @@ class TestQuickSnapshot:
 
     def test_failed_state_db_copy_is_loud(self, hermes_home, monkeypatch, capsys):
         """#68474: unreadable state.db must not look like a silent success."""
-        from hermes_cli import backup as backup_mod
+        from sparkii_cli import backup as backup_mod
 
         def boom(src, dst):
             return False
@@ -714,7 +714,7 @@ class TestQuickSnapshot:
         """Pairing JSONs live outside state.db — snapshot must capture them
         recursively (generic + per-platform) so approved-user lists survive
         disasters like #15733."""
-        from hermes_cli.backup import create_quick_snapshot
+        from sparkii_cli.backup import create_quick_snapshot
 
         # Generic pairing store (new location)
         (hermes_home / "platforms" / "pairing").mkdir(parents=True)
@@ -778,7 +778,7 @@ class TestQuickSnapshot:
         pruned — losing the only recovery copy.
         """
         import json
-        from hermes_cli.backup import create_quick_snapshot, list_quick_snapshots
+        from sparkii_cli.backup import create_quick_snapshot, list_quick_snapshots
 
         # First snapshot: complete (state.db is small, under any cap)
         first_id = create_quick_snapshot(label="complete", hermes_home=hermes_home)
@@ -849,7 +849,7 @@ class TestQuickSnapshotProjectsKanban:
         <root>/kanban/boards/<slug>/kanban.db, not <root>/kanban.db. The
         ``kanban/boards`` dir entry must capture them too, or multi-board
         users still lose every board except ``default`` on upgrade."""
-        from hermes_cli.backup import create_quick_snapshot, restore_quick_snapshot
+        from sparkii_cli.backup import create_quick_snapshot, restore_quick_snapshot
 
         board_dir = hermes_home / "kanban" / "boards" / "work"
         board_dir.mkdir(parents=True)
@@ -884,8 +884,8 @@ class TestQuickSnapshotProjectsKanban:
         """#52889 W2: a non-default board's .db (dir-branch) must go through the
         WAL-safe _safe_copy_db, not a raw shutil.copy2, so an open WAL doesn't
         produce an inconsistent copy."""
-        import hermes_cli.backup as bk
-        from hermes_cli.backup import create_quick_snapshot
+        import sparkii_cli.backup as bk
+        from sparkii_cli.backup import create_quick_snapshot
 
         board = hermes_home / "kanban" / "boards" / "work"
         board.mkdir(parents=True)
@@ -928,7 +928,7 @@ class TestPreUpdateBackup:
     def test_backup_contents_match_full_backup(self, hermes_home):
         """Pre-update backup should include the same user data that
         ``hermes backup`` would, and should exclude the same directories."""
-        from hermes_cli.backup import create_pre_update_backup
+        from sparkii_cli.backup import create_pre_update_backup
         out = create_pre_update_backup(hermes_home=hermes_home)
         assert out is not None
         with zipfile.ZipFile(out) as zf:
@@ -950,7 +950,7 @@ class TestPreUpdateBackup:
     def test_rotation_keeps_only_n(self, hermes_home):
         """After more than ``keep`` backups are created, older ones are
         pruned automatically."""
-        from hermes_cli.backup import create_pre_update_backup
+        from sparkii_cli.backup import create_pre_update_backup
 
         created = []
         for _ in range(5):
@@ -976,7 +976,7 @@ class TestPreUpdateBackup:
 
     def test_skips_symlinked_files(self, hermes_home, tmp_path):
         """Pre-update backups must not dereference symlinks outside HERMES_HOME."""
-        from hermes_cli.backup import create_pre_update_backup
+        from sparkii_cli.backup import create_pre_update_backup
 
         outside = tmp_path / "outside-secret.txt"
         outside.write_text("outside secret\n")
@@ -1034,7 +1034,7 @@ class TestRunPreUpdateBackup:
         """pre_update_backup: off — an explicit opt-out disables the quick
         snapshot too (it previously ran unconditionally), with no output."""
         self._set_mode(hermes_home, "off")
-        from hermes_cli.main import _run_pre_update_backup
+        from sparkii_cli.main import _run_pre_update_backup
         snap_id = _run_pre_update_backup(Namespace(no_backup=False, backup=False))
         out = capsys.readouterr().out
         assert snap_id is None
@@ -1046,7 +1046,7 @@ class TestRunPreUpdateBackup:
 
     def test_config_full_mode(self, hermes_home, capsys):
         self._set_mode(hermes_home, "full")
-        from hermes_cli.main import _run_pre_update_backup
+        from sparkii_cli.main import _run_pre_update_backup
         snap_id = _run_pre_update_backup(Namespace(no_backup=False, backup=False))
         out = capsys.readouterr().out
         assert snap_id is not None
@@ -1076,7 +1076,7 @@ class TestPreMigrationBackup:
     def test_restorable_with_hermes_import(self, hermes_home, tmp_path):
         """The zip produced by pre-migration backup must be a valid Hermes
         backup — `hermes import` should accept it."""
-        from hermes_cli.backup import create_pre_migration_backup, _validate_backup_zip
+        from sparkii_cli.backup import create_pre_migration_backup, _validate_backup_zip
         out = create_pre_migration_backup(hermes_home=hermes_home)
         assert out is not None
         with zipfile.ZipFile(out) as zf:
@@ -1089,7 +1089,7 @@ class TestPreMigrationBackup:
     def test_does_not_touch_pre_update_backups(self, hermes_home):
         """Pre-migration rotation must only prune pre-migration-*.zip files,
         leaving pre-update-*.zip backups untouched."""
-        from hermes_cli.backup import create_pre_update_backup, create_pre_migration_backup
+        from sparkii_cli.backup import create_pre_update_backup, create_pre_migration_backup
         update_backup = create_pre_update_backup(hermes_home=hermes_home, keep=5)
         assert update_backup is not None and update_backup.exists()
         # Spin up a lot of migration backups with keep=1
@@ -1116,11 +1116,11 @@ class TestRestoreCronJobsIfEmptied:
         path.write_text(json.dumps({"jobs": jobs}))
 
     def _make_snapshot(self, hermes_home: Path, label="pre-update"):
-        from hermes_cli.backup import create_quick_snapshot
+        from sparkii_cli.backup import create_quick_snapshot
         return create_quick_snapshot(label=label, hermes_home=hermes_home, keep=5)
 
     def test_restores_when_emptied_after_migration(self, tmp_path):
-        from hermes_cli.backup import restore_cron_jobs_if_emptied
+        from sparkii_cli.backup import restore_cron_jobs_if_emptied
         hermes_home = tmp_path / ".hermes"
         jobs_path = hermes_home / "cron" / "jobs.json"
         # Pre-update: 3 real jobs.
@@ -1145,7 +1145,7 @@ class TestRestoreCronJobsIfEmptied:
     def test_restores_when_partial_job_loss(self, tmp_path):
         """Desktop scheduler overwrites jobs.json with its own small set,
         losing tool-created crons while keeping desktop-tracked ones."""
-        from hermes_cli.backup import restore_cron_jobs_if_emptied
+        from sparkii_cli.backup import restore_cron_jobs_if_emptied
         hermes_home = tmp_path / ".hermes"
         jobs_path = hermes_home / "cron" / "jobs.json"
         # Pre-update: 19 jobs (18 tool-created + 1 desktop watchdog).
@@ -1199,7 +1199,7 @@ class TestMemoryProviderExternalPaths:
         monkeypatch.setenv("HERMES_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
-        import hermes_cli.backup as backup_mod
+        import sparkii_cli.backup as backup_mod
         monkeypatch.setattr(
             backup_mod, "_collect_memory_provider_external_paths", lambda: [outside]
         )
@@ -1232,7 +1232,7 @@ class TestMemoryProviderExternalPaths:
         monkeypatch.setenv("HERMES_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: dst_home)
 
-        from hermes_cli.backup import run_import
+        from sparkii_cli.backup import run_import
         run_import(Namespace(zipfile=str(zip_path), force=True))
 
         restored = dst_home / ".honcho" / "config.json"

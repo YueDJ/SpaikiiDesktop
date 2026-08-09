@@ -1,7 +1,7 @@
 import pytest
 
 from agent.errors import MoAPresetNotFoundError
-from hermes_cli.moa_config import (
+from sparkii_cli.moa_config import (
     DEFAULT_MOA_AGGREGATOR,
     DEFAULT_MOA_PRESET_NAME,
     DEFAULT_MOA_REFERENCE_MODELS,
@@ -15,7 +15,7 @@ from hermes_cli.moa_config import (
 
 
 def test_moa_slot_picker_excludes_unconfigured_providers(monkeypatch):
-    from hermes_cli import moa_cmd
+    from sparkii_cli import moa_cmd
 
     captured = {}
     monkeypatch.setattr(moa_cmd, "load_picker_context", lambda: object())
@@ -146,7 +146,7 @@ def test_validate_moa_payload_agrees_with_clean_slot():
     """Contract: a payload validate accepts must survive normalize UNCHANGED in
     its slots — validate and _clean_slot can never disagree (else a payload
     could pass validation and still be swapped for defaults)."""
-    from hermes_cli.moa_config import validate_moa_payload
+    from sparkii_cli.moa_config import validate_moa_payload
 
     payload = {"presets": {"p": _valid_preset_payload()}}
     assert validate_moa_payload(payload) == []

@@ -25,7 +25,7 @@ class TestGetConfigOffLoop:
             from starlette.testclient import TestClient
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
-        from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+        from sparkii_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
         client = TestClient(app)
         client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
@@ -44,7 +44,7 @@ class TestGetConfigOffLoop:
             import httpx
         except ImportError:
             pytest.skip("httpx not installed")
-        from hermes_cli import web_server
+        from sparkii_cli import web_server
 
         hold_s = 1.0
         release = threading.Event()
@@ -124,7 +124,7 @@ class TestRouterOffLoop:
             import httpx
         except ImportError:
             pytest.skip("httpx not installed")
-        from hermes_cli import web_server
+        from sparkii_cli import web_server
 
         hold_s = 1.0
         release = threading.Event()
@@ -198,8 +198,8 @@ class TestConfigMutationLock:
             from starlette.testclient import TestClient
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
-        from hermes_cli import web_server
-        from hermes_cli.config import load_config
+        from sparkii_cli import web_server
+        from sparkii_cli.config import load_config
 
         client = TestClient(web_server.app)
         client.headers[web_server._SESSION_HEADER_NAME] = web_server._SESSION_TOKEN
@@ -262,9 +262,9 @@ class TestConfigMutationLock:
             from starlette.testclient import TestClient
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
-        from hermes_cli import config as config_mod
-        from hermes_cli import web_server
-        from hermes_cli.config import load_config
+        from sparkii_cli import config as config_mod
+        from sparkii_cli import web_server
+        from sparkii_cli.config import load_config
 
         client = TestClient(web_server.app)
         client.headers[web_server._SESSION_HEADER_NAME] = web_server._SESSION_TOKEN
@@ -282,7 +282,7 @@ class TestConfigMutationLock:
             results.append(("theme", resp.status_code))
 
         # Slow down the engine writer's save (resolved at call time from
-        # hermes_cli.config by _save_context_engine's function-local import)
+        # sparkii_cli.config by _save_context_engine's function-local import)
         # so an unserialized theme write can land inside its RMW span and be
         # erased by the stale save. With the mutation lock the whole span is
         # serialized and both writes survive.

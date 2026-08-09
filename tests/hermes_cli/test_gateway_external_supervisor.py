@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-import hermes_cli.gateway as gateway
+import sparkii_cli.gateway as gateway
 
 
 def _clear_native_supervisor_markers(monkeypatch):
@@ -48,7 +48,7 @@ def test_update_hands_external_supervisor_gateway_back_without_watcher(monkeypat
         lambda _pid: [
             "python",
             "-m",
-            "hermes_cli.main",
+            "sparkii_cli.main",
             "gateway",
             "run",
             "--external-supervisor",

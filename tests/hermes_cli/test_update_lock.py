@@ -1,4 +1,4 @@
-"""Cross-process update mutual exclusion (``hermes_cli.update_lock``).
+"""Cross-process update mutual exclusion (``sparkii_cli.update_lock``).
 
 Three surfaces can start an update of one install tree: a terminal ``hermes
 update``, the dashboard's Update button (which spawns that same command
@@ -21,7 +21,7 @@ import time
 
 import pytest
 
-from hermes_cli.update_lock import (
+from sparkii_cli.update_lock import (
     HANDOFF_PID_ENV,
     UPDATE_MARKER_MAX_AGE_SECONDS,
     UpdateLock,
@@ -241,7 +241,7 @@ class TestAncestryHandoff:
 
     @pytest.fixture(autouse=True)
     def _liveness_pinned_true(self, monkeypatch):
-        monkeypatch.setattr("hermes_cli.update_lock._pid_alive", lambda pid: True)
+        monkeypatch.setattr("sparkii_cli.update_lock._pid_alive", lambda pid: True)
 
     def test_marker_owned_by_our_parent_process_is_our_orchestrator(self, marker):
         marker.write_text(f"{os.getppid()}\n{int(time.time())}\n", encoding="utf-8")

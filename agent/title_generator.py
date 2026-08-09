@@ -122,7 +122,7 @@ _MACHINE_PREFIXES = (
 def _title_language() -> str:
     """Return configured title language, or empty string to match the user."""
     try:
-        from hermes_cli.config import load_config_readonly
+        from sparkii_cli.config import load_config_readonly
 
         return str(
             ((load_config_readonly() or {}).get("auxiliary") or {})
@@ -137,9 +137,9 @@ def _auto_title_enabled() -> bool:
     """Return whether automatic session title generation is enabled."""
     try:
         # Lazy imports, matching _title_language(): title_generator is imported
-        # from agent code paths where a module-level hermes_cli import risks
+        # from agent code paths where a module-level sparkii_cli import risks
         # circularity, and the read-only loader avoids config-migration writes.
-        from hermes_cli.config import load_config_readonly
+        from sparkii_cli.config import load_config_readonly
         from utils import is_truthy_value
 
         config = load_config_readonly()
@@ -491,7 +491,7 @@ def auto_title_session(
     Never lets an exception escape: this is a daemon-thread target, and an
     escaping exception would spray a raw traceback into the user's terminal
     via the default threading excepthook. The canonical trigger is the
-    post-``hermes update`` stale-module window, where this function's lazy
+    post-``sparkii update`` stale-module window, where this function's lazy
     imports read NEW source from disk while already-cached modules
     (``agent.portal_tags`` etc.) are still the OLD version — the resulting
     ImportError repeats on every auto-title attempt until the long-running

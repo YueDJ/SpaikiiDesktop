@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from hermes_cli.config import (
+from sparkii_cli.config import (
     get_container_exec_info,
 )
 
@@ -86,7 +86,7 @@ def podman_container_info():
 def test_exec_in_container_calls_execvp(docker_container_info):
     """Verifies os.execvp is called with correct args: runtime, tty flags,
     user, env vars, container name, binary, and CLI args."""
-    from hermes_cli.main import _exec_in_container
+    from sparkii_cli.main import _exec_in_container
 
     with patch("shutil.which", return_value="/usr/bin/docker"), \
          patch("subprocess.run") as mock_run, \

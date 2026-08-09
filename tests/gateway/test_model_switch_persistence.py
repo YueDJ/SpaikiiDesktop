@@ -186,7 +186,7 @@ class TestOneTurnNeverPersisted:
 
         import gateway.run as gateway_run
         from gateway.run import GatewayRunner
-        from hermes_cli.model_switch import ModelSwitchResult
+        from sparkii_cli.model_switch import ModelSwitchResult
 
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
@@ -199,7 +199,7 @@ class TestOneTurnNeverPersisted:
         monkeypatch.setattr(gateway_run, "_hermes_home", hermes_home)
         monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
         monkeypatch.setattr(
-            "hermes_cli.model_switch.switch_model",
+            "sparkii_cli.model_switch.switch_model",
             lambda **kw: ModelSwitchResult(
                 success=True,
                 new_model="gpt-5.5",
@@ -212,7 +212,7 @@ class TestOneTurnNeverPersisted:
             ),
         )
         monkeypatch.setattr("hermes_constants.get_hermes_home", lambda: hermes_home)
-        monkeypatch.setattr("hermes_cli.config.get_hermes_home", lambda: hermes_home)
+        monkeypatch.setattr("sparkii_cli.config.get_hermes_home", lambda: hermes_home)
 
         runner = object.__new__(GatewayRunner)
         runner.adapters = {}

@@ -85,7 +85,7 @@ def _allow_setup_validation(monkeypatch, *, root_access: bool = False):
 
 
 def test_openviking_provider_config_loader_uses_readonly_config(monkeypatch):
-    import hermes_cli.config as config_mod
+    import sparkii_cli.config as config_mod
 
     calls = []
     backing_config = {
@@ -289,7 +289,7 @@ def test_post_setup_existing_profile_picker_validates_and_links_saved_profile(tm
     monkeypatch.setenv("HERMES_HOME", str(hermes_home))
     monkeypatch.setattr(openviking_module.Path, "home", staticmethod(lambda: tmp_path))
 
-    from hermes_cli import memory_setup
+    from sparkii_cli import memory_setup
 
     validate_calls = []
 

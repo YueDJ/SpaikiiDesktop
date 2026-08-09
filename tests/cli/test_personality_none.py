@@ -48,7 +48,7 @@ class TestCLIPersonalityNone:
         with (
             patch("cli.save_config_value", side_effect=_save),
             patch(
-                "hermes_cli.config.read_raw_config",
+                "sparkii_cli.config.read_raw_config",
                 return_value={"agent": {"system_prompt": "manual forever"}},
             ),
         ):

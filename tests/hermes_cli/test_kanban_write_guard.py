@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from hermes_cli import kanban_db
+from sparkii_cli import kanban_db
 
 
 def test_connect_succeeds_under_test_home(tmp_path, monkeypatch):

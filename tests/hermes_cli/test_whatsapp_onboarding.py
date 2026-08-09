@@ -30,7 +30,7 @@ class _FakeProc:
 
 
 def test_apply_whatsapp_onboarding_saves_pairing_policy(monkeypatch):
-    from hermes_cli import web_server as ws
+    from sparkii_cli import web_server as ws
 
     saved = {}
     removed = []
@@ -74,7 +74,7 @@ def test_apply_whatsapp_onboarding_saves_pairing_policy(monkeypatch):
 
 
 def test_start_whatsapp_onboarding_existing_creds_returns_linked_account(monkeypatch, tmp_path):
-    from hermes_cli import web_server as ws
+    from sparkii_cli import web_server as ws
 
     session_dir = tmp_path / "session"
     session_dir.mkdir()

@@ -23,7 +23,7 @@ from unittest.mock import patch
 
 import pytest
 
-from hermes_cli import main as cli_main
+from sparkii_cli import main as cli_main
 
 PE_AMD64 = 0x8664
 PE_ARM64 = 0xAA64
@@ -67,7 +67,7 @@ def make_pe(path: Path, machine: int = PE_AMD64, *, truncate_to: int | None = No
 
 # ─── _windows_native_machine ────────────────────────────────────────────────
 
-# MACHINE_ATTRIBUTES.UserEnabled — mirrors hermes_cli.main.
+# MACHINE_ATTRIBUTES.UserEnabled — mirrors sparkii_cli.main.
 _USER_ENABLED = 0x00000001
 
 
@@ -204,7 +204,7 @@ def test_rollback_restores_backup_and_keeps_corrupt_copy(tmp_path):
     backup_exe = desktop_dir / "release" / "win-unpacked.bak" / "Hermes.exe"
     make_pe(backup_exe, PE_AMD64)  # valid old build
 
-    with patch("hermes_cli.main._windows_native_machine", return_value="AMD64"):
+    with patch("sparkii_cli.main._windows_native_machine", return_value="AMD64"):
         restored = cli_main._rollback_desktop_from_backup(exe)
 
     assert restored == exe
@@ -232,8 +232,8 @@ def test_gate_fails_clearly_without_backup(tmp_path, monkeypatch, capsys):
     fake.parent.mkdir(parents=True)
     fake.write_bytes(b"<html>proxy error</html>" + b" " * 600)
 
-    with patch("hermes_cli.main._purge_electron_build_cache", return_value=[]), \
-         patch("hermes_cli.main._desktop_stamp_path", return_value=tmp_path / "stamp.json"):
+    with patch("sparkii_cli.main._purge_electron_build_cache", return_value=[]), \
+         patch("sparkii_cli.main._desktop_stamp_path", return_value=tmp_path / "stamp.json"):
         verified, rolled_back = cli_main._ensure_desktop_exe_launchable(desktop_dir, exe)
 
     assert verified is None
@@ -279,15 +279,15 @@ def test_build_only_fails_when_pack_produces_corrupt_exe(tmp_path, monkeypatch, 
     install_ok = subprocess.CompletedProcess(["npm", "ci"], 0)
     pack_ok = subprocess.CompletedProcess(["npm", "run", "pack"], 0)
 
-    with patch("hermes_cli.main.shutil.which", return_value="/usr/bin/npm"), \
-         patch("hermes_cli.main._run_npm_install_deterministic", return_value=install_ok), \
-         patch("hermes_cli.main._desktop_build_needed", return_value=True), \
-         patch("hermes_cli.main._stop_desktop_processes_locking_build", return_value=[]), \
-         patch("hermes_cli.main._purge_electron_build_cache", return_value=[]), \
-         patch("hermes_cli.main._desktop_stamp_path", return_value=tmp_path / "stamp.json"), \
-         patch("hermes_cli.main._write_desktop_build_stamp") as mock_stamp, \
-         patch("hermes_cli.main._windows_native_machine", return_value="AMD64"), \
-         patch("hermes_cli.main.subprocess.run", return_value=pack_ok), \
+    with patch("sparkii_cli.main.shutil.which", return_value="/usr/bin/npm"), \
+         patch("sparkii_cli.main._run_npm_install_deterministic", return_value=install_ok), \
+         patch("sparkii_cli.main._desktop_build_needed", return_value=True), \
+         patch("sparkii_cli.main._stop_desktop_processes_locking_build", return_value=[]), \
+         patch("sparkii_cli.main._purge_electron_build_cache", return_value=[]), \
+         patch("sparkii_cli.main._desktop_stamp_path", return_value=tmp_path / "stamp.json"), \
+         patch("sparkii_cli.main._write_desktop_build_stamp") as mock_stamp, \
+         patch("sparkii_cli.main._windows_native_machine", return_value="AMD64"), \
+         patch("sparkii_cli.main.subprocess.run", return_value=pack_ok), \
          pytest.raises(SystemExit) as exc:
         cli_main.cmd_gui(_ns())
 

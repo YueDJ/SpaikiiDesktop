@@ -1,10 +1,10 @@
-"""Tests for the Phase 4 s6 hooks in hermes_cli.profiles.
+"""Tests for the Phase 4 s6 hooks in sparkii_cli.profiles.
 
 Specifically: _maybe_register_gateway_service,
 _maybe_unregister_gateway_service. The integration with
 create_profile and delete_profile is covered indirectly by the
 existing TestCreateProfile and TestDeleteProfile classes in
-tests/hermes_cli/test_profiles.py; here we only exercise the new
+tests/sparkii_cli/test_profiles.py; here we only exercise the new
 helper surface that doesn't touch the filesystem.
 """
 from __future__ import annotations
@@ -13,7 +13,7 @@ from typing import Any
 
 import pytest
 
-from hermes_cli.profiles import (
+from sparkii_cli.profiles import (
     _maybe_register_gateway_service,
     _maybe_unregister_gateway_service,
 )
@@ -80,7 +80,7 @@ def _patch_detect_s6(monkeypatch: pytest.MonkeyPatch) -> None:
     exercise the early-return path.
     """
     monkeypatch.setattr(
-        "hermes_cli.service_manager.detect_service_manager",
+        "sparkii_cli.service_manager.detect_service_manager",
         lambda: "s6",
     )
 
@@ -92,7 +92,7 @@ def test_register_noop_on_host(monkeypatch: pytest.MonkeyPatch) -> None:
     # defense-in-depth assertion that get_service_manager is never
     # reached on host.
     monkeypatch.setattr(
-        "hermes_cli.service_manager.get_service_manager",
+        "sparkii_cli.service_manager.get_service_manager",
         lambda: _HostManager(),
     )
     # Should NOT raise the AssertionError from _HostManager.register
@@ -106,7 +106,7 @@ def test_register_passes_start_now_false(monkeypatch: pytest.MonkeyPatch) -> Non
     _patch_detect_s6(monkeypatch)
     mgr = _S6Manager()
     monkeypatch.setattr(
-        "hermes_cli.service_manager.get_service_manager", lambda: mgr,
+        "sparkii_cli.service_manager.get_service_manager", lambda: mgr,
     )
     _maybe_register_gateway_service("coder")
     assert mgr.last_start_now is False, (
@@ -124,12 +124,12 @@ def test_register_silent_when_detect_throws(
     def _broken_detect() -> str:
         raise RuntimeError("detection blew up")
     monkeypatch.setattr(
-        "hermes_cli.service_manager.detect_service_manager", _broken_detect,
+        "sparkii_cli.service_manager.detect_service_manager", _broken_detect,
     )
     # If get_service_manager is reached, the test will assert via
     # _HostManager.register. It must NOT be reached.
     monkeypatch.setattr(
-        "hermes_cli.service_manager.get_service_manager",
+        "sparkii_cli.service_manager.get_service_manager",
         lambda: _HostManager(),
     )
     _maybe_register_gateway_service("anywhere")

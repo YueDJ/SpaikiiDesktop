@@ -103,7 +103,7 @@ def _normalize_env_dict(env: dict | None) -> dict[str, str]:
 def _load_hermes_env_vars() -> dict[str, str]:
     """Load ~/.hermes/.env values without failing Docker command execution."""
     try:
-        from hermes_cli.config import load_env
+        from sparkii_cli.config import load_env
 
         return load_env() or {}
     except Exception:
@@ -138,7 +138,7 @@ def _get_active_profile_name() -> str:
     same process don't retroactively relabel running containers.
     """
     try:
-        from hermes_cli.profiles import get_active_profile_name
+        from sparkii_cli.profiles import get_active_profile_name
 
         return get_active_profile_name() or "default"
     except Exception:
@@ -421,7 +421,7 @@ def _egress_proxy_args_for_docker() -> tuple[list[str], dict[str, str], list[str
     # proxy enforcement.  We let unexpected exceptions propagate so the
     # docker backend visibly fails rather than degrading silently.
     try:
-        from hermes_cli.config import load_config
+        from sparkii_cli.config import load_config
         from agent.proxy_sources import iron_proxy as ip
     except ImportError as exc:
         logger.debug("Egress proxy plumbing unavailable: %s", exc)
@@ -578,7 +578,7 @@ def _egress_reuse_fingerprint(
 def _egress_enforce_on_docker(default: bool = True) -> bool:
     """Read proxy.enforce_on_docker with fail-safe defaulting."""
     try:
-        from hermes_cli.config import load_config as _load_cfg
+        from sparkii_cli.config import load_config as _load_cfg
 
         return bool((_load_cfg().get("proxy") or {}).get("enforce_on_docker", default))
     except (ImportError, OSError):
@@ -1135,7 +1135,7 @@ class DockerEnvironment(BaseEnvironment):
         # - When the user override is identical to the egress value, no-op.
         if egress_env_overrides:
             try:
-                from hermes_cli.config import load_config as _load_cfg_for_collision
+                from sparkii_cli.config import load_config as _load_cfg_for_collision
                 _proxy_cfg = (_load_cfg_for_collision().get("proxy") or {})
             except (ImportError, OSError):
                 _proxy_cfg = {}
@@ -1214,7 +1214,7 @@ class DockerEnvironment(BaseEnvironment):
         # opt out).  In both cases the collision check above has already
         # surfaced any disagreement.
         try:
-            from hermes_cli.config import load_config as _load_cfg_for_precedence
+            from sparkii_cli.config import load_config as _load_cfg_for_precedence
             _enforce_egress_merge = bool(
                 (_load_cfg_for_precedence().get("proxy") or {})
                 .get("enforce_on_docker", True)

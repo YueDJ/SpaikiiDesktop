@@ -37,7 +37,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 
 # ── Sandbox HERMES_HOME before ANY test module is imported ──────────────────
-# `hermes_cli/main.py` calls `setup_logging()` at MODULE level, which resolves
+# `sparkii_cli/main.py` calls `setup_logging()` at MODULE level, which resolves
 # `get_hermes_home()` and attaches rotating file handlers to the ROOT logger.
 # So merely importing it - which many test modules do, directly or
 # transitively - points the whole pytest session's logging at the operator's
@@ -242,7 +242,7 @@ _HERMES_BEHAVIORAL_VARS = frozenset({
     # Voice/TTS runtime flags. ``tui_gateway/server.py`` reads these straight
     # off ``os.environ`` at call time (``_voice_mode_enabled`` /
     # ``_voice_tts_enabled``) and, on every completed turn, hands the turn's
-    # final response text to ``hermes_cli.voice.speak_text`` — real synthesis,
+    # final response text to ``sparkii_cli.voice.speak_text`` — real synthesis,
     # real playback, out of the developer's speakers. Blank them per-test so a
     # leak (from the shell, or from an earlier test that drove the
     # ``voice.toggle`` RPC, which writes ``os.environ`` directly) cannot carry
@@ -515,7 +515,7 @@ def _hermetic_environment(tmp_path, monkeypatch):
     #    ~/.hermes/plugins/ (which, per step 3, is now empty — but the
     #    singleton might still be cached from a previous test).
     try:
-        import hermes_cli.plugins as _plugins_mod
+        import sparkii_cli.plugins as _plugins_mod
         monkeypatch.setattr(_plugins_mod, "_plugin_manager", None)
     except Exception:
         pass
@@ -633,19 +633,19 @@ def _kanban_write_guard(_hermetic_environment, monkeypatch):
     ``~/.hermes`` captured at import time. Hermetic tests that legitimately
     move HERMES_HOME to sibling tempdirs are unaffected.
 
-    Only patches when ``hermes_cli.kanban_db`` is *already imported* — a
+    Only patches when ``sparkii_cli.kanban_db`` is *already imported* — a
     ``sys.modules`` probe, not an import — so the guard never drags the
     kanban module into unrelated test processes.
 
     Uses ``monkeypatch.setattr`` so pytest restores ``connect`` automatically
     after each test (no stacked wrappers or state leakage across tests).
     """
-    _kdb = sys.modules.get("hermes_cli.kanban_db")
+    _kdb = sys.modules.get("sparkii_cli.kanban_db")
     if _kdb is None:
         return
 
     # The sys.modules probe can observe the module MID-IMPORT: a fixture
-    # boundary firing while another test's lazy `import hermes_cli.kanban_db`
+    # boundary firing while another test's lazy `import sparkii_cli.kanban_db`
     # is still executing sees a partially initialized module whose `connect`
     # doesn't exist yet (AttributeError flake, caught in a full-suite run).
     # A half-imported module has no callers yet either — nothing to guard
@@ -917,7 +917,7 @@ def _ensure_current_event_loop(request):
 # environment and finds the developer's live ``hermes-gateway`` process
 # via ``psutil`` — sending it SIGTERM mid-test. The shutdown forensics in
 # PR #23285 caught this happening 5+ times in 3 days, every time
-# correlated with a ``tests/hermes_cli/`` pytest run starting up.
+# correlated with a ``tests/sparkii_cli/`` pytest run starting up.
 #
 # This fixture makes the leak impossible by intercepting the two
 # primitives that actually do damage:
@@ -996,7 +996,7 @@ def _wal_is_usable() -> bool:
 #   2. Any later test in that process that drives a turn to completion hits
 #      the TTS dispatch in ``prompt.submit``, which checks
 #      ``_voice_tts_enabled()`` — now true — and fires
-#      ``hermes_cli.voice.speak_text(final_response)`` on a daemon thread.
+#      ``sparkii_cli.voice.speak_text(final_response)`` on a daemon thread.
 #   3. ``speak_text`` needs no API key to be audible: ``tools/tts_tool.py``
 #      defaults to the ``edge`` provider, which is keyless.
 #
@@ -1007,12 +1007,12 @@ def _wal_is_usable() -> bool:
 # live-system guard intercepts ``os.kill`` rather than trusting every caller
 # to mock it:
 #
-#  • ``hermes_cli.voice.speak_text`` — the synth+playback entry point both
+#  • ``sparkii_cli.voice.speak_text`` — the synth+playback entry point both
 #    gateway call sites late-import, so patching the module attribute catches
 #    them wherever they import it from.
-#  • ``hermes_cli.voice.play_audio_file`` — the module-level binding
+#  • ``sparkii_cli.voice.play_audio_file`` — the module-level binding
 #    ``speak_text`` actually plays through. Patching the binding inside
-#    ``hermes_cli.voice`` (not ``tools.voice_mode``) keeps the real function
+#    ``sparkii_cli.voice`` (not ``tools.voice_mode``) keeps the real function
 #    available to the tests that legitimately exercise it with a mocked
 #    audio backend (``tests/tools/test_voice_mode.py``).
 #
@@ -1236,8 +1236,8 @@ def _live_system_guard(request, monkeypatch):
     _HERMES_TOKENS = (
         "hermes-gateway",
         "hermes.service",
-        "hermes_cli.main gateway",
-        "hermes_cli/main.py gateway",
+        "sparkii_cli.main gateway",
+        "sparkii_cli/main.py gateway",
         "gateway/run.py",
         "hermes gateway",
     )
@@ -1311,7 +1311,7 @@ def _live_system_guard(request, monkeypatch):
                 low = cmd_str.lower()
                 # pkill -f pattern: catch hermes-themed patterns + a
                 # plain "python" -f which would catch the live gateway
-                # whose cmdline contains "python -m hermes_cli.main".
+                # whose cmdline contains "python -m sparkii_cli.main".
                 if (
                     "hermes" in low
                     or "gateway" in low
@@ -1338,7 +1338,7 @@ def _live_system_guard(request, monkeypatch):
                 "intentional."
             )
         # Block any subprocess that would run `hermes update` (or the
-        # equivalent `python -m hermes_cli.main update`).  These commands
+        # equivalent `python -m sparkii_cli.main update`).  These commands
         # run `git fetch origin + git pull` against the REAL checkout,
         # overwriting files like pyproject.toml mid-test-run and corrupting
         # every subsequent subprocess that reads them.  The corruption is
@@ -1353,8 +1353,8 @@ def _live_system_guard(request, monkeypatch):
             # hermes update / hermes update --gateway / setsid bash -c ... hermes update
             ("hermes" in low and "update" in low.split())
             or
-            # python -m hermes_cli.main update --gateway
-            ("hermes_cli" in low and "update" in low.split())
+            # python -m sparkii_cli.main update --gateway
+            ("sparkii_cli" in low and "update" in low.split())
             or
             # venv/bin/hermes update  (absolute path variant used in tests)
             (".venv/bin/hermes" in low and "update" in low)
@@ -1504,7 +1504,7 @@ def _audio_playback_guard(request, monkeypatch):
         return
 
     try:
-        import hermes_cli.voice as _voice
+        import sparkii_cli.voice as _voice
     except Exception:
         # Optional audio deps missing — nothing importable to speak with.
         yield

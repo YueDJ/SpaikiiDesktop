@@ -1,8 +1,8 @@
-"""Tests for the shared session-listing helpers (hermes_cli/session_listing.py)."""
+"""Tests for the shared session-listing helpers (sparkii_cli/session_listing.py)."""
 
 import pytest
 
-from hermes_cli.session_listing import (
+from sparkii_cli.session_listing import (
     parse_session_listing_args,
     query_session_listing,
 )

@@ -12,7 +12,7 @@ from fastapi import HTTPException
 @pytest.fixture()
 def isolated_profiles(tmp_path, monkeypatch):
     """Give profile discovery an isolated default home with one named profile."""
-    from hermes_cli import profiles
+    from sparkii_cli import profiles
 
     default_home = tmp_path / ".hermes"
     profiles_root = default_home / "profiles"
@@ -45,7 +45,7 @@ def test_fire_cron_job_scopes_store_and_runtime_home_together(
     """A profile fire must execute and persist under the same profile home."""
     from cron import jobs as cron_jobs
     from cron import scheduler
-    from hermes_cli import web_server
+    from sparkii_cli import web_server
 
     from hermes_constants import (
         reset_hermes_home_override,
@@ -89,7 +89,7 @@ def test_create_registers_scheduler_inside_target_profile(
     """Dashboard create must resolve and register under the selected profile."""
     from cron import jobs as cron_jobs
     from cron.scheduler_provider import CronScheduler
-    from hermes_cli import web_server
+    from sparkii_cli import web_server
     from hermes_constants import get_hermes_home
 
     worker_home = isolated_profiles["worker_alpha"]
@@ -133,7 +133,7 @@ def test_dashboard_create_reports_saved_but_unregistered(
 ):
     """Dashboard callers can distinguish persistence from remote registration."""
     from cron.scheduler import CronSchedulerRegistrationError
-    from hermes_cli import web_server
+    from sparkii_cli import web_server
 
     job = {"id": "saved-job", "name": "saved job"}
     failure = CronSchedulerRegistrationError(
@@ -173,7 +173,7 @@ def test_profile_call_cannot_retarget_ticker_store_mid_write(
 ):
     """A dashboard profile call must not redirect a concurrent ticker save."""
     from cron import jobs as cron_jobs
-    from hermes_cli import web_server
+    from sparkii_cli import web_server
 
     default_cron = isolated_profiles["default"] / "cron"
     worker_cron = isolated_profiles["worker_alpha"] / "cron"
@@ -258,7 +258,7 @@ def test_profile_call_cannot_retarget_ticker_store_mid_write(
 
 @pytest.mark.asyncio
 async def test_cron_mutation_without_profile_finds_named_profile_job(isolated_profiles):
-    from hermes_cli import web_server
+    from sparkii_cli import web_server
 
     worker_job = web_server._call_cron_for_profile(
         "worker_alpha",
@@ -285,7 +285,7 @@ async def test_cron_mutation_without_profile_finds_named_profile_job(isolated_pr
 
 @pytest.mark.asyncio
 async def test_dashboard_cron_rejects_missing_context_from(isolated_profiles):
-    from hermes_cli import web_server
+    from sparkii_cli import web_server
 
     with pytest.raises(HTTPException) as create_exc:
         await web_server.create_cron_job(

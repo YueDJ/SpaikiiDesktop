@@ -1,4 +1,4 @@
-"""Test the platform-branched PTY bridge import in hermes_cli.web_server.
+"""Test the platform-branched PTY bridge import in sparkii_cli.web_server.
 
 The /api/pty WebSocket handler in web_server.py picks its bridge at import
 time via ``sys.platform.startswith("win")`` — Windows gets the ConPTY
@@ -21,7 +21,7 @@ import sys
 
 import pytest
 
-from hermes_cli import web_server
+from sparkii_cli import web_server
 
 
 def test_web_server_exposes_pty_bridge_symbols():
@@ -38,8 +38,8 @@ def test_web_server_exposes_pty_bridge_symbols():
 @pytest.mark.skipif(sys.platform.startswith("win"), reason="POSIX-only")
 def test_web_server_uses_posix_pty_bridge_on_posix():
     """On POSIX, the bridge must be the fcntl/termios PtyBridge."""
-    from hermes_cli.pty_bridge import PtyBridge as PosixBridge
-    from hermes_cli.pty_bridge import PtyUnavailableError as PosixErr
+    from sparkii_cli.pty_bridge import PtyBridge as PosixBridge
+    from sparkii_cli.pty_bridge import PtyUnavailableError as PosixErr
 
     assert web_server.PtyBridge is PosixBridge
     assert web_server._PTY_BRIDGE_AVAILABLE is True
@@ -56,14 +56,14 @@ def test_pty_bridge_import_block_is_platform_branched():
     #
     #   if sys.platform.startswith("win"):
     #       try:
-    #           from hermes_cli.win_pty_bridge import WinPtyBridge as PtyBridge, ...
+    #           from sparkii_cli.win_pty_bridge import WinPtyBridge as PtyBridge, ...
     #       except ImportError:
     #           PtyBridge = None
     #           ...
     #   else:
     #       try:
-    #           from hermes_cli.pty_bridge import PtyBridge, PtyUnavailableError
+    #           from sparkii_cli.pty_bridge import PtyBridge, PtyUnavailableError
     #       ...
     assert 'sys.platform.startswith("win")' in src or "sys.platform.startswith('win')" in src
-    assert "from hermes_cli.win_pty_bridge import" in src
-    assert "from hermes_cli.pty_bridge import" in src
+    assert "from sparkii_cli.win_pty_bridge import" in src
+    assert "from sparkii_cli.pty_bridge import" in src

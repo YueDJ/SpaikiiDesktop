@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from hermes_cli.main import _resolve_last_session
+from sparkii_cli.main import _resolve_last_session
 
 
 class _FakeDB:
@@ -126,7 +126,7 @@ def test_resolve_last_session_real_db_prefers_workspace(monkeypatch, tmp_path):
 
     monkeypatch.chdir(repo_a)
     monkeypatch.setattr(
-        "hermes_cli.main.subprocess.run",
+        "sparkii_cli.main.subprocess.run",
         lambda cmd, **kw: __import__("subprocess").CompletedProcess(
             cmd, 0, stdout=str(repo_a), stderr=""
         ),

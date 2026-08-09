@@ -23,7 +23,7 @@ def _ns(**kwargs):
 
 
 def test_archive_refuses_pinned(monkeypatch, capsys):
-    import hermes_cli.curator as curator_cli
+    import sparkii_cli.curator as curator_cli
     import tools.skill_usage as skill_usage
 
     monkeypatch.setattr(skill_usage, "get_record", lambda name: {"pinned": True})
@@ -73,7 +73,7 @@ def _mk_record(name, *, idle_days=0, pinned=False, state="active", created_idle_
 
 def test_archive_and_prune_registered():
     import argparse
-    import hermes_cli.curator as curator_cli
+    import sparkii_cli.curator as curator_cli
 
     parser = argparse.ArgumentParser(prog="hermes curator")
     curator_cli.register_cli(parser)

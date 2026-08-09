@@ -59,7 +59,7 @@ class TestApiServerModelsUnderProfile:
         adapter = _make_adapter(multiplex=True)
         adapter._model_name = "hermes-agent"
         monkeypatch.setattr(
-            "hermes_cli.profiles.get_active_profile_name",
+            "sparkii_cli.profiles.get_active_profile_name",
             lambda: "coder",
         )
         token_prof = _api_request_profile.set("coder")

@@ -5258,7 +5258,7 @@ class FeishuAdapter(BasePlatformAdapter):
 #
 # Device-code flow: user scans a QR code with Feishu/Lark mobile app and the
 # platform creates a fully configured bot application automatically.
-# Called by `hermes gateway setup` via _setup_feishu() in hermes_cli/gateway.py.
+# Called by `hermes gateway setup` via _setup_feishu() in sparkii_cli/gateway.py.
 # =============================================================================
 
 
@@ -5599,7 +5599,7 @@ def _qr_register_inner(
 # per-platform core touchpoints (the Platform.FEISHU elif in gateway/run.py,
 # the feishu_cfg YAML→env block + _PLATFORM_CONNECTED_CHECKERS entry in
 # gateway/config.py, the _setup_feishu wizard + _PLATFORMS["feishu"] static
-# dict in hermes_cli/gateway.py, and the _send_feishu dispatch in
+# dict in sparkii_cli/gateway.py, and the _send_feishu dispatch in
 # tools/send_message_tool.py).
 # ──────────────────────────────────────────────────────────────────────────
 
@@ -5674,12 +5674,12 @@ async def _standalone_send(
 def interactive_setup() -> None:
     """Interactive setup for Feishu / Lark — scan-to-create or manual creds.
 
-    Replaces the central _setup_feishu in hermes_cli/gateway.py and the static
+    Replaces the central _setup_feishu in sparkii_cli/gateway.py and the static
     _PLATFORMS["feishu"] dict. CLI helpers are lazy-imported.
     """
-    from hermes_cli.config import get_env_value, remove_env_value, save_env_value
-    from hermes_cli.setup import prompt_choice
-    from hermes_cli.cli_output import (
+    from sparkii_cli.config import get_env_value, remove_env_value, save_env_value
+    from sparkii_cli.setup import prompt_choice
+    from sparkii_cli.cli_output import (
         prompt,
         prompt_yes_no,
         print_header,

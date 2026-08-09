@@ -7,8 +7,8 @@ render both as separate rows for the same model.
 
 from unittest.mock import patch
 
-from hermes_cli.model_search import model_alias_canonical
-from hermes_cli.models import provider_model_ids
+from sparkii_cli.model_search import model_alias_canonical
+from sparkii_cli.models import provider_model_ids
 
 
 class TestModelAliasCanonical:
@@ -23,7 +23,7 @@ class TestPickerMergeAliasDedup:
         Exactly one k3-family row must survive (the curated slug leads)."""
         with (
             patch(
-                "hermes_cli.auth.resolve_api_key_provider_credentials",
+                "sparkii_cli.auth.resolve_api_key_provider_credentials",
                 return_value={
                     "api_key": "sk-kimi-x",
                     "base_url": "https://api.kimi.com/coding",

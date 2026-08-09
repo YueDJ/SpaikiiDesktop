@@ -7,7 +7,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from hermes_cli.prompt_size import (
+from sparkii_cli.prompt_size import (
     _SKILLS_BLOCK_RE,
     _build_inspection_agent,
     _compute_skills_breakdown,

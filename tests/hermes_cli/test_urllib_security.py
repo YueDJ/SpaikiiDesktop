@@ -10,7 +10,7 @@ import urllib.request
 
 import pytest
 
-from hermes_cli.urllib_security import (
+from sparkii_cli.urllib_security import (
     SafeCredentialRedirectHandler,
     open_credentialed_url,
     url_origin,
@@ -275,7 +275,7 @@ def test_multihop_redirects_never_resurrect_credentials():
 
 
 def test_probe_api_models_drops_custom_credentials_on_wire():
-    from hermes_cli.models import probe_api_models
+    from sparkii_cli.models import probe_api_models
 
     source = _server()
     sink = _server()
@@ -352,7 +352,7 @@ def test_anthropic_profile_drops_x_api_key_on_redirect(monkeypatch):
 
 
 def test_azure_catalog_probe_drops_api_key_and_bearer_on_redirect():
-    from hermes_cli import azure_detect
+    from sparkii_cli import azure_detect
 
     source = _server()
     sink = _server()
@@ -375,7 +375,7 @@ def test_azure_catalog_probe_drops_api_key_and_bearer_on_redirect():
 
 
 def test_azure_anthropic_probe_drops_api_key_and_bearer_on_redirect():
-    from hermes_cli import azure_detect
+    from sparkii_cli import azure_detect
 
     sink = _server()
     source = ThreadingHTTPServer(("127.0.0.1", 0), _LmStudioSourceHandler)

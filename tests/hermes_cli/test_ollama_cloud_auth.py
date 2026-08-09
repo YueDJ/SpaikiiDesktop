@@ -34,11 +34,11 @@ class TestOllamaCloudCredentials:
             }
         }
         monkeypatch.setattr(
-            "hermes_cli.runtime_provider._get_model_config",
+            "sparkii_cli.runtime_provider._get_model_config",
             lambda: mock_config.get("model", {}),
         )
 
-        from hermes_cli.runtime_provider import resolve_runtime_provider
+        from sparkii_cli.runtime_provider import resolve_runtime_provider
         runtime = resolve_runtime_provider(requested="custom")
 
         assert runtime["base_url"] == "https://ollama.com/v1"
@@ -65,11 +65,11 @@ class TestDirectAliases:
             }
         }
         monkeypatch.setattr(
-            "hermes_cli.config.load_config",
+            "sparkii_cli.config.load_config",
             lambda: mock_config,
         )
 
-        from hermes_cli.model_switch import _load_direct_aliases
+        from sparkii_cli.model_switch import _load_direct_aliases
         aliases = _load_direct_aliases()
 
         assert "mymodel" in aliases
@@ -79,8 +79,8 @@ class TestDirectAliases:
 
     def test_direct_alias_resolved_before_catalog(self, monkeypatch):
         """Direct aliases take priority over models.dev catalog lookup."""
-        from hermes_cli.model_switch import DirectAlias, resolve_alias
-        import hermes_cli.model_switch as ms
+        from sparkii_cli.model_switch import DirectAlias, resolve_alias
+        import sparkii_cli.model_switch as ms
 
         test_aliases = {
             "glm": DirectAlias("glm-4.7", "custom", "https://ollama.com/v1"),
@@ -104,7 +104,7 @@ class TestModelSwitchPersistence:
 
     def test_model_switch_result_fields(self):
         """ModelSwitchResult has all required fields for CLI state update."""
-        from hermes_cli.model_switch import ModelSwitchResult
+        from sparkii_cli.model_switch import ModelSwitchResult
 
         result = ModelSwitchResult(
             success=True,
@@ -171,11 +171,11 @@ class TestLoadDirectAliasesEdgeCases:
         """Empty model_aliases dict returns only builtins (if any)."""
         mock_config = {"model_aliases": {}}
         monkeypatch.setattr(
-            "hermes_cli.config.load_config",
+            "sparkii_cli.config.load_config",
             lambda: mock_config,
         )
 
-        from hermes_cli.model_switch import _load_direct_aliases
+        from sparkii_cli.model_switch import _load_direct_aliases
         aliases = _load_direct_aliases()
         assert isinstance(aliases, dict)
 
@@ -183,11 +183,11 @@ class TestLoadDirectAliasesEdgeCases:
     def test_load_config_exception_returns_builtins(self, monkeypatch):
         """If load_config raises, _load_direct_aliases returns builtins only."""
         monkeypatch.setattr(
-            "hermes_cli.config.load_config",
+            "sparkii_cli.config.load_config",
             lambda: (_ for _ in ()).throw(RuntimeError("config broken")),
         )
 
-        from hermes_cli.model_switch import _load_direct_aliases
+        from sparkii_cli.model_switch import _load_direct_aliases
         aliases = _load_direct_aliases()
         assert isinstance(aliases, dict)
 
@@ -201,11 +201,11 @@ class TestLoadDirectAliasesEdgeCases:
             }
         }
         monkeypatch.setattr(
-            "hermes_cli.config.load_config",
+            "sparkii_cli.config.load_config",
             lambda: mock_config,
         )
 
-        from hermes_cli.model_switch import _load_direct_aliases
+        from sparkii_cli.model_switch import _load_direct_aliases
         aliases = _load_direct_aliases()
         assert "empty" not in aliases
         assert "good" in aliases
@@ -220,7 +220,7 @@ class TestEnsureDirectAliases:
 
     def test_ensure_populates_on_first_call(self, monkeypatch):
         """DIRECT_ALIASES is populated after _ensure_direct_aliases."""
-        import hermes_cli.model_switch as ms
+        import sparkii_cli.model_switch as ms
 
         mock_config = {
             "model_aliases": {
@@ -228,7 +228,7 @@ class TestEnsureDirectAliases:
             }
         }
         monkeypatch.setattr(
-            "hermes_cli.config.load_config",
+            "sparkii_cli.config.load_config",
             lambda: mock_config,
         )
         monkeypatch.setattr(ms, "DIRECT_ALIASES", {})
@@ -237,8 +237,8 @@ class TestEnsureDirectAliases:
 
     def test_ensure_no_reload_when_populated(self, monkeypatch):
         """_ensure_direct_aliases does not reload if already populated."""
-        import hermes_cli.model_switch as ms
-        from hermes_cli.model_switch import DirectAlias
+        import sparkii_cli.model_switch as ms
+        from sparkii_cli.model_switch import DirectAlias
 
         existing = {"pre": DirectAlias("pre-model", "custom", "")}
         monkeypatch.setattr(ms, "DIRECT_ALIASES", existing)
@@ -265,8 +265,8 @@ class TestResolveAliasEdgeCases:
 
     def test_whitespace_input_handled(self, monkeypatch):
         """Input with whitespace is stripped before lookup."""
-        from hermes_cli.model_switch import DirectAlias
-        import hermes_cli.model_switch as ms
+        from sparkii_cli.model_switch import DirectAlias
+        import sparkii_cli.model_switch as ms
 
         test_aliases = {
             "myalias": DirectAlias("my-model", "custom", "https://example.com"),
@@ -292,9 +292,9 @@ class TestResolveAliasSorting:
         the display ordering demotes date-stamped snapshots."""
         import pytest
 
-        import hermes_cli.model_switch as ms
+        import sparkii_cli.model_switch as ms
 
-        monkeypatch.setattr("hermes_cli.models._PROVIDER_MODELS", {})
+        monkeypatch.setattr("sparkii_cli.models._PROVIDER_MODELS", {})
         monkeypatch.setattr(ms, "_ensure_direct_aliases", lambda: None)
         monkeypatch.setattr(ms, "DIRECT_ALIASES", {})
         monkeypatch.setattr(ms, "list_provider_models",
@@ -314,9 +314,9 @@ class TestResolveAliasSorting:
         older, dated siblings in the candidate ordering."""
         import pytest
 
-        import hermes_cli.model_switch as ms
+        import sparkii_cli.model_switch as ms
 
-        monkeypatch.setattr("hermes_cli.models._PROVIDER_MODELS", {})
+        monkeypatch.setattr("sparkii_cli.models._PROVIDER_MODELS", {})
         monkeypatch.setattr(ms, "_ensure_direct_aliases", lambda: None)
         monkeypatch.setattr(ms, "DIRECT_ALIASES", {})
         monkeypatch.setattr(ms, "list_provider_models",
@@ -329,9 +329,9 @@ class TestResolveAliasSorting:
 
     def test_single_match_resolves_without_error(self, monkeypatch):
         """Exactly one family match still resolves automatically."""
-        import hermes_cli.model_switch as ms
+        import sparkii_cli.model_switch as ms
 
-        monkeypatch.setattr("hermes_cli.models._PROVIDER_MODELS", {})
+        monkeypatch.setattr("sparkii_cli.models._PROVIDER_MODELS", {})
         monkeypatch.setattr(ms, "_ensure_direct_aliases", lambda: None)
         monkeypatch.setattr(ms, "DIRECT_ALIASES", {})
         monkeypatch.setattr(ms, "list_provider_models",
@@ -342,9 +342,9 @@ class TestResolveAliasSorting:
     def test_switch_model_surfaces_ambiguity_message(self, monkeypatch):
         """switch_model returns a failure result listing the candidates
         instead of switching to a heuristic guess."""
-        import hermes_cli.model_switch as ms
+        import sparkii_cli.model_switch as ms
 
-        monkeypatch.setattr("hermes_cli.models._PROVIDER_MODELS", {})
+        monkeypatch.setattr("sparkii_cli.models._PROVIDER_MODELS", {})
         monkeypatch.setattr(ms, "_ensure_direct_aliases", lambda: None)
         monkeypatch.setattr(ms, "DIRECT_ALIASES", {})
         monkeypatch.setattr(ms, "list_provider_models",
@@ -370,8 +370,8 @@ class TestSwitchModelDirectAliasOverride:
 
     def test_switch_model_uses_alias_base_url(self, monkeypatch):
         """When resolved alias has base_url, switch_model should use it."""
-        from hermes_cli.model_switch import DirectAlias
-        import hermes_cli.model_switch as ms
+        from sparkii_cli.model_switch import DirectAlias
+        import sparkii_cli.model_switch as ms
 
         test_aliases = {
             "qwen": DirectAlias("qwen3.5:397b", "custom", "https://ollama.com/v1"),
@@ -382,13 +382,13 @@ class TestSwitchModelDirectAliasOverride:
             lambda raw, prov: ("custom", "qwen3.5:397b", "qwen"))
 
         monkeypatch.setattr(
-            "hermes_cli.runtime_provider.resolve_runtime_provider",
+            "sparkii_cli.runtime_provider.resolve_runtime_provider",
             lambda **kwargs: {"api_key": "", "base_url": "", "api_mode": "openai_compat", "provider": "custom"},
         )
 
-        monkeypatch.setattr("hermes_cli.models.validate_requested_model",
+        monkeypatch.setattr("sparkii_cli.models.validate_requested_model",
             lambda *a, **kw: {"accepted": True, "persist": True, "recognized": True, "message": None})
-        monkeypatch.setattr("hermes_cli.models.opencode_model_api_mode",
+        monkeypatch.setattr("sparkii_cli.models.opencode_model_api_mode",
             lambda *a, **kw: "openai_compat")
 
         result = ms.switch_model("qwen", "openrouter", "old-model")
@@ -398,8 +398,8 @@ class TestSwitchModelDirectAliasOverride:
 
     def test_switch_model_alias_no_api_key_gets_default(self, monkeypatch):
         """When alias has base_url but no api_key, 'no-key-required' is set."""
-        from hermes_cli.model_switch import DirectAlias
-        import hermes_cli.model_switch as ms
+        from sparkii_cli.model_switch import DirectAlias
+        import sparkii_cli.model_switch as ms
 
         test_aliases = {
             "local": DirectAlias("local-model", "custom", "http://localhost:11434/v1"),
@@ -408,12 +408,12 @@ class TestSwitchModelDirectAliasOverride:
         monkeypatch.setattr(ms, "resolve_alias",
             lambda raw, prov: ("custom", "local-model", "local"))
         monkeypatch.setattr(
-            "hermes_cli.runtime_provider.resolve_runtime_provider",
+            "sparkii_cli.runtime_provider.resolve_runtime_provider",
             lambda **kwargs: {"api_key": "", "base_url": "", "api_mode": "openai_compat", "provider": "custom"},
         )
-        monkeypatch.setattr("hermes_cli.models.validate_requested_model",
+        monkeypatch.setattr("sparkii_cli.models.validate_requested_model",
             lambda *a, **kw: {"accepted": True, "persist": True, "recognized": True, "message": None})
-        monkeypatch.setattr("hermes_cli.models.opencode_model_api_mode",
+        monkeypatch.setattr("sparkii_cli.models.opencode_model_api_mode",
             lambda *a, **kw: "openai_compat")
 
         result = ms.switch_model("local", "openrouter", "old-model")

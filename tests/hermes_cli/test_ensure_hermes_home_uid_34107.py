@@ -30,7 +30,7 @@ class TestResolveHermesUidGid:
     def test_returns_parsed_values_when_both_set(self, monkeypatch):
         monkeypatch.setenv("HERMES_UID", "1000")
         monkeypatch.setenv("HERMES_GID", "911")
-        from hermes_cli.config import _resolve_hermes_uid_gid
+        from sparkii_cli.config import _resolve_hermes_uid_gid
         uid, gid = _resolve_hermes_uid_gid()
         assert uid == 1000
         assert gid == 911
@@ -40,7 +40,7 @@ class TestResolveHermesUidGid:
     def test_windows_returns_none_none(self, monkeypatch):
         monkeypatch.setenv("HERMES_UID", "1000")
         monkeypatch.setenv("HERMES_GID", "911")
-        from hermes_cli.config import _resolve_hermes_uid_gid
+        from sparkii_cli.config import _resolve_hermes_uid_gid
         uid, gid = _resolve_hermes_uid_gid()
         assert uid is None
         assert gid is None
@@ -55,7 +55,7 @@ class TestChownToHermesUid:
     def test_calls_os_chown_when_both_set(self, tmp_path, monkeypatch):
         monkeypatch.setenv("HERMES_UID", "1000")
         monkeypatch.setenv("HERMES_GID", "911")
-        from hermes_cli import config as cfg
+        from sparkii_cli import config as cfg
 
         d = tmp_path / "subdir"
         d.mkdir()
@@ -72,7 +72,7 @@ class TestChownToHermesUid:
         user anyway."""
         monkeypatch.setenv("HERMES_UID", "1000")
         monkeypatch.setenv("HERMES_GID", "911")
-        from hermes_cli import config as cfg
+        from sparkii_cli import config as cfg
 
         d = tmp_path / "subdir"
         d.mkdir()
@@ -89,7 +89,7 @@ class TestChownToHermesUid:
         the helper portable."""
         monkeypatch.setenv("HERMES_UID", "1000")
         monkeypatch.setenv("HERMES_GID", "911")
-        from hermes_cli import config as cfg
+        from sparkii_cli import config as cfg
 
         d = tmp_path / "subdir"
         d.mkdir()
@@ -108,7 +108,7 @@ class TestSecureDirChown:
     def test_secure_dir_invokes_chown_when_env_set(self, tmp_path, monkeypatch):
         monkeypatch.setenv("HERMES_UID", "1000")
         monkeypatch.setenv("HERMES_GID", "911")
-        from hermes_cli import config as cfg
+        from sparkii_cli import config as cfg
 
         d = tmp_path / "subdir"
         d.mkdir()
@@ -121,7 +121,7 @@ class TestSecureDirChown:
     def test_secure_dir_no_chown_when_env_unset(self, tmp_path, monkeypatch):
         monkeypatch.delenv("HERMES_UID", raising=False)
         monkeypatch.delenv("HERMES_GID", raising=False)
-        from hermes_cli import config as cfg
+        from sparkii_cli import config as cfg
 
         d = tmp_path / "subdir"
         d.mkdir()

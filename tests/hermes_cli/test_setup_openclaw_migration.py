@@ -4,7 +4,7 @@ from argparse import Namespace
 from types import ModuleType
 from unittest.mock import MagicMock, patch
 
-from hermes_cli import setup as setup_mod
+from sparkii_cli import setup as setup_mod
 
 
 # ---------------------------------------------------------------------------
@@ -24,7 +24,7 @@ class TestOfferOpenclawMigration:
         script = tmp_path / "openclaw_to_hermes.py"
         script.write_text("# placeholder")
         with (
-            patch("hermes_cli.setup.Path.home", return_value=tmp_path),
+            patch("sparkii_cli.setup.Path.home", return_value=tmp_path),
             patch.object(setup_mod, "_OPENCLAW_SCRIPT", script),
             patch.object(setup_mod, "prompt_yes_no", return_value=False),
         ):
@@ -56,7 +56,7 @@ class TestOfferOpenclawMigration:
         script.write_text("# placeholder")
 
         with (
-            patch("hermes_cli.setup.Path.home", return_value=tmp_path),
+            patch("sparkii_cli.setup.Path.home", return_value=tmp_path),
             patch.object(setup_mod, "_OPENCLAW_SCRIPT", script),
             # Both prompts answered Yes: preview offer + proceed confirmation
             patch.object(setup_mod, "prompt_yes_no", return_value=True),
@@ -114,7 +114,7 @@ class TestOfferOpenclawMigration:
         script.write_text("# placeholder")
 
         with (
-            patch("hermes_cli.setup.Path.home", return_value=tmp_path),
+            patch("sparkii_cli.setup.Path.home", return_value=tmp_path),
             patch.object(setup_mod, "_OPENCLAW_SCRIPT", script),
             patch.object(setup_mod, "prompt_yes_no", return_value=True),
             patch.object(setup_mod, "get_config_path", return_value=config_path),
@@ -154,7 +154,7 @@ class TestSetupWizardOpenclawIntegration:
             patch.object(setup_mod, "get_hermes_home", return_value=tmp_path),
             patch.object(setup_mod, "get_env_value", return_value=""),
             patch.object(setup_mod, "is_interactive_stdin", return_value=True),
-            patch("hermes_cli.auth.get_active_provider", return_value=None),
+            patch("sparkii_cli.auth.get_active_provider", return_value=None),
             # User presses Enter to start
             patch("builtins.input", return_value=""),
             # Select "Full setup" (index 1) so we exercise the full path
@@ -191,7 +191,7 @@ class TestSetupWizardOpenclawIntegration:
             patch.object(setup_mod, "get_hermes_home", return_value=tmp_path),
             patch.object(setup_mod, "get_env_value", return_value=""),
             patch.object(setup_mod, "is_interactive_stdin", return_value=True),
-            patch("hermes_cli.auth.get_active_provider", return_value=None),
+            patch("sparkii_cli.auth.get_active_provider", return_value=None),
             patch("builtins.input", return_value=""),
             patch.object(setup_mod, "prompt_choice", return_value=1),
             patch.object(setup_mod, "_offer_openclaw_migration", return_value=True),
@@ -292,11 +292,11 @@ class TestSetupWizardSkipsConfiguredSections:
         reloaded_config = {"model": "openai/gpt-4"}
 
         # _platform_status (called by the gateway summary path) reads env
-        # vars via hermes_cli.gateway.get_env_value, NOT setup_mod's. Patch
+        # vars via sparkii_cli.gateway.get_env_value, NOT setup_mod's. Patch
         # both so xdist sibling tests can't leak a TELEGRAM_BOT_TOKEN /
         # WHATSAPP_* / etc. through and trick the wizard into thinking the
         # gateway section is already configured (which would skip it).
-        import hermes_cli.gateway as gateway_mod
+        import sparkii_cli.gateway as gateway_mod
 
         with (
             patch.object(setup_mod, "ensure_hermes_home"),
@@ -308,7 +308,7 @@ class TestSetupWizardSkipsConfiguredSections:
             patch.object(setup_mod, "get_env_value", side_effect=env_side),
             patch.object(gateway_mod, "get_env_value", side_effect=env_side),
             patch.object(setup_mod, "is_interactive_stdin", return_value=True),
-            patch("hermes_cli.auth.get_active_provider", return_value=None),
+            patch("sparkii_cli.auth.get_active_provider", return_value=None),
             patch("builtins.input", return_value=""),
             patch.object(setup_mod, "prompt_choice", return_value=1),
             # Migration succeeds and flips the env_side flag

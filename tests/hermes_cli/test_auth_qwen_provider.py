@@ -1,4 +1,4 @@
-"""Tests for Qwen OAuth provider authentication (hermes_cli/auth.py).
+"""Tests for Qwen OAuth provider authentication (sparkii_cli/auth.py).
 
 Covers: _qwen_cli_auth_path, _read_qwen_cli_tokens, _save_qwen_cli_tokens,
 _qwen_access_token_is_expiring, _refresh_qwen_cli_tokens,
@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from hermes_cli.auth import (
+from sparkii_cli.auth import (
     AuthError,
     DEFAULT_QWEN_BASE_URL,
     QWEN_ACCESS_TOKEN_REFRESH_SKEW_SECONDS,
@@ -68,7 +68,7 @@ def qwen_env(tmp_path, monkeypatch):
     """Redirect _qwen_cli_auth_path to tmp_path/.qwen/oauth_creds.json."""
     creds_path = tmp_path / ".qwen" / "oauth_creds.json"
     monkeypatch.setattr(
-        "hermes_cli.auth._qwen_cli_auth_path", lambda: creds_path
+        "sparkii_cli.auth._qwen_cli_auth_path", lambda: creds_path
     )
     return tmp_path
 
@@ -159,7 +159,7 @@ def test_get_qwen_auth_status_refreshes_expired_token(qwen_env):
     refreshed = _make_qwen_tokens(access_token="refreshed-at")
 
     with patch(
-        "hermes_cli.auth._refresh_qwen_cli_tokens", return_value=refreshed
+        "sparkii_cli.auth._refresh_qwen_cli_tokens", return_value=refreshed
     ) as mock_refresh:
         status = get_qwen_auth_status()
 
@@ -169,14 +169,14 @@ def test_get_qwen_auth_status_refreshes_expired_token(qwen_env):
 
 
 def test_model_flow_qwen_oauth_stale_token_shows_reauth_guidance(qwen_env, monkeypatch, capsys):
-    from hermes_cli.main import _model_flow_qwen_oauth
+    from sparkii_cli.main import _model_flow_qwen_oauth
 
     expired_ms = int((time.time() - 3600) * 1000)
     tokens = _make_qwen_tokens(access_token="dead-at", expiry_date=expired_ms)
     _write_qwen_creds(qwen_env, tokens)
 
     monkeypatch.setattr(
-        "hermes_cli.auth._refresh_qwen_cli_tokens",
+        "sparkii_cli.auth._refresh_qwen_cli_tokens",
         lambda *args, **kwargs: (_ for _ in ()).throw(
             AuthError(
                 "Qwen refresh rejected. Re-run 'qwen auth qwen-oauth'.",
@@ -190,11 +190,11 @@ def test_model_flow_qwen_oauth_stale_token_shows_reauth_guidance(qwen_env, monke
     update_called = {"value": False}
 
     monkeypatch.setattr(
-        "hermes_cli.auth._prompt_model_selection",
+        "sparkii_cli.auth._prompt_model_selection",
         lambda *args, **kwargs: prompt_called.__setitem__("value", True),
     )
     monkeypatch.setattr(
-        "hermes_cli.auth._update_config_for_provider",
+        "sparkii_cli.auth._update_config_for_provider",
         lambda *args, **kwargs: update_called.__setitem__("value", True),
     )
 

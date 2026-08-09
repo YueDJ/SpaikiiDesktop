@@ -10,7 +10,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-from hermes_cli.auth import AuthError, get_provider_auth_state, resolve_nous_runtime_credentials
+from sparkii_cli.auth import AuthError, get_provider_auth_state, resolve_nous_runtime_credentials
 
 
 # =============================================================================
@@ -28,7 +28,7 @@ class TestResolveVerifyFallback:
         monkeypatch.setattr("sys.platform", "linux")
 
     def test_missing_ca_bundle_in_auth_state_falls_back(self):
-        from hermes_cli.auth import _resolve_verify
+        from sparkii_cli.auth import _resolve_verify
 
         result = _resolve_verify(auth_state={
             "tls": {"insecure": False, "ca_bundle": "/nonexistent/ca-bundle.pem"},
@@ -37,7 +37,7 @@ class TestResolveVerifyFallback:
 
     def test_valid_ca_bundle_in_auth_state_is_returned(self, tmp_path, monkeypatch):
         import ssl
-        from hermes_cli.auth import _resolve_verify
+        from sparkii_cli.auth import _resolve_verify
 
         ca_file = tmp_path / "ca-bundle.pem"
         ca_file.write_text("fake cert")
@@ -56,7 +56,7 @@ class TestResolveVerifyFallback:
 
 
     def test_insecure_takes_precedence_over_missing_ca(self):
-        from hermes_cli.auth import _resolve_verify
+        from sparkii_cli.auth import _resolve_verify
 
         result = _resolve_verify(
             insecure=True,
@@ -66,14 +66,14 @@ class TestResolveVerifyFallback:
 
     def test_string_false_in_auth_state_does_not_disable_tls_verify(self):
         import ssl
-        from hermes_cli.auth import _resolve_verify
+        from sparkii_cli.auth import _resolve_verify
 
         result = _resolve_verify(auth_state={"tls": {"insecure": "false"}})
         assert result is not False
         assert result is True or isinstance(result, ssl.SSLContext)
 
     def test_string_true_in_auth_state_disables_tls_verify(self):
-        from hermes_cli.auth import _resolve_verify
+        from sparkii_cli.auth import _resolve_verify
 
         result = _resolve_verify(auth_state={"tls": {"insecure": "true"}})
         assert result is False
@@ -145,7 +145,7 @@ def test_resolve_nous_runtime_credentials_prefers_invoke_jwt_and_mirrors(
     tmp_path,
     monkeypatch,
 ):
-    import hermes_cli.auth as auth_mod
+    import sparkii_cli.auth as auth_mod
 
     hermes_home = tmp_path / "hermes"
     token = _invoke_jwt(seconds=3600)
@@ -179,7 +179,7 @@ def test_resolve_nous_runtime_credentials_invoke_jwt_is_idempotent(
     tmp_path,
     monkeypatch,
 ):
-    import hermes_cli.auth as auth_mod
+    import sparkii_cli.auth as auth_mod
 
     hermes_home = tmp_path / "hermes"
     hermes_home.mkdir(parents=True, exist_ok=True)
@@ -252,7 +252,7 @@ def test_resolve_nous_runtime_credentials_reauths_when_invoke_scope_missing(
     tmp_path,
     monkeypatch,
 ):
-    import hermes_cli.auth as auth_mod
+    import sparkii_cli.auth as auth_mod
 
     hermes_home = tmp_path / "hermes"
     token = _jwt_with_claims({
@@ -283,7 +283,7 @@ def test_resolve_nous_runtime_credentials_reauths_when_invoke_scope_missing(
 
 
 def test_removed_legacy_session_env_var_does_not_change_jwt_auth(tmp_path, monkeypatch):
-    import hermes_cli.auth as auth_mod
+    import sparkii_cli.auth as auth_mod
 
     hermes_home = tmp_path / "hermes"
     token = _invoke_jwt(seconds=3600)
@@ -346,7 +346,7 @@ def test_nous_inference_auth_logs_do_not_include_secret_values(
     monkeypatch,
     caplog,
 ):
-    import hermes_cli.auth as auth_mod
+    import sparkii_cli.auth as auth_mod
 
     hermes_home = tmp_path / "hermes"
     token = _invoke_jwt(seconds=3600)
@@ -374,7 +374,7 @@ def test_nous_inference_auth_logs_do_not_include_secret_values(
 
     monkeypatch.setattr(auth_mod, "_refresh_access_token", _fake_refresh_access_token)
 
-    caplog.set_level(logging.DEBUG, logger="hermes_cli.auth")
+    caplog.set_level(logging.DEBUG, logger="sparkii_cli.auth")
     auth_mod.resolve_nous_runtime_credentials(
         force_refresh=True,
     )
@@ -397,7 +397,7 @@ def test_get_nous_auth_status_checks_credential_pool(tmp_path, monkeypatch):
     case when login happened via the dashboard device-code flow which
     saves to the pool only.
     """
-    from hermes_cli.auth import get_nous_auth_status
+    from sparkii_cli.auth import get_nous_auth_status
 
     hermes_home = tmp_path / "hermes"
     hermes_home.mkdir(parents=True, exist_ok=True)
@@ -436,7 +436,7 @@ def test_get_nous_auth_status_empty_returns_not_logged_in(tmp_path, monkeypatch)
     """get_nous_auth_status() returns logged_in=False when both pool
     and auth store are empty.
     """
-    from hermes_cli.auth import get_nous_auth_status
+    from sparkii_cli.auth import get_nous_auth_status
 
     hermes_home = tmp_path / "hermes"
     hermes_home.mkdir(parents=True, exist_ok=True)
@@ -494,9 +494,9 @@ class TestLoginNousSkipKeepsCurrent:
 
     def _patch_login_internals(self, monkeypatch, *, prompt_returns):
         """Patch OAuth + model-list + prompt so _login_nous doesn't hit network."""
-        import hermes_cli.auth as auth_mod
-        import hermes_cli.models as models_mod
-        import hermes_cli.nous_subscription as ns
+        import sparkii_cli.auth as auth_mod
+        import sparkii_cli.models as models_mod
+        import sparkii_cli.nous_subscription as ns
 
         fake_auth_state = {
             "access_token": "fake-nous-token",
@@ -533,7 +533,7 @@ class TestLoginNousSkipKeepsCurrent:
         """User picks Skip → config.yaml untouched, Nous creds still saved."""
         import argparse
         import yaml
-        from hermes_cli.auth import PROVIDER_REGISTRY, _login_nous
+        from sparkii_cli.auth import PROVIDER_REGISTRY, _login_nous
 
         hermes_home, config_path, auth_path = self._setup_home_with_openrouter(
             tmp_path, monkeypatch,
@@ -564,7 +564,7 @@ class TestLoginNousSkipKeepsCurrent:
         """User picks a Nous model → provider flips to nous with that model."""
         import argparse
         import yaml
-        from hermes_cli.auth import PROVIDER_REGISTRY, _login_nous
+        from sparkii_cli.auth import PROVIDER_REGISTRY, _login_nous
 
         hermes_home, config_path, auth_path = self._setup_home_with_openrouter(
             tmp_path, monkeypatch,
@@ -592,7 +592,7 @@ class TestLoginNousSkipKeepsCurrent:
         instead of leaving it as nous."""
         import argparse
         import yaml
-        from hermes_cli.auth import PROVIDER_REGISTRY, _login_nous
+        from sparkii_cli.auth import PROVIDER_REGISTRY, _login_nous
 
         hermes_home = tmp_path / "hermes"
         hermes_home.mkdir(parents=True, exist_ok=True)
@@ -659,7 +659,7 @@ def test_persist_nous_credentials_writes_both_pool_and_providers(tmp_path, monke
     agent failed with "Non-retryable client error". Both stores must stay
     in sync at write time.
     """
-    from hermes_cli.auth import persist_nous_credentials, NOUS_DEVICE_CODE_SOURCE
+    from sparkii_cli.auth import persist_nous_credentials, NOUS_DEVICE_CODE_SOURCE
 
     hermes_home = tmp_path / "hermes"
     hermes_home.mkdir(parents=True, exist_ok=True)
@@ -703,7 +703,7 @@ def test_persist_nous_credentials_idempotent_no_duplicate_pool_entries(tmp_path,
     materialise the pool entry under the canonical ``device_code`` source, so
     two persists still leave the pool with exactly one row.
     """
-    from hermes_cli.auth import persist_nous_credentials, NOUS_DEVICE_CODE_SOURCE
+    from sparkii_cli.auth import persist_nous_credentials, NOUS_DEVICE_CODE_SOURCE
 
     hermes_home = tmp_path / "hermes"
     hermes_home.mkdir(parents=True, exist_ok=True)
@@ -743,7 +743,7 @@ def test_persist_nous_credentials_no_label_uses_auto_derived(tmp_path, monkeypat
     """When the caller doesn't pass ``label``, the auto-derived fingerprint
     is used (unchanged default behaviour — regression guard).
     """
-    from hermes_cli.auth import persist_nous_credentials
+    from sparkii_cli.auth import persist_nous_credentials
 
     hermes_home = tmp_path / "hermes"
     hermes_home.mkdir(parents=True, exist_ok=True)
@@ -776,7 +776,7 @@ def test_refresh_token_reuse_detection_surfaces_actionable_message():
     bug when the true cause is external RT consumption (monitoring scripts,
     custom self-heal hooks).
     """
-    from hermes_cli.auth import _refresh_access_token
+    from sparkii_cli.auth import _refresh_access_token
 
     class _FakeResponse:
         status_code = 400
@@ -813,7 +813,7 @@ def test_refresh_token_exchange_sends_refresh_token_header():
     """Nous refresh tokens must be sent in a header so sandbox proxies can
     substitute placeholder credentials without parsing form bodies.
     """
-    from hermes_cli.auth import _refresh_access_token
+    from sparkii_cli.auth import _refresh_access_token
 
     class _FakeResponse:
         status_code = 200
@@ -877,7 +877,7 @@ def test_shared_store_seat_belt_refuses_real_home_under_pytest(monkeypatch):
     redirect this store in a test must fail loudly instead of silently
     writing to the user's real ``~/.hermes/shared/`` across CI runs.
     """
-    from hermes_cli.auth import _nous_shared_store_path
+    from sparkii_cli.auth import _nous_shared_store_path
 
     monkeypatch.delenv("HERMES_SHARED_AUTH_DIR", raising=False)
 
@@ -887,7 +887,7 @@ def test_shared_store_seat_belt_refuses_real_home_under_pytest(monkeypatch):
 
 def test_shared_store_write_and_read_roundtrip(shared_store_env):
     """Write → read must preserve refresh_token + OAuth URLs."""
-    from hermes_cli.auth import (
+    from sparkii_cli.auth import (
         _nous_shared_store_path,
         _read_shared_nous_state,
         _write_shared_nous_state,
@@ -922,7 +922,7 @@ def test_persist_nous_credentials_mirrors_to_shared_store(
     AND the shared store, so a future profile's `hermes auth add nous
     --type oauth` can one-tap import instead of redoing device-code.
     """
-    from hermes_cli.auth import (
+    from sparkii_cli.auth import (
         _nous_shared_store_path,
         _read_shared_nous_state,
         persist_nous_credentials,
@@ -957,7 +957,7 @@ def test_try_import_shared_rehydrates_on_success(shared_store_env, monkeypatch):
     returns a fresh access_token JWT, and the returned dict has
     every field persist_nous_credentials() needs.
     """
-    from hermes_cli import auth as auth_mod
+    from sparkii_cli import auth as auth_mod
 
     auth_mod._write_shared_nous_state(_full_state_fixture())
     fresh_jwt = _invoke_jwt(seconds=7200)
@@ -998,7 +998,7 @@ class TestStalePortalBaseUrlMigration:
     """_migrate_stale_nous_portal_url auto-corrects stale portal_base_url on load."""
 
     def test_migrates_stale_portal_url_on_load(self, tmp_path, monkeypatch):
-        from hermes_cli.auth import _load_auth_store, DEFAULT_NOUS_PORTAL_URL
+        from sparkii_cli.auth import _load_auth_store, DEFAULT_NOUS_PORTAL_URL
 
         monkeypatch.setenv("HERMES_HOME", str(tmp_path))
         auth_file = tmp_path / "auth.json"
@@ -1026,7 +1026,7 @@ class TestStalePortalBaseUrlMigration:
         self, tmp_path, monkeypatch,
     ):
         """An allowlisted production host is still unsafe over plain HTTP."""
-        from hermes_cli import auth as auth_mod
+        from sparkii_cli import auth as auth_mod
 
         hermes_home = tmp_path / "hermes"
         monkeypatch.setenv("HERMES_HOME", str(hermes_home))
@@ -1073,7 +1073,7 @@ class TestStalePortalBaseUrlMigration:
 
 class TestNousDeviceAuthTimeoutMessage:
     def test_timeout_message_mentions_captcha_login_and_retry(self):
-        from hermes_cli.auth import _nous_device_auth_timeout_message
+        from sparkii_cli.auth import _nous_device_auth_timeout_message
 
         msg = _nous_device_auth_timeout_message("https://portal.nousresearch.com")
         assert "CAPTCHA" in msg
@@ -1083,7 +1083,7 @@ class TestNousDeviceAuthTimeoutMessage:
         assert "/device" not in msg
 
     def test_timeout_message_falls_back_to_default_portal(self):
-        from hermes_cli.auth import (
+        from sparkii_cli.auth import (
             DEFAULT_NOUS_PORTAL_URL,
             _nous_device_auth_timeout_message,
         )
@@ -1099,7 +1099,7 @@ def test_poll_for_token_timeout_raises_actionable_message():
     import httpx
     import pytest
 
-    import hermes_cli.auth as auth_mod
+    import sparkii_cli.auth as auth_mod
 
     class _PendingClient:
         def post(self, url, data=None):
@@ -1133,7 +1133,7 @@ def test_nous_device_code_login_timeout_raises_actionable_message(monkeypatch):
     login flow (propagates unchanged from _poll_for_token)."""
     import pytest
 
-    import hermes_cli.auth as auth_mod
+    import sparkii_cli.auth as auth_mod
 
     monkeypatch.setattr(
         auth_mod,

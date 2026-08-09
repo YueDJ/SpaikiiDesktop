@@ -14,7 +14,7 @@ import pytest
 
 import agent.billing_usage as bu
 import agent.subscription_view as sv
-import hermes_cli.nous_billing as nb
+import sparkii_cli.nous_billing as nb
 from agent.subscription_view import CurrentSubscription, SubscriptionState, SubscriptionTier
 from cli import HermesCLI
 
@@ -131,7 +131,7 @@ def test_open_url_in_browser_refuses_remote_session(cli, monkeypatch):
     # (4): a remote/SSH session must NOT auto-open — webbrowser.open is never called.
     import webbrowser
 
-    import hermes_cli.auth as auth
+    import sparkii_cli.auth as auth
 
     monkeypatch.setattr(auth, "_is_remote_session", lambda: True, raising=False)
     called = {"n": 0}

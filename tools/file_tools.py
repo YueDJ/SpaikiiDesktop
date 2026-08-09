@@ -73,7 +73,7 @@ def _get_max_read_chars() -> int:
     if _max_read_chars_cached is not None:
         return _max_read_chars_cached
     try:
-        from hermes_cli.config import load_config
+        from sparkii_cli.config import load_config
         cfg = load_config()
         val = cfg.get("file_read_max_chars")
         if isinstance(val, (int, float)) and val > 0:
@@ -663,7 +663,7 @@ def _get_hermes_config_resolved() -> str | None:
         return _hermes_config_resolved
     _hermes_config_resolved_loaded = True
     try:
-        from hermes_cli.config import get_config_path
+        from sparkii_cli.config import get_config_path
         _hermes_config_resolved = str(get_config_path().resolve())
     except Exception:
         try:
@@ -764,7 +764,7 @@ def _protected_instruction_config() -> tuple[bool, list[str]]:
           protected_instruction_extra_patterns: []  # fnmatch on basename
     """
     try:
-        from hermes_cli.config import load_config, cfg_get
+        from sparkii_cli.config import load_config, cfg_get
         cfg = load_config()
         enabled = cfg_get(cfg, "security", "protected_instruction_files",
                           default=True)

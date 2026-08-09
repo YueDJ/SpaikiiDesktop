@@ -26,7 +26,7 @@ def hermes_home(tmp_path, monkeypatch):
     monkeypatch.setenv("HERMES_HOME", str(home))
 
     # Bust the goal-module DB cache so it re-resolves HERMES_HOME.
-    from hermes_cli import goals
+    from sparkii_cli import goals
 
     goals._DB_CACHE.clear()
     yield home
@@ -40,8 +40,8 @@ def server(hermes_home, monkeypatch):
     with patch.dict(
         "sys.modules",
         {
-            "hermes_cli.env_loader": MagicMock(),
-            "hermes_cli.banner": MagicMock(),
+            "sparkii_cli.env_loader": MagicMock(),
+            "sparkii_cli.banner": MagicMock(),
         },
     ):
         mod = importlib.import_module("tui_gateway.server")

@@ -15,8 +15,8 @@ import {
 
 test('desktop backend PATH adds Sparkii-managed bins and missing POSIX sane entries', () => {
   const result = buildDesktopBackendPath({
-    sparkiiHome: '/Users/test/.hermes',
-    venvRoot: '/Users/test/.hermes/hermes-agent/venv',
+    sparkiiHome: '/Users/test/.sparkii',
+    venvRoot: '/Users/test/.sparkii/sparkii-agent/venv',
     currentPath: '/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin',
     platform: 'darwin',
     pathModule: path.posix
@@ -25,9 +25,9 @@ test('desktop backend PATH adds Sparkii-managed bins and missing POSIX sane entr
   const entries = result.split(':')
   // Both managed-Node layouts lead, POSIX-native shape first, then the venv.
   assert.deepEqual(entries.slice(0, 3), [
-    '/Users/test/.hermes/node/bin',
-    '/Users/test/.hermes/node',
-    '/Users/test/.hermes/hermes-agent/venv/bin'
+    '/Users/test/.sparkii/node/bin',
+    '/Users/test/.sparkii/node',
+    '/Users/test/.sparkii/sparkii-agent/venv/bin'
   ])
   assert.ok(entries.includes('/opt/homebrew/bin'), 'Apple Silicon Homebrew bin is added')
   assert.ok(entries.includes('/opt/homebrew/sbin'), 'Apple Silicon Homebrew sbin is added')
@@ -39,22 +39,22 @@ test('desktop backend PATH adds Sparkii-managed bins and missing POSIX sane entr
 })
 
 test('managed Node dirs lead with the platform-native layout but always offer both', () => {
-  const posix = sparkiiManagedNodePathEntries('/Users/test/.hermes', {
+  const posix = sparkiiManagedNodePathEntries('/Users/test/.sparkii', {
     platform: 'darwin',
     pathModule: path.posix
   })
 
-  const windows = sparkiiManagedNodePathEntries('C:\\Users\\test\\AppData\\Local\\hermes', {
+  const windows = sparkiiManagedNodePathEntries('C:\\Users\\test\\AppData\\Local\\sparkii', {
     platform: 'win32',
     pathModule: path.win32
   })
 
   // install.sh uses node/bin; install.ps1 unpacks node.exe into node\ itself.
   // Both shapes are always emitted so migrated installs keep resolving.
-  assert.deepEqual(posix, ['/Users/test/.hermes/node/bin', '/Users/test/.hermes/node'])
+  assert.deepEqual(posix, ['/Users/test/.sparkii/node/bin', '/Users/test/.sparkii/node'])
   assert.deepEqual(windows, [
-    'C:\\Users\\test\\AppData\\Local\\hermes\\node',
-    'C:\\Users\\test\\AppData\\Local\\hermes\\node\\bin'
+    'C:\\Users\\test\\AppData\\Local\\sparkii\\node',
+    'C:\\Users\\test\\AppData\\Local\\sparkii\\node\\bin'
   ])
 })
 
@@ -65,8 +65,8 @@ test('managed Node dirs are empty without a Sparkii home', () => {
 
 test('every managed Node dir outranks the inherited PATH on both platforms', () => {
   for (const [platform, pathModule, home, inherited, delimiter] of [
-    ['darwin', path.posix, '/Users/test/.hermes', '/usr/local/bin:/usr/bin', ':'],
-    ['win32', path.win32, 'C:\\hermes', 'C:\\Program Files\\nodejs;C:\\Windows\\System32', ';']
+    ['darwin', path.posix, '/Users/test/.sparkii', '/usr/local/bin:/usr/bin', ':'],
+    ['win32', path.win32, 'C:\\sparkii', 'C:\\Program Files\\nodejs;C:\\Windows\\System32', ';']
   ] as const) {
     const entries = buildDesktopBackendPath({
       sparkiiHome: home,
@@ -90,8 +90,8 @@ test('every managed Node dir outranks the inherited PATH on both platforms', () 
 
 test('desktop backend PATH preserves first occurrence and avoids duplicates', () => {
   const result = buildDesktopBackendPath({
-    sparkiiHome: '/Users/test/.hermes',
-    venvRoot: '/Users/test/.hermes/hermes-agent/venv',
+    sparkiiHome: '/Users/test/.sparkii',
+    venvRoot: '/Users/test/.sparkii/sparkii-agent/venv',
     currentPath: '/opt/homebrew/bin:/usr/bin:/opt/homebrew/bin:/bin',
     platform: 'darwin',
     pathModule: path.posix
@@ -107,9 +107,9 @@ test('desktop backend PATH preserves first occurrence and avoids duplicates', ()
 
 test('buildDesktopBackendEnv extends PYTHONPATH and backend PATH together', () => {
   const env = buildDesktopBackendEnv({
-    sparkiiHome: '/Users/test/.hermes',
-    pythonPathEntries: ['/repo/hermes-agent'],
-    venvRoot: '/Users/test/.hermes/hermes-agent/venv',
+    sparkiiHome: '/Users/test/.sparkii',
+    pythonPathEntries: ['/repo/sparkii-agent'],
+    venvRoot: '/Users/test/.sparkii/sparkii-agent/venv',
     currentEnv: {
       PATH: '/usr/bin:/bin',
       PYTHONPATH: '/existing/pythonpath'
@@ -118,10 +118,10 @@ test('buildDesktopBackendEnv extends PYTHONPATH and backend PATH together', () =
     pathModule: path.posix
   })
 
-  assert.equal(env.PYTHONPATH, '/repo/hermes-agent:/existing/pythonpath')
+  assert.equal(env.PYTHONPATH, '/repo/sparkii-agent:/existing/pythonpath')
   assert.ok(
     env.PATH.startsWith(
-      '/Users/test/.hermes/node/bin:/Users/test/.hermes/node:/Users/test/.hermes/hermes-agent/venv/bin:'
+      '/Users/test/.sparkii/node/bin:/Users/test/.sparkii/node:/Users/test/.sparkii/sparkii-agent/venv/bin:'
     )
   )
   assert.ok(env.PATH.includes('/opt/homebrew/bin'))
@@ -129,7 +129,7 @@ test('buildDesktopBackendEnv extends PYTHONPATH and backend PATH together', () =
 
 test('buildDesktopBackendEnv forces PYTHONUTF8 unless the user set it explicitly', () => {
   const defaulted = buildDesktopBackendEnv({
-    sparkiiHome: '/Users/test/.hermes',
+    sparkiiHome: '/Users/test/.sparkii',
     currentEnv: { PATH: '/usr/bin' },
     platform: 'darwin',
     pathModule: path.posix
@@ -138,7 +138,7 @@ test('buildDesktopBackendEnv forces PYTHONUTF8 unless the user set it explicitly
   assert.equal(defaulted.PYTHONUTF8, '1')
 
   const optedOut = buildDesktopBackendEnv({
-    sparkiiHome: '/Users/test/.hermes',
+    sparkiiHome: '/Users/test/.sparkii',
     currentEnv: { PATH: '/usr/bin', PYTHONUTF8: '0' },
     platform: 'darwin',
     pathModule: path.posix
@@ -149,21 +149,21 @@ test('buildDesktopBackendEnv forces PYTHONUTF8 unless the user set it explicitly
 
 test('normalizeSparkiiHomeRoot maps profile homes back to the global Sparkii root', () => {
   assert.equal(
-    normalizeSparkiiHomeRoot('/Users/test/.hermes/profiles/oracle', { pathModule: path.posix }),
-    '/Users/test/.hermes'
+    normalizeSparkiiHomeRoot('/Users/test/.sparkii/profiles/oracle', { pathModule: path.posix }),
+    '/Users/test/.sparkii'
   )
   assert.equal(
-    normalizeSparkiiHomeRoot('C:\\Users\\test\\AppData\\Local\\hermes\\profiles\\oracle', { pathModule: path.win32 }),
-    'C:\\Users\\test\\AppData\\Local\\hermes'
+    normalizeSparkiiHomeRoot('C:\\Users\\test\\AppData\\Local\\sparkii\\profiles\\oracle', { pathModule: path.win32 }),
+    'C:\\Users\\test\\AppData\\Local\\sparkii'
   )
-  assert.equal(normalizeSparkiiHomeRoot('/Users/test/.hermes', { pathModule: path.posix }), '/Users/test/.hermes')
+  assert.equal(normalizeSparkiiHomeRoot('/Users/test/.sparkii', { pathModule: path.posix }), '/Users/test/.sparkii')
 })
 
 test('Windows PATH casing and delimiter are preserved without POSIX sane entries', () => {
   const env = buildDesktopBackendEnv({
-    sparkiiHome: 'C:\\Users\\test\\AppData\\Local\\hermes',
-    pythonPathEntries: ['C:\\repo\\hermes-agent'],
-    venvRoot: 'C:\\Users\\test\\AppData\\Local\\hermes\\hermes-agent\\venv',
+    sparkiiHome: 'C:\\Users\\test\\AppData\\Local\\sparkii',
+    pythonPathEntries: ['C:\\repo\\sparkii-agent'],
+    venvRoot: 'C:\\Users\\test\\AppData\\Local\\sparkii\\sparkii-agent\\venv',
     currentEnv: {
       Path: 'C:\\Windows\\System32;C:\\Windows',
       PYTHONPATH: 'C:\\existing\\pythonpath'
@@ -178,7 +178,7 @@ test('Windows PATH casing and delimiter are preserved without POSIX sane entries
   // straight into node\, no bin\), then the POSIX shape for migrated installs.
   assert.ok(
     env.Path.startsWith(
-      'C:\\Users\\test\\AppData\\Local\\hermes\\node;C:\\Users\\test\\AppData\\Local\\hermes\\node\\bin;'
+      'C:\\Users\\test\\AppData\\Local\\sparkii\\node;C:\\Users\\test\\AppData\\Local\\sparkii\\node\\bin;'
     )
   )
   assert.ok(env.Path.includes('\\venv\\Scripts;'))

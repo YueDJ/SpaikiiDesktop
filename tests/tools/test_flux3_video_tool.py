@@ -178,7 +178,7 @@ class TestGating:
         # portal's entitlement view must not be consulted at all.
         with patch.object(flux3, "peek_nous_access_token", return_value="nous-token"), \
                 patch(
-                    "hermes_cli.nous_account.get_nous_portal_account_info",
+                    "sparkii_cli.nous_account.get_nous_portal_account_info",
                     side_effect=AssertionError("entitlement must not gate visibility"),
                 ):
             assert flux3.check_bfl_requirements() is True
@@ -198,7 +198,7 @@ class TestGating:
         #
         # Exercised through the real auth store rather than a stub: the
         # fallback is the whole point of the test, and it lives in
-        # hermes_cli.auth, not here.
+        # sparkii_cli.auth, not here.
         monkeypatch.delenv("TOOL_GATEWAY_USER_TOKEN", raising=False)
         root = tmp_path / "root"
         (root / "profiles" / "work").mkdir(parents=True)

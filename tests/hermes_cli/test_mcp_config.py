@@ -1,5 +1,5 @@
 """
-Tests for hermes_cli.mcp_config — ``hermes mcp`` subcommands.
+Tests for sparkii_cli.mcp_config — ``hermes mcp`` subcommands.
 
 These tests mock the MCP server connection layer so they run without
 any actual MCP servers or API keys.
@@ -29,15 +29,15 @@ def _isolate_config(tmp_path, monkeypatch):
     """Redirect all config I/O to a temp directory."""
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     monkeypatch.setattr(
-        "hermes_cli.config.get_hermes_home", lambda: tmp_path
+        "sparkii_cli.config.get_hermes_home", lambda: tmp_path
     )
     config_path = tmp_path / "config.yaml"
     env_path = tmp_path / ".env"
     monkeypatch.setattr(
-        "hermes_cli.config.get_config_path", lambda: config_path
+        "sparkii_cli.config.get_config_path", lambda: config_path
     )
     monkeypatch.setattr(
-        "hermes_cli.config.get_env_path", lambda: env_path
+        "sparkii_cli.config.get_env_path", lambda: env_path
     )
     return tmp_path
 
@@ -82,7 +82,7 @@ class FakeTool:
 
 class TestMcpList:
     def test_list_empty_config(self, tmp_path, capsys):
-        from hermes_cli.mcp_config import cmd_mcp_list
+        from sparkii_cli.mcp_config import cmd_mcp_list
 
         cmd_mcp_list()
         out = capsys.readouterr().out
@@ -101,7 +101,7 @@ class TestMcpList:
                 "enabled": False,
             },
         })
-        from hermes_cli.mcp_config import cmd_mcp_list
+        from sparkii_cli.mcp_config import cmd_mcp_list
 
         cmd_mcp_list()
         out = capsys.readouterr().out
@@ -115,7 +115,7 @@ class TestMcpList:
         _seed_config(tmp_path, {
             "myserver": {"url": "https://example.com/mcp"},
         })
-        from hermes_cli.mcp_config import cmd_mcp_list
+        from sparkii_cli.mcp_config import cmd_mcp_list
 
         cmd_mcp_list()
         out = capsys.readouterr().out
@@ -133,7 +133,7 @@ class TestMcpRemove:
             "myserver": {"url": "https://example.com/mcp"},
         })
         monkeypatch.setattr("builtins.input", lambda _: "y")
-        from hermes_cli.mcp_config import cmd_mcp_remove
+        from sparkii_cli.mcp_config import cmd_mcp_remove
 
         cmd_mcp_remove(_make_args(name="myserver"))
 
@@ -141,7 +141,7 @@ class TestMcpRemove:
         assert "Removed" in out
 
         # Verify config updated
-        from hermes_cli.config import load_config
+        from sparkii_cli.config import load_config
 
         config = load_config()
         assert "myserver" not in config.get("mcp_servers", {})
@@ -154,7 +154,7 @@ class TestMcpRemove:
         monkeypatch.setattr("builtins.input", lambda _: "y")
         # Also patch get_hermes_home in the mcp_config module namespace
         monkeypatch.setattr(
-            "hermes_cli.mcp_config.get_hermes_home", lambda: tmp_path
+            "sparkii_cli.mcp_config.get_hermes_home", lambda: tmp_path
         )
 
         # Create a fake token file
@@ -163,7 +163,7 @@ class TestMcpRemove:
         token_file = token_dir / "oauth-srv.json"
         token_file.write_text("{}")
 
-        from hermes_cli.mcp_config import cmd_mcp_remove
+        from sparkii_cli.mcp_config import cmd_mcp_remove
 
         cmd_mcp_remove(_make_args(name="oauth-srv"))
         assert not token_file.exists()
@@ -186,13 +186,13 @@ class TestMcpAdd:
             return [(t.name, t.description) for t in fake_tools]
 
         monkeypatch.setattr(
-            "hermes_cli.mcp_config._probe_single_server", mock_probe
+            "sparkii_cli.mcp_config._probe_single_server", mock_probe
         )
         # No auth, accept all tools
         inputs = iter(["n", ""])  # no auth needed, enable all
         monkeypatch.setattr("builtins.input", lambda _: next(inputs))
 
-        from hermes_cli.mcp_config import cmd_mcp_add
+        from sparkii_cli.mcp_config import cmd_mcp_add
 
         cmd_mcp_add(_make_args(name="ink", url="https://mcp.ml.ink/mcp"))
         out = capsys.readouterr().out
@@ -200,7 +200,7 @@ class TestMcpAdd:
         assert "2/2 tools" in out
 
         # Verify config written
-        from hermes_cli.config import load_config
+        from sparkii_cli.config import load_config
 
         config = load_config()
         assert "ink" in config.get("mcp_servers", {})
@@ -219,11 +219,11 @@ class TestMcpAdd:
             return [(t.name, t.description) for t in fake_tools]
 
         monkeypatch.setattr(
-            "hermes_cli.mcp_config._probe_single_server", mock_probe
+            "sparkii_cli.mcp_config._probe_single_server", mock_probe
         )
         monkeypatch.setattr("builtins.input", lambda _: "")
 
-        from hermes_cli.mcp_config import cmd_mcp_add
+        from sparkii_cli.mcp_config import cmd_mcp_add
 
         cmd_mcp_add(_make_args(
             name="github",
@@ -234,7 +234,7 @@ class TestMcpAdd:
         out = capsys.readouterr().out
         assert "Saved" in out
 
-        from hermes_cli.config import load_config
+        from sparkii_cli.config import load_config
 
         config = load_config()
         srv = config["mcp_servers"]["github"]
@@ -247,7 +247,7 @@ class TestMcpAdd:
     def test_add_preset_fills_transport(self, tmp_path, capsys, monkeypatch):
         """A preset fills in command/args when no explicit transport given."""
         monkeypatch.setattr(
-            "hermes_cli.mcp_config._MCP_PRESETS",
+            "sparkii_cli.mcp_config._MCP_PRESETS",
             {"testmcp": {"command": "npx", "args": ["-y", "test-mcp-server"], "display_name": "Test MCP"}},
         )
         fake_tools = [FakeTool("do_thing", "Does a thing")]
@@ -260,12 +260,12 @@ class TestMcpAdd:
             return [(t.name, t.description) for t in fake_tools]
 
         monkeypatch.setattr(
-            "hermes_cli.mcp_config._probe_single_server", mock_probe
+            "sparkii_cli.mcp_config._probe_single_server", mock_probe
         )
         monkeypatch.setattr("builtins.input", lambda _: "")
 
-        from hermes_cli.mcp_config import cmd_mcp_add
-        from hermes_cli.config import read_raw_config
+        from sparkii_cli.mcp_config import cmd_mcp_add
+        from sparkii_cli.config import read_raw_config
 
         cmd_mcp_add(_make_args(name="myserver", preset="testmcp"))
         out = capsys.readouterr().out
@@ -293,9 +293,9 @@ class TestMcpTest:
             return [("create_service", "Deploy"), ("list_services", "List all")]
 
         monkeypatch.setattr(
-            "hermes_cli.mcp_config._probe_single_server", mock_probe
+            "sparkii_cli.mcp_config._probe_single_server", mock_probe
         )
-        from hermes_cli.mcp_config import cmd_mcp_test
+        from sparkii_cli.mcp_config import cmd_mcp_test
 
         cmd_mcp_test(_make_args(name="ink"))
         out = capsys.readouterr().out
@@ -305,7 +305,7 @@ class TestMcpTest:
     def test_probe_uses_configured_connect_timeout(self, monkeypatch):
         """OAuth-capable probes must not hard-code a short 30s timeout."""
         import asyncio
-        from hermes_cli import mcp_config
+        from sparkii_cli import mcp_config
         import tools.mcp_tool as mcp_tool
 
         captured = {}
@@ -468,7 +468,7 @@ class TestProbeEnvResolution:
     ``Authorization: Bearer ${MCP_X_API_KEY}`` and got 401."""
 
     def test_resolve_interpolates_header(self, monkeypatch):
-        from hermes_cli.mcp_config import _resolve_mcp_server_config
+        from sparkii_cli.mcp_config import _resolve_mcp_server_config
 
         monkeypatch.setenv("MCP_N8N_API_KEY", "jwt-token-xyz")
         resolved = _resolve_mcp_server_config({
@@ -481,7 +481,7 @@ class TestProbeEnvResolution:
         self, tmp_path, monkeypatch
     ):
         from agent.secret_scope import reset_secret_scope, set_secret_scope
-        from hermes_cli.mcp_config import _resolve_mcp_server_config
+        from sparkii_cli.mcp_config import _resolve_mcp_server_config
 
         monkeypatch.setenv("MCP_SHARED_API_KEY", "default-secret")
         token = set_secret_scope({"MCP_SHARED_API_KEY": "profile-secret"})
@@ -498,7 +498,7 @@ class TestProbeEnvResolution:
 
     def test_probe_resolves_before_connect(self, monkeypatch):
         """_probe_single_server must pass the RESOLVED config to _connect_server."""
-        import hermes_cli.mcp_config as mc
+        import sparkii_cli.mcp_config as mc
 
         monkeypatch.setenv("MCP_N8N_API_KEY", "jwt-token-xyz")
 
@@ -584,7 +584,7 @@ class TestProbeCapabilityGating:
         return _FakeServer()
 
     def _run_probe(self, monkeypatch, config, caps):
-        import hermes_cli.mcp_config as mc
+        import sparkii_cli.mcp_config as mc
 
         called: list[str] = []
 
@@ -617,15 +617,15 @@ class TestStripBearerPrefix:
     ``Bearer Bearer <jwt>`` once the header template adds its own prefix."""
 
     def test_bare_token_unchanged(self):
-        from hermes_cli.mcp_config import _strip_bearer_prefix
+        from sparkii_cli.mcp_config import _strip_bearer_prefix
 
         assert _strip_bearer_prefix("eyJabc123") == "eyJabc123"
 
 
 class TestBearerAuthPersistence:
     def test_secret_and_header_are_persisted_separately(self):
-        from hermes_cli.config import get_env_value
-        from hermes_cli.mcp_config import _save_bearer_auth_token
+        from sparkii_cli.config import get_env_value
+        from sparkii_cli.mcp_config import _save_bearer_auth_token
 
         headers = _save_bearer_auth_token("My Server", "Bearer secret-value")
 
@@ -635,7 +635,7 @@ class TestBearerAuthPersistence:
         assert get_env_value("MCP_MY_SERVER_API_KEY") == "secret-value"
 
     def test_empty_token_is_rejected(self):
-        from hermes_cli.mcp_config import _save_bearer_auth_token
+        from sparkii_cli.mcp_config import _save_bearer_auth_token
 
         with pytest.raises(ValueError, match="Bearer token is required"):
             _save_bearer_auth_token("empty", "Bearer   ")
@@ -647,7 +647,7 @@ class TestBearerAuthPersistence:
 
 class TestConfigHelpers:
     def test_save_and_load_mcp_server(self, tmp_path):
-        from hermes_cli.mcp_config import _save_mcp_server, _get_mcp_servers
+        from sparkii_cli.mcp_config import _save_mcp_server, _get_mcp_servers
 
         _save_mcp_server("mysvr", {"url": "https://example.com/mcp"})
         servers = _get_mcp_servers()
@@ -656,7 +656,7 @@ class TestConfigHelpers:
 
 
     def test_env_key_for_server(self):
-        from hermes_cli.mcp_config import _env_key_for_server
+        from sparkii_cli.mcp_config import _env_key_for_server
 
         assert _env_key_for_server("ink") == "MCP_INK_API_KEY"
         assert _env_key_for_server("my-server") == "MCP_MY_SERVER_API_KEY"
@@ -670,7 +670,7 @@ class TestConfigHelpers:
 
 class TestDispatcher:
     def test_no_action_shows_list(self, tmp_path, capsys):
-        from hermes_cli.mcp_config import mcp_command
+        from sparkii_cli.mcp_config import mcp_command
 
         _seed_config(tmp_path, {})
         mcp_command(_make_args(mcp_action=None))
@@ -692,7 +692,7 @@ class TestMcpRemoveEvictsManager:
         })
         monkeypatch.setattr("builtins.input", lambda _: "y")
         monkeypatch.setattr(
-            "hermes_cli.mcp_config.get_hermes_home", lambda: tmp_path
+            "sparkii_cli.mcp_config.get_hermes_home", lambda: tmp_path
         )
         monkeypatch.setenv("HERMES_HOME", str(tmp_path))
         _set_interactive_stdin(monkeypatch)
@@ -706,7 +706,7 @@ class TestMcpRemoveEvictsManager:
         )
         assert mgr._key("oauth-srv") in mgr._entries
 
-        from hermes_cli.mcp_config import cmd_mcp_remove
+        from sparkii_cli.mcp_config import cmd_mcp_remove
         cmd_mcp_remove(_make_args(name="oauth-srv"))
 
         assert mgr._key("oauth-srv") not in mgr._entries
@@ -715,7 +715,7 @@ class TestMcpRemoveEvictsManager:
 class TestMcpLogin:
     def test_login_rejects_unknown_server(self, tmp_path, capsys):
         _seed_config(tmp_path, {})
-        from hermes_cli.mcp_config import cmd_mcp_login
+        from sparkii_cli.mcp_config import cmd_mcp_login
         cmd_mcp_login(_make_args(name="ghost"))
         out = capsys.readouterr().out
         assert "not found" in out
@@ -736,13 +736,13 @@ class TestMcpLogin:
         })
         # Probe returns tools even though auth never completed.
         monkeypatch.setattr(
-            "hermes_cli.mcp_config._probe_single_server",
+            "sparkii_cli.mcp_config._probe_single_server",
             lambda name, cfg, connect_timeout=30: [
                 ("search_files", "d"), ("read_file_content", "d"),
             ],
         )
         # No token file is created → _oauth_tokens_present() returns False.
-        from hermes_cli.mcp_config import cmd_mcp_login
+        from sparkii_cli.mcp_config import cmd_mcp_login
 
         cmd_mcp_login(_make_args(name="googledrive"))
         out = capsys.readouterr().out
@@ -770,10 +770,10 @@ class TestMcpLogin:
             return [("a", "d"), ("b", "d"), ("c", "d")]
 
         monkeypatch.setattr(
-            "hermes_cli.mcp_config._probe_single_server", mock_probe
+            "sparkii_cli.mcp_config._probe_single_server", mock_probe
         )
 
-        from hermes_cli.mcp_config import cmd_mcp_login
+        from sparkii_cli.mcp_config import cmd_mcp_login
 
         cmd_mcp_login(_make_args(name="realserver"))
         out = capsys.readouterr().out
@@ -802,10 +802,10 @@ class TestMcpReauth:
         })
         visited = []
         monkeypatch.setattr(
-            "hermes_cli.mcp_config._reauth_oauth_server",
+            "sparkii_cli.mcp_config._reauth_oauth_server",
             lambda name, cfg: visited.append(name) or True,
         )
-        from hermes_cli.mcp_config import cmd_mcp_reauth
+        from sparkii_cli.mcp_config import cmd_mcp_reauth
 
         cmd_mcp_reauth(_make_args(name=None, all=True))
         out = capsys.readouterr().out
@@ -820,10 +820,10 @@ class TestMcpReauth:
             "b": {"url": "https://b.example.com/mcp", "auth": "oauth"},
         })
         monkeypatch.setattr(
-            "hermes_cli.mcp_config._reauth_oauth_server",
+            "sparkii_cli.mcp_config._reauth_oauth_server",
             lambda name, cfg: name == "a",  # only 'a' succeeds
         )
-        from hermes_cli.mcp_config import cmd_mcp_reauth
+        from sparkii_cli.mcp_config import cmd_mcp_reauth
 
         cmd_mcp_reauth(_make_args(name=None, all=True))
         out = capsys.readouterr().out
@@ -835,7 +835,7 @@ class TestMcpReauth:
         _seed_config(tmp_path, {
             "gh": {"url": "https://gh.example.com/mcp", "auth": "oauth"},
         })
-        from hermes_cli.mcp_config import cmd_mcp_reauth
+        from sparkii_cli.mcp_config import cmd_mcp_reauth
 
         cmd_mcp_reauth(_make_args(name="ghost", all=False))
         out = capsys.readouterr().out

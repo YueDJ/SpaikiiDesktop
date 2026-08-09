@@ -4,7 +4,7 @@ import { redactSecrets, SSH_ERROR } from './ssh-connection'
 
 const LOCKFILE_SCHEMA_VERSION = 2
 const PROTOCOL_VERSION = 1
-const READY_RE = /^HERMES_(?:BACKEND|DASHBOARD)_READY port=(\d+)/gm
+const READY_RE = /^SPARKII_(?:BACKEND|DASHBOARD)_READY port=(\d+)/gm
 const READY_POLL_INTERVAL_MS = 750
 
 function psLiteral(value) {
@@ -25,20 +25,20 @@ async function probeWindowsRemote(ssh, explicitSparkiiPath = '') {
   const script = [
     '$ErrorActionPreference="Stop"',
     `$explicit=${explicit}`,
-    '$sparkiiHome=$env:HERMES_HOME',
-    'if(-not $sparkiiHome){$sparkiiHome=Join-Path $env:LOCALAPPDATA "hermes"}',
+    '$sparkiiHome=$env:SPARKII_HOME',
+    'if(-not $sparkiiHome){$sparkiiHome=Join-Path $env:LOCALAPPDATA "sparkii"}',
     '$candidates=@()',
     'if($explicit){$candidates+=$explicit}',
-    '$cmd=Get-Command hermes.exe -ErrorAction SilentlyContinue',
+    '$cmd=Get-Command sparkii.exe -ErrorAction SilentlyContinue',
     'if($cmd){$candidates+=$cmd.Source}',
-    '$candidates+=(Join-Path $sparkiiHome "hermes-agent\\venv\\Scripts\\hermes.exe")',
-    '$candidates+=(Join-Path $HOME "hermes-agent\\.venv\\Scripts\\hermes.exe")',
-    '$hermes=$candidates|Where-Object{Test-Path -LiteralPath $_ -PathType Leaf}|Select-Object -First 1',
-    'if(-not $hermes){throw "Sparkii is not installed on the remote Windows host."}',
-    'if($explicit -and $hermes -ne $explicit){throw "The configured Sparkii path is not an executable file."}',
-    '$python=Join-Path (Split-Path $hermes) "python.exe"',
+    '$candidates+=(Join-Path $sparkiiHome "sparkii-agent\\venv\\Scripts\\sparkii.exe")',
+    '$candidates+=(Join-Path $HOME "sparkii-agent\\.venv\\Scripts\\sparkii.exe")',
+    '$sparkii=$candidates|Where-Object{Test-Path -LiteralPath $_ -PathType Leaf}|Select-Object -First 1',
+    'if(-not $sparkii){throw "Sparkii is not installed on the remote Windows host."}',
+    'if($explicit -and $sparkii -ne $explicit){throw "The configured Sparkii path is not an executable file."}',
+    '$python=Join-Path (Split-Path $sparkii) "python.exe"',
     'if(-not (Test-Path -LiteralPath $python -PathType Leaf)){throw "The remote Sparkii Python runtime was not found."}',
-    '[ordered]@{os="Windows";arch=$env:PROCESSOR_ARCHITECTURE;sparkiiHome=$sparkiiHome;hermesPath=$hermes;python=$python}|ConvertTo-Json -Compress'
+    '[ordered]@{os="Windows";arch=$env:PROCESSOR_ARCHITECTURE;sparkiiHome=$sparkiiHome;sparkiiPath=$sparkii;python=$python}|ConvertTo-Json -Compress'
   ].join(';')
 
   return JSON.parse((await ssh.exec(powerShellCommand(script))).trim())
@@ -91,7 +91,7 @@ async function detectRemotePlatform(ssh, explicitSparkiiPath = '') {
 }
 
 function helperCommand(runtime, operation, args = []) {
-  const argv = [runtime.python, '-m', 'hermes_cli.windows_ssh_runtime', operation, ...args]
+  const argv = [runtime.python, '-m', 'sparkii_cli.windows_ssh_runtime', operation, ...args]
 
   const script = [
     '$ErrorActionPreference="Stop"',
@@ -144,7 +144,7 @@ function validLock(lock, ownershipId) {
     lock.port >= 0 &&
     lock.port <= 65535 &&
     /^[0-9a-f]{32}$/.test(lock.tokenFingerprint || '') &&
-    typeof lock.hermesPath === 'string' &&
+    typeof lock.sparkiiPath === 'string' &&
     typeof lock.sparkiiHome === 'string'
   )
 }
@@ -157,7 +157,7 @@ function reusableWindowsLock(lock, state, profile, reuseToken, runtime) {
     lock.profile === profile &&
     reuseToken &&
     lock.tokenFingerprint === fingerprintToken(reuseToken) &&
-    lock.hermesPath === runtime.hermesPath &&
+    lock.sparkiiPath === runtime.sparkiiPath &&
     lock.sparkiiHome === runtime.sparkiiHome
   )
 }
@@ -174,7 +174,7 @@ async function processState(ssh, runtime, lock) {
   return helper(ssh, runtime, 'process-state', [
     String(lock.pid),
     String(lock.creationTimeNs),
-    lock.hermesPath,
+    lock.sparkiiPath,
     lock.spawnNonce
   ])
 }
@@ -197,7 +197,7 @@ async function cleanupOwned(ssh, runtime, ownershipId, lock) {
       await helper(ssh, runtime, 'terminate', [
         String(lock.pid),
         String(lock.creationTimeNs),
-        lock.hermesPath,
+        lock.sparkiiPath,
         lock.spawnNonce
       ])
     }
@@ -288,7 +288,7 @@ async function connectWindowsRemote(deps) {
 
   assertCurrent(signal)
   const runtime = await probeWindowsRemote(ssh, remoteSparkiiPath)
-  const inspection = await helper(ssh, runtime, 'inspect', [runtime.hermesPath])
+  const inspection = await helper(ssh, runtime, 'inspect', [runtime.sparkiiPath])
 
   if (!inspection.supported) {
     const error: any = new Error('Update Sparkii on the remote Windows host before connecting with Desktop SSH.')
@@ -296,10 +296,10 @@ async function connectWindowsRemote(deps) {
     throw error
   }
 
-  runtime.hermesPath = inspection.path
-  const hermesVersion = inspection.version || ''
+  runtime.sparkiiPath = inspection.path
+  const sparkiiVersion = inspection.version || ''
   rememberLog(`[ssh-lifecycle] remote platform Windows/${runtime.arch}`)
-  rememberLog(`[ssh-lifecycle] located hermes at ${runtime.hermesPath}`)
+  rememberLog(`[ssh-lifecycle] located sparkii at ${runtime.sparkiiPath}`)
 
   const lock = await helper(ssh, runtime, 'read-lock', [ownershipId])
 
@@ -331,8 +331,8 @@ async function connectWindowsRemote(deps) {
             pid: lock.pid,
             reused: true,
             platform: { os: 'Windows', arch: runtime.arch },
-            hermesPath: runtime.hermesPath,
-            hermesVersion,
+            sparkiiPath: runtime.sparkiiPath,
+            sparkiiVersion,
             ownershipId,
             spawnNonce: lock.spawnNonce,
             creationTimeNs: lock.creationTimeNs
@@ -368,7 +368,7 @@ async function connectWindowsRemote(deps) {
       runtime,
       'spawn',
       [],
-      JSON.stringify({ ownershipId, spawnNonce, profile, hermesPath: runtime.hermesPath })
+      JSON.stringify({ ownershipId, spawnNonce, profile, sparkiiPath: runtime.sparkiiPath })
     )
   } catch (error) {
     await helper(ssh, runtime, 'remove-token', [ownershipId, spawnNonce])
@@ -384,7 +384,7 @@ async function connectWindowsRemote(deps) {
     creationTimeNs: spawned.creationTimeNs,
     port: 0,
     profile,
-    hermesPath: runtime.hermesPath,
+    sparkiiPath: runtime.sparkiiPath,
     sparkiiHome: runtime.sparkiiHome,
     tokenFingerprint: fingerprintToken(token),
     startedAt: new Date().toISOString()
@@ -416,8 +416,8 @@ async function connectWindowsRemote(deps) {
       pid: spawned.pid,
       reused: false,
       platform: { os: 'Windows', arch: runtime.arch },
-      hermesPath: runtime.hermesPath,
-      hermesVersion,
+      sparkiiPath: runtime.sparkiiPath,
+      sparkiiVersion,
       ownershipId,
       spawnNonce,
       creationTimeNs: spawned.creationTimeNs

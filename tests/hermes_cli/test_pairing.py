@@ -2,7 +2,7 @@ from argparse import Namespace
 from unittest.mock import patch
 
 from gateway.pairing import PairingStore
-from hermes_cli.pairing import pairing_command
+from sparkii_cli.pairing import pairing_command
 
 
 def test_cli_listed_request_id_and_bot_code_can_be_approved(tmp_path, capsys):

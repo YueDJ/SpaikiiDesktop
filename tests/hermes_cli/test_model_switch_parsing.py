@@ -1,7 +1,7 @@
 """Single-owner /model parsing + effective-model resolution tests.
 
 Covers the consolidation of the 7 historical parsing/resolution variants
-into hermes_cli.model_switch (parse_model_switch_args +
+into sparkii_cli.model_switch (parse_model_switch_args +
 resolve_effective_model), including the 7dd00bb47d regression class
 (api_server discarding session-persisted models) as a permanent parity
 test against the pre-consolidation logic captured from origin/main.
@@ -11,7 +11,7 @@ Real imports throughout (AGENTS.md: no mocks for resolution chains).
 
 import pytest
 
-from hermes_cli.model_switch import (
+from sparkii_cli.model_switch import (
     MODEL_SWITCH_ERR_ONCE_REQUIRES_TARGET,
     MODEL_SWITCH_ERR_ONCE_WITH_GLOBAL,
     MODEL_SWITCH_ERROR_TEXT,
