@@ -1,0 +1,18 @@
+schema_version: 1
+module_path: tools/delegation_auth_tools
+title: 委托代理与第三方服务工具集
+scope:
+    - tools/delegate_tool.py
+    - tools/async_delegation.py
+    - tools/delegation_live_log.py
+    - tools/delegation_output_schema.py
+    - tools/credential_files.py
+    - tools/microsoft_graph_auth.py
+    - tools/microsoft_graph_client.py
+    - tools/openrouter_client.py
+    - tools/xai_http.py
+    - tools/clarify_gateway.py
+    - tools/clarify_tool.py
+source_files: []
+depends_on: []
+related_to: []

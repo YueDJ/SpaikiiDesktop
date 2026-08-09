@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: sparkii_cli/cli_core/cli_core_runtime/model_provider_setup
+title: 模型目录、提供商解析与模型切换核心
+scope:
+    - sparkii_cli/model_catalog.py
+    - sparkii_cli/model_switch.py
+    - sparkii_cli/providers.py
+source_files: []
+depends_on: []
+related_to:
+    - path: sparkii_cli/cli_core/cli_core_runtime/platform_runtime_helpers

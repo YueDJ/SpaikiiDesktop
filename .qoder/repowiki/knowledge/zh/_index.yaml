@@ -1,0 +1,547 @@
+# 知识卡导出索引文件
+schema_version: 1
+locale: zh-CN
+branch: main
+nodes_managed: true
+exported_at: "2026-08-09T13:48:47Z"
+modules:
+    "":
+        dir_name: Sparkii_Hermes Agent 多进程运行时与网关平台
+        title: Sparkii/Hermes Agent 多进程运行时与网关平台
+        scope:
+            - README.md
+            - CONTRIBUTING.md
+            - .gitignore
+            - Dockerfile
+            - pyproject.toml
+            - setup.py
+            - flake.nix
+            - package.json
+            - .dockerignore
+            - .env.example
+            - .envrc
+            - .gitattributes
+            - .hadolint.yaml
+            - .mailmap
+            - .npmrc
+            - .nvmrc
+            - .prettierignore
+            - .prettierrc
+            - .python-version
+            - AGENTS.md
+            - CONTRIBUTING.es.md
+            - LICENSE
+            - README.es.md
+            - README.ur-pk.md
+            - README.zh-CN.md
+            - SECURITY.es.md
+            - SECURITY.md
+            - batch_runner.py
+            - cli-config.yaml.example
+            - cli.py
+            - constraints-termux.txt
+            - docker-compose.windows.yml
+            - docker-compose.yml
+            - eslint.config.shared.mjs
+            - flake.lock
+            - hermes
+            - hermes-already-has-routines.md
+            - log.txt
+            - mcp_serve.py
+            - mini_swe_runner.py
+            - model_tools.py
+            - package-lock.json
+            - run_agent.py
+            - setup-hermes.sh
+            - sparkii_bootstrap.py
+            - sparkii_constants.py
+            - sparkii_logging.py
+            - sparkii_state.py
+            - sparkii_state_common.py
+            - sparkii_state_portability.py
+            - sparkii_state_schema.py
+            - sparkii_state_search.py
+            - sparkii_time.py
+            - sqlite_leak_fix.png
+            - toolset_distributions.py
+            - toolsets.py
+            - trajectory_compressor.py
+            - utils.py
+            - uv.lock
+        source_files: []
+        children:
+            - acp_adapter
+            - agent
+            - apps_desktop
+            - cron
+            - gateway
+            - optional_skills
+            - plugins
+            - scripts_and_infra
+            - sparkii_cli
+            - tests
+            - tools
+            - tui_gateway
+            - web_frontend
+            - website_docs
+        depends_on: []
+        related_to: []
+    acp_adapter:
+        dir_name: ACP Agent 适配器（Hermes ↔ Agent Communication Protocol）
+        title: ACP Agent 适配器（Hermes ↔ Agent Communication Protocol）
+        scope:
+            - acp_adapter/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: agent
+    agent:
+        dir_name: Hermes Agent 运行时与插件子系统
+        title: Hermes Agent 运行时与插件子系统
+        scope:
+            - agent/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: acp_adapter
+            - path: gateway/core_runtime
+            - path: tools
+            - path: tui_gateway
+    apps_desktop:
+        dir_name: 桌面应用套件（Electron + Tauri 引导安装器）
+        title: 桌面应用套件（Electron + Tauri 引导安装器）
+        scope:
+            - apps/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: sparkii_cli
+            - path: tui_gateway
+    cron:
+        dir_name: Hermes Agent Cron 定时任务调度系统
+        title: Hermes Agent Cron 定时任务调度系统
+        scope:
+            - cron/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: gateway
+    gateway:
+        dir_name: Hermes Gateway 多平台消息网关
+        title: Hermes Gateway 多平台消息网关
+        scope:
+            - gateway/
+        source_files: []
+        children:
+            - gateway/core_runtime
+        depends_on: []
+        related_to:
+            - path: cron
+            - path: sparkii_cli/cli_core/cli_core_runtime
+            - path: tests
+    gateway/core_runtime:
+        dir_name: Hermes Gateway 多平台消息网关核心运行时
+        title: Hermes Gateway 多平台消息网关核心运行时
+        scope:
+            - gateway/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: agent
+    optional_skills:
+        dir_name: Hermes Agent 可选技能集（Optional Skills）
+        title: Hermes Agent 可选技能集（Optional Skills）
+        scope:
+            - optional-skills/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: plugins
+    plugins:
+        dir_name: Hermes_Sparkii 插件集合（模型、平台、搜索、记忆等扩展）
+        title: Hermes/Sparkii 插件集合（模型、平台、搜索、记忆等扩展）
+        scope:
+            - plugins/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: optional_skills
+            - path: tools
+            - path: website_docs
+    scripts_and_infra:
+        dir_name: 构建、部署与运维脚本基础设施
+        title: 构建、部署与运维脚本基础设施
+        scope:
+            - scripts/
+            - docker/
+            - nix/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    sparkii_cli:
+        dir_name: Sparkii CLI 主程序包
+        title: Sparkii CLI 主程序包
+        scope:
+            - sparkii_cli/
+        source_files: []
+        children:
+            - sparkii_cli/cli_core
+        depends_on: []
+        related_to:
+            - path: apps_desktop
+    sparkii_cli/cli_core:
+        dir_name: Sparkii CLI 核心模块
+        title: Sparkii CLI 核心模块
+        scope:
+            - sparkii_cli/
+        source_files: []
+        children:
+            - sparkii_cli/cli_core/cli_core_runtime
+        depends_on: []
+        related_to: []
+    sparkii_cli/cli_core/cli_core_runtime:
+        dir_name: Sparkii CLI 运行时编排层
+        title: Sparkii CLI 运行时编排层
+        scope:
+            - sparkii_cli/
+        source_files: []
+        children:
+            - sparkii_cli/cli_core/cli_core_runtime/cli_entry_and_core_commands
+            - sparkii_cli/cli_core/cli_core_runtime/config_migration
+            - sparkii_cli/cli_core/cli_core_runtime/model_provider_setup
+            - sparkii_cli/cli_core/cli_core_runtime/platform_runtime_helpers
+            - sparkii_cli/cli_core/cli_core_runtime/plugins_skills_tools
+            - sparkii_cli/cli_core/cli_core_runtime/secrets_auth_integrations
+        depends_on: []
+        related_to:
+            - path: gateway
+            - path: tui_gateway
+    sparkii_cli/cli_core/cli_core_runtime/cli_entry_and_core_commands:
+        dir_name: CLI 入口与核心命令注册
+        title: CLI 入口与核心命令注册
+        scope:
+            - sparkii_cli/main.py
+            - sparkii_cli/_parser.py
+            - sparkii_cli/commands.py
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    sparkii_cli/cli_core/cli_core_runtime/config_migration:
+        dir_name: 配置加载、迁移与回退链解析
+        title: 配置加载、迁移与回退链解析
+        scope:
+            - sparkii_cli/config.py
+            - sparkii_cli/config_migrations.py
+            - sparkii_cli/fallback_config.py
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: sparkii_cli/cli_core/cli_core_runtime/secrets_auth_integrations
+    sparkii_cli/cli_core/cli_core_runtime/model_provider_setup:
+        dir_name: 模型目录、提供商解析与模型切换核心
+        title: 模型目录、提供商解析与模型切换核心
+        scope:
+            - sparkii_cli/model_catalog.py
+            - sparkii_cli/model_switch.py
+            - sparkii_cli/providers.py
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: sparkii_cli/cli_core/cli_core_runtime/platform_runtime_helpers
+    sparkii_cli/cli_core/cli_core_runtime/platform_runtime_helpers:
+        dir_name: 平台元数据与运行时解析辅助
+        title: 平台元数据与运行时解析辅助
+        scope:
+            - sparkii_cli/platforms.py
+            - sparkii_cli/runtime_provider.py
+            - sparkii_cli/sqlite_runtime.py
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: sparkii_cli/cli_core/cli_core_runtime/model_provider_setup
+    sparkii_cli/cli_core/cli_core_runtime/plugins_skills_tools:
+        dir_name: 插件系统、技能中心与工具配置
+        title: 插件系统、技能中心与工具配置
+        scope:
+            - sparkii_cli/plugins.py
+            - sparkii_cli/skills_hub.py
+            - sparkii_cli/tools_config.py
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    sparkii_cli/cli_core/cli_core_runtime/secrets_auth_integrations:
+        dir_name: 多提供商认证与凭据生命周期管理
+        title: 多提供商认证与凭据生命周期管理
+        scope:
+            - sparkii_cli/auth.py
+            - sparkii_cli/credential_lifecycle.py
+            - sparkii_cli/subcommands/auth.py
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: sparkii_cli/cli_core/cli_core_runtime/config_migration
+    tests:
+        dir_name: Sparkii Agent 全量测试套件（Python + TypeScript）
+        title: Sparkii Agent 全量测试套件（Python + TypeScript）
+        scope:
+            - tests/
+            - tests-js/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: gateway
+            - path: tools
+            - path: tui_gateway
+    tools:
+        dir_name: Hermes Agent 工具集（tools）
+        title: Hermes Agent 工具集（tools）
+        scope:
+            - tools/
+        source_files: []
+        children:
+            - tools/browser_tools
+            - tools/delegation_auth_tools
+            - tools/file_code_tools
+            - tools/mcp_tools
+            - tools/media_generation_tools
+            - tools/skills_tools
+            - tools/terminal_ui_tools
+            - tools/tool_runtime_infrastructure
+            - tools/web_api_tools
+        depends_on: []
+        related_to:
+            - path: agent
+            - path: plugins
+            - path: tests
+    tools/browser_tools:
+        dir_name: 浏览器自动化与 CDP 工具集
+        title: 浏览器自动化与 CDP 工具集
+        scope:
+            - tools/browser_camofox.py
+            - tools/browser_camofox_state.py
+            - tools/browser_cdp_tool.py
+            - tools/browser_dialog_tool.py
+            - tools/browser_supervisor.py
+            - tools/browser_tool.py
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    tools/delegation_auth_tools:
+        dir_name: 委托代理与第三方服务工具集
+        title: 委托代理与第三方服务工具集
+        scope:
+            - tools/delegate_tool.py
+            - tools/async_delegation.py
+            - tools/delegation_live_log.py
+            - tools/delegation_output_schema.py
+            - tools/credential_files.py
+            - tools/microsoft_graph_auth.py
+            - tools/microsoft_graph_client.py
+            - tools/openrouter_client.py
+            - tools/xai_http.py
+            - tools/clarify_gateway.py
+            - tools/clarify_tool.py
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    tools/file_code_tools:
+        dir_name: 文件操作与代码执行工具集
+        title: 文件操作与代码执行工具集
+        scope:
+            - tools/file_operations.py
+            - tools/file_state.py
+            - tools/file_tools.py
+            - tools/code_execution_tool.py
+            - tools/read_extract.py
+            - tools/working_diff.py
+            - tools/binary_extensions.py
+            - tools/path_security.py
+            - tools/self_repo_guard.py
+            - tools/checkpoint_manager.py
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    tools/mcp_tools:
+        dir_name: MCP 工具与 OAuth 集成层
+        title: MCP 工具与 OAuth 集成层
+        scope:
+            - tools/mcp_tool.py
+            - tools/mcp_oauth.py
+            - tools/mcp_oauth_manager.py
+            - tools/mcp_schema_cache.py
+            - tools/mcp_stdio_watchdog.py
+            - tools/mcp_dashboard_oauth.py
+            - tools/managed_tool_gateway.py
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    tools/media_generation_tools:
+        dir_name: 媒体生成与语音工具集
+        title: 媒体生成与语音工具集
+        scope:
+            - tools/image_generation_tool.py
+            - tools/video_generation_tool.py
+            - tools/flux3_video_tool.py
+            - tools/xai_video_tools.py
+            - tools/transcription_tools.py
+            - tools/tts_tool.py
+            - tools/tts_streaming.py
+            - tools/tts_text_normalize.py
+            - tools/wake_word.py
+            - tools/neutts_synth.py
+            - tools/audio_container.py
+            - tools/image_source.py
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    tools/skills_tools:
+        dir_name: Skills 工具集与技能生命周期管理
+        title: Skills 工具集与技能生命周期管理
+        scope:
+            - tools/skills_hub.py
+            - tools/skills_sync.py
+            - tools/skills_sync_client.py
+            - tools/skill_linter.py
+            - tools/skill_manager_tool.py
+            - tools/skill_provenance.py
+            - tools/skill_usage.py
+            - tools/skills_ast_audit.py
+            - tools/skills_guard.py
+            - tools/skills_tool.py
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    tools/terminal_ui_tools:
+        dir_name: 终端与桌面 UI 工具集（Terminal & Desktop UI Tools）
+        title: 终端与桌面 UI 工具集（Terminal & Desktop UI Tools）
+        scope:
+            - tools/terminal_tool.py
+            - tools/close_terminal_tool.py
+            - tools/read_terminal_tool.py
+            - tools/focus_pane_tool.py
+            - tools/desktop_ui.py
+            - tools/read_window_tool.py
+            - tools/open_preview_tool.py
+            - tools/read_preview_tool.py
+            - tools/voice_mode.py
+            - tools/terminal_hints.py
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    tools/tool_runtime_infrastructure:
+        dir_name: 工具运行期辅助模块集（中断、环境探测、依赖懒加载、Schema 清洗、补丁解析）
+        title: 工具运行期辅助模块集（中断、环境探测、依赖懒加载、Schema 清洗、补丁解析）
+        scope:
+            - tools/registry.py
+            - tools/tool_backend_helpers.py
+            - tools/tool_result_storage.py
+            - tools/tool_output_limits.py
+            - tools/tool_search.py
+            - tools/blueprints.py
+            - tools/process_registry.py
+            - tools/thread_context.py
+            - tools/interrupt.py
+            - tools/hook_output_spill.py
+            - tools/env_passthrough.py
+            - tools/env_probe.py
+            - tools/lazy_deps.py
+            - tools/schema_sanitizer.py
+            - tools/patch_parser.py
+            - tools/fuzzy_match.py
+            - tools/debug_helpers.py
+            - tools/osv_check.py
+            - tools/threat_patterns.py
+            - tools/tirith_security.py
+            - tools/url_safety.py
+            - tools/website_policy.py
+            - tools/approval.py
+            - tools/write_approval.py
+            - tools/slash_confirm.py
+            - tools/budget_config.py
+            - tools/ansi_strip.py
+            - tools/daemon_pool.py
+            - tools/cronjob_tools.py
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    tools/web_api_tools:
+        dir_name: Agent 工具集（Tools）
+        title: Agent 工具集（Tools）
+        scope:
+            - tools/web_tools.py
+            - tools/discord_tool.py
+            - tools/react_to_message_tool.py
+            - tools/send_message_tool.py
+            - tools/session_search_tool.py
+            - tools/todo_tool.py
+            - tools/homeassistant_tool.py
+            - tools/feishu_doc_tool.py
+            - tools/feishu_drive_tool.py
+            - tools/x_search_tool.py
+            - tools/yuanbao_tools.py
+            - tools/kanban_tools.py
+            - tools/project_tools.py
+            - tools/memory_tool.py
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    tui_gateway:
+        dir_name: TUI Gateway JSON-RPC 服务与多传输适配层
+        title: TUI Gateway JSON-RPC 服务与多传输适配层
+        scope:
+            - tui_gateway/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: agent
+            - path: apps_desktop
+            - path: sparkii_cli/cli_core/cli_core_runtime
+            - path: tests
+            - path: web_frontend
+    web_frontend:
+        dir_name: Web Dashboard 与 TUI 双前端（浏览器 + 终端）
+        title: Web Dashboard 与 TUI 双前端（浏览器 + 终端）
+        scope:
+            - web/
+            - ui-tui/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: tui_gateway
+    website_docs:
+        dir_name: Hermes Agent 文档站点（Docusaurus 多语言文档）
+        title: Hermes Agent 文档站点（Docusaurus 多语言文档）
+        scope:
+            - website/
+            - docs/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: plugins

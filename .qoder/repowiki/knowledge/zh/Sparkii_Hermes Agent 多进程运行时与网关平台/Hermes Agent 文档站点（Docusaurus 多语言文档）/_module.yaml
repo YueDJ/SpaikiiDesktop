@@ -1,0 +1,10 @@
+schema_version: 1
+module_path: website_docs
+title: Hermes Agent 文档站点（Docusaurus 多语言文档）
+scope:
+    - website/
+    - docs/
+source_files: []
+depends_on: []
+related_to:
+    - path: plugins

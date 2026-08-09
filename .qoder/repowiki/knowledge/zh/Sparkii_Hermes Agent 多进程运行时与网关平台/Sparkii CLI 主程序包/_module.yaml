@@ -1,0 +1,9 @@
+schema_version: 1
+module_path: sparkii_cli
+title: Sparkii CLI 主程序包
+scope:
+    - sparkii_cli/
+source_files: []
+depends_on: []
+related_to:
+    - path: apps_desktop

@@ -1,0 +1,10 @@
+schema_version: 1
+module_path: web_frontend
+title: Web Dashboard 与 TUI 双前端（浏览器 + 终端）
+scope:
+    - web/
+    - ui-tui/
+source_files: []
+depends_on: []
+related_to:
+    - path: tui_gateway

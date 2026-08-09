@@ -1,0 +1,17 @@
+schema_version: 1
+module_path: tools/skills_tools
+title: Skills 工具集与技能生命周期管理
+scope:
+    - tools/skills_hub.py
+    - tools/skills_sync.py
+    - tools/skills_sync_client.py
+    - tools/skill_linter.py
+    - tools/skill_manager_tool.py
+    - tools/skill_provenance.py
+    - tools/skill_usage.py
+    - tools/skills_ast_audit.py
+    - tools/skills_guard.py
+    - tools/skills_tool.py
+source_files: []
+depends_on: []
+related_to: []

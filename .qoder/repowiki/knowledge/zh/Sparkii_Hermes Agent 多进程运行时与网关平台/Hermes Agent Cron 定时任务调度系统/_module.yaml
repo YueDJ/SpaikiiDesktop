@@ -1,0 +1,9 @@
+schema_version: 1
+module_path: cron
+title: Hermes Agent Cron 定时任务调度系统
+scope:
+    - cron/
+source_files: []
+depends_on: []
+related_to:
+    - path: gateway

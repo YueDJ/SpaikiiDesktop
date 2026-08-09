@@ -1,0 +1,10 @@
+schema_version: 1
+module_path: apps_desktop
+title: 桌面应用套件（Electron + Tauri 引导安装器）
+scope:
+    - apps/
+source_files: []
+depends_on: []
+related_to:
+    - path: sparkii_cli
+    - path: tui_gateway

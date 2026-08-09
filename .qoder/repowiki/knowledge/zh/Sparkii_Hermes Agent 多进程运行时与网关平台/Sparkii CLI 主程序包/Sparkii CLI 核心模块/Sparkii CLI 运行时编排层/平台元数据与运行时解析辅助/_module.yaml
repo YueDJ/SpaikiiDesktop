@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: sparkii_cli/cli_core/cli_core_runtime/platform_runtime_helpers
+title: 平台元数据与运行时解析辅助
+scope:
+    - sparkii_cli/platforms.py
+    - sparkii_cli/runtime_provider.py
+    - sparkii_cli/sqlite_runtime.py
+source_files: []
+depends_on: []
+related_to:
+    - path: sparkii_cli/cli_core/cli_core_runtime/model_provider_setup

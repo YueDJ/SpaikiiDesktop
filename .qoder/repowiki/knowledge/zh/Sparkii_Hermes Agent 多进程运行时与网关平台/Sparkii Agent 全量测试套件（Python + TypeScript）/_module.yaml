@@ -1,0 +1,12 @@
+schema_version: 1
+module_path: tests
+title: Sparkii Agent 全量测试套件（Python + TypeScript）
+scope:
+    - tests/
+    - tests-js/
+source_files: []
+depends_on: []
+related_to:
+    - path: gateway
+    - path: tools
+    - path: tui_gateway

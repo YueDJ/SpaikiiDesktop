@@ -1,0 +1,21 @@
+schema_version: 1
+module_path: tools/web_api_tools
+title: Agent 工具集（Tools）
+scope:
+    - tools/web_tools.py
+    - tools/discord_tool.py
+    - tools/react_to_message_tool.py
+    - tools/send_message_tool.py
+    - tools/session_search_tool.py
+    - tools/todo_tool.py
+    - tools/homeassistant_tool.py
+    - tools/feishu_doc_tool.py
+    - tools/feishu_drive_tool.py
+    - tools/x_search_tool.py
+    - tools/yuanbao_tools.py
+    - tools/kanban_tools.py
+    - tools/project_tools.py
+    - tools/memory_tool.py
+source_files: []
+depends_on: []
+related_to: []

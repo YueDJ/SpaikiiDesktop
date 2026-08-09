@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: plugins
+title: Hermes/Sparkii 插件集合（模型、平台、搜索、记忆等扩展）
+scope:
+    - plugins/
+source_files: []
+depends_on: []
+related_to:
+    - path: optional_skills
+    - path: tools
+    - path: website_docs

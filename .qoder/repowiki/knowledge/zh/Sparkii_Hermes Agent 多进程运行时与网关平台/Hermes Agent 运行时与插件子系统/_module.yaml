@@ -1,0 +1,12 @@
+schema_version: 1
+module_path: agent
+title: Hermes Agent 运行时与插件子系统
+scope:
+    - agent/
+source_files: []
+depends_on: []
+related_to:
+    - path: acp_adapter
+    - path: gateway/core_runtime
+    - path: tools
+    - path: tui_gateway

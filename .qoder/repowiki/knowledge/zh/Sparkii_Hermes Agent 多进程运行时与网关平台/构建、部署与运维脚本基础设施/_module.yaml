@@ -1,0 +1,10 @@
+schema_version: 1
+module_path: scripts_and_infra
+title: 构建、部署与运维脚本基础设施
+scope:
+    - scripts/
+    - docker/
+    - nix/
+source_files: []
+depends_on: []
+related_to: []

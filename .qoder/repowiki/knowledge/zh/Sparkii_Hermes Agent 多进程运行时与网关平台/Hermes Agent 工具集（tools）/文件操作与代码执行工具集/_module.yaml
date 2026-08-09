@@ -1,0 +1,17 @@
+schema_version: 1
+module_path: tools/file_code_tools
+title: 文件操作与代码执行工具集
+scope:
+    - tools/file_operations.py
+    - tools/file_state.py
+    - tools/file_tools.py
+    - tools/code_execution_tool.py
+    - tools/read_extract.py
+    - tools/working_diff.py
+    - tools/binary_extensions.py
+    - tools/path_security.py
+    - tools/self_repo_guard.py
+    - tools/checkpoint_manager.py
+source_files: []
+depends_on: []
+related_to: []

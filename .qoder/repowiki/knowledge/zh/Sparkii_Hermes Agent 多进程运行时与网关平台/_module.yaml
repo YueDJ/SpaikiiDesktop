@@ -1,0 +1,66 @@
+schema_version: 1
+module_path: ""
+title: Sparkii/Hermes Agent 多进程运行时与网关平台
+scope:
+    - README.md
+    - CONTRIBUTING.md
+    - .gitignore
+    - Dockerfile
+    - pyproject.toml
+    - setup.py
+    - flake.nix
+    - package.json
+    - .dockerignore
+    - .env.example
+    - .envrc
+    - .gitattributes
+    - .hadolint.yaml
+    - .mailmap
+    - .npmrc
+    - .nvmrc
+    - .prettierignore
+    - .prettierrc
+    - .python-version
+    - AGENTS.md
+    - CONTRIBUTING.es.md
+    - LICENSE
+    - README.es.md
+    - README.ur-pk.md
+    - README.zh-CN.md
+    - SECURITY.es.md
+    - SECURITY.md
+    - batch_runner.py
+    - cli-config.yaml.example
+    - cli.py
+    - constraints-termux.txt
+    - docker-compose.windows.yml
+    - docker-compose.yml
+    - eslint.config.shared.mjs
+    - flake.lock
+    - hermes
+    - hermes-already-has-routines.md
+    - log.txt
+    - mcp_serve.py
+    - mini_swe_runner.py
+    - model_tools.py
+    - package-lock.json
+    - run_agent.py
+    - setup-hermes.sh
+    - sparkii_bootstrap.py
+    - sparkii_constants.py
+    - sparkii_logging.py
+    - sparkii_state.py
+    - sparkii_state_common.py
+    - sparkii_state_portability.py
+    - sparkii_state_schema.py
+    - sparkii_state_search.py
+    - sparkii_time.py
+    - sqlite_leak_fix.png
+    - toolset_distributions.py
+    - toolsets.py
+    - trajectory_compressor.py
+    - utils.py
+    - uv.lock
+source_files: []
+depends_on: []
+related_to: []

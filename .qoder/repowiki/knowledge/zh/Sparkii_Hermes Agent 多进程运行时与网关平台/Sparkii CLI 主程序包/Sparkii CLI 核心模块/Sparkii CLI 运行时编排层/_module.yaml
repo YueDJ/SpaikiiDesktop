@@ -1,0 +1,10 @@
+schema_version: 1
+module_path: sparkii_cli/cli_core/cli_core_runtime
+title: Sparkii CLI 运行时编排层
+scope:
+    - sparkii_cli/
+source_files: []
+depends_on: []
+related_to:
+    - path: gateway
+    - path: tui_gateway

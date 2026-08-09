@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: gateway
+title: Hermes Gateway 多平台消息网关
+scope:
+    - gateway/
+source_files: []
+depends_on: []
+related_to:
+    - path: cron
+    - path: sparkii_cli/cli_core/cli_core_runtime
+    - path: tests

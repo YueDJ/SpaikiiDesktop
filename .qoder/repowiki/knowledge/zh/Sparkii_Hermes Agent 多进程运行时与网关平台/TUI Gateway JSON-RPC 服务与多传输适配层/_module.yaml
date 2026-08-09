@@ -1,0 +1,13 @@
+schema_version: 1
+module_path: tui_gateway
+title: TUI Gateway JSON-RPC 服务与多传输适配层
+scope:
+    - tui_gateway/
+source_files: []
+depends_on: []
+related_to:
+    - path: agent
+    - path: apps_desktop
+    - path: sparkii_cli/cli_core/cli_core_runtime
+    - path: tests
+    - path: web_frontend

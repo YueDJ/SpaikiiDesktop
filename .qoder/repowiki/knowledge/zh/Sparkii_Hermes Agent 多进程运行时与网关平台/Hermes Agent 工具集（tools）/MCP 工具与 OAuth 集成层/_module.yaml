@@ -1,0 +1,14 @@
+schema_version: 1
+module_path: tools/mcp_tools
+title: MCP 工具与 OAuth 集成层
+scope:
+    - tools/mcp_tool.py
+    - tools/mcp_oauth.py
+    - tools/mcp_oauth_manager.py
+    - tools/mcp_schema_cache.py
+    - tools/mcp_stdio_watchdog.py
+    - tools/mcp_dashboard_oauth.py
+    - tools/managed_tool_gateway.py
+source_files: []
+depends_on: []
+related_to: []

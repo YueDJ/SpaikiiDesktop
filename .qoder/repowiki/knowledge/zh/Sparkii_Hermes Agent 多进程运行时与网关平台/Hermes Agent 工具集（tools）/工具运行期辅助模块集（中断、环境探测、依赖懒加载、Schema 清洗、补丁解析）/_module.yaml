@@ -1,0 +1,36 @@
+schema_version: 1
+module_path: tools/tool_runtime_infrastructure
+title: 工具运行期辅助模块集（中断、环境探测、依赖懒加载、Schema 清洗、补丁解析）
+scope:
+    - tools/registry.py
+    - tools/tool_backend_helpers.py
+    - tools/tool_result_storage.py
+    - tools/tool_output_limits.py
+    - tools/tool_search.py
+    - tools/blueprints.py
+    - tools/process_registry.py
+    - tools/thread_context.py
+    - tools/interrupt.py
+    - tools/hook_output_spill.py
+    - tools/env_passthrough.py
+    - tools/env_probe.py
+    - tools/lazy_deps.py
+    - tools/schema_sanitizer.py
+    - tools/patch_parser.py
+    - tools/fuzzy_match.py
+    - tools/debug_helpers.py
+    - tools/osv_check.py
+    - tools/threat_patterns.py
+    - tools/tirith_security.py
+    - tools/url_safety.py
+    - tools/website_policy.py
+    - tools/approval.py
+    - tools/write_approval.py
+    - tools/slash_confirm.py
+    - tools/budget_config.py
+    - tools/ansi_strip.py
+    - tools/daemon_pool.py
+    - tools/cronjob_tools.py
+source_files: []
+depends_on: []
+related_to: []
