@@ -62,18 +62,18 @@ export const en: Translations = {
   },
 
   boot: {
-    ready: 'Hermes Desktop is ready',
+    ready: 'Sparkii Desktop is ready',
     desktopBootFailedWithMessage: message => `Desktop boot failed: ${message}`,
     steps: {
       connectingGateway: 'Connecting live desktop gateway',
-      loadingSettings: 'Loading Hermes settings',
+      loadingSettings: 'Loading Sparkii settings',
       loadingSessions: 'Loading recent sessions',
       startingDesktopConnection: 'Starting desktop connection',
-      startingHermesDesktop: 'Starting Hermes Desktop…'
+      startingHermesDesktop: 'Starting Sparkii Desktop…'
     },
     errors: {
-      backgroundExited: 'Hermes background process exited.',
-      backgroundExitedDuringStartup: 'Hermes background process exited during startup.',
+      backgroundExited: 'Sparkii background process exited.',
+      backgroundExitedDuringStartup: 'Sparkii background process exited during startup.',
       backendStopped: 'Backend stopped',
       desktopBootFailed: 'Desktop boot failed',
       gatewayConnectionLost: 'Lost connection to the gateway',
@@ -81,7 +81,7 @@ export const en: Translations = {
       ipcBridgeUnavailable: 'Desktop IPC bridge is unavailable.'
     },
     failure: {
-      title: "Hermes couldn't start",
+      title: 'Sparkii could not start',
       description:
         "The background gateway didn't come up. Try one of the recovery steps below. Nothing here deletes your chats or settings.",
       remoteTitle: 'Remote gateway sign-in required',
@@ -435,7 +435,7 @@ export const en: Translations = {
       advanced: 'Advanced'
     },
     searchPlaceholder: {
-      about: 'About Hermes Desktop',
+      about: 'About Sparkii Desktop',
       config: 'Search settings...',
       gateway: 'Gateway connection...',
       keys: 'Search API keys...',

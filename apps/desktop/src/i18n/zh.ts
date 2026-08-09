@@ -62,18 +62,18 @@ export const zh: Translations = {
   },
 
   boot: {
-    ready: 'Hermes 桌面版已就绪',
+    ready: 'Sparkii 桌面版已就绪',
     desktopBootFailedWithMessage: message => `桌面启动失败：${message}`,
     steps: {
       connectingGateway: '正在连接桌面网关',
-      loadingSettings: '正在加载 Hermes 设置',
+      loadingSettings: '正在加载 Sparkii 设置',
       loadingSessions: '正在加载最近会话',
       startingDesktopConnection: '正在启动桌面连接',
-      startingHermesDesktop: '正在启动 Hermes 桌面版…'
+      startingHermesDesktop: '正在启动 Sparkii 桌面版…'
     },
     errors: {
-      backgroundExited: 'Hermes 后台进程已退出。',
-      backgroundExitedDuringStartup: 'Hermes 后台进程在启动期间退出。',
+      backgroundExited: 'Sparkii 后台进程已退出。',
+      backgroundExitedDuringStartup: 'Sparkii 后台进程在启动期间退出。',
       backendStopped: '后端已停止',
       desktopBootFailed: '桌面启动失败',
       gatewayConnectionLost: '与网关的连接已断开',
@@ -81,7 +81,7 @@ export const zh: Translations = {
       ipcBridgeUnavailable: '桌面 IPC 桥不可用。'
     },
     failure: {
-      title: 'Hermes 无法启动',
+      title: 'Sparkii 无法启动',
       description: '后台网关没有启动。请尝试下面的恢复步骤；这里不会删除你的对话或设置。',
       remoteTitle: '需要重新登录远程网关',
       remoteDescription: '你的远程网关会话已过期。请重新登录以恢复连接。这些操作不会删除你的对话或设置。',
@@ -426,7 +426,7 @@ export const zh: Translations = {
       advanced: '高级'
     },
     searchPlaceholder: {
-      about: '关于 Hermes Desktop',
+      about: '关于 Sparkii Desktop',
       config: '搜索设置…',
       gateway: '网关连接…',
       keys: '搜索 API 密钥…',

@@ -1,6 +1,6 @@
 {
-  "name": "hermes",
-  "productName": "Hermes",
+  "name": "sparkii",
+  "productName": "Sparkii",
   "private": true,
   "version": "0.17.0",
   "description": "Native desktop shell for Hermes Agent.",
@@ -8,8 +8,8 @@
   "type": "module",
   "main": "dist/electron-main.mjs",
   "engines": {
-    "node": ">=22.22.0"
-  },
+      "node": ">=18.0.0"
+    },
   "scripts": {
     "clean": "npm run clean:e2e && npm run clean:renderer && npm run clean:electron",
     "clean:e2e": "tsc --build tsconfig.e2e.json --clean",
@@ -163,8 +163,8 @@
   },
   "build": {
     "electronVersion": "40.10.6",
-    "appId": "com.nousresearch.hermes",
-    "productName": "Hermes",
+    "appId": "com.sparkii.desktop",
+        "productName": "Sparkii",
     "executableName": "Hermes",
     "protocols": [
       {
