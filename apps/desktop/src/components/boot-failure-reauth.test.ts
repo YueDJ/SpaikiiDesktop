@@ -20,7 +20,7 @@ function config(overrides: Partial<DesktopConnectionConfig> = {}): DesktopConnec
     remoteOauthConnected: false,
     remoteTokenPreview: null,
     remoteTokenSet: false,
-    remoteUrl: 'https://box:9119',
+    remoteUrl: 'https://box:9219',
     cloudOrg: '',
     sshHost: '',
     sshUser: '',

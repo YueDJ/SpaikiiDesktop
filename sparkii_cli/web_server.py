@@ -5,7 +5,7 @@ Provides a FastAPI backend serving the Vite/React frontend and REST API
 endpoints for managing configuration, environment variables, and sessions.
 
 Usage:
-    python -m sparkii_cli.main web          # Start on http://127.0.0.1:9119
+    python -m sparkii_cli.main web          # Start on http://127.0.0.1:9219
     python -m sparkii_cli.main web --port 8080
 """
 
@@ -504,10 +504,10 @@ def _is_accepted_host(host_header: str, bound_host: str) -> bool:
         return False
     # Strip port suffix. IPv6 addresses use bracket notation:
     #   [::1]         — no port
-    #   [::1]:9119    — with port
+    #   [::1]:9219    — with port
     # Plain hosts/v4:
-    #   localhost:9119
-    #   127.0.0.1:9119
+    #   localhost:9219
+    #   127.0.0.1:9219
     h = host_header.strip()
     if h.startswith("["):
         # IPv6 bracketed — port (if any) follows "]:"
@@ -16234,7 +16234,7 @@ def mount_spa(application: FastAPI):
     separate (unauthenticated) token-dispensing endpoint.
 
     When served behind a path-prefix reverse proxy (e.g.
-    ``mission-control.tilos.com/sparkii/*`` -> local Caddy -> :9119), the
+    ``mission-control.tilos.com/sparkii/*`` -> local Caddy -> :9219), the
     proxy injects ``X-Forwarded-Prefix: /sparkii`` on every request. We
     rewrite the served ``index.html`` so absolute asset URLs (``/assets/...``)
     and the SPA's runtime ``__SPARKII_BASE_PATH__`` honour that prefix
@@ -17641,7 +17641,7 @@ def _maybe_open_browser(
 
 def start_server(
     host: str = "127.0.0.1",
-    port: int = 9119,
+    port: int = 9219,
     open_browser: bool = True,
     allow_public: bool = False,
     initial_profile: str = "",

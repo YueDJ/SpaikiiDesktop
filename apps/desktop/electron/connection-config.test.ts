@@ -382,15 +382,15 @@ test('normalizeRemoteBaseUrl rejects garbage', () => {
 })
 
 test('normalizeRemoteBaseUrl auto-prepends http:// for scheme-less host:port input', () => {
-  assert.equal(normalizeRemoteBaseUrl('100.64.0.1:9119'), 'http://100.64.0.1:9119')
-  assert.equal(normalizeRemoteBaseUrl('mini.tailnet-1234.ts.net:9119'), 'http://mini.tailnet-1234.ts.net:9119')
-  assert.equal(normalizeRemoteBaseUrl('localhost:9119'), 'http://localhost:9119')
+  assert.equal(normalizeRemoteBaseUrl('100.64.0.1:9219'), 'http://100.64.0.1:9219')
+  assert.equal(normalizeRemoteBaseUrl('mini.tailnet-1234.ts.net:9219'), 'http://mini.tailnet-1234.ts.net:9219')
+  assert.equal(normalizeRemoteBaseUrl('localhost:9219'), 'http://localhost:9219')
   assert.equal(normalizeRemoteBaseUrl('gw.example.com'), 'http://gw.example.com')
   assert.equal(normalizeRemoteBaseUrl('gw.example.com/sparkii/'), 'http://gw.example.com/sparkii')
 })
 
 test('normalizeRemoteBaseUrl still rejects explicit non-http(s) schemes after scheme-less handling', () => {
-  assert.throws(() => normalizeRemoteBaseUrl('ws://host:9119'), /http:\/\/ or https:\/\//)
+  assert.throws(() => normalizeRemoteBaseUrl('ws://host:9219'), /http:\/\/ or https:\/\//)
   assert.throws(() => normalizeRemoteBaseUrl('ftp://host:21'), /http:\/\/ or https:\/\//)
 })
 
@@ -401,7 +401,7 @@ test('buildGatewayWsUrl uses wss for https and bakes the token', () => {
 })
 
 test('buildGatewayWsUrl uses ws for http', () => {
-  assert.equal(buildGatewayWsUrl('http://127.0.0.1:9119', 'abc'), 'ws://127.0.0.1:9119/api/ws?token=abc')
+  assert.equal(buildGatewayWsUrl('http://127.0.0.1:9219', 'abc'), 'ws://127.0.0.1:9219/api/ws?token=abc')
 })
 
 test('buildGatewayWsUrl honors a path prefix', () => {

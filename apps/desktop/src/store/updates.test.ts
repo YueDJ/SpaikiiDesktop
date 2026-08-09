@@ -73,12 +73,12 @@ const lastToast = () => notifySpy.mock.calls.at(-1)?.[0] as { onDismiss: () => v
 
 const setRemote = (on: boolean) =>
   setConnection({
-    baseUrl: 'http://box:9119',
+    baseUrl: 'http://box:9219',
     isFullscreen: false,
     mode: on ? 'remote' : 'local',
     nativeOverlayWidth: 0,
     token: 't',
-    wsUrl: 'ws://box:9119',
+    wsUrl: 'ws://box:9219',
     logs: [],
     windowButtonPosition: null
   })

@@ -155,7 +155,7 @@ test('recognizes missing-route shapes only', () => {
 test('anonymous gate-shaped 401 falls back to /api/status (backend predates /api/health)', async () => {
   const calls: string[][] = []
 
-  await waitForSparkiiReady('http://192.168.1.132:9119', {
+  await waitForSparkiiReady('http://192.168.1.132:9219', {
     token: null,
     fetchPublicJson: async url => {
       calls.push(['public', url])
@@ -172,8 +172,8 @@ test('anonymous gate-shaped 401 falls back to /api/status (backend predates /api
   })
 
   assert.deepEqual(calls, [
-    ['public', 'http://192.168.1.132:9119/api/health'],
-    ['token', 'http://192.168.1.132:9119/api/status', 'null']
+    ['public', 'http://192.168.1.132:9219/api/health'],
+    ['token', 'http://192.168.1.132:9219/api/status', 'null']
   ])
 })
 

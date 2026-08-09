@@ -694,7 +694,7 @@ test('openForward retries bind collisions only', async () => {
         }
       }
     },
-    9119
+    9219
   )
 
   assert.equal(localPort, 41002)

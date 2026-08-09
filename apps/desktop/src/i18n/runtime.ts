@@ -32,7 +32,8 @@ export function translateFrom(
   source: (locale: Locale) => unknown,
   locale: Locale,
   key: string,
-  args: unknown[]
+  args: unknown[],
+  defaultLocale: Locale = DEFAULT_LOCALE
 ): string {
   const active = render(resolvePath(source(locale), key), args)
 
@@ -40,8 +41,8 @@ export function translateFrom(
     return active
   }
 
-  if (locale !== DEFAULT_LOCALE) {
-    const fallback = render(resolvePath(source(DEFAULT_LOCALE), key), args)
+  if (locale !== defaultLocale) {
+    const fallback = render(resolvePath(source(defaultLocale), key), args)
 
     if (fallback !== null) {
       return fallback

@@ -160,7 +160,7 @@ test('collectRelaunchArgs drops Electron internals, keeps user/launcher args', (
 test('collectRelaunchEnv preserves SPARKII_HOME + SPARKII_DESKTOP_* + sandbox opt-out only', () => {
   const env = {
     SPARKII_HOME: '/home/u/.sparkii',
-    SPARKII_DESKTOP_REMOTE_URL: 'http://box:9119',
+    SPARKII_DESKTOP_REMOTE_URL: 'http://box:9219',
     SPARKII_DESKTOP_REMOTE_TOKEN: 'secret',
     SPARKII_DESKTOP_SPARKII_ROOT: '/home/u/dev/sparkii',
     SPARKII_DESKTOP_APP_NAME: 'SparkiiSandbox',
@@ -172,7 +172,7 @@ test('collectRelaunchEnv preserves SPARKII_HOME + SPARKII_DESKTOP_* + sandbox op
 
   assert.deepEqual(collectRelaunchEnv(env), {
     SPARKII_HOME: '/home/u/.sparkii',
-    SPARKII_DESKTOP_REMOTE_URL: 'http://box:9119',
+    SPARKII_DESKTOP_REMOTE_URL: 'http://box:9219',
     SPARKII_DESKTOP_REMOTE_TOKEN: 'secret',
     SPARKII_DESKTOP_SPARKII_ROOT: '/home/u/dev/sparkii',
     SPARKII_DESKTOP_APP_NAME: 'SparkiiSandbox',
@@ -195,7 +195,7 @@ test('buildRelaunchScript embeds pid/exec/args/env/cwd and is valid bash', () =>
     pid: 4242,
     execPath: '/home/u/.sparkii/sparkii-agent/apps/desktop/release/linux-unpacked/Sparkii',
     args: ['sparkii://open/agent/42', "--note=it's fine"],
-    env: { SPARKII_HOME: '/home/u/.sparkii', SPARKII_DESKTOP_REMOTE_URL: 'http://box:9119' },
+    env: { SPARKII_HOME: '/home/u/.sparkii', SPARKII_DESKTOP_REMOTE_URL: 'http://box:9219' },
     cwd: '/home/u/work dir'
   })
 
@@ -206,7 +206,7 @@ test('buildRelaunchScript embeds pid/exec/args/env/cwd and is valid bash', () =>
   assert.match(script, /rm -f -- "\$0"/)
   // env exports + cwd restore + args replay are present and quoted.
   assert.match(script, /export SPARKII_HOME='\/home\/u\/\.sparkii'/)
-  assert.match(script, /export SPARKII_DESKTOP_REMOTE_URL='http:\/\/box:9119'/)
+  assert.match(script, /export SPARKII_DESKTOP_REMOTE_URL='http:\/\/box:9219'/)
   assert.match(script, /cd '\/home\/u\/work dir'/)
   assert.match(script, /exec '.*\/linux-unpacked\/Sparkii' 'sparkii:\/\/open\/agent\/42' '--note=it'\\''s fine'/)
 

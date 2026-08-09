@@ -513,12 +513,12 @@ test('no-mux: forward spawns a persistent -N -L child; cancel + close kill it', 
   }
 
   const conn = new SshConnection({ host: 'box', user: 'me' }, { spawnFn, mux: false })
-  await conn.forward(localPort, 9119)
+  await conn.forward(localPort, 9219)
   assert.equal(tunnels.length, 1, 'one persistent tunnel child')
   assert.ok(tunnels[0].args.includes('-L'), 'tunnel child carries -L spec')
   assert.ok(!tunnels[0].args.some(a => /ControlPath/.test(a)))
 
-  await conn.cancelForward(localPort, 9119)
+  await conn.cancelForward(localPort, 9219)
   assert.ok(tunnels[0].child._killed, 'cancelForward kills the tunnel child')
 
   conn._opened = true
@@ -545,7 +545,7 @@ test('no-mux: forward fails fast when the tunnel child dies (bad spec/auth)', as
   }
 
   const conn = new SshConnection({ host: 'box', user: 'me' }, { spawnFn, mux: false, forwardTimeoutMs: 2000 })
-  await assert.rejects(conn.forward(1, 9119), (err: any) => err.kind === 'auth-failed')
+  await assert.rejects(conn.forward(1, 9219), (err: any) => err.kind === 'auth-failed')
 })
 
 test('no-mux: an unrelated listener cannot mask a delayed bind failure', async () => {
@@ -573,7 +573,7 @@ test('no-mux: an unrelated listener cannot mask a delayed bind failure', async (
   }
 
   const conn = new SshConnection({ host: 'box' }, { spawnFn, mux: false, forwardTimeoutMs: 1000 })
-  await assert.rejects(conn.forward(localPort, 9119), /address already in use/i)
+  await assert.rejects(conn.forward(localPort, 9219), /address already in use/i)
   srv.close()
 })
 
@@ -606,7 +606,7 @@ test('no-mux: tunnel death after readiness makes the connection unhealthy', asyn
 
   const conn = new SshConnection({ host: 'box' }, { spawnFn, mux: false })
   await conn.open()
-  await conn.forward(localPort, 9119)
+  await conn.forward(localPort, 9219)
   tunnel.emit('exit', 255)
   assert.equal(await conn.isAlive(), false)
   srv.close()

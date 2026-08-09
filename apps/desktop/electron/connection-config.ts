@@ -57,7 +57,7 @@ function normalizeRemoteBaseUrl(rawUrl) {
   }
 
   // Users routinely paste scheme-less "host:port" (a Tailscale IP, a LAN
-  // hostname). Without this, `new URL('100.64.0.1:9119')` either throws or —
+  // hostname). Without this, `new URL('100.64.0.1:9219')` either throws or —
   // worse — parses `host:` as the protocol and produces a baffling
   // "must be http:// or https://, got myhost:" error. Only a real
   // `scheme://` prefix opts out, so explicit non-http schemes (ftp://,

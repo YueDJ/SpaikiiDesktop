@@ -88,7 +88,7 @@ export function registerPluginLocales(pluginId: string, bundles: PluginLocaleBun
 }
 
 export function translatePlugin(pluginId: string, locale: Locale, key: string, args: unknown[]): string {
-  return translateFrom(l => registry.get(pluginId)?.get(l), locale, key, args)
+  return translateFrom(l => registry.get(pluginId)?.get(l), locale, key, args, 'en')
 }
 
 /** Build the `ctx.i18n` door for a plugin. `track` records the disposer so the
