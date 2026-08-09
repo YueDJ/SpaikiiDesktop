@@ -526,8 +526,8 @@ if (INSTALL_STAMP) {
   )
 }
 
-// SPARKII_HOME — the user-facing root for everything Sparkii-related. Mirrors
-// scripts/install.ps1's $SparkiiHome and scripts/install.sh's $SPARKII_HOME.
+// HERMES_HOME — the user-facing root for everything Sparkii-related. Mirrors
+// scripts/install.ps1's $SparkiiHome and scripts/install.sh's $HERMES_HOME.
 //
 // Defaults:
 //   Windows: %LOCALAPPDATA%\hermes (matches install.ps1)
@@ -539,11 +539,11 @@ if (INSTALL_STAMP) {
 // existing config / sessions / .env. New installs go to %LOCALAPPDATA%.
 //
 // HERMES_DESKTOP_USER_DATA_DIR (used by test:desktop:fresh) puts the sandbox
-// SPARKII_HOME beneath the throwaway userData dir so a fresh-install run never
+// HERMES_HOME beneath the throwaway userData dir so a fresh-install run never
 // touches the user's real ~/.hermes / %LOCALAPPDATA%\hermes.
 function resolveSparkiiHome() {
-  if (process.env.SPARKII_HOME) {
-    return normalizeSparkiiHomeRoot(process.env.SPARKII_HOME)
+  if (process.env.HERMES_HOME) {
+    return normalizeSparkiiHomeRoot(process.env.HERMES_HOME)
   }
 
   if (USER_DATA_OVERRIDE) {
@@ -552,12 +552,12 @@ function resolveSparkiiHome() {
 
   if (IS_WINDOWS) {
     // A GUI app launched from Explorer inherits the environment block captured
-    // at login, so a SPARKII_HOME set via `setx` AFTER login is invisible in
+    // at login, so a HERMES_HOME set via `setx` AFTER login is invisible in
     // process.env even though the CLI (a fresh shell) sees it. Without this the
     // backend silently falls back to %LOCALAPPDATA%\hermes and reports "No
     // inference provider configured" despite a valid configured home (#45471).
     // Consult the live User-scoped registry value before the default below.
-    const fromRegistry = readWindowsUserEnvVar('SPARKII_HOME')
+    const fromRegistry = readWindowsUserEnvVar('HERMES_HOME')
 
     if (fromRegistry) {
       return normalizeSparkiiHomeRoot(fromRegistry)
@@ -580,10 +580,10 @@ function resolveSparkiiHome() {
   return path.join(app.getPath('home'), '.hermes')
 }
 
-const SPARKII_HOME = resolveSparkiiHome()
+const HERMES_HOME = resolveSparkiiHome()
 
 function pathWithSparkiiManagedNode(...entries) {
-  const managed = sparkiiManagedNodePathEntries(SPARKII_HOME).filter(directoryExists)
+  const managed = sparkiiManagedNodePathEntries(HERMES_HOME).filter(directoryExists)
 
   return [...managed, ...entries, process.env.PATH].filter(Boolean).join(path.delimiter)
 }
@@ -591,7 +591,7 @@ function pathWithSparkiiManagedNode(...entries) {
 // ACTIVE_HERMES_ROOT — the canonical mutable Sparkii install. Same path
 // install.ps1 / install.sh use, so a desktop-only user and a CLI-only user end
 // up with identical layouts and can share one install.
-const ACTIVE_HERMES_ROOT = path.join(SPARKII_HOME, 'hermes-agent')
+const ACTIVE_HERMES_ROOT = path.join(HERMES_HOME, 'hermes-agent')
 // VENV_ROOT — venv lives inside the repo, exactly like install.ps1 does it.
 const VENV_ROOT = path.join(ACTIVE_HERMES_ROOT, 'venv')
 // BOOTSTRAP_COMPLETE_MARKER — written by the first-launch bootstrap runner
@@ -614,7 +614,7 @@ const DESKTOP_UPDATE_CONFIG_PATH = path.join(app.getPath('userData'), 'updates.j
 const DESKTOP_WINDOW_STATE_PATH = path.join(app.getPath('userData'), 'window-state.json')
 // active-profile.json records which Sparkii profile the desktop launches its
 // local backend as. When set, startSparkii() passes `hermes --profile <name>
-// dashboard …`, which deterministically pins SPARKII_HOME (see
+// dashboard …`, which deterministically pins HERMES_HOME (see
 // _apply_profile_override in hermes_cli/main.py) and bypasses the sticky
 // ~/.hermes/active_profile file. Unset (null) preserves the legacy behavior:
 // no --profile flag, so the backend honors active_profile / default.
@@ -626,10 +626,10 @@ const PROFILE_NAME_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/
 // tracks main. User can also override at runtime via
 // hermesDesktop.updates.setBranch().
 const DEFAULT_UPDATE_BRANCH = 'main'
-// desktop.log lives under SPARKII_HOME/logs/ so it sits next to agent.log,
+// desktop.log lives under HERMES_HOME/logs/ so it sits next to agent.log,
 // errors.log, gateway.log produced by hermes_logging.setup_logging — one log
 // directory per user, regardless of which UI surface produced the line.
-const DESKTOP_LOG_PATH = path.join(SPARKII_HOME, 'logs', 'desktop.log')
+const DESKTOP_LOG_PATH = path.join(HERMES_HOME, 'logs', 'desktop.log')
 const DESKTOP_LOG_FLUSH_MS = 120
 const DESKTOP_LOG_BUFFER_MAX_CHARS = 64 * 1024
 // Bound desktop.log on disk. It is an append-only forensic log, so a boot loop
@@ -1738,7 +1738,7 @@ function directoryExists(filePath) {
 }
 
 // --- in-app update mutual exclusion (#50238) -------------------------------
-// The Tauri updater writes SPARKII_HOME/.hermes-update-in-progress for the whole
+// The Tauri updater writes HERMES_HOME/.hermes-update-in-progress for the whole
 // duration of an `--update` run (see update.rs UpdateMarkerGuard). If the user
 // relaunches the desktop mid-update — because the window vanished with no
 // progress and looks crashed — a fresh instance must NOT spawn its own local
@@ -1773,7 +1773,7 @@ const UPDATE_HANDOFF_DWELL_MS = 2500
 // reports as a blocker, aborting every update attempt.
 function updateGateDeps() {
   return {
-    hasLiveMarker: () => Boolean(readLiveUpdateMarker(SPARKII_HOME)),
+    hasLiveMarker: () => Boolean(readLiveUpdateMarker(HERMES_HOME)),
     isUpdateInFlight: () => updateInFlight
   }
 }
@@ -1874,7 +1874,7 @@ function unwrapWindowsVenvSparkiiCommand(command, backendArgs) {
     getVenvPython,
     getVenvSitePackagesEntries,
     buildDesktopBackendEnv,
-    sparkiiHome: SPARKII_HOME,
+    sparkiiHome: HERMES_HOME,
     resolvePath: (...segments) => path.resolve(...segments),
     dirname: p => path.dirname(p),
     basename: p => path.basename(p),
@@ -1927,7 +1927,7 @@ function backendSupportsServe(backend) {
       // and its timeout-only retry instead of a thinner local bound.
       execProbeSync(backend.command, [...prefix, 'serve', '--help'], {
         cwd: backend.root || undefined,
-        env: { ...process.env, SPARKII_HOME, ...(backend.env || {}) },
+        env: { ...process.env, HERMES_HOME, ...(backend.env || {}) },
         timeout: PROBE_TIMEOUT_MS,
         stdio: 'ignore',
         // `.cmd`/`.bat` shim backends carry shell: true in their descriptor
@@ -2628,7 +2628,7 @@ let quitConfirmedWithActiveWork = false
 // see resolveStagedUpdaterBinary for the policy and for #74836. Returns null
 // whenever no hand-off applies; callers degrade gracefully.
 function resolveUpdaterBinary() {
-  return resolveStagedUpdaterBinary(SPARKII_HOME, { fileExists, isWindows: IS_WINDOWS })
+  return resolveStagedUpdaterBinary(HERMES_HOME, { fileExists, isWindows: IS_WINDOWS })
 }
 
 function repairMacUpdaterHelper(updater) {
@@ -2847,7 +2847,7 @@ async function applyUpdates(opts = {}) {
     if (!updater) {
       // No staged updater binary — this is a CLI-installed user (they ran
       // `hermes desktop`, never the Tauri installer that self-copies
-      // hermes-setup.exe into SPARKII_HOME). They DO have a working `hermes`
+      // hermes-setup.exe into HERMES_HOME). They DO have a working `hermes`
       // on PATH / in the venv, so the correct path is the one-liner in their
       // native medium. We show the EXACT command, branch-pinned to the
       // checkout they're on — bare `hermes update` defaults to main and would
@@ -2878,7 +2878,7 @@ async function applyUpdates(opts = {}) {
       return { ok: true, manual: true, command, hermesRoot: updateRoot }
     }
 
-    const handoffConflict = updateHandoffConflict(SPARKII_HOME)
+    const handoffConflict = updateHandoffConflict(HERMES_HOME)
 
     if (handoffConflict) {
       // A different updater already owns the marker — most often a previous
@@ -2914,7 +2914,7 @@ async function applyUpdates(opts = {}) {
     // ── Pre-flight state.db integrity guard (#68474) ─────────────────
     // Emergency backup and header verification before the update touches
     // anything.  Runs while the backend is still alive.
-    preflightStateDb(SPARKII_HOME, rememberLog)
+    preflightStateDb(HERMES_HOME, rememberLog)
 
     // Stop our own backend(s) and wait for the venv shim to unlock BEFORE we
     // spawn the updater. Without this the updater races a still-locked
@@ -2974,10 +2974,10 @@ async function applyUpdates(opts = {}) {
     // Detached so the updater outlives this process — it needs us GONE before
     // `hermes update` will run (the venv shim is locked while we live).
     const child = spawnUpdaterProcess(updater, updaterArgs, {
-      cwd: SPARKII_HOME,
+      cwd: HERMES_HOME,
       env: {
         ...process.env,
-        SPARKII_HOME,
+        HERMES_HOME,
         PATH: pathWithSparkiiManagedNode(venvBin)
       },
       detached: true,
@@ -3000,7 +3000,7 @@ async function applyUpdates(opts = {}) {
     // strictly better than never updating again, and the updater still writes
     // its own marker moments later.
     if (Number.isInteger(child.pid) && stagedUpdaterSupportsPrewrittenMarker(updater)) {
-      writeUpdateMarker(SPARKII_HOME, child.pid)
+      writeUpdateMarker(HERMES_HOME, child.pid)
     } else if (Number.isInteger(child.pid)) {
       rememberLog(
         `[updates] skipping marker pre-write: staged updater predates self-adopt (${updater}); it would refuse its own claim`
@@ -3036,7 +3036,7 @@ async function handOffWindowsBootstrapRecovery(reason) {
     return false
   }
 
-  const handoffConflict = updateHandoffConflict(SPARKII_HOME)
+  const handoffConflict = updateHandoffConflict(HERMES_HOME)
 
   if (handoffConflict) {
     // Same hazard as applyUpdates (#75778): a live foreign updater already
@@ -3079,10 +3079,10 @@ async function handOffWindowsBootstrapRecovery(reason) {
   await releaseBackendLockForUpdate(updateRoot)
 
   const child = spawnUpdaterProcess(updater, updaterArgs, {
-    cwd: SPARKII_HOME,
+    cwd: HERMES_HOME,
     env: {
       ...process.env,
-      SPARKII_HOME,
+      HERMES_HOME,
       PATH: pathWithSparkiiManagedNode(venvBin)
     },
     detached: true,
@@ -3095,7 +3095,7 @@ async function handOffWindowsBootstrapRecovery(reason) {
   // exclusion: a pre-#74782 binary would refuse its own pre-written claim and
   // strand the very recovery meant to heal the install.
   if (Number.isInteger(child.pid) && stagedUpdaterSupportsPrewrittenMarker(updater)) {
-    writeUpdateMarker(SPARKII_HOME, child.pid)
+    writeUpdateMarker(HERMES_HOME, child.pid)
   } else if (Number.isInteger(child.pid)) {
     rememberLog(
       `[bootstrap] skipping marker pre-write: staged updater predates self-adopt (${updater}); it would refuse its own claim`
@@ -3287,7 +3287,7 @@ async function applyUpdatesPosixInApp(opts: any) {
   }
 
   // ── Pre-flight state.db integrity guard (#68474) ──
-  preflightStateDb(SPARKII_HOME, rememberLog)
+  preflightStateDb(HERMES_HOME, rememberLog)
 
   // Put the Sparkii-managed Node and the venv on PATH so `hermes desktop`'s
   // npm build can find them on a machine with no system Node. Windows portable
@@ -3297,7 +3297,7 @@ async function applyUpdatesPosixInApp(opts: any) {
   // multi-GB archives for minutes) stream nothing to the progress UI — users
   // read the silence as a hang and cancel a healthy update.
   const env: Record<string, string> = {
-    SPARKII_HOME,
+    HERMES_HOME,
     PYTHONUNBUFFERED: '1',
     PATH: pathWithSparkiiManagedNode(path.join(updateRoot, 'venv', 'bin'))
   }
@@ -3821,7 +3821,7 @@ function createPythonBackend(root, label, backendArgs, options: any = {}) {
     command,
     args: ['-m', 'hermes_cli.main', ...backendArgs],
     env: buildDesktopBackendEnv({
-      sparkiiHome: SPARKII_HOME,
+      sparkiiHome: HERMES_HOME,
       pythonPathEntries: [root, ...getVenvSitePackagesEntries(venvRoot)],
       venvRoot
     }),
@@ -3845,7 +3845,7 @@ function createActiveBackend(backendArgs) {
     command,
     args: ['-m', 'hermes_cli.main', ...backendArgs],
     env: buildDesktopBackendEnv({
-      sparkiiHome: SPARKII_HOME,
+      sparkiiHome: HERMES_HOME,
       pythonPathEntries: [ACTIVE_HERMES_ROOT, ...getVenvSitePackagesEntries(VENV_ROOT)],
       venvRoot: VENV_ROOT
     }),
@@ -4089,8 +4089,8 @@ async function ensureRuntime(backend) {
       installStamp: backend.installStamp,
       activeRoot: backend.activeRoot,
       sourceRepoRoot: SOURCE_REPO_ROOT,
-      sparkiiHome: SPARKII_HOME,
-      logRoot: path.join(SPARKII_HOME, 'logs'),
+      sparkiiHome: HERMES_HOME,
+      logRoot: path.join(HERMES_HOME, 'logs'),
       abortSignal: bootstrapAbortController.signal,
       onEvent: ev => {
         // Tee every bootstrap event to (a) the desktop log for forensics
@@ -4126,7 +4126,7 @@ async function ensureRuntime(backend) {
       const bootstrapError = new Error(
         `Sparkii bootstrap failed${bootstrapResult.failedStage ? ` at stage '${bootstrapResult.failedStage}'` : ''}: ` +
           `${bootstrapResult.error || 'unknown error'}. ` +
-          `Check ${path.join(SPARKII_HOME, 'logs', 'desktop.log')} for the full transcript.`
+          `Check ${path.join(HERMES_HOME, 'logs', 'desktop.log')} for the full transcript.`
       ) as any
 
       bootstrapError.isBootstrapFailure = true
@@ -6916,7 +6916,7 @@ function writeDesktopConnectionConfig(config) {
 }
 
 // Returns the desktop's chosen profile name, or null when unset. "default" is
-// a valid stored value (pins the root SPARKII_HOME explicitly); null means "no
+// a valid stored value (pins the root HERMES_HOME explicitly); null means "no
 // preference" and preserves the legacy launch (no --profile flag).
 function readActiveDesktopProfile() {
   try {
@@ -8161,7 +8161,7 @@ async function spawnPoolBackend(profile, entry) {
     })
   }
 
-  // --profile wins over the inherited SPARKII_HOME env (see _apply_profile_override
+  // --profile wins over the inherited HERMES_HOME env (see _apply_profile_override
   // step 3 in hermes_cli/main.py), so the child re-homes to this profile.
   // --port 0: the OS assigns an ephemeral port; the child announces it on stdout.
   const backendArgs = ['--profile', profile, 'serve', '--host', '127.0.0.1', '--port', '0']
@@ -8181,7 +8181,7 @@ async function spawnPoolBackend(profile, entry) {
       cwd: hermesCwd,
       env: {
         ...process.env,
-        SPARKII_HOME,
+        HERMES_HOME,
         ...backend.env,
         // Pin the gateway's tool/terminal cwd to the same directory we chose for
         // the child process. Inherited TERMINAL_CWD (or a stale config bridge)
@@ -8418,7 +8418,7 @@ async function startSparkii() {
     const backendArgs = ['serve', '--host', '127.0.0.1', '--port', '0']
     // Pin the desktop's chosen profile via the global --profile flag. This is
     // deterministic (it wins over the sticky ~/.hermes/active_profile file) and
-    // resolves SPARKII_HOME the same way `hermes -p <name>` does on the CLI. An
+    // resolves HERMES_HOME the same way `hermes -p <name>` does on the CLI. An
     // unset preference keeps the legacy launch so existing installs are
     // unaffected.
     const activeProfile = readActiveDesktopProfile()
@@ -8469,15 +8469,15 @@ async function startSparkii() {
         cwd: hermesCwd,
         env: {
           ...process.env,
-          // Explicitly pin SPARKII_HOME for the child so Python's get_hermes_home()
+          // Explicitly pin HERMES_HOME for the child so Python's get_hermes_home()
           // resolves to the SAME location our resolveSparkiiHome() picked. Without
           // this pin, Python falls back to ~/.hermes on every platform — fine on
           // mac/linux (where our default matches), but on Windows our default is
           // %LOCALAPPDATA%\hermes, which differs from C:\Users\<u>\.hermes.
           // Mismatch would split config / sessions / .env / logs across two
-          // directories. install.ps1 sets SPARKII_HOME via setx; the desktop
+          // directories. install.ps1 sets HERMES_HOME via setx; the desktop
           // can't reliably do that, so we set it inline for every spawn.
-          SPARKII_HOME,
+          HERMES_HOME,
           ...backend.env,
           TERMINAL_CWD: hermesCwd,
           HERMES_DASHBOARD_SESSION_TOKEN: token,
@@ -10383,7 +10383,7 @@ ipcMain.handle('hermes:profile:set', async (_event, name) => {
   const next = writeActiveDesktopProfile(name)
 
   // Switching profiles is a backend re-home: relaunch the dashboard under the
-  // new SPARKII_HOME. Pool backends keep their own homes, so only the primary
+  // new HERMES_HOME. Pool backends keep their own homes, so only the primary
   // is torn down.
   await teardownPrimaryBackendAndWait()
   mainWindow?.reload()
@@ -11538,8 +11538,8 @@ ipcMain.handle('hermes:fs:openDir', async (_event, dirPath) => {
   }
 })
 
-// The LOCAL Desktop runtime-plugin root: `<SPARKII_HOME>/desktop-plugins`,
-// resolved from the main-process SPARKII_HOME (see resolveSparkiiHome) — NOT from
+// The LOCAL Desktop runtime-plugin root: `<HERMES_HOME>/desktop-plugins`,
+// resolved from the main-process HERMES_HOME (see resolveSparkiiHome) — NOT from
 // the connected backend. A remote backend reports its own `hermes_home` over
 // the gateway, which is a path on the REMOTE box; deriving the plugin dir from
 // it yields `undefined/desktop-plugins` (or a non-existent remote path) and the
@@ -11550,7 +11550,7 @@ ipcMain.handle('hermes:fs:desktopPluginsRoot', async () => {
   // profiles/<name>/, matching the profile-scoped hermes_home the backend
   // reported before this resolver existed. 'default'/unset pins the global root.
   const profile = readActiveDesktopProfile()
-  const base = profile && profile !== 'default' ? path.join(SPARKII_HOME, 'profiles', profile) : SPARKII_HOME
+  const base = profile && profile !== 'default' ? path.join(HERMES_HOME, 'profiles', profile) : HERMES_HOME
   const dir = path.join(base, 'desktop-plugins')
 
   try {
@@ -11922,7 +11922,7 @@ async function getUninstallSummary() {
   // Fast JS-side fallback used when the agent venv is gone (lite client) or the
   // probe fails — the renderer still needs *something* to render options from.
   const fallback = () => ({
-    hermes_home: SPARKII_HOME,
+    hermes_home: HERMES_HOME,
     agent_installed: isSparkiiSourceRoot(agentRoot) && fileExists(py),
     gui_installed: true,
     source_built_artifacts: [],
@@ -11956,7 +11956,7 @@ async function getUninstallSummary() {
         ['-m', 'hermes_cli.main', 'uninstall', '--gui-summary'],
         hiddenWindowsChildOptions({
           cwd: agentRoot,
-          env: { ...process.env, SPARKII_HOME, NO_COLOR: '1' },
+          env: { ...process.env, HERMES_HOME, NO_COLOR: '1' },
           stdio: ['ignore', 'pipe', 'ignore']
         })
       )
@@ -12056,7 +12056,7 @@ async function runDesktopUninstall(mode) {
     agentRoot: ACTIVE_HERMES_ROOT,
     uninstallArgs,
     appPath: removeBundle,
-    sparkiiHome: SPARKII_HOME
+    sparkiiHome: HERMES_HOME
   }
 
   let scriptPath

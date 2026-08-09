@@ -580,7 +580,7 @@ test('connect() fresh spawn writes sparkiiHome + protocolVersion into the lockfi
     [/uname/, 'Linux\nx86_64'],
     [/\[ -x/, 'OK'],
     [/cat .*lock\.json/, ''], // no lockfile
-    [/SPARKII_HOME/, '/home/alice/.hermes\n'],
+    [/HERMES_HOME/, '/home/alice/.hermes\n'],
     [/grep -q ssh-session-token-file/, 'YES\n'],
     [/python3 -c/, ''],
     [/printf '%s\\n'/, ''],

@@ -11,8 +11,8 @@
  *     installStamp,        // INSTALL_STAMP from main.ts (may be null in dev)
  *     activeRoot,          // ACTIVE_HERMES_ROOT
  *     sourceRepoRoot,      // SOURCE_REPO_ROOT (for dev install.ps1 lookup)
- *     sparkiiHome,          // SPARKII_HOME
- *     logRoot,             // SPARKII_HOME/logs
+ *     sparkiiHome,          // HERMES_HOME
+ *     logRoot,             // HERMES_HOME/logs
  *     emit: ev => {...}    // event sink (sender.send or similar)
  *   })
  *
@@ -468,9 +468,9 @@ function spawnPowerShell(scriptPath, args, { emit, stageName, abortSignal, spark
         stdio: ['ignore', 'pipe', 'pipe'],
         env: {
           ...process.env,
-          // Pass SPARKII_HOME through so install.ps1 respects the caller's
+          // Pass HERMES_HOME through so install.ps1 respects the caller's
           // choice rather than re-computing the default.
-          SPARKII_HOME: sparkiiHome || process.env.SPARKII_HOME || ''
+          HERMES_HOME: sparkiiHome || process.env.HERMES_HOME || ''
         }
       })
     )
@@ -566,7 +566,7 @@ function spawnBash(scriptPath, args, { emit, stageName, abortSignal, sparkiiHome
       stdio: ['ignore', 'pipe', 'pipe'],
       env: {
         ...process.env,
-        SPARKII_HOME: sparkiiHome || process.env.SPARKII_HOME || ''
+        HERMES_HOME: sparkiiHome || process.env.HERMES_HOME || ''
       }
     })
 

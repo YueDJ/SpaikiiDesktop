@@ -153,7 +153,7 @@ function buildPosixCleanupScript({ desktopPid, pythonExe, pythonPath, agentRoot,
     '    sleep 0.5',
     '  done',
     'fi',
-    `export SPARKII_HOME=${q(sparkiiHome)}`
+    `export HERMES_HOME=${q(sparkiiHome)}`
   ]
 
   if (pythonPath) {
@@ -209,7 +209,7 @@ function buildWindowsCleanupScript({
   const lines = [
     '@echo off',
     'setlocal enableextensions',
-    `set "SPARKII_HOME=${String(sparkiiHome).replace(/"/g, '')}"`,
+    `set "HERMES_HOME=${String(sparkiiHome).replace(/"/g, '')}"`,
     `set "PID=${pid}"`
   ]
 

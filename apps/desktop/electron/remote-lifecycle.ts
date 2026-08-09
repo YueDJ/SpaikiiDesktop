@@ -242,12 +242,12 @@ async function probeRemotePlatform(ssh) {
   return { os: osName, arch }
 }
 
-// The SPARKII_HOME the remote dashboard will use (explicit env wins, else
+// The HERMES_HOME the remote dashboard will use (explicit env wins, else
 // ~/.hermes). Recorded in the lockfile so a future reuse can tell it's the same
 // state store; best-effort.
 async function probeRemoteSparkiiHome(ssh) {
   try {
-    const out = (await ssh.exec('echo "${SPARKII_HOME:-$HOME/.hermes}"')).trim().split('\n').pop()
+    const out = (await ssh.exec('echo "${HERMES_HOME:-$HOME/.hermes}"')).trim().split('\n').pop()
 
     return out || '~/.hermes'
   } catch (cause) {
