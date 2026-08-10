@@ -1,19 +1,19 @@
-# nix/desktop.nix — Hermes Desktop (Electron) app build + wrapper
+# nix/desktop.nix — Sparkii Desktop (Electron) app build + wrapper
 #
-# `hermesAgent` is the fully-built `.#default` package — it ships the
-# `hermes` binary with the venv, runtime PATH, bundled skills/plugins, etc.
+# `sparkiiAgent` is the fully-built `.#default` package — it ships the
+# `sparkii` binary with the venv, runtime PATH, bundled skills/plugins, etc.
 # already wired up.  We point the desktop at it via the existing
-# `SPARKII_DESKTOP_HERMES` override env var, so the desktop's resolver
-# uses our fully wrapped binary at step 4 ("existing Hermes CLI").
+# `SPARKII_DESKTOP_SPARKII` override env var, so the desktop's resolver
+# uses our fully wrapped binary at step 4 ("existing Sparkii CLI").
 # No reimplementation of the agent resolution in this wrapper.
 {
   pkgs,
   lib,
   stdenv,
   makeWrapper,
-  hermesNpmLib,
+  sparkiiNpmLib,
   electron,
-  hermesAgent,
+  sparkiiAgent,
   python3,
   ...
 }:
@@ -43,7 +43,7 @@ let
       throw "sparkii-desktop: unsupported host arch for node-pty staging";
 
   # Build the renderer (dist/ + electron/ + package.json).
-  renderer = hermesNpmLib.buildNpmPackage {
+  renderer = sparkiiNpmLib.buildNpmPackage {
     dirs = [
       "apps/desktop"
       "apps/shared"
@@ -78,7 +78,7 @@ let
         mkdir -p "$TMPDIR/electron-headers"
         tar -xzf ${electronHeaders} -C "$TMPDIR/electron-headers" --strip-components=1
 
-        ${lib.getExe hermesNpmLib.node-gyp} rebuild \
+        ${lib.getExe sparkiiNpmLib.node-gyp} rebuild \
           --directory=../../node_modules/node-pty \
           --build-from-source \
           --runtime=electron \
@@ -160,25 +160,25 @@ stdenv.mkDerivation {
       --replace-fail "process.resourcesPath" "'$out/share/sparkii-desktop'"
 
     # Wrap the nixpkgs electron binary to launch our app.  Set
-    # SPARKII_DESKTOP_HERMES to the absolute path of the nix-built `hermes`
-    # binary so the desktop's resolver step 4 ("existing Hermes CLI on
+    # SPARKII_DESKTOP_SPARKII to the absolute path of the nix-built `sparkii`
+    # binary so the desktop's resolver step 4 ("existing Sparkii CLI on
     # PATH") uses our fully wrapped binary — venv with all deps,
     # bundled skills/plugins, runtime PATH (ripgrep/git/ffmpeg/etc).
     # No reimplementation of the agent resolver in the wrapper.
     makeWrapper ${lib.getExe electron} $out/bin/sparkii-desktop \
       --add-flags "$out/share/sparkii-desktop" \
-      --set SPARKII_DESKTOP_HERMES "${lib.getExe hermesAgent}" \
+      --set SPARKII_DESKTOP_SPARKII "${lib.getExe sparkiiAgent}" \
       --set ELECTRON_IS_DEV 0
 
     # XDG launcher entry
     mkdir -p $out/share/applications $out/share/icons/hicolor/1024x1024/apps
     install -m 0644 ${../apps/desktop/assets/icon.png} \
-      $out/share/icons/hicolor/1024x1024/apps/hermes.png
+      $out/share/icons/hicolor/1024x1024/apps/sparkii.png
     export PYTHONPATH=$(mktemp -d)
     cp ${../sparkii_cli/linux_desktop_entry.py} "$PYTHONPATH/linux_desktop_entry.py"
     export DESKTOP_EXEC="$out/bin/sparkii-desktop"
-    export DESKTOP_ICON="$out/share/icons/hicolor/1024x1024/apps/hermes.png"
-    python3 -c 'import os; from linux_desktop_entry import render_desktop_entry; print(render_desktop_entry(os.environ["DESKTOP_EXEC"], os.environ["DESKTOP_ICON"]))' > $out/share/applications/hermes.desktop
+    export DESKTOP_ICON="$out/share/icons/hicolor/1024x1024/apps/sparkii.png"
+    python3 -c 'import os; from linux_desktop_entry import render_desktop_entry; print(render_desktop_entry(os.environ["DESKTOP_EXEC"], os.environ["DESKTOP_ICON"]))' > $out/share/applications/sparkii.desktop
     runHook postInstall
   '';
 
@@ -187,8 +187,8 @@ stdenv.mkDerivation {
   };
 
   meta = with lib; {
-    description = "Native Electron desktop shell for Hermes Agent";
-    homepage = "https://github.com/NousResearch/sparkii-agent";
+    description = "Native Electron desktop shell for Sparkii Agent";
+    homepage = "https://github.com/YueDJ/SpaikiiDesktop";
     license = licenses.mit;
     platforms = platforms.unix;
     mainProgram = "sparkii-desktop";

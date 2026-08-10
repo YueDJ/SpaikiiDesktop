@@ -1,4 +1,4 @@
-# nix/sparkii-agent.nix — Overridable Hermes Agent package
+# nix/sparkii-agent.nix — Overridable Sparkii Agent package
 #
 # callPackage auto-wires nixpkgs args; flake inputs are passed explicitly.
 # Users override via:
@@ -38,26 +38,26 @@
   extraDependencyGroups ? [ ],
 }:
 let
-  mkHermesVenv =
+  mkSparkiiVenv =
     extraDependencyGroups:
     callPackage ./python.nix {
       inherit uv2nix pyproject-nix pyproject-build-systems;
-      pythonSrc = hermesNpmLib.pythonSrc;
+      pythonSrc = sparkiiNpmLib.pythonSrc;
       dependency-groups = [ "all" ] ++ extraDependencyGroups;
     };
 
-  hermesVenv = (mkHermesVenv extraDependencyGroups).venv;
+  sparkiiVenv = (mkSparkiiVenv extraDependencyGroups).venv;
 
-  hermesNpmLib = callPackage ./lib.nix {
+  sparkiiNpmLib = callPackage ./lib.nix {
     inherit npm-lockfile-fix;
   };
 
-  hermesTui = callPackage ./tui.nix {
-    inherit hermesNpmLib;
+  sparkiiTui = callPackage ./tui.nix {
+    inherit sparkiiNpmLib;
   };
 
-  hermesWeb = callPackage ./web.nix {
-    inherit hermesNpmLib;
+  sparkiiWeb = callPackage ./web.nix {
+    inherit sparkiiNpmLib;
   };
 
   bundledSkills = lib.cleanSourceWith {
@@ -95,7 +95,7 @@ let
   };
 
   runtimeDeps = [
-    hermesNpmLib.nodejs
+    sparkiiNpmLib.nodejs
     ripgrep
     git
     openssh
@@ -126,7 +126,7 @@ let
 
     # Collect core venv package names
     core = set()
-    venv_sp = pathlib.Path('${hermesVenv}/${sitePackagesPath}')
+    venv_sp = pathlib.Path('${sparkiiVenv}/${sitePackagesPath}')
     for di in venv_sp.glob('*.dist-info'):
         meta = di / 'METADATA'
         if meta.exists():
@@ -149,7 +149,7 @@ let
                 if line.startswith('Name:'):
                     pkg = canonical(line.split(':', 1)[1].strip())
                     if pkg in core:
-                        print(f'ERROR: plugin package \"{pkg}\" collides with a package in hermes sealed venv', file=sys.stderr)
+                        print(f'ERROR: plugin package \"{pkg}\" collides with a package in sparkii sealed venv', file=sys.stderr)
                         print(f'  from: {di}', file=sys.stderr)
                         print(f'  Remove this dependency from extraPythonPackages.', file=sys.stderr)
                         sys.exit(1)
@@ -178,12 +178,12 @@ stdenv.mkDerivation (finalAttrs: {
     ln -s ${bundledPlugins} $out/share/sparkii-agent/plugins
     ln -s ${bundledLocales} $out/share/sparkii-agent/locales
     ln -s ${bundledOptionalMcps} $out/share/sparkii-agent/optional-mcps
-    ln -s ${hermesWeb} $out/share/sparkii-agent/web_dist
-    ln -s ${hermesTui}/lib/sparkii-tui $out/ui-tui
+    ln -s ${sparkiiWeb} $out/share/sparkii-agent/web_dist
+    ln -s ${sparkiiTui}/lib/sparkii-tui $out/ui-tui
 
     ${lib.concatMapStringsSep "\n"
       (name: ''
-        makeWrapper ${hermesVenv}/bin/${name} $out/bin/${name} \
+        makeWrapper ${sparkiiVenv}/bin/${name} $out/bin/${name} \
           --suffix PATH : "${runtimePath}" \
           --set SPARKII_BUNDLED_SKILLS $out/share/sparkii-agent/skills \
           --set SPARKII_OPTIONAL_SKILLS $out/share/sparkii-agent/optional-skills \
@@ -192,8 +192,8 @@ stdenv.mkDerivation (finalAttrs: {
           --set SPARKII_OPTIONAL_MCPS $out/share/sparkii-agent/optional-mcps \
           --set SPARKII_WEB_DIST $out/share/sparkii-agent/web_dist \
           --set SPARKII_TUI_DIR $out/ui-tui \
-          --set SPARKII_PYTHON ${hermesVenv}/bin/python3 \
-          --set SPARKII_NODE ${lib.getExe hermesNpmLib.nodejs}${
+          --set SPARKII_PYTHON ${sparkiiVenv}/bin/python3 \
+          --set SPARKII_NODE ${lib.getExe sparkiiNpmLib.nodejs}${
             # Fold the line continuation INTO the optionalString: a bare
             # `\` on the line above an empty expansion would dangle onto a
             # blank line, ending the makeWrapper command early and running
@@ -207,7 +207,7 @@ stdenv.mkDerivation (finalAttrs: {
           }
       '')
       [
-        "hermes"
+        "sparkii"
         "sparkii-agent"
         "sparkii-acp"
       ]
@@ -215,7 +215,7 @@ stdenv.mkDerivation (finalAttrs: {
 
     ${lib.optionalString (extraPythonPackages != [ ]) ''
       echo "=== Checking for plugin/core package collisions ==="
-      ${hermesVenv}/bin/python3 -c "${checkPackageCollisions}"
+      ${sparkiiVenv}/bin/python3 -c "${checkPackageCollisions}"
       echo "=== No collisions ==="
     ''}
 
@@ -224,26 +224,26 @@ stdenv.mkDerivation (finalAttrs: {
 
   passthru =
     let
-      devPython = (mkHermesVenv (extraDependencyGroups ++ [ "dev" ])).editableVenv;
+      devPython = (mkSparkiiVenv (extraDependencyGroups ++ [ "dev" ])).editableVenv;
     in
     {
       inherit
-        hermesTui
-        hermesWeb
-        hermesNpmLib
-        hermesVenv
+        sparkiiTui
+        sparkiiWeb
+        sparkiiNpmLib
+        sparkiiVenv
         ;
 
-      # `hermesDesktop` references `finalAttrs.finalPackage` (this whole
+      # `sparkiiDesktop` references `finalAttrs.finalPackage` (this whole
       # derivation, after all overrides are applied) so the desktop wrapper
       # can prepend its `/bin` to PATH.  The desktop's resolver step 4
-      # ("existing hermes on PATH") then picks up the fully wrapped
-      # `hermes` binary — venv with all deps, bundled skills/plugins,
+      # ("existing sparkii on PATH") then picks up the fully wrapped
+      # `sparkii` binary — venv with all deps, bundled skills/plugins,
       # runtime PATH (ripgrep/git/ffmpeg/etc).  No re-implementation
       # of the agent resolution in the desktop wrapper.
-      hermesDesktop = callPackage ./desktop.nix {
-        inherit hermesNpmLib electron;
-        hermesAgent = finalAttrs.finalPackage;
+      sparkiiDesktop = callPackage ./desktop.nix {
+        inherit sparkiiNpmLib electron;
+        sparkiiAgent = finalAttrs.finalPackage;
       };
 
       devShellHook = ''
@@ -262,8 +262,8 @@ stdenv.mkDerivation (finalAttrs: {
 
   meta = with lib; {
     description = "AI agent with advanced tool-calling capabilities";
-    homepage = "https://github.com/NousResearch/sparkii-agent";
-    mainProgram = "hermes";
+    homepage = "https://github.com/YueDJ/SpaikiiDesktop";
+    mainProgram = "sparkii";
     license = licenses.mit;
     platforms = platforms.unix;
   };

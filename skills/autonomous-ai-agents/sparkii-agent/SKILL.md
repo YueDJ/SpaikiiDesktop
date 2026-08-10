@@ -8,7 +8,7 @@ platforms: [linux, macos, windows]
 metadata:
   sparkii:
     tags: [sparkii, setup, configuration, multi-agent, spawning, cli, gateway, themes, skins, desktop-plugins, tui-widgets, petdex, development]
-    homepage: https://github.com/NousResearch/sparkii-agent
+    homepage: https://github.com/YueDJ/SpaikiiDesktop
     related_skills: [claude-code, codex, opencode]
 ---
 
@@ -38,7 +38,7 @@ Good verification targets:
 
 - CLI commands: `sparkii --help`, `sparkii <command> --help`, and `sparkii_cli/main.py`
 - User documentation: https://sparkii-agent.nousresearch.com/docs/
-- Source tree: https://github.com/NousResearch/sparkii-agent
+- Source tree: https://github.com/YueDJ/SpaikiiDesktop
 
 ## Quick Start
 
@@ -200,5 +200,5 @@ terminal(command="tmux new-session -d -s resumed 'sparkii --resume 20260225_1430
 - **Never break prompt caching** — don't change past context, toolsets, or the system prompt mid-conversation. The only exception is context compression.
 - **Message role alternation** — never two assistant or two user messages in a row; only `tool` results can repeat.
 - **Secrets in `.env`, settings in `config.yaml`** — never tell a user to put a non-credential setting in `.env`.
-- **Profile-safe paths** — `get_hermes_home()` in code, `$SPARKII_HOME` when resolving paths in a session.
+- **Profile-safe paths** — `get_sparkii_home()` in code, `$SPARKII_HOME` when resolving paths in a session.
 - **Never hand-edit `config.yaml` for the user** — use `sparkii config set KEY VAL`; a stray indent can corrupt the file and break the live gateway.

@@ -1500,7 +1500,7 @@ DEFAULT_CONFIG = {
         },
         "xai": {
             "voice_id": "eve",  # or custom voice ID — see https://docs.x.ai/developers/model-capabilities/audio/custom-voices
-            "language": "en",  # BCP-47 code ("en", "pt-BR") or "auto"
+            "language": 'zh',  # BCP-47 code ("en", "pt-BR") or "auto"
             "speed": 1.0,  # 0.7–1.5, playback speed
             "auto_speech_tags": False,  # insert expressive audio tags via LLM rewrite
             "optimize_streaming_latency": 0,  # 0–2, trades quality for lower latency
@@ -2579,14 +2579,24 @@ DEFAULT_CONFIG = {
         # keeps triggering another kill (e.g. the agent runs a raw
         # `launchctl kickstart ai.sparkii.gateway` that defenses 1-2 don't
         # cover), the result is a tight SIGTERM-respawn loop. This breaker
-        # counts restart-interrupted boots in a rolling window and, once
-        # `max_restarts` boots happen within `window_seconds`, SKIPS
-        # auto-resume for that boot — the gateway still starts and serves
-        # real inbound messages, it just stops replaying the session that
-        # keeps killing it. Set `max_restarts` to 0 to disable the breaker.
+        # chains restart-interrupted boots together and, once `max_restarts`
+        # of them chain up, SKIPS auto-resume for that boot — the gateway
+        # still starts and serves real inbound messages, it just stops
+        # replaying the session that keeps killing it. Set `max_restarts` to
+        # 0 to disable the breaker.
+        # Two boots belong to the same chain when they are no more than
+        # `max_gap_seconds` apart (floored by `window_seconds`). Chaining on
+        # the GAP rather than on a fixed window is what makes the breaker see
+        # SLOW crash cycles: a loop whose period exceeds the window used to
+        # prune its own history on every boot, so the counter never left 1 and
+        # the breaker never tripped — e.g. the ~150s wedged-event-loop cycle in
+        # #81642 (stall -> ~90s liveness-watchdog hard-exit -> respawn ->
+        # auto-resume replays the same session), which also makes
+        # `sparkii update` hang because it can never drain the gateway.
         "restart_loop_guard": {
             "max_restarts": 3,
             "window_seconds": 60,
+            "max_gap_seconds": 300,
         },
 
         # Portable respawn-storm circuit breaker (complements
@@ -3214,7 +3224,7 @@ DEFAULT_CONFIG = {
     },
 
     # Config schema version - bump this when adding new required fields
-    "_config_version": 33,
+    "_config_version": 34,
 }
 
 # Optional environment variables that enhance functionality

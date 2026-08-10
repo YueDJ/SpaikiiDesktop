@@ -1,6 +1,6 @@
 # Bundled wake-word models
 
-`hey_hermes.onnx` / `hey_hermes.tflite` — the on-device "Hey Sparkii" hotword
+`hey_sparkii.onnx` / `hey_sparkii.tflite` — the on-device "Hey Sparkii" hotword
 model. This is the default detector for the wake word feature (see
 `website/docs/user-guide/features/wake-word.md`); no training or setup is
 required to say "hey sparkii".
@@ -9,7 +9,7 @@ required to say "hey sparkii".
 - **Provenance:** trained with the openWakeWord training pipeline (synthetic
   TTS-generated speech), which produces both the `.onnx` and `.tflite` artifacts.
   Redistribution is permitted under the openWakeWord license.
-- **Label:** the model registers as `hey_hermes` (matches the filename).
+- **Label:** the model registers as `hey_sparkii` (matches the filename).
 - **Runtime:** openWakeWord's shared feature-extraction models (melspectrogram +
   embedding) are NOT bundled here — they are fetched once on first use by
   `tools/wake_word.py` via `openwakeword.utils.download_models()`.

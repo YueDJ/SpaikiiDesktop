@@ -126,7 +126,7 @@ wake_word:
   confirmation_frames: 3      # openWakeWord only — consecutive over-threshold frames required to fire
   start_new_session: true     # start a fresh session on wake vs. continue the current one
   openwakeword:
-    model: hey_hermes         # bundled default; OR a built-in name OR a path to a custom .onnx/.tflite
+    model: hey_sparkii         # bundled default; OR a built-in name OR a path to a custom .onnx/.tflite
     inference_framework: ""   # "" (auto) | "onnx" | "tflite"
   porcupine:
     keyword: jarvis           # built-in keyword OR path to a custom .ppn
@@ -197,7 +197,7 @@ command records.
 ## Using a different phrase
 
 "Hey Sparkii" works out of the box — the bundled openWakeWord model
-(`model: hey_hermes`) is the default. To wake on something else, the easiest
+(`model: hey_sparkii`) is the default. To wake on something else, the easiest
 path is the open-vocabulary engine:
 
 ### Option A — sherpa (any phrase, zero training)
@@ -274,7 +274,7 @@ wake_word:
   provider: porcupine
   phrase: "hey sparkii"
   porcupine:
-    keyword: ~/.sparkii/wakewords/hey_hermes.ppn
+    keyword: ~/.sparkii/wakewords/hey_sparkii.ppn
 ```
 
 Set your access key in `~/.sparkii/.env`:

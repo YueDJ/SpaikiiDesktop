@@ -3273,7 +3273,7 @@ class OptionalSkillSource(SkillSource):
     (search / install / inspect) and labelled "official" with "builtin" trust.
     """
 
-    OFFICIAL_REPO = "NousResearch/sparkii-agent"
+    OFFICIAL_REPO = "YueDJ/SpaikiiDesktop"
 
     def __init__(self):
         from sparkii_constants import get_optional_skills_dir

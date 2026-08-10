@@ -7,7 +7,7 @@
   perSystem = { pkgs, lib, self', ... }:
     let
       sparkii-agent = self'.packages.default;
-      hermesVenv = sparkii-agent.hermesVenv;
+      sparkiiVenv = sparkii-agent.sparkiiVenv;
 
       configMergeScript = pkgs.callPackage ./configMergeScript.nix { };
 
@@ -15,7 +15,7 @@
       configKeys = pkgs.runCommand "sparkii-config-keys" {} ''
         set -euo pipefail
         export HOME=$TMPDIR
-        ${hermesVenv}/bin/python3 -c '
+        ${sparkiiVenv}/bin/python3 -c '
 import json, sys
 from sparkii_cli.config import DEFAULT_CONFIG
 
@@ -79,12 +79,12 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
         package-contents = pkgs.runCommand "sparkii-package-contents" { } ''
           set -e
           echo "=== Checking binaries ==="
-          test -x ${sparkii-agent}/bin/hermes || (echo "FAIL: hermes binary missing"; exit 1)
+          test -x ${sparkii-agent}/bin/sparkii || (echo "FAIL: sparkii binary missing"; exit 1)
           test -x ${sparkii-agent}/bin/sparkii-agent || (echo "FAIL: sparkii-agent binary missing"; exit 1)
           echo "PASS: All binaries present"
 
           echo "=== Checking version ==="
-          ${sparkii-agent}/bin/hermes version 2>&1 | grep -qi "hermes" || (echo "FAIL: version check"; exit 1)
+          ${sparkii-agent}/bin/sparkii version 2>&1 | grep -qi "sparkii" || (echo "FAIL: version check"; exit 1)
           echo "PASS: Version check"
 
           echo "=== All checks passed ==="
@@ -96,7 +96,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
         entry-points-sync = pkgs.runCommand "sparkii-entry-points-sync" { } ''
           set -e
           echo "=== Checking entry points match pyproject.toml [project.scripts] ==="
-          for bin in hermes sparkii-agent sparkii-acp; do
+          for bin in sparkii sparkii-agent sparkii-acp; do
             test -x ${sparkii-agent}/bin/$bin || (echo "FAIL: $bin binary missing from Nix package"; exit 1)
             echo "PASS: $bin present"
           done
@@ -110,9 +110,9 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
           set -e
           export HOME=$(mktemp -d)
 
-          echo "=== Checking hermes --help ==="
-          ${sparkii-agent}/bin/hermes --help 2>&1 | grep -q "gateway" || (echo "FAIL: gateway subcommand missing"; exit 1)
-          ${sparkii-agent}/bin/hermes --help 2>&1 | grep -q "config" || (echo "FAIL: config subcommand missing"; exit 1)
+          echo "=== Checking sparkii --help ==="
+          ${sparkii-agent}/bin/sparkii --help 2>&1 | grep -q "gateway" || (echo "FAIL: gateway subcommand missing"; exit 1)
+          ${sparkii-agent}/bin/sparkii --help 2>&1 | grep -q "config" || (echo "FAIL: config subcommand missing"; exit 1)
           echo "PASS: All subcommands accessible"
 
           echo "=== All CLI checks passed ==="
@@ -132,7 +132,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
           test "$SKILL_COUNT" -gt 0 || (echo "FAIL: no SKILL.md files found in skills directory"; exit 1)
           echo "PASS: $SKILL_COUNT bundled skills found"
 
-          grep -q "SPARKII_BUNDLED_SKILLS" ${sparkii-agent}/bin/hermes || \
+          grep -q "SPARKII_BUNDLED_SKILLS" ${sparkii-agent}/bin/sparkii || \
             (echo "FAIL: SPARKII_BUNDLED_SKILLS not in wrapper"; exit 1)
           echo "PASS: SPARKII_BUNDLED_SKILLS set in wrapper"
 
@@ -142,7 +142,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
             (echo "FAIL: optional-skills directory missing"; exit 1)
           OPT_COUNT=$(find -L ${sparkii-agent}/share/sparkii-agent/optional-skills -name "SKILL.md" | wc -l)
           test "$OPT_COUNT" -gt 0 || (echo "FAIL: no SKILL.md files in optional-skills"; exit 1)
-          grep -q "SPARKII_OPTIONAL_SKILLS" ${sparkii-agent}/bin/hermes || \
+          grep -q "SPARKII_OPTIONAL_SKILLS" ${sparkii-agent}/bin/sparkii || \
             (echo "FAIL: SPARKII_OPTIONAL_SKILLS not in wrapper"; exit 1)
           echo "PASS: $OPT_COUNT optional skills found, SPARKII_OPTIONAL_SKILLS set in wrapper"
 
@@ -162,7 +162,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
             (echo "FAIL: irc plugin manifest missing"; exit 1)
           echo "PASS: irc plugin manifest present"
 
-          grep -q "SPARKII_BUNDLED_PLUGINS" ${sparkii-agent}/bin/hermes || \
+          grep -q "SPARKII_BUNDLED_PLUGINS" ${sparkii-agent}/bin/sparkii || \
             (echo "FAIL: SPARKII_BUNDLED_PLUGINS not in wrapper"; exit 1)
           echo "PASS: SPARKII_BUNDLED_PLUGINS set in wrapper"
 
@@ -188,7 +188,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
           test -f ${sparkii-agent}/share/sparkii-agent/locales/en.yaml || (echo "FAIL: en.yaml missing"; exit 1)
           echo "PASS: en.yaml present"
 
-          grep -q "SPARKII_BUNDLED_LOCALES" ${sparkii-agent}/bin/hermes || \
+          grep -q "SPARKII_BUNDLED_LOCALES" ${sparkii-agent}/bin/sparkii || \
             (echo "FAIL: SPARKII_BUNDLED_LOCALES not in wrapper"; exit 1)
           echo "PASS: SPARKII_BUNDLED_LOCALES set in wrapper"
 
@@ -197,7 +197,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
           # Verify the wrapper override resolves real strings.
           export HOME=$(mktemp -d)
           RENDERED=$(cd "$HOME" && SPARKII_BUNDLED_LOCALES=${sparkii-agent}/share/sparkii-agent/locales \
-            ${hermesVenv}/bin/python3 -c "from agent import i18n; print(i18n.t('gateway.reset.header_default', lang='en'))")
+            ${sparkiiVenv}/bin/python3 -c "from agent import i18n; print(i18n.t('gateway.reset.header_default', lang='en'))")
           echo "rendered: $RENDERED"
           test "$RENDERED" != "gateway.reset.header_default" || (echo "FAIL: i18n returned the raw key with SPARKII_BUNDLED_LOCALES set"; exit 1)
           echo "PASS: i18n renders a human string via the wrapper override"
@@ -220,14 +220,14 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
           test "$MANIFEST_COUNT" -gt 0 || (echo "FAIL: no manifest.yaml files found"; exit 1)
           echo "PASS: $MANIFEST_COUNT catalog manifests found"
 
-          grep -q "SPARKII_OPTIONAL_MCPS" ${sparkii-agent}/bin/hermes || \
+          grep -q "SPARKII_OPTIONAL_MCPS" ${sparkii-agent}/bin/sparkii || \
             (echo "FAIL: SPARKII_OPTIONAL_MCPS not in wrapper"; exit 1)
           echo "PASS: SPARKII_OPTIONAL_MCPS set in wrapper"
 
           export HOME=$(mktemp -d)
-          CATALOG=$(cd "$HOME" && ${sparkii-agent}/bin/hermes mcp catalog 2>/dev/null || true)
+          CATALOG=$(cd "$HOME" && ${sparkii-agent}/bin/sparkii mcp catalog 2>/dev/null || true)
           echo "catalog output: $CATALOG"
-          test -n "$CATALOG" || (echo "FAIL: hermes mcp catalog returned empty"; exit 1)
+          test -n "$CATALOG" || (echo "FAIL: sparkii mcp catalog returned empty"; exit 1)
           echo "PASS: mcp catalog resolves entries"
 
           echo "=== All bundled optional-mcps checks passed ==="
@@ -247,7 +247,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
 
           # self-contained bundle; no runtime node_modules expected
 
-          grep -q "SPARKII_TUI_DIR" ${sparkii-agent}/bin/hermes || \
+          grep -q "SPARKII_TUI_DIR" ${sparkii-agent}/bin/sparkii || \
             (echo "FAIL: SPARKII_TUI_DIR not in wrapper"; exit 1)
           echo "PASS: SPARKII_TUI_DIR set in wrapper"
 
@@ -257,21 +257,21 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
         '';
 
         # Verify SPARKII_NODE is set in wrapper and points to Node 26+
-        # (Hermes pins its toolchain to Node 26 everywhere)
+        # (Sparkii pins its toolchain to Node 26 everywhere)
         sparkii-node = pkgs.runCommand "sparkii-node-version" { } ''
           set -e
           echo "=== Checking SPARKII_NODE in wrapper ==="
-          grep -q "SPARKII_NODE" ${sparkii-agent}/bin/hermes || \
+          grep -q "SPARKII_NODE" ${sparkii-agent}/bin/sparkii || \
             (echo "FAIL: SPARKII_NODE not set in wrapper"; exit 1)
           echo "PASS: SPARKII_NODE present in wrapper"
 
-          SPARKII_NODE=$(sed -n "s/^export SPARKII_NODE='\(.*\)'/\1/p" ${sparkii-agent}/bin/hermes)
+          SPARKII_NODE=$(sed -n "s/^export SPARKII_NODE='\(.*\)'/\1/p" ${sparkii-agent}/bin/sparkii)
           test -x "$SPARKII_NODE" || (echo "FAIL: SPARKII_NODE=$SPARKII_NODE not executable"; exit 1)
           echo "PASS: SPARKII_NODE executable at $SPARKII_NODE"
 
           NODE_MAJOR=$("$SPARKII_NODE" --version | sed 's/^v//' | cut -d. -f1)
           test "$NODE_MAJOR" -ge 26 || \
-            (echo "FAIL: Node v$NODE_MAJOR < 26, Hermes requires Node 26"; exit 1)
+            (echo "FAIL: Node v$NODE_MAJOR < 26, Sparkii requires Node 26"; exit 1)
           echo "PASS: Node v$NODE_MAJOR >= 26"
 
           echo "=== All SPARKII_NODE checks passed ==="
@@ -293,8 +293,8 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
           }
 
           echo "=== Checking SPARKII_MANAGED guards ==="
-          check_blocked "config set" ${sparkii-agent}/bin/hermes config set model foo
-          check_blocked "config edit" ${sparkii-agent}/bin/hermes config edit
+          check_blocked "config set" ${sparkii-agent}/bin/sparkii config set model foo
+          check_blocked "config edit" ${sparkii-agent}/bin/sparkii config edit
 
           echo "=== All guard checks passed ==="
           mkdir -p $out
@@ -304,23 +304,23 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
         # Verify extraPythonPackages PYTHONPATH injection
         extra-python-packages = let
           testPkg = pkgs.python312Packages.pyfiglet;
-          hermesWithExtra = sparkii-agent.override {
+          sparkiiWithExtra = sparkii-agent.override {
             extraPythonPackages = [ testPkg ];
           };
         in pkgs.runCommand "sparkii-extra-python-packages" { } ''
           set -e
           echo "=== Checking extraPythonPackages PYTHONPATH injection ==="
 
-          grep -q "PYTHONPATH" ${hermesWithExtra}/bin/hermes || \
+          grep -q "PYTHONPATH" ${sparkiiWithExtra}/bin/sparkii || \
             (echo "FAIL: PYTHONPATH not in wrapper"; exit 1)
           echo "PASS: PYTHONPATH present in wrapper"
 
-          grep -q "${testPkg}" ${hermesWithExtra}/bin/hermes || \
+          grep -q "${testPkg}" ${sparkiiWithExtra}/bin/sparkii || \
             (echo "FAIL: test package path not in PYTHONPATH"; exit 1)
           echo "PASS: test package path found in wrapper"
 
           echo "=== Checking base package has no PYTHONPATH ==="
-          if grep -q "PYTHONPATH" ${sparkii-agent}/bin/hermes; then
+          if grep -q "PYTHONPATH" ${sparkii-agent}/bin/sparkii; then
             echo "FAIL: base package should not have PYTHONPATH"; exit 1
           fi
           echo "PASS: base package clean"
@@ -332,7 +332,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
 
         # Verify extraDependencyGroups passes through to python.nix
         extra-dependency-groups = let
-          hermesWithGroups = sparkii-agent.override {
+          sparkiiWithGroups = sparkii-agent.override {
             extraDependencyGroups = [ "honcho" ];
           };
         in pkgs.runCommand "sparkii-extra-dependency-groups" { } ''
@@ -342,8 +342,8 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
           # Eval-only: verify the override produces valid derivation paths
           # without building the full venv (which is expensive and redundant
           # since the mechanism is just list concatenation into python.nix).
-          echo "derivation: ${hermesWithGroups}"
-          echo "venv: ${hermesWithGroups.hermesVenv}"
+          echo "derivation: ${sparkiiWithGroups}"
+          echo "venv: ${sparkiiWithGroups.sparkiiVenv}"
           echo "PASS: extraDependencyGroups override evaluates cleanly"
 
           echo "=== All extraDependencyGroups checks passed ==="
@@ -357,7 +357,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
         messaging-variant = pkgs.runCommand "sparkii-messaging-variant" { } ''
           set -e
           echo "=== Checking discord.py importable from messaging variant ==="
-          ${self'.packages.messaging.hermesVenv}/bin/python3 -c \
+          ${self'.packages.messaging.sparkiiVenv}/bin/python3 -c \
             "import discord; print(discord.__version__)"
           echo "PASS: discord.py importable from messaging variant venv"
           mkdir -p $out
@@ -438,7 +438,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
             local sparkii_home="$1"
             export SPARKII_HOME="$sparkii_home"
             ${configMergeScript} ${nixSettings} "$sparkii_home/config.yaml"
-            ${hermesVenv}/bin/python3 -c '
+            ${sparkiiVenv}/bin/python3 -c '
 import json, sys
 from sparkii_cli.config import load_config
 json.dump(load_config(), sys.stdout, default=str)

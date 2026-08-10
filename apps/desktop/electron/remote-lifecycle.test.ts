@@ -112,14 +112,38 @@ test('locateSparkii falls back to the login-shell command -v probe', async () =>
   assert.equal(await locateSparkii(ssh, ''), '/home/u/.local/bin/sparkii')
 })
 
-test('locateSparkii canonicalizes an installer wrapper to its executable target', async () => {
+test('locateSparkii preserves an installer wrapper instead of resolving its interpreter', async () => {
+  // install.sh venv mode writes: exec "$SPARKII_BIN" "$SPARKII_ENTRYPOINT" "$@",
+  // where $SPARKII_BIN is the venv python. The old canonicalization returned
+  // that interpreter, so `<python> --version` printed "Python x.y.z" and
+  // `<python> serve --help` failed outright (#74411). The wrapper itself is
+  // executable and forwards args correctly — return it untouched.
   const ssh = fakeSsh([
     [/command -v sparkii/, '/home/u/.local/bin/sparkii\n'],
     [/\[ -x .*\.local\/bin\/sparkii/, 'OK'],
-    [/python3 -c/, '/home/u/.sparkii/sparkii-agent/venv/bin/sparkii\n']
+    // If the removed python3 wrapper-parser were ever reintroduced, this rule
+    // would reward it with an interpreter path and the assertions below fail.
+    [/python3 -c/, '/home/u/.sparkii/sparkii-agent/venv/bin/python\n']
   ])
 
-  assert.equal(await locateSparkii(ssh, ''), '/home/u/.sparkii/sparkii-agent/venv/bin/sparkii')
+  assert.equal(await locateSparkii(ssh, ''), '/home/u/.local/bin/sparkii')
+  assert.ok(
+    !ssh.calls.some(cmd => cmd.includes('python3 -c')),
+    'locateSparkii must not shell out to a python3 parser to rewrite the launcher'
+  )
+})
+
+test('locateSparkii returns an explicit remoteSparkiiPath unchanged', async () => {
+  // The override half of #74411: an explicit remoteSparkiiPath pointing at a
+  // wrapper was also canonicalized to its interpreter, so overriding to
+  // ~/.local/bin/sparkii changed nothing for affected users.
+  const ssh = fakeSsh([
+    [/\[ -x .*\.local\/bin\/sparkii/, 'OK'],
+    [/python3 -c/, '/home/u/.sparkii/sparkii-agent/venv/bin/python\n']
+  ])
+
+  assert.equal(await locateSparkii(ssh, '~/.local/bin/sparkii'), '~/.local/bin/sparkii')
+  assert.ok(!ssh.calls.some(cmd => cmd.includes('python3 -c')), 'an explicit remoteSparkiiPath must never be rewritten')
 })
 
 test('locateSparkii falls back to ~/.local/bin/sparkii when the login-shell probe misses', async () => {

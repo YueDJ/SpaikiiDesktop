@@ -309,7 +309,7 @@ Meta only allows **free-form messages** within a 24-hour window after the user's
 
 Sparkii warns the agent about this window in its system prompt, so the model knows to mention it when scheduling delayed messages.
 
-Message-template support (the workaround for outside-window sends) is not yet implemented in Sparkii. If you need it, please [open an issue](https://github.com/NousResearch/sparkii-agent/issues) — it's planned but waiting on a clear demand signal.
+Message-template support (the workaround for outside-window sends) is not yet implemented in Sparkii. If you need it, please [open an issue](https://github.com/YueDJ/SpaikiiDesktop/issues) — it's planned but waiting on a clear demand signal.
 
 ### Group chats
 

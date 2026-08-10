@@ -1221,7 +1221,7 @@ export const ja = defineLocale({
     noSessions: 'セッションはまだありません。',
     gatewayRunning: 'メッセージングゲートウェイが実行中',
     gatewayStopped: 'メッセージングゲートウェイが停止中',
-    hermesActiveSessions: (version, count) => `Sparkii ${version} · アクティブセッション ${count}`,
+    sparkiiActiveSessions: (version, count) => `Sparkii ${version} · アクティブセッション ${count}`,
     restartGateway: 'ゲートウェイを再起動',
     gatewayRestartFailed: 'ゲートウェイの再起動に失敗しました。',
     updateSparkii: 'Sparkii を更新',
@@ -1696,6 +1696,7 @@ export const ja = defineLocale({
     noWorkspace: 'ワークスペースなし',
     projectEmpty: 'セッションはまだありません',
     noSessions: 'セッションはまだありません',
+    noFilterMatches: 'このフィルターに一致するセッションはありません',
     projects: {
       sectionLabel: 'プロジェクト',
       home: 'ホーム',
@@ -1784,6 +1785,7 @@ export const ja = defineLocale({
       waitingForAnswer: '回答を待っています',
       finishedUnread: '完了 — 未読',
       backgroundRunning: 'バックグラウンドタスク実行中',
+      draftSession: '下書き — 未送信',
       handoffOrigin: platform => `${platform} から引き継ぎ`,
       ownedByProfile: profile => `プロファイル: ${profile}`,
       renamed: '名前を変更しました',
@@ -1803,6 +1805,10 @@ export const ja = defineLocale({
       thisWeek: '今週',
       lastWeek: '先週',
       thisMonth: '今月'
+    },
+    statusDivider: {
+      working: '実行中',
+      done: '完了'
     }
   },
 

@@ -2,6 +2,7 @@ import type {
   SparkiiGitBaseBranch,
   SparkiiGitBranch,
   SparkiiGitWorktree,
+  SparkiiRepoPullRequests,
   SparkiiRepoStatus,
   SparkiiReviewList,
   SparkiiReviewShipInfo
@@ -91,6 +92,9 @@ const remoteGit: GitBridge = {
     push: repoPath => gitPost('review/push', { path: repoPath }),
 
     shipInfo: repoPath => gitGet<SparkiiReviewShipInfo>('review/ship-info', { path: repoPath }),
+
+    prList: (repoPath, branches, numbers) =>
+      gitPost<SparkiiRepoPullRequests>('review/pr-list', { branches, numbers: numbers ?? [], path: repoPath }),
 
     createPr: repoPath => gitPost('review/create-pr', { path: repoPath })
   },

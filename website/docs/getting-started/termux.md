@@ -87,7 +87,7 @@ Why these packages?
 ### 2. Clone Sparkii
 
 ```bash
-git clone https://github.com/NousResearch/sparkii-agent.git
+git clone https://github.com/YueDJ/SpaikiiDesktop.git
 cd sparkii-agent
 ```
 

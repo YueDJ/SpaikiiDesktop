@@ -587,7 +587,7 @@ _DISCONNECT_STEP_TIMEOUT = 2.0
 # after _drain_polling_connections(), particularly when both primary and fallback
 # Telegram endpoints are unreachable. Bounding start_polling() prevents the
 # reconnect ladder from stalling indefinitely and allows the heartbeat loop to
-# trigger its own recovery path. Refs: NousResearch/sparkii-agent#59614
+# trigger its own recovery path. Refs: YueDJ/SpaikiiDesktop#59614
 _UPDATER_START_TIMEOUT = 30.0
 # Initial connect is not healthy until the dedicated getUpdates request completes
 # one successful round trip. Unlike reconnect, initial bootstrap must fail closed
@@ -599,7 +599,7 @@ _INITIAL_POLLING_PROGRESS_TIMEOUT = 60.0
 # whole reconnect ladder (the tracked _polling_error_task never completes, so
 # every escalation path stays gated behind its in-flight guard). Bound the drain
 # so the ladder always advances toward the fatal-restart escalation. Matches
-# _UPDATER_STOP_TIMEOUT. Refs: NousResearch/sparkii-agent#66377
+# _UPDATER_STOP_TIMEOUT. Refs: YueDJ/SpaikiiDesktop#66377
 _DRAIN_TIMEOUT = 15.0
 # Cause-agnostic wedged-recovery watchdog (#66377). Every recovery path (the
 # reconnect ladder's re-entry, the pending-update probe, PTB's error callback)
@@ -738,6 +738,9 @@ class TelegramAdapter(BasePlatformAdapter):
         # Rich draft previews use a separate opt-in. Telegram macOS / Desktop
         # can leave Bot API 10.1 rich draft frames visually overlaid until the
         # chat is redrawn, while final rich messages remain useful.
+        # When rich_messages is on but rich_drafts is off, supports_draft_streaming
+        # declines drafts so transport=auto uses edit-in-place + rich finalize
+        # instead of MDV2 drafts that jump to sendRichMessage at the end.
         self._rich_drafts_enabled: bool = self._coerce_bool_extra("rich_drafts", False)
         # Latched off after a capability failure on sendRichMessage /
         # sendRichMessageDraft (e.g. older python-telegram-bot without the
@@ -2634,7 +2637,7 @@ class TelegramAdapter(BasePlatformAdapter):
                     # "in-flight" and skips triggering a new reconnect, and
                     # the gateway silently drops messages for hours.
                     # Bounding stop() lets the reconnect ladder always advance.
-                    # Refs: NousResearch/sparkii-agent#58270
+                    # Refs: YueDJ/SpaikiiDesktop#58270
                     await asyncio.wait_for(app.updater.stop(), timeout=_UPDATER_STOP_TIMEOUT)
                 except asyncio.TimeoutError:
                     logger.warning(
@@ -4091,7 +4094,7 @@ class TelegramAdapter(BasePlatformAdapter):
                         "TELEGRAM_WEBHOOK_URL is set. Without it, the "
                         "webhook endpoint accepts forged updates from "
                         "anyone who can reach it — see "
-                        "https://github.com/NousResearch/sparkii-agent/"
+                        "https://github.com/YueDJ/SpaikiiDesktop/"
                         "security/advisories/GHSA-3vpc-7q5r-276h.\n\n"
                         "Generate a secret and set it in your .env:\n"
                         "  export TELEGRAM_WEBHOOK_SECRET=\"$(openssl rand -hex 32)\"\n\n"
@@ -5346,8 +5349,22 @@ class TelegramAdapter(BasePlatformAdapter):
         We additionally require ``self._bot`` to expose ``send_message_draft``
         (added to python-telegram-bot in 22.6); older PTB installs gracefully
         fall back to the edit path even on DMs.
+
+        When ``rich_messages`` is enabled but ``rich_drafts`` is not, decline
+        drafts even on DMs.  Final delivery then uses ``sendRichMessage`` /
+        rich ``editMessageText``, while the default draft path still renders
+        MarkdownV2 (tables → bullet lists).  That mismatch makes the streaming
+        preview look unformatted/"crooked" and the finalized reply a second
+        beautiful wiki-style bubble.  Prefer edit-in-place streaming so the
+        same message upgrades via rich finalize.  Operators who want animated
+        rich drafts opt in with ``rich_drafts: true``.
         """
         if not self._bot or not hasattr(self._bot, "send_message_draft"):
+            return False
+        if (
+            getattr(self, "_rich_messages_enabled", False)
+            and not getattr(self, "_rich_drafts_enabled", False)
+        ):
             return False
         return (chat_type or "").lower() in {"dm", "private"}
 

@@ -42,7 +42,7 @@
       "additionalProperties": false,
       "required": [
         "architecture",
-        "hermes_version",
+        "sparkii_version",
         "install_method",
         "os_family"
       ],
@@ -51,7 +51,7 @@
           "type": "string",
           "enum": ["arm", "arm64", "unknown", "x86", "x86_64"]
         },
-        "hermes_version": {
+        "sparkii_version": {
           "type": "string",
           "minLength": 1,
           "maxLength": 64

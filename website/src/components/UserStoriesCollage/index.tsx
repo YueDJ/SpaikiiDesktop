@@ -295,7 +295,7 @@ export default function UserStoriesCollage(): JSX.Element {
       <div className={styles.footer}>
         Built something with Sparkii?{' '}
         <a
-          href="https://github.com/NousResearch/sparkii-agent/edit/main/website/src/data/userStories.json"
+          href="https://github.com/YueDJ/SpaikiiDesktop/edit/main/website/src/data/userStories.json"
           target="_blank"
           rel="noopener noreferrer"
         >

@@ -190,7 +190,7 @@ function Invoke-Normalization {
         Stdout     = $stdout
         Rewrites   = $rewrites
         InstallDir = $(if ($paths) { $paths.install_dir } else { $null })
-        HermesHome = $(if ($paths) { $paths.sparkii_home } else { $null })
+        SparkiiHome = $(if ($paths) { $paths.sparkii_home } else { $null })
         LongRoot   = $(if ($paths) { $paths.long_profile_root } else { $null })
     }
 }

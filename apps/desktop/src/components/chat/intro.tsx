@@ -122,7 +122,7 @@ function fallbackCopyForPersonality(personalityKey: string): IntroCopy[] {
       body: "Send the task, file, or rough idea. I'll use your configured voice and keep the work grounded in this repo."
     },
     {
-      headline: `What does Sparkii need to see?`,
+      headline: `What does ${label} Sparkii need to see?`,
       body: "Bring the context or the stuck part. I'll adapt to your configured personality."
     },
     {

@@ -48,7 +48,7 @@ function reveal(file: string) {
 async function revealPluginsDir() {
   try {
     // Electron owns the local plugin root — deriving it from the backend's
-    // hermes_home breaks against a remote backend (#66899).
+    // sparkii_home breaks against a remote backend (#66899).
     const dir = await window.sparkiiDesktop?.desktopPluginsRoot?.()
 
     if (!dir) {

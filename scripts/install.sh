@@ -43,8 +43,8 @@ NC='\033[0m' # No Color
 BOLD='\033[1m'
 
 # Configuration
-REPO_URL_SSH="git@github.com:NousResearch/sparkii-agent.git"
-REPO_URL_HTTPS="https://github.com/NousResearch/sparkii-agent.git"
+REPO_URL_SSH="git@github.com:YueDJ/SpaikiiDesktop.git"
+REPO_URL_HTTPS="https://github.com/YueDJ/SpaikiiDesktop.git"
 SPARKII_HOME="${SPARKII_HOME:-$HOME/.sparkii}"
 # INSTALL_DIR is resolved AFTER arg parsing and OS detection so we can pick an
 # FHS-style layout for root installs.  Track whether the user gave us an
@@ -486,7 +486,7 @@ configure_managed_node_npm_prefix() {
     printf 'prefix=%s\n' "$(dirname "$link_dir")" > "$SPARKII_HOME/node/etc/npmrc"
 }
 
-get_hermes_command_path() {
+get_sparkii_command_path() {
     local link_dir
     link_dir="$(get_command_link_dir)"
     if [ -x "$link_dir/sparkii" ]; then
@@ -2468,7 +2468,7 @@ maybe_start_gateway() {
             log_info "Running 'sparkii whatsapp' to pair via QR code..."
             echo ""
             if prompt_yes_no "Pair WhatsApp now?" "yes"; then
-                SPARKII_CMD="$(get_hermes_command_path)"
+                SPARKII_CMD="$(get_sparkii_command_path)"
                 $SPARKII_CMD whatsapp || true
             fi
         else
@@ -2497,7 +2497,7 @@ maybe_start_gateway() {
     fi
 
     if [ "$should_install_gateway" = true ]; then
-        SPARKII_CMD="$(get_hermes_command_path)"
+        SPARKII_CMD="$(get_sparkii_command_path)"
 
         if [ "$DISTRO" != "termux" ] && command -v systemctl &> /dev/null; then
             log_info "Installing systemd service..."

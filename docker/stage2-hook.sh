@@ -21,7 +21,7 @@ SPARKII_HOME="${SPARKII_HOME:-/opt/data}"
 INSTALL_DIR="/opt/sparkii"
 
 # Drop to sparkii via s6-setuidgid, but skip it when already non-root.
-as_hermes() { [ "$(id -u)" = 0 ] || { "$@"; return; }; s6-setuidgid sparkii "$@"; }
+as_sparkii() { [ "$(id -u)" = 0 ] || { "$@"; return; }; s6-setuidgid sparkii "$@"; }
 
 # --- Reject the unsupported `docker run --user <uid>:<gid>` start ---
 # Detect the case where the container was launched with `--user` pinned to an
@@ -378,7 +378,7 @@ fi
 # Use direct `mkdir -p` invocation (no `sh -c "..."` wrapper) so the
 # shell isn't a second interpreter — defends against $SPARKII_HOME values
 # containing shell metacharacters. PR #30136 review item O2.
-as_hermes mkdir -p \
+as_sparkii mkdir -p \
     "$SPARKII_HOME/backups" \
     "$SPARKII_HOME/cron" \
     "$SPARKII_HOME/sessions" \
@@ -423,7 +423,7 @@ seed_one() {
         if refuse_symlinked_path "seed" "$SPARKII_HOME/$dest"; then
             :
         else
-            as_hermes cp "$INSTALL_DIR/$src" "$SPARKII_HOME/$dest"
+            as_sparkii cp "$INSTALL_DIR/$src" "$SPARKII_HOME/$dest"
         fi
     fi
 }
@@ -536,7 +536,7 @@ fi
 # the python binary's own bin-stub already sets up (sys.path is rooted
 # at the venv's site-packages by virtue of running .venv/bin/python).
 if [ -d "$INSTALL_DIR/skills" ]; then
-    as_hermes "$INSTALL_DIR/.venv/bin/python" "$INSTALL_DIR/tools/skills_sync.py" \
+    as_sparkii "$INSTALL_DIR/.venv/bin/python" "$INSTALL_DIR/tools/skills_sync.py" \
         || echo "[stage2] Warning: skills_sync.py failed; continuing"
 fi
 

@@ -445,7 +445,7 @@ def detect_install_method(project_root: Optional[Path] = None) -> str:
     The supported installs self-identify via the code-scoped stamp:
       - the curl installer (scripts/install.sh, the README/website install
         command) git-clones the repo and stamps ``git`` next to the code;
-      - the published ``nousresearch/sparkii-agent`` image bakes a ``docker``
+      - the published ``yuedj/spaikiidesktop`` image bakes a ``docker``
         stamp into ``/opt/sparkii`` at build time.
     An unsupported manual install dropped into a container (no stamp) falls
     through to the ``.git`` checks and behaves like any off-path install.
@@ -545,7 +545,7 @@ def recommended_update_command_for_method(method: str) -> str:
     if method in {"nix", "nixos"}:
         return _NIX_UPDATE_MSG
     if method == "docker":
-        return "docker pull nousresearch/sparkii-agent:latest"
+        return "docker pull yuedj/spaikiidesktop:latest"
     return "sparkii update"
 
 
@@ -576,23 +576,23 @@ def recommended_update_command() -> str:
 _DOCKER_UPDATE_MESSAGE = """\
 ✗ ``sparkii update`` doesn't apply inside the Docker container.
 
-Sparkii Agent runs as a published image (nousresearch/sparkii-agent), not a
+Sparkii Agent runs as a published image (yuedj/spaikiidesktop), not a
 git checkout — the container has no working tree to pull into.  Update by
 pulling a fresh image and restarting your container instead:
 
-  docker pull nousresearch/sparkii-agent:latest
+  docker pull yuedj/spaikiidesktop:latest
   # then restart whatever started the container, e.g.:
   docker compose up -d --force-recreate sparkii-agent
   # or, for ad-hoc runs, exit the current container and `docker run` again
 
 Verify the new version after restart:
-  docker run --rm nousresearch/sparkii-agent:latest --version
+  docker run --rm yuedj/spaikiidesktop:latest --version
 
 Notes:
   • If you pinned a specific tag (e.g. ``:v0.14.0``) the ``:latest`` tag
     won't move your container — pull the newer tag you actually want, or
     switch to ``:latest`` / ``:main`` for rolling updates.  See available
-    tags at https://hub.docker.com/r/nousresearch/sparkii-agent/tags
+    tags at https://hub.docker.com/r/yuedj/spaikiidesktop/tags
   • Your config and session history live under ``$SPARKII_HOME`` (``/opt/data``
     in the container, typically bind-mounted from the host) and persist
     across image upgrades — re-pulling doesn't lose any state.
@@ -2929,30 +2929,26 @@ def cfg_get(cfg: Optional[Dict[str, Any]], *keys: str, default: Any = None) -> A
     return node
 
 
-_NEUTRAL_PERSONALITY_NAMES = frozenset({"", "none", "default", "neutral"})
+# Back-compat alias — canonical set lives in sparkii_cli.personality.
+from sparkii_cli.personality import NEUTRAL_PERSONALITY_NAMES as _NEUTRAL_PERSONALITY_NAMES  # noqa: F401
 
 
 def _prompt_text(value: Any) -> str:
-    """Normalize config prompt values from YAML before handing them to AIAgent."""
-    if value is None:
-        return ""
-    if isinstance(value, str):
-        return value.strip()
-    if isinstance(value, list):
-        return "\n".join(str(item).strip() for item in value if str(item).strip())
-    return str(value).strip()
+    """Normalize config prompt values from YAML before handing them to AIAgent.
+
+    Delegates to :mod:`sparkii_cli.personality` — the single owner of
+    personality/overlay semantics. Kept as a re-export for existing importers.
+    """
+    from sparkii_cli.personality import prompt_text
+
+    return prompt_text(value)
 
 
 def render_personality_prompt(value: Any) -> str:
     """Render a string or structured personality definition to a prompt."""
-    if isinstance(value, dict):
-        parts = [value.get("system_prompt", "")]
-        if value.get("tone"):
-            parts.append(f'Tone: {value["tone"]}')
-        if value.get("style"):
-            parts.append(f'Style: {value["style"]}')
-        return "\n".join(str(part).strip() for part in parts if str(part).strip())
-    return _prompt_text(value)
+    from sparkii_cli.personality import render_personality_prompt as _render
+
+    return _render(value)
 
 
 def resolve_ephemeral_system_prompt_from_config(cfg: Optional[Dict[str, Any]]) -> str:
@@ -2961,16 +2957,12 @@ def resolve_ephemeral_system_prompt_from_config(cfg: Optional[Dict[str, Any]]) -
     ``display.personality`` is the selected named personality and wins when set.
     Otherwise fall back to the user-owned ``agent.system_prompt``. Callers should
     still prefer ``SPARKII_EPHEMERAL_SYSTEM_PROMPT`` when that env var is set.
+
+    Delegates to :mod:`sparkii_cli.personality` (single owner).
     """
-    name = str(cfg_get(cfg, "display", "personality", default="") or "").strip().lower()
-    personalities = cfg_get(cfg, "agent", "personalities", default={}) or {}
-    if (
-        name not in _NEUTRAL_PERSONALITY_NAMES
-        and isinstance(personalities, dict)
-        and name in personalities
-    ):
-        return render_personality_prompt(personalities[name])
-    return _prompt_text(cfg_get(cfg, "agent", "system_prompt", default=""))
+    from sparkii_cli.personality import resolve_ephemeral_system_prompt
+
+    return resolve_ephemeral_system_prompt(cfg)
 
 
 def read_raw_config() -> Dict[str, Any]:
@@ -4401,7 +4393,13 @@ def show_config():
     print()
     print(color("◆ Display", Colors.CYAN, Colors.BOLD))
     display = config.get('display', {})
-    print(f"  Personality:  {display.get('personality') or 'none'}")
+    try:
+        from sparkii_cli.personality import active_personality_name
+
+        _active_personality = active_personality_name(config) or 'none'
+    except Exception:
+        _active_personality = display.get('personality') or 'none'
+    print(f"  Personality:  {_active_personality}")
     print(f"  Reasoning:    {'on' if display.get('show_reasoning', True) else 'off'}")
     print(f"  Bell:         {'on' if display.get('bell_on_complete', False) else 'off'}")
     ump = display.get('user_message_preview', {}) if isinstance(display.get('user_message_preview', {}), dict) else {}

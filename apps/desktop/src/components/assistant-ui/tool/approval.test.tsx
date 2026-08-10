@@ -156,7 +156,7 @@ describe('PendingToolApproval', () => {
   })
 
   it('renders a floating fallback when no pending tool row is mounted', () => {
-    setRequest('rm /tmp/hermes_approval_test.txt')
+    setRequest('rm /tmp/sparkii_approval_test.txt')
     const { container } = render(<PendingApprovalFallback />)
     const fallback = container.querySelector('[data-slot="tool-approval-fallback"]')
 
@@ -166,7 +166,7 @@ describe('PendingToolApproval', () => {
   })
 
   it('hides the floating fallback once the inline approval bar is mounted', async () => {
-    setRequest('rm /tmp/hermes_approval_test.txt')
+    setRequest('rm /tmp/sparkii_approval_test.txt')
 
     const { container } = render(
       <>

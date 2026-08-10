@@ -139,7 +139,7 @@ class TestFallbackChain:
 
     PRIMARY = "https://sparkii-agent.nousresearch.com/docs/api/model-catalog.json"
     FALLBACK = (
-        "https://raw.githubusercontent.com/NousResearch/sparkii-agent"
+        "https://raw.githubusercontent.com/YueDJ/SpaikiiDesktop"
         "/main/website/static/api/model-catalog.json"
     )
 

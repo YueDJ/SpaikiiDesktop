@@ -69,7 +69,7 @@ sparkii
 Test with a simple command:
 
 ```
-Run: gh pr list --repo NousResearch/sparkii-agent --state open --limit 3
+Run: gh pr list --repo YueDJ/SpaikiiDesktop --state open --limit 3
 ```
 
 You should see a list of open PRs. If this works, you're ready.
@@ -84,7 +84,7 @@ Still in the chat, ask Sparkii to review a real PR:
 Review this pull request. Read the diff, check for bugs, security issues,
 and code quality. Be specific about line numbers and quote problematic code.
 
-Run: gh pr diff 3888 --repo NousResearch/sparkii-agent
+Run: gh pr diff 3888 --repo YueDJ/SpaikiiDesktop
 ```
 
 Sparkii will:
