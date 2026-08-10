@@ -1,6 +1,6 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 
-import { getHermesConfigRecord, type HermesConfigRecord, saveHermesConfig } from '@/hermes'
+import { getSparkiiConfigRecord, type SparkiiConfigRecord, saveSparkiiConfig } from '@/sparkii'
 
 import { TRANSLATIONS } from './catalog'
 import { DEFAULT_LOCALE, localeConfigValue, normalizeLocale } from './languages'
@@ -10,24 +10,24 @@ import type { Locale, Translations } from './types'
 export { LOCALE_META } from './languages'
 
 export interface I18nConfigClient {
-  getConfig: () => Promise<HermesConfigRecord>
-  saveConfig: (config: HermesConfigRecord) => Promise<{ ok: boolean }>
+  getConfig: () => Promise<SparkiiConfigRecord>
+  saveConfig: (config: SparkiiConfigRecord) => Promise<{ ok: boolean }>
 }
 
 const defaultConfigClient: I18nConfigClient = {
   getConfig: () => {
-    if (typeof window === 'undefined' || !window.hermesDesktop?.api) {
+    if (typeof window === 'undefined' || !window.sparkiiDesktop?.api) {
       return Promise.resolve({})
     }
 
-    return getHermesConfigRecord()
+    return getSparkiiConfigRecord()
   },
   saveConfig: config => {
-    if (typeof window === 'undefined' || !window.hermesDesktop?.api) {
+    if (typeof window === 'undefined' || !window.sparkiiDesktop?.api) {
       return Promise.resolve({ ok: true })
     }
 
-    return saveHermesConfig(config)
+    return saveSparkiiConfig(config)
   }
 }
 
@@ -35,11 +35,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-export function getConfigDisplayLanguage(config: HermesConfigRecord): unknown {
+export function getConfigDisplayLanguage(config: SparkiiConfigRecord): unknown {
   return isRecord(config.display) ? config.display.language : undefined
 }
 
-export function withConfigDisplayLanguage(config: HermesConfigRecord, locale: Locale): HermesConfigRecord {
+export function withConfigDisplayLanguage(config: SparkiiConfigRecord, locale: Locale): SparkiiConfigRecord {
   const display = isRecord(config.display) ? config.display : {}
 
   return {

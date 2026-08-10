@@ -139,13 +139,13 @@ def test_coding_prompt_preserves_legacy_workspace_order(monkeypatch):
         _parallel_tool_call_guidance=False,
     )
     monkeypatch.setattr(system_prompt, "DEFAULT_AGENT_IDENTITY", "IDENTITY")
-    monkeypatch.setattr(system_prompt, "HERMES_AGENT_HELP_GUIDANCE", "HELP")
+    monkeypatch.setattr(system_prompt, "SPARKII_AGENT_HELP_GUIDANCE", "HELP")
     monkeypatch.setattr(system_prompt, "STEER_CHANNEL_NOTE", "STEER")
-    monkeypatch.setattr(system_prompt, "get_hermes_home", lambda: Path("/hermes"))
+    monkeypatch.setattr(system_prompt, "get_sparkii_home", lambda: Path("/sparkii"))
 
     expected_profile = (
-        "Active Hermes profile: default. Other profiles (if any) live "
-        "under /hermes/profiles/<name>/. Each profile has its own skills/, "
+        "Active Sparkii profile: default. Other profiles (if any) live "
+        "under /sparkii/profiles/<name>/. Each profile has its own skills/, "
         "plugins/, cron/, and memories/ that affect a different session than "
         "this one. Do not modify another profile's skills/plugins/cron/memories "
         "unless the user explicitly directs you to."
@@ -177,7 +177,7 @@ def test_coding_prompt_preserves_legacy_workspace_order(monkeypatch):
             ),
         ),
         patch("agent.file_safety._resolve_active_profile_name", return_value="default"),
-        patch("hermes_time.now", return_value=datetime(2026, 1, 2)),
+        patch("sparkii_time.now", return_value=datetime(2026, 1, 2)),
     ):
         prompt = build_system_prompt(agent, system_message="SYSTEM_MESSAGE")
 
@@ -191,7 +191,7 @@ class TestTelegramRichMessagesHint:
     def test_base_hint_without_rich_messages(self, monkeypatch):
         """When rich_messages is False, only the base hint is used."""
         agent = _make_agent(platform="telegram")
-        with patch("hermes_cli.config.load_config_readonly") as mock_cfg:
+        with patch("sparkii_cli.config.load_config_readonly") as mock_cfg:
             mock_cfg.return_value = {
                 "gateway": {"platforms": {"telegram": {"extra": {"rich_messages": False}}}}
             }
@@ -204,7 +204,7 @@ class TestTelegramRichMessagesHint:
         """When rich_messages is True in gateway.platforms, the extension
         is appended (the canonical/primary location)."""
         agent = _make_agent(platform="telegram")
-        with patch("hermes_cli.config.load_config_readonly") as mock_cfg:
+        with patch("sparkii_cli.config.load_config_readonly") as mock_cfg:
             mock_cfg.return_value = {
                 "gateway": {"platforms": {"telegram": {"extra": {"rich_messages": True}}}}
             }
@@ -217,7 +217,7 @@ class TestTelegramRichMessagesHint:
         """Top-level ``platforms.telegram.extra.rich_messages`` is merged
         alongside gateway.platforms, so it works on its own."""
         agent = _make_agent(platform="telegram")
-        with patch("hermes_cli.config.load_config_readonly") as mock_cfg:
+        with patch("sparkii_cli.config.load_config_readonly") as mock_cfg:
             mock_cfg.return_value = {
                 "platforms": {"telegram": {"extra": {"rich_messages": True}}}
             }
@@ -229,7 +229,7 @@ class TestTelegramRichMessagesHint:
         """Top-level ``platforms.telegram.extra`` wins over gateway.platforms
         at the leaf, matching the adapter's merge precedence."""
         agent = _make_agent(platform="telegram")
-        with patch("hermes_cli.config.load_config_readonly") as mock_cfg:
+        with patch("sparkii_cli.config.load_config_readonly") as mock_cfg:
             mock_cfg.return_value = {
                 "gateway": {"platforms": {"telegram": {"extra": {"rich_messages": False}}}},
                 "platforms": {"telegram": {"extra": {"rich_messages": True}}},
@@ -241,7 +241,7 @@ class TestTelegramRichMessagesHint:
         """When gateway.platforms.telegram.extra has other keys but not
         rich_messages, the top-level rich_messages still activates."""
         agent = _make_agent(platform="telegram")
-        with patch("hermes_cli.config.load_config_readonly") as mock_cfg:
+        with patch("sparkii_cli.config.load_config_readonly") as mock_cfg:
             mock_cfg.return_value = {
                 "gateway": {"platforms": {"telegram": {"extra": {"disable_link_previews": True}}}},
                 "platforms": {"telegram": {"extra": {"rich_messages": True}}},
@@ -252,7 +252,7 @@ class TestTelegramRichMessagesHint:
     def test_base_hint_without_config(self, monkeypatch):
         """When config has no telegram section, only base hint is used."""
         agent = _make_agent(platform="telegram")
-        with patch("hermes_cli.config.load_config_readonly") as mock_cfg:
+        with patch("sparkii_cli.config.load_config_readonly") as mock_cfg:
             mock_cfg.return_value = {}
             stable = _stable_prompt(agent)
         assert "Standard Markdown is automatically converted" in stable
@@ -261,7 +261,7 @@ class TestTelegramRichMessagesHint:
 
     def test_gateway_rich_messages_integration_via_real_config(self, tmp_path, monkeypatch):
         """End-to-end through the real config-resolution chain: a config.yaml
-        under HERMES_HOME with ``gateway.platforms.telegram.extra.rich_messages``
+        under SPARKII_HOME with ``gateway.platforms.telegram.extra.rich_messages``
         must activate the rich hint. ``load_config_readonly`` is NOT mocked here,
         so this guards against the exact path-mismatch bug this PR fixes.
         """
@@ -272,14 +272,14 @@ class TestTelegramRichMessagesHint:
             "      extra:\n"
             "        rich_messages: true\n"
         )
-        home = tmp_path / "hermes_home"
+        home = tmp_path / "sparkii_home"
         home.mkdir()
         (home / "config.yaml").write_text(config_yaml)
 
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("SPARKII_HOME", str(home))
         # Point config resolution at the temp file without mocking the loader:
         # mirror the pattern used in test_config_env_expansion.py.
-        from hermes_cli import config as _cfgmod
+        from sparkii_cli import config as _cfgmod
         monkeypatch.setattr(_cfgmod, "get_config_path", lambda: home / "config.yaml")
 
         agent = _make_agent(platform="telegram")
@@ -292,7 +292,7 @@ class TestTelegramRichMessagesHint:
         it should fail open to the base hint (Tek's fail-open concern).
         """
         agent = _make_agent(platform="telegram")
-        with patch("hermes_cli.config.load_config_readonly") as mock_cfg:
+        with patch("sparkii_cli.config.load_config_readonly") as mock_cfg:
             mock_cfg.return_value = {
                 "gateway": {"platforms": {"telegram": {"extra": "not-a-map"}}}
             }

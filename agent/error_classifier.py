@@ -256,7 +256,7 @@ _IMAGE_TOO_LARGE_PATTERNS = [
 # messages in-place, record the (provider, model) for the rest of the
 # session so we don't waste another call learning the same lesson, retry.
 #
-# See: https://github.com/NousResearch/hermes-agent/issues/27344
+# See: https://github.com/YueDJ/SpaikiiDesktop/issues/27344
 _MULTIMODAL_TOOL_CONTENT_PATTERNS = [
     # Xiaomi MiMo: {"error":{"code":"400","message":"Param Incorrect","param":"text is not set"}}
     "text is not set",
@@ -359,7 +359,7 @@ def _model_id_missing_known_prefix(model: str, provider: str) -> bool:
     if not name or "/" in name:
         return False
     try:
-        from hermes_cli.model_normalize import suggest_prefixed_model_id
+        from sparkii_cli.model_normalize import suggest_prefixed_model_id
 
         return bool(suggest_prefixed_model_id((provider or "").strip(), name))
     except Exception:
@@ -368,7 +368,7 @@ def _model_id_missing_known_prefix(model: str, provider: str) -> bool:
 
 # Malformed-message-array 400s.  Deterministic request-shape rejections that
 # describe the *transcript* being invalid, not a parameter.  The canonical
-# case: a stream dies mid-response and Hermes persists a content-less
+# case: a stream dies mid-response and Sparkii persists a content-less
 # assistant stub; on the next turn the Anthropic message schema (and the
 # litellm/Bedrock proxies in front of it) reject the whole request with
 #   "all messages must have non-empty content except for the optional final

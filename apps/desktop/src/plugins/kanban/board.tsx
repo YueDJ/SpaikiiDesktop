@@ -48,7 +48,7 @@ import {
   useQuery,
   useQueryClient,
   useValue
-} from '@hermes/plugin-sdk'
+} from '@sparkii/plugin-sdk'
 import {
   type CSSProperties,
   type DragEvent as ReactDragEvent,

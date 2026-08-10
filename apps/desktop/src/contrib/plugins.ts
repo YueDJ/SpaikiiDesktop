@@ -2,18 +2,18 @@
  * Plugin discovery — both delivery modes:
  *
  *  - BUNDLED: every `src/plugins/<name>/plugin.{ts,tsx}` default-exporting a
- *    `HermesPlugin` registers automatically (vite glob — drop a folder in).
+ *    `SparkiiPlugin` registers automatically (vite glob — drop a folder in).
  *    None ship in-tree today; reference/demo plugins live in the companion
- *    `hermes-example-plugins` repo.
- *  - RUNTIME: the on-disk door (`<hermes home>/desktop-plugins/<name>/plugin.js`)
+ *    `sparkii-example-plugins` repo.
+ *  - RUNTIME: the on-disk door (`<sparkii home>/desktop-plugins/<name>/plugin.js`)
  *    — the agent's/user's door, watched + hot-reloaded by the runtime loader.
  */
 
-import { createPluginContext, type HermesPlugin } from './plugin'
+import { createPluginContext, type SparkiiPlugin } from './plugin'
 import { pluginActive, publishPlugin } from './plugins-store'
 import { watchRuntimePlugins } from './runtime-loader'
 
-const modules = import.meta.glob<{ default: HermesPlugin }>('../plugins/*/plugin.{ts,tsx}', { eager: true })
+const modules = import.meta.glob<{ default: SparkiiPlugin }>('../plugins/*/plugin.{ts,tsx}', { eager: true })
 
 // One-shot init guard. Contributions themselves register by id (re-registering
 // is idempotent), but the disk-door watcher setup below (watchRuntimePlugins)
@@ -32,7 +32,7 @@ export function discoverBundledPlugins(): void {
     const plugin = mod.default
 
     if (!plugin?.id || typeof plugin.register !== 'function') {
-      console.warn(`[plugins] ${path} has no valid default HermesPlugin export — skipped`)
+      console.warn(`[plugins] ${path} has no valid default SparkiiPlugin export — skipped`)
 
       continue
     }

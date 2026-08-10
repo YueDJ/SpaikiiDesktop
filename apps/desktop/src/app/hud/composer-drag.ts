@@ -128,7 +128,7 @@ export function useHudComposerDrag(enabled: boolean) {
       state.lastX = event.screenX
       state.lastY = event.screenY
 
-      window.hermesDesktop?.hud?.moveBy?.({ x: dx, y: dy })
+      window.sparkiiDesktop?.hud?.moveBy?.({ x: dx, y: dy })
     }
 
     const onUp = (event: PointerEvent) => {
