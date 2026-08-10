@@ -54,10 +54,10 @@ function createGitRepo(root: string): string {
   return repo
 }
 
-function configureRepoCwd(hermesHome: string, mockUrl: string, repo: string): void {
-  writeMockProviderConfig(hermesHome, mockUrl)
-  fs.appendFileSync(path.join(hermesHome, 'config.yaml'), `\nterminal:\n  cwd: ${repo}\n`, 'utf8')
-  writeEnvFile(hermesHome)
+function configureRepoCwd(sparkiiHome: string, mockUrl: string, repo: string): void {
+  writeMockProviderConfig(sparkiiHome, mockUrl)
+  fs.appendFileSync(path.join(sparkiiHome, 'config.yaml'), `\nterminal:\n  cwd: ${repo}\n`, 'utf8')
+  writeEnvFile(sparkiiHome)
 }
 
 let fixture: MockBackendFixture | null = null

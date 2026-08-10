@@ -229,6 +229,8 @@ contextBridge.exposeInMainWorld('sparkiiDesktop', {
       commitContext: repoPath => ipcRenderer.invoke('sparkii:git:review:commitContext', repoPath),
       push: repoPath => ipcRenderer.invoke('sparkii:git:review:push', repoPath),
       shipInfo: repoPath => ipcRenderer.invoke('sparkii:git:review:shipInfo', repoPath),
+      prList: (repoPath, branches, numbers) =>
+        ipcRenderer.invoke('sparkii:git:review:prList', repoPath, branches, numbers),
       createPr: repoPath => ipcRenderer.invoke('sparkii:git:review:createPr', repoPath)
     }
   },

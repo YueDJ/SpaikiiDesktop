@@ -107,7 +107,7 @@ class AudioBridge:
                     "load-module",
                     "module-null-sink",
                     f"sink_name={sink_name}",
-                    "sink_properties=device.description=HermesMeetSink",
+                    "sink_properties=device.description=SparkiiMeetSink",
                 ],
                 check=True,
                 capture_output=True,

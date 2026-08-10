@@ -1,6 +1,6 @@
 """Tests for get_sparkii_home() profile-mode fallback warning.
 
-Regression test for https://github.com/NousResearch/sparkii-agent/issues/18594.
+Regression test for https://github.com/YueDJ/SpaikiiDesktop/issues/18594.
 
 When SPARKII_HOME is unset but an active_profile file indicates a non-default
 profile is active, get_sparkii_home() should:

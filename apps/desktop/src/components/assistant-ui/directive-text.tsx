@@ -178,7 +178,7 @@ export function formatRefValue(value: string): string {
   return value
 }
 
-export const hermesDirectiveFormatter: Unstable_DirectiveFormatter = {
+export const sparkiiDirectiveFormatter: Unstable_DirectiveFormatter = {
   serialize(item: Unstable_TriggerItem): string {
     const metadata = item.metadata as { rawText?: unknown; insertId?: unknown } | undefined
     const rawText = typeof metadata?.rawText === 'string' ? metadata.rawText : null

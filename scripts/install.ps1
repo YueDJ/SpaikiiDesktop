@@ -29,7 +29,7 @@ param(
     # existing tree pass -ForceCommit.
     [switch]$ForceCommit,
     [string]$Tag = "",
-    [string]$HermesHome = $(if ($env:SPARKII_HOME) { $env:SPARKII_HOME } else { "$env:LOCALAPPDATA\sparkii" }),
+    [string]$SparkiiHome = $(if ($env:SPARKII_HOME) { $env:SPARKII_HOME } else { "$env:LOCALAPPDATA\sparkii" }),
     [string]$InstallDir = $(if ($env:SPARKII_HOME) { "$env:SPARKII_HOME\sparkii-agent" } else { "$env:LOCALAPPDATA\sparkii\sparkii-agent" }),
 
     # --- Stage protocol (additive; default invocation behaves as before) ----
@@ -252,17 +252,17 @@ function ConvertTo-LongPath {
     # 1. kernel32. Compiled on first use only, so a normal profile never pays
     #    the Add-Type cost (this file is re-entered once per install stage).
     try {
-        if (-not ([System.Management.Automation.PSTypeName]'HermesInstall.LongPath').Type) {
-            Add-Type -Namespace 'HermesInstall' -Name 'LongPath' -MemberDefinition @'
+        if (-not ([System.Management.Automation.PSTypeName]'SparkiiInstall.LongPath').Type) {
+            Add-Type -Namespace 'SparkiiInstall' -Name 'LongPath' -MemberDefinition @'
 [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
 public static extern int GetLongPathNameW(string lpszShortPath, System.Text.StringBuilder lpszLongPath, int cchBuffer);
 '@
         }
         $buffer = New-Object System.Text.StringBuilder 4096
-        $length = [HermesInstall.LongPath]::GetLongPathNameW($Path, $buffer, $buffer.Capacity)
+        $length = [SparkiiInstall.LongPath]::GetLongPathNameW($Path, $buffer, $buffer.Capacity)
         if ($length -gt $buffer.Capacity) {
             $buffer = New-Object System.Text.StringBuilder $length
-            $length = [HermesInstall.LongPath]::GetLongPathNameW($Path, $buffer, $buffer.Capacity)
+            $length = [SparkiiInstall.LongPath]::GetLongPathNameW($Path, $buffer, $buffer.Capacity)
         }
         if ($length -gt 0) {
             $expanded = $buffer.ToString()
@@ -328,13 +328,13 @@ function Set-LongProfileEnvVars {
 $script:NormalizedProfilePaths = Set-LongProfileEnvVars
 
 # Re-derive the install paths now that the env vars behind their defaults are
-# long. An explicitly passed -HermesHome / -InstallDir is normalized in place
+# long. An explicitly passed -SparkiiHome / -InstallDir is normalized in place
 # rather than replaced, so a caller's choice is never overwritten by a default.
 # $PSBoundParameters is only meaningful at script scope, so this stays inline.
-if ($PSBoundParameters.ContainsKey('HermesHome')) {
-    $HermesHome = ConvertTo-LongPath $HermesHome
+if ($PSBoundParameters.ContainsKey('SparkiiHome')) {
+    $SparkiiHome = ConvertTo-LongPath $SparkiiHome
 } else {
-    $HermesHome = ConvertTo-LongPath $(
+    $SparkiiHome = ConvertTo-LongPath $(
         if ($env:SPARKII_HOME) { $env:SPARKII_HOME } else { "$env:LOCALAPPDATA\sparkii" }
     )
 }
@@ -348,7 +348,7 @@ if ($PSBoundParameters.ContainsKey('InstallDir')) {
 if ($script:NormalizedProfilePaths) {
     # Which paths the install actually settled on. Absent from every report of
     # this bug class, and the whole question once a short alias is in play.
-    Write-PathDiag "resolved install paths: HermesHome=$HermesHome InstallDir=$InstallDir"
+    Write-PathDiag "resolved install paths: SparkiiHome=$SparkiiHome InstallDir=$InstallDir"
 }
 
 # Captured here, where the values are final, and emitted from the entry-point
@@ -365,7 +365,7 @@ $script:ResolvedPathReport = @{
     normalized        = $script:NormalizedPathRewrites
     resolver          = $script:LastResolver
     temp              = $env:TEMP
-    hermes_home       = $HermesHome
+    sparkii_home       = $SparkiiHome
     install_dir       = $InstallDir
 }
 
@@ -373,8 +373,8 @@ $script:ResolvedPathReport = @{
 # Configuration
 # ============================================================================
 
-$RepoUrlSsh = "git@github.com:NousResearch/sparkii-agent.git"
-$RepoUrlHttps = "https://github.com/NousResearch/sparkii-agent.git"
+$RepoUrlSsh = "git@github.com:YueDJ/SpaikiiDesktop.git"
+$RepoUrlHttps = "https://github.com/YueDJ/SpaikiiDesktop.git"
 $PythonVersion = "3.11"
 # Minor versions the installer accepts when the requested $PythonVersion isn't
 # available, in preference order.  uv discovers both uv-managed and system
@@ -553,6 +553,62 @@ function Show-NpmCertHint {
     return $true
 }
 
+function Write-NpmDebugLogTail {
+    # On failure npm prints only a terse summary to stdout/stderr; the real
+    # evidence (postinstall script stderr like Electron's install.js, network
+    # traces, EBUSY retries) lives in npm's own debug log under
+    # <npm-cache>\_logs\<timestamp>-debug-0.log. The bootstrap installer's
+    # streaming sink only captures what WE emit, so on any npm failure this
+    # helper locates that debug log and replays its tail into our output
+    # stream -- making the bootstrap log a self-contained diagnosis instead
+    # of "exit 1, details in a file on a VM nobody can reach".
+    param(
+        [string]$NpmOutput,
+        [int]$TailLines = 200
+    )
+    $logPath = $null
+    # Preferred: npm names the exact file in its failure summary.
+    if ($NpmOutput -and $NpmOutput -match "A complete log of this run can be found in:\s*(?<path>[^\r\n]+)") {
+        $candidate = $Matches['path'].Trim()
+        if (Test-Path -LiteralPath $candidate) { $logPath = $candidate }
+    }
+    # Fallback (covers --silent runs, truncated output): newest debug log in
+    # npm's cache _logs directory.
+    if (-not $logPath) {
+        try {
+            $npm = Resolve-NpmCmd
+            if ($npm) {
+                $prevEAPLocal = $ErrorActionPreference
+                $ErrorActionPreference = "Continue"
+                $cacheDir = (& $npm config get cache 2>$null | Select-Object -Last 1)
+                $ErrorActionPreference = $prevEAPLocal
+                if ($cacheDir) {
+                    $logsDir = Join-Path ("$cacheDir").Trim() "_logs"
+                    if (Test-Path -LiteralPath $logsDir) {
+                        $newest = Get-ChildItem -LiteralPath $logsDir -Filter "*-debug-*.log" -ErrorAction SilentlyContinue |
+                            Sort-Object LastWriteTime -Descending | Select-Object -First 1
+                        if ($newest) { $logPath = $newest.FullName }
+                    }
+                }
+            }
+        } catch { }
+    }
+    if (-not $logPath) {
+        Write-Warn "npm debug log could not be located -- no further npm detail available"
+        return
+    }
+    $tail = $null
+    try {
+        $tail = Get-Content -LiteralPath $logPath -Tail $TailLines -ErrorAction Stop
+    } catch {
+        Write-Warn "Could not read npm debug log ${logPath}: $($_.Exception.Message)"
+        return
+    }
+    Write-Warn "---- npm debug log: last $TailLines lines of $logPath ----"
+    foreach ($line in $tail) { Write-Host "    $line" -ForegroundColor DarkGray }
+    Write-Warn "---- end npm debug log ----"
+}
+
 # --- Ensure-mode helpers ---
 
 function Resolve-NpmCmd {
@@ -583,10 +639,10 @@ function Find-SystemBrowser {
 
 function Write-BrowserEnv {
     param([string]$BrowserPath)
-    if (-not (Test-Path $HermesHome)) {
-        New-Item -ItemType Directory -Force -Path $HermesHome | Out-Null
+    if (-not (Test-Path $SparkiiHome)) {
+        New-Item -ItemType Directory -Force -Path $SparkiiHome | Out-Null
     }
-    $envFile = Join-Path $HermesHome ".env"
+    $envFile = Join-Path $SparkiiHome ".env"
     if (-not (Test-Path $envFile)) {
         Set-Content -Path $envFile -Value "AGENT_BROWSER_EXECUTABLE_PATH=$BrowserPath" -Encoding UTF8
         return
@@ -605,7 +661,7 @@ function Install-AgentBrowser {
     }
 
     Write-Info "Installing agent-browser via npm -g --prefix..."
-    $prefixDir = Join-Path $HermesHome "node"
+    $prefixDir = Join-Path $SparkiiHome "node"
     if (-not (Test-Path $prefixDir)) {
         New-Item -ItemType Directory -Path $prefixDir -Force | Out-Null
     }
@@ -620,6 +676,9 @@ function Install-AgentBrowser {
         Remove-Item $npmLog -Force -ErrorAction SilentlyContinue
         Write-Err "npm install -g failed (exit $npmExit): $npmDetail"
         Show-NpmCertHint $npmDetail | Out-Null
+        # This install runs with --silent, so $npmDetail is often near-empty;
+        # npm's debug log is the only place the real error survives.
+        Write-NpmDebugLogTail -NpmOutput $npmDetail
         throw "npm install failed"
     }
     Remove-Item $npmLog -Force -ErrorAction SilentlyContinue
@@ -687,11 +746,11 @@ function Get-PowerShellHostExe {
 }
 
 function Install-Uv {
-    # Sparkii owns its own uv at $HermesHome\bin\uv.exe.  Always install there --
+    # Sparkii owns its own uv at $SparkiiHome\bin\uv.exe.  Always install there --
     # no PATH probing, no conda guards, no multi-location resolution chains.
     # The runtime update path (sparkii_cli/managed_uv.py) looks in the same
     # place, so install.ps1 and `sparkii update` stay in sync.
-    $managedUv = Join-Path $HermesHome "bin\uv.exe"
+    $managedUv = Join-Path $SparkiiHome "bin\uv.exe"
 
     if (Test-Path $managedUv) {
         $script:UvCmd = $managedUv
@@ -700,15 +759,15 @@ function Install-Uv {
         return $true
     }
 
-    Write-Info "Installing managed uv into $HermesHome\bin ..."
-    New-Item -ItemType Directory -Path (Join-Path $HermesHome "bin") -Force | Out-Null
+    Write-Info "Installing managed uv into $SparkiiHome\bin ..."
+    New-Item -ItemType Directory -Path (Join-Path $SparkiiHome "bin") -Force | Out-Null
 
     # UV_INSTALL_DIR tells the astral installer to place the binary
-    # directly into $HermesHome\bin instead of ~/.local/bin.
+    # directly into $SparkiiHome\bin instead of ~/.local/bin.
     $prevEAP = $ErrorActionPreference
     try {
         $ErrorActionPreference = "Continue"
-        $env:UV_INSTALL_DIR = Join-Path $HermesHome "bin"
+        $env:UV_INSTALL_DIR = Join-Path $SparkiiHome "bin"
         # Spawn via the resolved host exe (see Get-PowerShellHostExe) rather
         # than a bare `powershell`, which isn't guaranteed to be on PATH under
         # PowerShell 7 / pwsh-only setups.
@@ -918,7 +977,7 @@ function Resolve-UvCmd {
     }
 
     # Check the managed location first -- this is where Install-Uv puts it.
-    $managedUv = Join-Path $HermesHome "bin\uv.exe"
+    $managedUv = Join-Path $SparkiiHome "bin\uv.exe"
     if (Test-Path $managedUv) {
         $script:UvCmd = $managedUv
         return
@@ -1231,10 +1290,10 @@ function Install-Git {
         Write-Info "Trying a Sparkii-managed PortableGit install instead..."
     }
 
-    # Download PortableGit into $HermesHome\git.  Always works as long as
+    # Download PortableGit into $SparkiiHome\git.  Always works as long as
     # we can reach github.com -- no admin, no winget, no reliance on the
     # user's possibly-broken system Git install.
-    Write-Info "Git not found -- downloading PortableGit to $HermesHome\git\ ..."
+    Write-Info "Git not found -- downloading PortableGit to $SparkiiHome\git\ ..."
     Write-Info "(no admin rights required; isolated from any system Git install)"
 
     try {
@@ -1278,7 +1337,7 @@ function Install-Git {
         $downloadUrl = "https://github.com/git-for-windows/git/releases/download/$gitTag/$assetName"
         $downloadExt = if ($downloadIsZip) { "zip" } else { "7z.exe" }
         $tmpFile = "$env:TEMP\$assetName"
-        $gitDir = "$HermesHome\git"
+        $gitDir = "$SparkiiHome\git"
 
         Write-Info "Downloading $assetName (Git for Windows $gitVerTag)..."
         Invoke-WebRequest -Uri $downloadUrl -OutFile $tmpFile -UseBasicParsing
@@ -1383,10 +1442,10 @@ function Set-GitBashEnvVar {
     # this with a system-Git-only installation anyway.
     #
     # Layouts:
-    #   PortableGit (our default): $HermesHome\git\bin\bash.exe
-    #   MinGit (32-bit fallback):  $HermesHome\git\usr\bin\bash.exe
-    $candidates += "$HermesHome\git\bin\bash.exe"       # PortableGit layout (primary)
-    $candidates += "$HermesHome\git\usr\bin\bash.exe"   # MinGit / PortableGit usr\bin fallback
+    #   PortableGit (our default): $SparkiiHome\git\bin\bash.exe
+    #   MinGit (32-bit fallback):  $SparkiiHome\git\usr\bin\bash.exe
+    $candidates += "$SparkiiHome\git\bin\bash.exe"       # PortableGit layout (primary)
+    $candidates += "$SparkiiHome\git\usr\bin\bash.exe"   # MinGit / PortableGit usr\bin fallback
 
     # git.exe on PATH can tell us where the install root is
     $gitCmd = Get-Command git -ErrorAction SilentlyContinue
@@ -1452,16 +1511,16 @@ function Test-Node {
     }
 
     # Prefer a Sparkii-managed Node from a previous run over a too-old system one.
-    $managedNode = "$HermesHome\node\node.exe"
+    $managedNode = "$SparkiiHome\node\node.exe"
     if ((Test-Path $managedNode) -and (Test-NodeVersionOk (& $managedNode --version))) {
         $version = & $managedNode --version
-        $env:Path = "$HermesHome\node;$env:Path"
-        Set-ManagedNodeFirstOnUserPath "$HermesHome\node"
+        $env:Path = "$SparkiiHome\node;$env:Path"
+        Set-ManagedNodeFirstOnUserPath "$SparkiiHome\node"
         Write-Success "Node.js $version found (Sparkii-managed)"
         # A tree from an older install still has that Node major's bundled
         # npm, which is below the current engines.npm floor. No-ops when the
         # npm is already in range, so reruns cost one --version probe.
-        Update-ManagedNpm "$HermesHome\node" | Out-Null
+        Update-ManagedNpm "$SparkiiHome\node" | Out-Null
         $script:HasNode = $true
         return $true
     }
@@ -1472,11 +1531,11 @@ function Test-Node {
     # winget install OpenJS.NodeJS.LTS triggers a system-wide MSI install
     # which prompts UAC (the dialog often appears minimized in the taskbar
     # and the install silently waits for consent, looking like a hang).
-    # The portable zip path drops node.exe + npm into $HermesHome\node\
+    # The portable zip path drops node.exe + npm into $SparkiiHome\node\
     # which is user-scoped and identical to how Install-Git handles
     # PortableGit.  Same UX guarantee: works on locked-down enterprise
     # machines with no admin rights.
-    Write-Info "Downloading portable Node.js $NodeVersion to $HermesHome\node\ ..."
+    Write-Info "Downloading portable Node.js $NodeVersion to $SparkiiHome\node\ ..."
     Write-Info "(no admin rights required; isolated from any system Node install)"
     try {
         $arch = Get-WindowsArch
@@ -1495,23 +1554,23 @@ function Test-Node {
 
             $extractedDir = Get-ChildItem $tmpDir -Directory | Select-Object -First 1
             if ($extractedDir) {
-                if (Test-Path "$HermesHome\node") { Remove-Item -Recurse -Force "$HermesHome\node" }
-                Move-Item $extractedDir.FullName "$HermesHome\node"
+                if (Test-Path "$SparkiiHome\node") { Remove-Item -Recurse -Force "$SparkiiHome\node" }
+                Move-Item $extractedDir.FullName "$SparkiiHome\node"
 
                 # Session PATH so the rest of this run sees node/npm.
-                $env:Path = "$HermesHome\node;$env:Path"
+                $env:Path = "$SparkiiHome\node;$env:Path"
 
                 # Persist to User PATH so fresh shells (and future stages
                 # in cross-process driver mode) see it.  Matches the
                 # pattern Install-Git uses for PortableGit.  See
                 # Set-ManagedNodeFirstOnUserPath for why this is a
                 # move-to-front and not an add-if-missing.
-                Set-ManagedNodeFirstOnUserPath "$HermesHome\node"
+                Set-ManagedNodeFirstOnUserPath "$SparkiiHome\node"
 
-                $version = & "$HermesHome\node\node.exe" --version
-                Write-Success "Node.js $version installed to $HermesHome\node\ (portable, user-scoped)"
+                $version = & "$SparkiiHome\node\node.exe" --version
+                Write-Success "Node.js $version installed to $SparkiiHome\node\ (portable, user-scoped)"
                 # The zip's bundled npm is below the repo's engines.npm floor.
-                Update-ManagedNpm "$HermesHome\node" | Out-Null
+                Update-ManagedNpm "$SparkiiHome\node" | Out-Null
                 $script:HasNode = $true
 
                 Remove-Item -Force $tmpZip -ErrorAction SilentlyContinue
@@ -2062,13 +2121,13 @@ function Install-Repository {
                 # for.  GitHub supports archive URLs for commits, tags, and
                 # branches; we honour Commit > Tag > Branch.
                 if ($Commit) {
-                    $zipUrl = "https://github.com/NousResearch/sparkii-agent/archive/$Commit.zip"
+                    $zipUrl = "https://github.com/YueDJ/SpaikiiDesktop/archive/$Commit.zip"
                     $zipLabel = $Commit
                 } elseif ($Tag) {
-                    $zipUrl = "https://github.com/NousResearch/sparkii-agent/archive/refs/tags/$Tag.zip"
+                    $zipUrl = "https://github.com/YueDJ/SpaikiiDesktop/archive/refs/tags/$Tag.zip"
                     $zipLabel = $Tag
                 } else {
-                    $zipUrl = "https://github.com/NousResearch/sparkii-agent/archive/refs/heads/$Branch.zip"
+                    $zipUrl = "https://github.com/YueDJ/SpaikiiDesktop/archive/refs/heads/$Branch.zip"
                     $zipLabel = $Branch
                 }
                 $zipPath = "$env:TEMP\sparkii-agent-$zipLabel.zip"
@@ -2244,7 +2303,7 @@ function Install-Venv {
             # on failure -- but only for tasks that were enabled to begin with.
             # Best-effort: a missing task just errors quietly.
             try {
-                schtasks /Query /FO CSV 2>$null | ConvertFrom-Csv | Where-Object { $_.TaskName -like '*Hermes_Gateway*' } | ForEach-Object {
+                schtasks /Query /FO CSV 2>$null | ConvertFrom-Csv | Where-Object { $_.TaskName -like '*Sparkii_Gateway*' } | ForEach-Object {
                     $tn = $_.TaskName
                     if ($_.Status -eq 'Disabled') {
                         Write-Info "  gateway autostart task $tn is already disabled; leaving it that way"
@@ -2654,22 +2713,22 @@ function Set-PathVariable {
     Write-Info "Setting up sparkii command..."
     
     if ($NoVenv) {
-        $hermesBin = "$InstallDir"
+        $sparkiiBin = "$InstallDir"
     } else {
-        $hermesBin = "$InstallDir\venv\Scripts"
+        $sparkiiBin = "$InstallDir\venv\Scripts"
     }
     
     # Add the venv Scripts dir to user PATH so sparkii is globally available
     # On Windows, the sparkii.exe in venv\Scripts\ has the venv Python baked in
     $currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
     
-    if ($currentPath -notlike "*$hermesBin*") {
+    if ($currentPath -notlike "*$sparkiiBin*") {
         [Environment]::SetEnvironmentVariable(
             "Path",
-            "$hermesBin;$currentPath",
+            "$sparkiiBin;$currentPath",
             "User"
         )
-        Write-Success "Added to user PATH: $hermesBin"
+        Write-Success "Added to user PATH: $sparkiiBin"
     } else {
         Write-Info "PATH already configured"
     }
@@ -2677,15 +2736,15 @@ function Set-PathVariable {
     # Set SPARKII_HOME so the Python code finds config/data in the right place.
     # Only needed on Windows where we install to %LOCALAPPDATA%\sparkii instead
     # of the Unix default ~/.sparkii
-    $currentHermesHome = [Environment]::GetEnvironmentVariable("SPARKII_HOME", "User")
-    if (-not $currentHermesHome -or $currentHermesHome -ne $HermesHome) {
-        [Environment]::SetEnvironmentVariable("SPARKII_HOME", $HermesHome, "User")
-        Write-Success "Set SPARKII_HOME=$HermesHome"
+    $currentSparkiiHome = [Environment]::GetEnvironmentVariable("SPARKII_HOME", "User")
+    if (-not $currentSparkiiHome -or $currentSparkiiHome -ne $SparkiiHome) {
+        [Environment]::SetEnvironmentVariable("SPARKII_HOME", $SparkiiHome, "User")
+        Write-Success "Set SPARKII_HOME=$SparkiiHome"
     }
-    $env:SPARKII_HOME = $HermesHome
+    $env:SPARKII_HOME = $SparkiiHome
     
     # Update current session
-    $env:Path = "$hermesBin;$env:Path"
+    $env:Path = "$sparkiiBin;$env:Path"
     
     Write-Success "sparkii command ready"
 }
@@ -2770,20 +2829,20 @@ function Write-BootstrapMarker {
 function Copy-ConfigTemplates {
     Write-Info "Setting up configuration files..."
     
-    # Create the SPARKII_HOME directory structure ($HermesHome, default %LOCALAPPDATA%\sparkii)
-    New-Item -ItemType Directory -Force -Path "$HermesHome\cron" | Out-Null
-    New-Item -ItemType Directory -Force -Path "$HermesHome\sessions" | Out-Null
-    New-Item -ItemType Directory -Force -Path "$HermesHome\logs" | Out-Null
-    New-Item -ItemType Directory -Force -Path "$HermesHome\pairing" | Out-Null
-    New-Item -ItemType Directory -Force -Path "$HermesHome\hooks" | Out-Null
-    New-Item -ItemType Directory -Force -Path "$HermesHome\image_cache" | Out-Null
-    New-Item -ItemType Directory -Force -Path "$HermesHome\audio_cache" | Out-Null
-    New-Item -ItemType Directory -Force -Path "$HermesHome\memories" | Out-Null
-    New-Item -ItemType Directory -Force -Path "$HermesHome\skills" | Out-Null
+    # Create the SPARKII_HOME directory structure ($SparkiiHome, default %LOCALAPPDATA%\sparkii)
+    New-Item -ItemType Directory -Force -Path "$SparkiiHome\cron" | Out-Null
+    New-Item -ItemType Directory -Force -Path "$SparkiiHome\sessions" | Out-Null
+    New-Item -ItemType Directory -Force -Path "$SparkiiHome\logs" | Out-Null
+    New-Item -ItemType Directory -Force -Path "$SparkiiHome\pairing" | Out-Null
+    New-Item -ItemType Directory -Force -Path "$SparkiiHome\hooks" | Out-Null
+    New-Item -ItemType Directory -Force -Path "$SparkiiHome\image_cache" | Out-Null
+    New-Item -ItemType Directory -Force -Path "$SparkiiHome\audio_cache" | Out-Null
+    New-Item -ItemType Directory -Force -Path "$SparkiiHome\memories" | Out-Null
+    New-Item -ItemType Directory -Force -Path "$SparkiiHome\skills" | Out-Null
 
     
     # Create .env
-    $envPath = "$HermesHome\.env"
+    $envPath = "$SparkiiHome\.env"
     if (-not (Test-Path $envPath)) {
         $examplePath = "$InstallDir\.env.example"
         if (Test-Path $examplePath) {
@@ -2798,7 +2857,7 @@ function Copy-ConfigTemplates {
     }
     
     # Create config.yaml
-    $configPath = "$HermesHome\config.yaml"
+    $configPath = "$SparkiiHome\config.yaml"
     if (-not (Test-Path $configPath)) {
         $examplePath = "$InstallDir\cli-config.yaml.example"
         if (Test-Path $examplePath) {
@@ -2818,7 +2877,7 @@ function Copy-ConfigTemplates {
     # don't control which PowerShell version the user has.  Go direct
     # to .NET with an explicit UTF8Encoding($false) -- BOM-free on every
     # PowerShell version.
-    $soulPath = "$HermesHome\SOUL.md"
+    $soulPath = "$SparkiiHome\SOUL.md"
     if (-not (Test-Path $soulPath)) {
         # MUST match DEFAULT_SOUL_MD in sparkii_cli/default_soul.py. The runtime
         # upgrades the old comment-only scaffold to this text on next run, so
@@ -2831,10 +2890,10 @@ You are Sparkii Agent, an intelligent AI assistant created by Nous Research. You
         Write-Success "Created $soulPath (edit to customize personality)"
     }
     
-    Write-Success "Configuration directory ready: $HermesHome"
+    Write-Success "Configuration directory ready: $SparkiiHome"
     
-    # Seed bundled skills into $HermesHome\skills (manifest-based, one-time per skill)
-    Write-Info "Syncing bundled skills to $HermesHome\skills ..."
+    # Seed bundled skills into $SparkiiHome\skills (manifest-based, one-time per skill)
+    Write-Info "Syncing bundled skills to $SparkiiHome\skills ..."
     $pythonExe = "$InstallDir\venv\Scripts\python.exe"
     if (Test-Path $pythonExe) {
         try {
@@ -2855,14 +2914,14 @@ You are Sparkii Agent, an intelligent AI assistant created by Nous Research. You
                 $env:PYTHONIOENCODING = $prevPythonioencoding
                 $env:PYTHONUTF8 = $prevPythonutf8
             }
-            Write-Success "Skills synced to $HermesHome\skills"
+            Write-Success "Skills synced to $SparkiiHome\skills"
         } catch {
             # Fallback: simple directory copy
             $bundledSkills = "$InstallDir\skills"
-            $userSkills = "$HermesHome\skills"
+            $userSkills = "$SparkiiHome\skills"
             if ((Test-Path $bundledSkills) -and -not (Get-ChildItem $userSkills -Exclude '.bundled_manifest' -ErrorAction SilentlyContinue)) {
                 Copy-Item -Path "$bundledSkills\*" -Destination $userSkills -Recurse -Force -ErrorAction SilentlyContinue
-                Write-Success "Skills copied to $HermesHome\skills"
+                Write-Success "Skills copied to $SparkiiHome\skills"
             }
         }
     }
@@ -2973,6 +3032,7 @@ function Install-NodeDeps {
                     }
                     Write-Info "  Full log: $logPath"
                     Show-NpmCertHint $errText | Out-Null
+                    Write-NpmDebugLogTail -NpmOutput $errText
                 }
             }
             Write-Info "Run manually later: cd `"$installDir`"; npm install"
@@ -3257,7 +3317,7 @@ function Install-Desktop {
     # itself, ~150MB), then run `npm run pack` in apps/desktop which
     # produces the unpacked binary at apps/desktop/release/<os>-unpacked/.
     #
-    # The Tauri bootstrap installer's launch_hermes_desktop command
+    # The Tauri bootstrap installer's launch_sparkii_desktop command
     # resolves apps/desktop/release/win-unpacked/Sparkii.exe directly,
     # so an "unpacked" build (electron-builder --dir) is enough -- we
     # don't need to produce an NSIS/MSI artifact here.
@@ -3344,6 +3404,10 @@ function Install-Desktop {
                 Try-RestoreElectronDist -InstallDir $InstallDir | Out-Null
             } else {
                 Show-NpmCertHint ($npmOut -join "`n") | Out-Null
+                # Replay npm's own debug log into our stream: the terse
+                # summary above rarely contains the postinstall stderr
+                # (e.g. Electron's install.js) that explains the failure.
+                Write-NpmDebugLogTail -NpmOutput ($npmOut -join "`n")
                 throw "desktop workspace npm install failed (exit $code) -- see lines above for cause"
             }
         } else {
@@ -3465,6 +3529,10 @@ function Install-Desktop {
                 foreach ($line in $snippet -split "`n") { Write-Host "    $line" -ForegroundColor DarkGray }
                 Write-Info "  Full log: $buildLog"
             }
+            # `npm run pack` failures (lifecycle script exits) also land in
+            # npm's debug log; replay it so the bootstrap log carries the
+            # full evidence even when $buildLog's tail cuts off the cause.
+            Write-NpmDebugLogTail -NpmOutput $errText
             throw "apps/desktop build failed (exit $code)"
         }
         Write-Success "Desktop app built"
@@ -3625,7 +3693,7 @@ function Install-PlatformSdks {
         return
     }
 
-    $envPath = "$HermesHome\.env"
+    $envPath = "$SparkiiHome\.env"
     if (-not (Test-Path $envPath)) { return }
     $envLines = Get-Content $envPath -ErrorAction SilentlyContinue
 
@@ -3738,7 +3806,7 @@ function Invoke-SetupWizard {
 }
 
 function Start-GatewayIfConfigured {
-    $envPath = "$HermesHome\.env"
+    $envPath = "$SparkiiHome\.env"
     if (-not (Test-Path $envPath)) { return }
 
     $hasMessaging = $false
@@ -3750,14 +3818,14 @@ function Start-GatewayIfConfigured {
 
     if (-not $hasMessaging) { return }
 
-    $hermesCmd = "$InstallDir\venv\Scripts\sparkii.exe"
-    if (-not (Test-Path $hermesCmd)) {
-        $hermesCmd = "sparkii"
+    $sparkiiCmd = "$InstallDir\venv\Scripts\sparkii.exe"
+    if (-not (Test-Path $sparkiiCmd)) {
+        $sparkiiCmd = "sparkii"
     }
 
     # If WhatsApp is enabled but not yet paired, run foreground for QR scan
     $whatsappEnabled = $content | Where-Object { $_ -match "^WHATSAPP_ENABLED=true" }
-    $whatsappSession = "$HermesHome\whatsapp\session\creds.json"
+    $whatsappSession = "$SparkiiHome\whatsapp\session\creds.json"
     if ($whatsappEnabled -and -not (Test-Path $whatsappSession)) {
         Write-Host ""
         Write-Info "WhatsApp is enabled but not yet paired."
@@ -3770,7 +3838,7 @@ function Start-GatewayIfConfigured {
             $response = Read-Host "Pair WhatsApp now? [Y/n]"
             if ($response -eq "" -or $response -match "^[Yy]") {
                 try {
-                    & $hermesCmd whatsapp
+                    & $sparkiiCmd whatsapp
                 } catch {
                     # Expected after pairing completes
                 }
@@ -3799,10 +3867,10 @@ function Start-GatewayIfConfigured {
     if ($response -eq "" -or $response -match "^[Yy]") {
         Write-Info "Starting gateway in background..."
         try {
-            $logFile = "$HermesHome\logs\gateway.log"
-            Start-Process -FilePath $hermesCmd -ArgumentList "gateway" `
+            $logFile = "$SparkiiHome\logs\gateway.log"
+            Start-Process -FilePath $sparkiiCmd -ArgumentList "gateway" `
                 -RedirectStandardOutput $logFile `
-                -RedirectStandardError "$HermesHome\logs\gateway-error.log" `
+                -RedirectStandardError "$SparkiiHome\logs\gateway-error.log" `
                 -WindowStyle Hidden
             Write-Success "Gateway started! Your bot is now online."
             Write-Info "Logs: $logFile"
@@ -3826,13 +3894,13 @@ function Write-Completion {
     Write-Host "* Your files:" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "   Config:    " -NoNewline -ForegroundColor Yellow
-    Write-Host "$HermesHome\config.yaml"
+    Write-Host "$SparkiiHome\config.yaml"
     Write-Host "   API Keys:  " -NoNewline -ForegroundColor Yellow
-    Write-Host "$HermesHome\.env"
+    Write-Host "$SparkiiHome\.env"
     Write-Host "   Data:      " -NoNewline -ForegroundColor Yellow
-    Write-Host "$HermesHome\cron\, sessions\, logs\"
+    Write-Host "$SparkiiHome\cron\, sessions\, logs\"
     Write-Host "   Code:      " -NoNewline -ForegroundColor Yellow
-    Write-Host "$HermesHome\sparkii-agent\"
+    Write-Host "$SparkiiHome\sparkii-agent\"
     Write-Host ""
     
     Write-Host "---------------------------------------------------------" -ForegroundColor Cyan

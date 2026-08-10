@@ -384,7 +384,7 @@ py-modules = [
   "trajectory_compressor",
   "toolset_distributions",
   "cli",
-  "hermes_bootstrap",
+  "sparkii_bootstrap",
   "sparkii_constants",
   "sparkii_state",
   "sparkii_state_common",
@@ -413,11 +413,14 @@ gateway = ["assets/**/*"]
 testpaths = ["tests"]
 markers = [
     "integration: marks tests requiring external services (API keys, Modal, etc.)",
-    "real_concurrent_gate: opt out of the autouse stub that disables _detect_concurrent_hermes_instances",
+    "real_concurrent_gate: opt out of the autouse stub that disables _detect_concurrent_sparkii_instances",
     "real_agent_prewarm: opt out of the autouse stub that disables the tui_gateway deferred agent pre-warm timer",
     "requires_wal: needs the runtime to actually enable SQLite WAL mode (skipped where Sparkii falls back to journal_mode=DELETE)",
     "no_isolate: opt out of per-file subprocess isolation (tests share mutable module-level state)",
     "ssh: marks tests requiring a reachable SSH server (skipped in normal CI)",
+    "linux_only: exercises Linux-specific behaviour; skipped on other hosts",
+    "macos_only: exercises macOS-specific behaviour; skipped on other hosts",
+    "windows_only: exercises native-Windows behaviour; skipped on other hosts",
 ]
 # integration tests take way too long to run in the normal CI environments
 addopts = "-m 'not integration'"

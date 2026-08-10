@@ -11,7 +11,7 @@
 #
 services:
   gateway:
-    image: nousresearch/sparkii-agent:latest
+    image: yuedj/spaikiidesktop:latest
     container_name: sparkii
     restart: unless-stopped
     volumes:
@@ -22,7 +22,7 @@ services:
     command: ["gateway", "run"]
 
   dashboard:
-    image: nousresearch/sparkii-agent:latest
+    image: yuedj/spaikiidesktop:latest
     container_name: sparkii-dashboard
     restart: unless-stopped
     depends_on:

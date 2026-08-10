@@ -39,7 +39,7 @@ See the full [Pluggable interfaces table](/user-guide/features/plugins#pluggable
 :::
 
 :::caution Third-party-product plugins ship standalone — not into the core tree
-Plugins that integrate **someone else's product or project** — observability/metrics backends, vendor SaaS connectors, analytics dashboards, paid-service tie-ins — are built and distributed as **standalone plugin repos**, not merged into `NousResearch/sparkii-agent`. Users install them into `~/.sparkii/plugins/` or via a pip entry point; everything in this guide works the same way from a standalone repo. This is a coupling-and-maintenance decision (the core moves fast and we don't own your backend), not a quality bar — a plugin can be excellent and still belong in its own repo. Promote it in the Nous Research Discord `#plugins-skills-and-skins` channel. See [CONTRIBUTING.md](https://github.com/NousResearch/sparkii-agent/blob/main/CONTRIBUTING.md) for the policy.
+Plugins that integrate **someone else's product or project** — observability/metrics backends, vendor SaaS connectors, analytics dashboards, paid-service tie-ins — are built and distributed as **standalone plugin repos**, not merged into `YueDJ/SpaikiiDesktop`. Users install them into `~/.sparkii/plugins/` or via a pip entry point; everything in this guide works the same way from a standalone repo. This is a coupling-and-maintenance decision (the core moves fast and we don't own your backend), not a quality bar — a plugin can be excellent and still belong in its own repo. Promote it in the Nous Research Discord `#plugins-skills-and-skins` channel. See [CONTRIBUTING.md](https://github.com/YueDJ/SpaikiiDesktop/blob/main/CONTRIBUTING.md) for the policy.
 :::
 
 ## Portable Agent Plugins v1 packages
@@ -85,10 +85,14 @@ profile-scoped writable directory managed by Sparkii.
 Values declared in portable MCP `env` are visible package data, not a secret
 storage mechanism. Do not place credentials in `mcp.json`.
 
-The current portable subset supports stdio MCP only. Portable Streamable HTTP
-and legacy SSE entries are reported and skipped because the native remote
-client does not yet prove the v1 configured-header redirect boundary end to
-end. Agent Plugins v1 does not define trust, permissions, provenance, or a
+The current portable subset supports stdio and Streamable HTTP MCP entries.
+Portable `streamable-http` entries are routed through Sparkii' existing native
+remote MCP client (the same runtime that powers URL-based `mcp_servers`
+config), with the v1 boundary rules enforced: the URL must be absolute
+http(s) with no user information or fragment, plain HTTP is accepted only
+for `localhost`/loopback hosts, and configured headers are never forwarded
+across a cross-origin redirect. Legacy `sse` entries are reported and
+skipped. Agent Plugins v1 does not define trust, permissions, provenance, or a
 sandbox. Enabling a package grants its instructions and local executable the
 same full-trust posture as other installed Sparkii plugins.
 

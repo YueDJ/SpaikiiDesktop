@@ -1,6 +1,6 @@
-# nix/tui.nix — Hermes TUI (Ink/React) compiled with tsc and bundled
-{ hermesNpmLib, ... }:
-hermesNpmLib.buildNpmPackage {
+# nix/tui.nix — Sparkii TUI (Ink/React) compiled with tsc and bundled
+{ sparkiiNpmLib, ... }:
+sparkiiNpmLib.buildNpmPackage {
   dirs = [
     "ui-tui"
     "apps/shared"

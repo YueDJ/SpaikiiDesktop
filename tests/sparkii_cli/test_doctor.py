@@ -30,7 +30,7 @@ class TestDoctorPlatformHints:
 
         hint = doctor._sqlite_upgrade_hint()
 
-        assert "docker pull nousresearch/sparkii-agent:latest" in hint
+        assert "docker pull yuedj/spaikiidesktop:latest" in hint
         assert "recreate all Sparkii containers" in hint
         assert "sparkii update" not in hint
 

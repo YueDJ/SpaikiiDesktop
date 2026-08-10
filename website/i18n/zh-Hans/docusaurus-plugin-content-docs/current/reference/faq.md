@@ -854,6 +854,6 @@ sparkii chat -q "hello" --model anthropic/claude-opus-4.7
 
 如果您的问题未在此处涵盖：
 
-1. **搜索现有 issue：** [GitHub Issues](https://github.com/NousResearch/sparkii-agent/issues)
+1. **搜索现有 issue：** [GitHub Issues](https://github.com/YueDJ/SpaikiiDesktop/issues)
 2. **向社区提问：** [Nous Research Discord](https://discord.gg/nousresearch)
 3. **提交 bug 报告：** 请包含您的操作系统、Python 版本（`python3 --version`）、Sparkii 版本（`sparkii --version`）以及完整的错误信息

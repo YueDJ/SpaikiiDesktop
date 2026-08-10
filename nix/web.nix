@@ -1,6 +1,6 @@
-# nix/web.nix — Hermes Web Dashboard (Vite/React) frontend build
-{ hermesNpmLib, ... }:
-hermesNpmLib.buildNpmPackage {
+# nix/web.nix — Sparkii Web Dashboard (Vite/React) frontend build
+{ sparkiiNpmLib, ... }:
+sparkiiNpmLib.buildNpmPackage {
   dirs = [
     "web"
 

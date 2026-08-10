@@ -66,7 +66,7 @@ Watch a GitHub repo (set `GITHUB_TOKEN` in `${SPARKII_HOME:-~/.sparkii}/.env` to
 
 ```bash
 python $SPARKII_HOME/skills/devops/watchers/scripts/watch_github.py \
-  --name sparkii-issues --repo NousResearch/sparkii-agent --scope issues
+  --name sparkii-issues --repo YueDJ/SpaikiiDesktop --scope issues
 ```
 
 Poll an arbitrary JSON API:

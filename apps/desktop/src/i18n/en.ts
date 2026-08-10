@@ -81,7 +81,7 @@ export const en: Translations = {
       ipcBridgeUnavailable: 'Desktop IPC bridge is unavailable.'
     },
     failure: {
-      title: 'Sparkii could not start',
+      title: "Sparkii couldn't start",
       description:
         "The background gateway didn't come up. Try one of the recovery steps below. Nothing here deletes your chats or settings.",
       remoteTitle: 'Remote gateway sign-in required',
@@ -1275,7 +1275,7 @@ export const en: Translations = {
     noSessions: 'No sessions yet.',
     gatewayRunning: 'Messaging gateway running',
     gatewayStopped: 'Messaging gateway stopped',
-    hermesActiveSessions: (version, count) => `Sparkii ${version} · Active sessions ${count}`,
+    sparkiiActiveSessions: (version, count) => `Sparkii ${version} · Active sessions ${count}`,
     restartGateway: 'Restart gateway',
     gatewayRestartFailed: 'Gateway restart failed.',
     updateSparkii: 'Update Sparkii',
@@ -1869,6 +1869,7 @@ export const en: Translations = {
     noWorkspace: 'No workspace',
     projectEmpty: 'No sessions yet',
     noSessions: 'No sessions yet',
+    noFilterMatches: 'No sessions match these filters',
     projects: {
       sectionLabel: 'Projects',
       home: 'Home',
@@ -1966,6 +1967,7 @@ export const en: Translations = {
       waitingForAnswer: 'Waiting for your answer',
       finishedUnread: 'Finished — unread',
       backgroundRunning: 'Background task running',
+      draftSession: 'Draft — nothing sent yet',
       handoffOrigin: platform => `Handed off from ${platform}`,
       ownedByProfile: profile => `Profile: ${profile}`,
       renamed: 'Renamed',
@@ -1985,6 +1987,10 @@ export const en: Translations = {
       thisWeek: 'Earlier this week',
       lastWeek: 'Last week',
       thisMonth: 'Earlier this month'
+    },
+    statusDivider: {
+      working: 'Working',
+      done: 'Done'
     }
   },
 

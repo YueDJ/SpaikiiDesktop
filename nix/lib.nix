@@ -169,7 +169,7 @@ let
           "SECURITY.md"
           "README.zh-CN.md"
           ".gitignore"
-          "setup-hermes.sh"
+          "setup-sparkii.sh"
         ];
       in
       if relPath == "" then
@@ -234,7 +234,7 @@ let
   # e.g. apps/desktop depends on apps/shared.
   #
   # Usage:
-  #   hermesNpmLib.buildNpmPackage {
+  #   sparkiiNpmLib.buildNpmPackage {
   #     dirs = [ "apps/desktop" "apps/shared" ];
   #     buildPhase = '' ... '';
   #     installPhase = '' ... '';

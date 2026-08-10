@@ -11,21 +11,21 @@
     { pkgs, self', ... }:
     let
       packages = builtins.attrValues self'.packages;
-      hermesNpmLib = self'.packages.default.passthru.hermesNpmLib;
+      sparkiiNpmLib = self'.packages.default.passthru.sparkiiNpmLib;
 
       # Collect all packageJsonPath values from npm workspace packages.
       npmPackageJsonPaths = builtins.filter (p: p != null) (
         map (p: p.passthru.packageJsonPath or null) packages
       );
 
-      hermesAgentDevShellHook = self'.packages.default.passthru.devShellHook;
+      sparkiiAgentDevShellHook = self'.packages.default.passthru.devShellHook;
     in
     {
       devShells.default = pkgs.mkShell {
         packages = with pkgs; [
-          (pkgs.runCommand "hermes" { } ''
+          (pkgs.runCommand "sparkii" { } ''
             mkdir -p $out/bin
-            install -Dm755 ${../hermes} $out/bin/hermes
+            install -Dm755 ${../sparkii} $out/bin/sparkii
           '')
           self'.packages.sandbox
           uv
@@ -43,8 +43,8 @@
         ]
         ++ self'.packages.default.passthru.devDeps;
         shellHook = ''
-          ${hermesAgentDevShellHook}
-          ${hermesNpmLib.mkNpmDevShellHook npmPackageJsonPaths}
+          ${sparkiiAgentDevShellHook}
+          ${sparkiiNpmLib.mkNpmDevShellHook npmPackageJsonPaths}
 
           # Force Node to use Nix's playwright-test binary instead of node_modules/.bin
           export PATH="${pkgs.playwright-test}/bin:$PATH"
@@ -56,8 +56,8 @@
           # environment instead of creating an empty project .venv.
           export VIRTUAL_ENV="$(dirname "$(dirname "$(readlink -f "$(command -v python)")")")"
 
-          echo "Hermes Agent dev shell in $SPARKII_PYTHON_SRC_ROOT"
-          echo "Ready. Run 'hermes' or 'sandbox hermes' to start."
+          echo "Sparkii Agent dev shell in $SPARKII_PYTHON_SRC_ROOT"
+          echo "Ready. Run 'sparkii' or 'sandbox sparkii' to start."
         '';
       };
     };

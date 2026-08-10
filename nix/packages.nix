@@ -1,4 +1,4 @@
-# nix/packages.nix — Hermes Agent package built with uv2nix
+# nix/packages.nix — Sparkii Agent package built with uv2nix
 { inputs, ... }:
 {
   perSystem =
@@ -65,11 +65,11 @@
           extraDependencyGroups = [ "messaging" ];
         };
 
-        tui = full.hermesTui;
-        web = full.hermesWeb;
-        desktop = full.hermesDesktop;
+        tui = full.sparkiiTui;
+        web = full.sparkiiWeb;
+        desktop = full.sparkiiDesktop;
 
-        update-npm-lockfile = full.hermesNpmLib.updateNpmLockfile;
+        update-npm-lockfile = full.sparkiiNpmLib.updateNpmLockfile;
       };
     };
 }

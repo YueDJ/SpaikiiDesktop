@@ -174,7 +174,7 @@ def set_current_session_id(session_id: str) -> None:
     # Skip the process-global os.environ write for delegated children. The
     # child's own tools and subprocesses still resolve their id through the
     # ContextVar (task-local), while the parent's process-wide env keeps the
-    # parent's session identity. See HermesPRDelegationSessionContext task.
+    # parent's session identity. See SparkiiPRDelegationSessionContext task.
     try:
         from agent.delegation_context import is_delegated_child_context
 
@@ -458,7 +458,7 @@ def declare_stateless_channel() -> None:
     returned within the turn instead of being dispatched to a channel that will
     never deliver them.
 
-    See NousResearch/sparkii-agent#53027 and #63142.
+    See YueDJ/SpaikiiDesktop#53027 and #63142.
     """
     _SESSION_ASYNC_DELIVERY.set(False)
 
