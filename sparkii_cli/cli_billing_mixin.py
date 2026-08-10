@@ -1,7 +1,7 @@
 """Billing and subscription handlers for the interactive CLI (god-file decomposition).
 
 This module hosts the Nous billing/subscription methods lifted out of
-``cli.py``'s ``HermesCLI`` class. ``HermesCLI`` inherits
+``cli.py``'s ``SparkiiCLI`` class. ``SparkiiCLI`` inherits
 ``CLIBillingMixin`` so every ``self.<handler>`` call resolves unchanged
 via the MRO — behavior-neutral apart from focused billing fixes.
 

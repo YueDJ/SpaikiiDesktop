@@ -306,7 +306,7 @@ def run_oneshot(
 def _create_session_db_for_oneshot():
     """Best-effort SessionDB for ``sparkii -z`` / oneshot mode.
 
-    Oneshot bypasses ``HermesCLI._init_agent()``, so it must wire the SQLite
+    Oneshot bypasses ``SparkiiCLI._init_agent()``, so it must wire the SQLite
     session store itself. Without this, the ``session_search``/recall tool is
     advertised but every call returns "Session database not available.".
     """
@@ -406,7 +406,7 @@ def _run_agent(
 
     # Ensure MCP tools are discovered before building the agent.  Oneshot
     # bypasses cli.py's _prepare_agent_startup MCP background path and
-    # HermesCLI._init_agent's wait — it builds AIAgent directly here, so the
+    # SparkiiCLI._init_agent's wait — it builds AIAgent directly here, so the
     # tool snapshot at construction time misses any MCP server that hasn't
     # registered yet.  This helper starts discovery if needed (idempotent) and
     # bounded-waits with the larger single-query bound (default 15s) because

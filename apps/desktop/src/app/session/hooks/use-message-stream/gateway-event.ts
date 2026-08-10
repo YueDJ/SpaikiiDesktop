@@ -1,5 +1,5 @@
-import type { BillingBlock } from '@hermes/shared'
-import type { SparkiiSkin } from '@hermes/shared/skin'
+import type { BillingBlock } from '@sparkii/shared'
+import type { SparkiiSkin } from '@sparkii/shared/skin'
 import type { QueryClient } from '@tanstack/react-query'
 import { type MutableRefObject, useCallback, useEffect, useRef } from 'react'
 
@@ -74,7 +74,7 @@ import { notifyWorkspaceChanged, toolChangedPath, toolMayMutateFiles } from '@/s
 // Leaf import (not the `@/themes` barrel) to avoid pulling the ThemeProvider
 // module graph into the gateway event hot path.
 import { ingestBackendSkin } from '@/themes/backend-sync'
-import type { RpcEvent } from '@/types/hermes'
+import type { RpcEvent } from '@/types/sparkii'
 
 import type { ClientSessionState } from '../../../types'
 import { finalizeInterruptedMessages } from '../use-prompt-actions/rewind'

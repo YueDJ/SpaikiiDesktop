@@ -1,6 +1,6 @@
 """Welcome banner, ASCII art, skills summary, and update check for the CLI.
 
-Pure display functions with no HermesCLI state dependency.
+Pure display functions with no SparkiiCLI state dependency.
 """
 import json
 import logging
@@ -274,7 +274,7 @@ def _check_via_local_git(repo_dir: Path) -> Optional[int]:
 
 
 def check_for_updates() -> Optional[int]:
-    """Check whether a Hermes update is available.
+    """Check whether a Sparkii update is available.
 
     Two paths: if ``SPARKII_REVISION`` is set (nix builds embed it), compare
     it to upstream main via ``git ls-remote``. Otherwise look for a local
@@ -346,7 +346,7 @@ def check_for_updates() -> Optional[int]:
 
 
 def _resolve_repo_dir() -> Optional[Path]:
-    """Return the active Hermes git checkout, or None if this isn't a git install.
+    """Return the active Sparkii git checkout, or None if this isn't a git install.
 
     Prefers the running code's location over the profile-scoped path
     because ``$SPARKII_HOME/sparkii-agent/`` may be a stale copy carried
@@ -445,7 +445,7 @@ def get_latest_release_tag(repo_dir: Optional[Path] = None) -> Optional[tuple]:
     """Return ``(tag, release_url)`` for the latest git tag, or None.
 
     Local-only — runs ``git describe --tags --abbrev=0`` against the
-    Hermes checkout. Cached per-process. Release URL always points at the
+    Sparkii checkout. Cached per-process. Release URL always points at the
     canonical NousResearch/sparkii-agent repo (forks don't get a link).
     """
     global _latest_release_cache

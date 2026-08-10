@@ -12,7 +12,7 @@ from unittest.mock import patch
 
 import pytest
 
-from acp_adapter.server import HermesACPAgent, _named_custom_provider_catalogs
+from acp_adapter.server import SparkiiACPAgent, _named_custom_provider_catalogs
 from acp_adapter.session import SessionManager
 from acp.schema import SessionModelState
 
@@ -119,7 +119,7 @@ class TestModelStateIncludesNamedProviders:
                 model="gpt-5.4", provider="openai-codex"
             )
         )
-        acp_agent = HermesACPAgent(session_manager=manager)
+        acp_agent = SparkiiACPAgent(session_manager=manager)
 
         with patch(
             "sparkii_cli.models.curated_models_for_provider",

@@ -295,7 +295,7 @@ def _upload_dpaste_com(content: str, expiry_days: int = 7) -> str:
 
     dpaste.com uses multipart form data.
     """
-    boundary = "----HermesDebugBoundary9f3c"
+    boundary = "----SparkiiDebugBoundary9f3c"
 
     def _field(name: str, value: str) -> str:
         return (
@@ -379,7 +379,7 @@ def _primary_log_path(log_name: str) -> Optional[Path]:
 # exactly the wrong answer when the client is the thing being debugged.
 _CLIENT_SIDE_LOGS = {
     "desktop": (
-        "written by Hermes Desktop on the machine running the app, not by this "
+        "written by Sparkii Desktop on the machine running the app, not by this "
         "backend. If the desktop connects to a remote/docker/SSH backend, collect "
         "it on that client machine"
     ),
@@ -909,13 +909,13 @@ def run_debug_share(args):
     # Manual delete fallback
     print("To delete now:  sparkii debug delete <url>")
 
-    print("\nShare these links with the Hermes team for support.")
+    print("\nShare these links with the Sparkii team for support.")
 
 
 _NOUS_PRIVACY_NOTICE = """\
 ⚠️  --nous: This uploads your debug bundle to Nous-INTERNAL storage (AWS S3),
     NOT a public paste service. The following is included:
-  • System info (OS, Python/Hermes version, provider, which API keys are
+  • System info (OS, Python/Sparkii version, provider, which API keys are
     configured — NOT the actual keys)
   • Full agent.log, gateway.log, and desktop.log (up to 512 KB each — likely
     contains conversation content, tool outputs, and file paths)

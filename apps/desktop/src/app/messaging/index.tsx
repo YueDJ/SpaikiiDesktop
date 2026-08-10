@@ -20,7 +20,7 @@ import {
   type PairingUser,
   revokePairing,
   updateMessagingPlatform
-} from '@/hermes'
+} from '@/sparkii'
 import { type Translations, useI18n } from '@/i18n'
 import { openExternalLink } from '@/lib/external-link'
 import { ExternalLink, Save, Trash2 } from '@/lib/icons'

@@ -1,14 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type * as SparkiiModule from '@/hermes'
-import { getSession } from '@/hermes'
+import type * as SparkiiModule from '@/sparkii'
+import { getSession } from '@/sparkii'
 import { $activeGatewayProfile, $profiles } from '@/store/profile'
 import { $sessions } from '@/store/session'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/sparkii'
 
 import { resolveSessionProfile, resolveStoredSession } from './utils'
 
-vi.mock('@/hermes', async importActual => ({
+vi.mock('@/sparkii', async importActual => ({
   ...(await importActual<typeof SparkiiModule>()),
   getSession: vi.fn()
 }))

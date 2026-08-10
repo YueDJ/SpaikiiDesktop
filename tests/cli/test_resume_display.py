@@ -13,9 +13,9 @@ import cli as cli_mod
 
 
 def _make_cli(config_overrides=None, env_overrides=None, **kwargs):
-    """Create a HermesCLI instance with minimal mocking."""
+    """Create a SparkiiCLI instance with minimal mocking."""
     import cli as _cli_mod
-    from cli import HermesCLI
+    from cli import SparkiiCLI
 
     _clean_config = {
         "model": {
@@ -42,7 +42,7 @@ def _make_cli(config_overrides=None, env_overrides=None, **kwargs):
         patch.dict("os.environ", clean_env, clear=False),
         patch.dict(_cli_mod.__dict__, {"CLI_CONFIG": _clean_config}),
     ):
-        return HermesCLI(**kwargs)
+        return SparkiiCLI(**kwargs)
 
 
 # ── Sample conversation histories for tests ──────────────────────────
@@ -129,7 +129,7 @@ class TestDisplayResumedHistory:
         output = self._capture_display(cli)
 
         assert "You:" in output
-        assert "Hermes:" in output
+        assert "Sparkii:" in output
         assert "What is Python?" in output
         assert "Python is a high-level programming language." in output
         assert "How do I install it?" in output

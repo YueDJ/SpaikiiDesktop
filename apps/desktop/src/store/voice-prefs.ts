@@ -1,6 +1,6 @@
 import { atom } from 'nanostores'
 
-import { getSparkiiConfigRecord, saveSparkiiConfig } from '@/hermes'
+import { getSparkiiConfigRecord, saveSparkiiConfig } from '@/sparkii'
 
 // "Read replies aloud" — mirrors the canonical `voice.auto_tts` config key (also
 // in Settings → Voice, honored by the messaging gateway) so the composer toggle

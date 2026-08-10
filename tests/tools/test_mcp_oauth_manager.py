@@ -14,7 +14,7 @@ import pytest
 
 def test_manager_isolates_same_named_servers_by_profile_home(tmp_path, monkeypatch):
     from sparkii_constants import reset_sparkii_home_override, set_sparkii_home_override
-    from tools.mcp_oauth import HermesTokenStorage
+    from tools.mcp_oauth import SparkiiTokenStorage
     from tools.mcp_oauth_manager import MCPOAuthManager
 
     profile_a = tmp_path / "profile-a"
@@ -22,7 +22,7 @@ def test_manager_isolates_same_named_servers_by_profile_home(tmp_path, monkeypat
     for home, access_token in ((profile_a, "TOKEN_A"), (profile_b, "TOKEN_B")):
         token = set_sparkii_home_override(home)
         try:
-            storage = HermesTokenStorage("shared")
+            storage = SparkiiTokenStorage("shared")
             storage._tokens_path().parent.mkdir(parents=True, exist_ok=True)
             storage._tokens_path().write_text(
                 '{"access_token":"%s","token_type":"Bearer","expires_in":3600}'
@@ -75,7 +75,7 @@ def _set_interactive_stdin(monkeypatch, *, is_tty: bool = True) -> None:
 
 
 def test_sparkii_provider_subclass_exists():
-    """HermesMCPOAuthProvider is defined and subclasses OAuthClientProvider."""
+    """SparkiiMCPOAuthProvider is defined and subclasses OAuthClientProvider."""
     from tools.mcp_oauth_manager import _SPARKII_PROVIDER_CLS
     from mcp.client.auth.oauth2 import OAuthClientProvider
 

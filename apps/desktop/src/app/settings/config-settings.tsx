@@ -6,7 +6,7 @@ import { useSearchParams } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { getElevenLabsVoices, getSparkiiConfigSchema, saveSparkiiConfig } from '@/hermes'
+import { getElevenLabsVoices, getSparkiiConfigSchema, saveSparkiiConfig } from '@/sparkii'
 import { useI18n } from '@/i18n'
 import { triggerHaptic } from '@/lib/haptics'
 import {
@@ -21,7 +21,7 @@ import {
 import { $keepAwake, setKeepAwake } from '@/store/keep-awake'
 import { notify, notifyError } from '@/store/notifications'
 import { repoDiscoveryPolicyFromConfig, repoDiscoveryPolicySignature, scanAndRecordRepos } from '@/store/projects'
-import type { ConfigFieldSchema, SparkiiConfigRecord } from '@/types/hermes'
+import type { ConfigFieldSchema, SparkiiConfigRecord } from '@/types/sparkii'
 
 import { setSparkiiConfigCache, useSparkiiConfigRecord } from '../hooks/use-config-record'
 import { useOnProfileSwitch } from '../hooks/use-on-profile-switch'
@@ -80,7 +80,7 @@ export function ConfigSettings({
     isError: schemaFailed,
     refetch: refetchSchema
   } = useQuery({
-    queryKey: ['hermes-config-schema'],
+    queryKey: ['sparkii-config-schema'],
     queryFn: getSparkiiConfigSchema,
     staleTime: 5 * 60 * 1000
   })

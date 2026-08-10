@@ -777,10 +777,10 @@ def _is_mcp_toolset_name(name: str) -> bool:
 def _expand_parent_toolsets(parent_toolsets: set) -> set:
     """Expand composite toolsets so individual toolset names are recognized.
 
-    When a parent uses a composite toolset like ``hermes-cli`` (which bundles
+    When a parent uses a composite toolset like ``sparkii-cli`` (which bundles
     all core tools), the child may request individual toolsets such as ``web``
     or ``terminal``.  A simple name-based intersection would reject them
-    because ``"web" != "hermes-cli"``.
+    because ``"web" != "sparkii-cli"``.
 
     This helper collects the tool names from each parent toolset, then adds
     the names of any individual toolsets whose tools are a *subset* of the
@@ -1027,7 +1027,7 @@ def _blocked_toolsets_for_role(role: str) -> List[str]:
     """Return one-tool deny toolsets for a delegated child role.
 
     ``_strip_blocked_tools`` can remove fully blocked toolsets, but it must keep
-    mixed platform bundles such as ``hermes-cli`` because those also contain
+    mixed platform bundles such as ``sparkii-cli`` because those also contain
     useful tools. Passing these exact deny toolsets to AIAgent lets
     ``model_tools`` subtract blocked names *after* composite expansion, and the
     restriction survives later registry/MCP refreshes through the agent's
@@ -1381,7 +1381,7 @@ def _build_child_agent(
 
     if toolsets:
         # Intersect with parent — subagent must not gain tools the parent lacks.
-        # Expand composite toolsets (e.g. hermes-cli) so that individual
+        # Expand composite toolsets (e.g. sparkii-cli) so that individual
         # toolset names (e.g. web, terminal) are recognised during intersection.
         expanded_parent = _expand_parent_toolsets(parent_toolsets)
         child_toolsets = [t for t in toolsets if t in expanded_parent]
@@ -1397,8 +1397,8 @@ def _build_child_agent(
     else:
         child_toolsets = _strip_blocked_tools(DEFAULT_TOOLSETS)
 
-    # Blocked tools also live inside mixed platform bundles (hermes-cli,
-    # hermes-telegram, etc.) that _strip_blocked_tools must keep because they
+    # Blocked tools also live inside mixed platform bundles (sparkii-cli,
+    # sparkii-telegram, etc.) that _strip_blocked_tools must keep because they
     # carry useful tools too. Pass exact one-tool deny toolsets through to the
     # child so model_tools subtracts the blocked names AFTER composite
     # expansion, and the restriction survives later registry/MCP refreshes.
@@ -1493,7 +1493,7 @@ def _build_child_agent(
     #
     # Nous Portal is dual-wire within a single provider: anthropic/* → Messages,
     # everything else → chat_completions. Same-provider inheritance would pin a
-    # child Hermes/Qwen subagent onto the parent's Claude Messages wire (or the
+    # child Sparkii/Qwen subagent onto the parent's Claude Messages wire (or the
     # reverse). agent_init honors an explicit api_mode above its nous branch, so
     # re-derive here before construction.
     _parent_provider = getattr(parent_agent, "provider", None) or ""
@@ -1736,7 +1736,7 @@ def _dump_subagent_timeout_diagnostic(
 
     See issue #14726: users hit "subagent timed out after 300s with no response"
     with zero API calls and no way to inspect what happened. This helper
-    writes a dedicated log under ``~/.hermes/logs/subagent-<sid>-<ts>.log``
+    writes a dedicated log under ``~/.sparkii/logs/subagent-<sid>-<ts>.log``
     capturing the child's config, system-prompt / tool-schema sizes, activity
     tracker snapshot, and the worker thread's Python stack at timeout.
 
@@ -2220,7 +2220,7 @@ def _run_single_child(
             try:
                 from gateway.session_context import get_session_env
 
-                owner_session_id = get_session_env("HERMES_UI_SESSION_ID", "") or None
+                owner_session_id = get_session_env("SPARKII_UI_SESSION_ID", "") or None
             except Exception:
                 owner_session_id = None
         if owner_session_id and (
@@ -3297,9 +3297,9 @@ def delegate_task(
     # Capture the ORIGINATING session's wake target BEFORE any child agent is
     # constructed: _build_child_agent() -> AIAgent() -> agent_init calls
     # set_current_session_id(child.session_id), which clobbers the
-    # HERMES_SESSION_ID ContextVar and os.environ with the subagent's internal
+    # SPARKII_SESSION_ID ContextVar and os.environ with the subagent's internal
     # id before the background-dispatch code below would read it. The
-    # request-scoped chat_id binding (the raw X-Hermes-Session-Id on
+    # request-scoped chat_id binding (the raw X-Sparkii-Session-Id on
     # api_server) is untouched by child construction, so read it here and
     # thread it through the dispatch.
     from tools.async_delegation import _current_origin_session_id
@@ -3308,7 +3308,7 @@ def delegate_task(
     try:
         from gateway.session_context import get_session_env
 
-        _origin_ui_session_id = get_session_env("HERMES_UI_SESSION_ID", "")
+        _origin_ui_session_id = get_session_env("SPARKII_UI_SESSION_ID", "")
     except Exception:
         _origin_ui_session_id = ""
     _origin_owner_transport, _origin_owner_session_record = (
@@ -3593,11 +3593,11 @@ def delegate_task(
             # bound (the API server always binds one — see
             # ApiServerAdapter._bind_api_server_session), gateway.wake can
             # still reach the session by self-POSTing /v1/chat/completions
-            # with that id in X-Hermes-Session-Id once the batch completes.
+            # with that id in X-Sparkii-Session-Id once the batch completes.
             # Only fall back to forced-sync execution when there is truly no
             # session id to wake. Uses the origin captured before child
             # construction (see _origin_wake_sid above) — reading
-            # HERMES_SESSION_ID here would return the subagent's internal id.
+            # SPARKII_SESSION_ID here would return the subagent's internal id.
             _wake_sid = _origin_wake_sid
             if _wake_sid:
                 logger.info(
@@ -3620,7 +3620,7 @@ def delegate_task(
                 _sync_result["note"] = (
                     "background=true is not available in this session — it cannot "
                     "receive a detached subagent result after the turn ends (a "
-                    "one-shot runner such as `hermes -z`, a cron job, a Kanban "
+                    "one-shot runner such as `sparkii -z`, a cron job, a Kanban "
                     "worker, or a stateless HTTP endpoint). The subagent(s) ran "
                     "SYNCHRONOUSLY and the result is included above."
                 )
@@ -3630,11 +3630,11 @@ def delegate_task(
         try:
             from gateway.session_context import get_session_env
 
-            _source = get_session_env("HERMES_SESSION_SOURCE", "")
+            _source = get_session_env("SPARKII_SESSION_SOURCE", "")
             # Refresh from the same task-local source when available, but retain
             # the immutable value captured before child construction otherwise.
             _origin_ui_session_id = (
-                get_session_env("HERMES_UI_SESSION_ID", "") or _origin_ui_session_id
+                get_session_env("SPARKII_UI_SESSION_ID", "") or _origin_ui_session_id
             )
             # In desktop/TUI, the routable session key is the durable
             # AIAgent.session_id. Context compression can rotate that id during
@@ -3651,7 +3651,7 @@ def delegate_task(
             _source = ""
         if not _session_key:
             # CLI (single-process) path: the approval contextvar is only bound
-            # during gateway/TUI turns and HERMES_SESSION_KEY is not in the CLI
+            # during gateway/TUI turns and SPARKII_SESSION_KEY is not in the CLI
             # environment, so the key resolves empty here. Since #64240 the CLI
             # drains completions through a positive-ownership filter keyed on
             # the durable AIAgent.session_id — an empty session_key would fail
@@ -4001,7 +4001,7 @@ def _resolve_delegation_credentials(cfg: dict, parent_agent) -> dict:
     if not api_key:
         raise ValueError(
             f"Delegation provider '{configured_provider}' resolved but has no API key. "
-            f"Set the appropriate environment variable or run 'hermes auth'."
+            f"Set the appropriate environment variable or run 'sparkii auth'."
         )
 
     return {
@@ -4018,7 +4018,7 @@ def _resolve_delegation_credentials(cfg: dict, parent_agent) -> dict:
 
 
 def _load_config() -> dict:
-    """Load delegation config from the active Hermes config.
+    """Load delegation config from the active Sparkii config.
 
     Prefer the shared persistent loader because it follows the active
     SPARKII_HOME/profile. ``cli.CLI_CONFIG`` is a legacy fallback for entry
@@ -4031,12 +4031,12 @@ def _load_config() -> dict:
     rebuild via ``_get_max_concurrent_children``, so skipping the defensive
     deepcopy matters. Do NOT mutate the returned dict.
 
-    ``HERMES_IGNORE_USER_CONFIG=1`` (``hermes chat --ignore-user-config``) is
+    ``SPARKII_IGNORE_USER_CONFIG=1`` (``sparkii chat --ignore-user-config``) is
     only honored by the legacy ``cli`` loader, not the shared one, so when the
     flag is set we keep ``cli.CLI_CONFIG`` authoritative to preserve the
     flag's contract of suppressing user config.yaml settings.
     """
-    prefer_legacy = os.environ.get("HERMES_IGNORE_USER_CONFIG") == "1"
+    prefer_legacy = os.environ.get("SPARKII_IGNORE_USER_CONFIG") == "1"
     if not prefer_legacy:
         try:
             from sparkii_cli.config import load_config_readonly

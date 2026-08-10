@@ -386,8 +386,8 @@ def _oauth_tokens_present(name: str) -> bool:
     initialize/tools-list without auth (so no token was ever acquired).
     """
     try:
-        from tools.mcp_oauth import HermesTokenStorage
-        return HermesTokenStorage(name).has_cached_tokens()
+        from tools.mcp_oauth import SparkiiTokenStorage
+        return SparkiiTokenStorage(name).has_cached_tokens()
     except Exception as exc:  # pragma: no cover — defensive
         logger.debug("Could not check OAuth tokens for '%s': %s", name, exc)
         # Be permissive on unexpected errors: don't block a real success.
@@ -820,7 +820,7 @@ def _reauth_oauth_server(name: str, server_config: dict) -> bool:
     # path in web_server.py so CLI and dashboard behave identically.
     #
     # force_interactive_oauth: `sparkii mcp login` is *explicitly* user-
-    # initiated even when stdin isn't a TTY (Hermes desktop / agent-
+    # initiated even when stdin isn't a TTY (Sparkii desktop / agent-
     # spawned terminals). Without this, OAuth refuses before opening a
     # browser because _is_interactive() only checks sys.stdin.isatty().
     try:

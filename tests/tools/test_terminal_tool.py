@@ -85,7 +85,7 @@ def test_validate_workdir_blocks_shell_metacharacters_in_windows_paths():
 
 def test_validate_workdir_allows_unicode_filesystem_paths():
     assert terminal_tool._validate_workdir(
-        "/Users/alice/Documents/Obs_Hermes_Data/项目-projects/客户拜访"
+        "/Users/alice/Documents/Obs_Sparkii_Data/项目-projects/客户拜访"
     ) is None
     assert terminal_tool._validate_workdir("/tmp/テスト") is None
     assert terminal_tool._validate_workdir("/home/jürgen/über projekt") is None

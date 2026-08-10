@@ -535,7 +535,7 @@ def test_https_local_endpoint_is_not_runtime_autostart_eligible(monkeypatch):
     assert provider._client is None
     assert warnings == [
         "Remote OpenViking server at https://localhost:1934 is not reachable. "
-        "OpenViking memory is temporarily unavailable; Hermes will retry on a later access or when "
+        "OpenViking memory is temporarily unavailable; Sparkii will retry on a later access or when "
         "the config changes. "
         "Check the configured endpoint and network connectivity."
     ]
@@ -569,7 +569,7 @@ def test_runtime_does_not_autostart_when_local_server_reports_unhealthy(monkeypa
     assert provider._client is None
     assert warnings == [
         "Service at http://localhost:1934 responded but reported unhealthy OpenViking status. "
-        "OpenViking memory is temporarily unavailable; Hermes will retry on a later access "
+        "OpenViking memory is temporarily unavailable; Sparkii will retry on a later access "
         "or when the config changes."
     ]
 

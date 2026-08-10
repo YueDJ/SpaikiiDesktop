@@ -36,8 +36,8 @@ ACCEPT = [
     "sparkii -p gateway gateway run",
     "python -m sparkii_cli.main --profile gateway gateway run",
     # quoted Windows paths with spaces (shlex-aware tokenization)
-    r'"C:\Program Files\Hermes\sparkii-gateway.exe"',
-    r'"C:\Program Files\Hermes\gateway\run.py" run',
+    r'"C:\Program Files\Sparkii\sparkii-gateway.exe"',
+    r'"C:\Program Files\Sparkii\gateway\run.py" run',
     r'"C:\Program Files\Py\pythonw.exe" -m sparkii_cli.main gateway run',
 ]
 

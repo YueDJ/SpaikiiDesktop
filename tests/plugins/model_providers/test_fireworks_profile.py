@@ -41,7 +41,7 @@ class TestFireworksIdentity:
 
 class TestFireworksHeaders:
     def test_attribution_matches_canonical_sparkii_values(self, fireworks_profile):
-        """Fireworks requests carry the same attribution identity Hermes sends
+        """Fireworks requests carry the same attribution identity Sparkii sends
         everywhere else.
 
         Asserted against the shared constant rather than the literals so a
@@ -55,7 +55,7 @@ class TestFireworksHeaders:
 
     def test_user_agent_identifies_sparkii(self, fireworks_profile):
         # Prefix, not the full string — the version moves every release.
-        assert fireworks_profile.default_headers["User-Agent"].startswith("HermesAgent/")
+        assert fireworks_profile.default_headers["User-Agent"].startswith("SparkiiAgent/")
 
 
 class TestFireworksAliases:

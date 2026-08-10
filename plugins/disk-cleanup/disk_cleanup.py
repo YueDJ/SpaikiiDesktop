@@ -1,4 +1,4 @@
-"""disk_cleanup — ephemeral file cleanup for Hermes Agent.
+"""disk_cleanup — ephemeral file cleanup for Sparkii Agent.
 
 Library module wrapping the deterministic cleanup rules written by
 @LVT382009 in PR #12212. The plugin ``__init__.py`` wires these
@@ -15,8 +15,8 @@ Rules:
   - chrome-profile→ prompt after 14 days (deep only)
   - >500 MB files → prompt always (deep only)
 
-Scope: strictly SPARKII_HOME and /tmp/hermes-*
-Never touches: ~/.hermes/logs/ or any system directory.
+Scope: strictly SPARKII_HOME and /tmp/sparkii-*
+Never touches: ~/.sparkii/logs/ or any system directory.
 """
 
 from __future__ import annotations
@@ -35,7 +35,7 @@ except Exception:  # pragma: no cover — plugin may load before constants resol
 
     def get_sparkii_home() -> Path:  # type: ignore[no-redef]
         val = (os.environ.get("SPARKII_HOME") or "").strip()
-        return Path(val).resolve() if val else (Path.home() / ".hermes").resolve()
+        return Path(val).resolve() if val else (Path.home() / ".sparkii").resolve()
 
 
 logger = logging.getLogger(__name__)
@@ -64,7 +64,7 @@ def get_log_file() -> Path:
 # ---------------------------------------------------------------------------
 
 def is_safe_path(path: Path) -> bool:
-    """Accept only paths under SPARKII_HOME or ``/tmp/hermes-*``.
+    """Accept only paths under SPARKII_HOME or ``/tmp/sparkii-*``.
 
     Rejects Windows mounts (``/mnt/c`` etc.) and any system directory.
     """
@@ -74,9 +74,9 @@ def is_safe_path(path: Path) -> bool:
         return True
     except (ValueError, OSError):
         pass
-    # Allow /tmp/hermes-* explicitly
+    # Allow /tmp/sparkii-* explicitly
     parts = path.parts
-    if len(parts) >= 3 and parts[1] == "tmp" and parts[2].startswith("hermes-"):
+    if len(parts) >= 3 and parts[1] == "tmp" and parts[2].startswith("sparkii-"):
         return True
     return False
 
@@ -147,7 +147,7 @@ ALLOWED_CATEGORIES = {
 _EMPTY_DIR_PROTECTED_TOP_LEVEL = frozenset({
     "logs", "memories", "sessions", "cron", "cronjobs",
     "cache", "skills", "plugins", "disk-cleanup", "optional-skills",
-    "hermes-agent", "backups", "profiles", ".worktrees",
+    "sparkii-agent", "backups", "profiles", ".worktrees",
     # User-authored project trees — never sweep empty directories
     # inside these (#75403).
     "patches", "projects", "skins", "themes", "contributors",
@@ -383,7 +383,7 @@ def quick() -> Dict[str, Any]:
             new_tracked.append(item)
 
     # Remove empty dirs under SPARKII_HOME, but never recurse into known
-    # durable state trees.  Some installs place the Hermes checkout, venv,
+    # durable state trees.  Some installs place the Sparkii checkout, venv,
     # and desktop build under SPARKII_HOME; a full rglob over that tree can
     # stall the gateway event loop for minutes.
     sparkii_home = get_sparkii_home()
@@ -580,7 +580,7 @@ def guess_category(path: Path) -> Optional[str]:
         if top in {
             "disk-cleanup", "logs", "memories", "sessions", "config.yaml",
             "skills", "plugins", ".env", "USER.md", "MEMORY.md", "SOUL.md",
-            "auth.json", "hermes-agent",
+            "auth.json", "sparkii-agent",
             # User-authored and project trees — never auto-delete files
             # inside these just because they happen to be named test_* or
             # tmp_* (#75403, also #32164, #37721).
@@ -600,7 +600,7 @@ def guess_category(path: Path) -> Optional[str]:
         if top == "cache":
             return "temp"
     except ValueError:
-        # Path isn't under SPARKII_HOME (e.g. /tmp/hermes-*) — fall through.
+        # Path isn't under SPARKII_HOME (e.g. /tmp/sparkii-*) — fall through.
         pass
 
     name = path.name

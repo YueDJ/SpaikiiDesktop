@@ -556,7 +556,7 @@ class TestUnreadablePairingFile:
 
 class TestProfileScopedStorage:
     """PairingStore(profile="<name>") should isolate per-profile whitelists
-    under each profile's own Hermes home so a multiplexing gateway can keep
+    under each profile's own Sparkii home so a multiplexing gateway can keep
     every profile's allowlist separate.
     """
 
@@ -575,7 +575,7 @@ class TestProfileScopedStorage:
         assert store._approved_path("weixin") == tmp_path / "weixin-approved.json"
 
     def test_profile_store_uses_profiles_subdir(self, tmp_path, monkeypatch):
-        """Explicit profile stores use that profile's normal Hermes layout."""
+        """Explicit profile stores use that profile's normal Sparkii layout."""
         monkeypatch.setenv("SPARKII_HOME", str(tmp_path))
         store = PairingStore(profile="yangyang")
         assert store.profile == "yangyang"

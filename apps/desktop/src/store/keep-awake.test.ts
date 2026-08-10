@@ -4,7 +4,7 @@ import { storedBoolean } from '@/lib/storage'
 
 import { $keepAwake, setKeepAwake } from './keep-awake'
 
-const KEY = 'hermes.desktop.keepAwake.v1'
+const KEY = 'sparkii.desktop.keepAwake.v1'
 const desktopWindow = window as unknown as { sparkiiDesktop?: Window['sparkiiDesktop'] }
 const initialSparkiiDesktop = desktopWindow.sparkiiDesktop
 const setKeepAwakeBridge = vi.fn()

@@ -14,11 +14,11 @@ def build_import_agent_parser(subparsers, *, cmd_import_agent: Callable) -> None
     """Attach the ``import-agent`` subcommand to ``subparsers``."""
     parser = subparsers.add_parser(
         "import-agent",
-        help="Import a Claude Code or Codex CLI setup into Hermes",
+        help="Import a Claude Code or Codex CLI setup into Sparkii",
         description=(
-            "One-command import of another coding agent's setup into Hermes. "
+            "One-command import of another coding agent's setup into Sparkii. "
             "Maps CLAUDE.md/AGENTS.md instructions, permission allowlists, MCP "
-            "servers, skills, and memories into their Hermes equivalents. "
+            "servers, skills, and memories into their Sparkii equivalents. "
             "Always shows a preview before making changes. API keys and "
             "credentials are never imported — run 'sparkii setup' for those."
         ),
@@ -41,7 +41,7 @@ def build_import_agent_parser(subparsers, *, cmd_import_agent: Callable) -> None
     parser.add_argument(
         "--overwrite",
         action="store_true",
-        help="Overwrite existing Hermes items on name conflicts (default: skip)",
+        help="Overwrite existing Sparkii items on name conflicts (default: skip)",
     )
     parser.add_argument(
         "--yes", "-y", action="store_true", help="Skip confirmation prompts"

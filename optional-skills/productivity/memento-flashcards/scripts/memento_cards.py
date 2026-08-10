@@ -15,7 +15,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-_SPARKII_HOME = Path(os.environ.get("SPARKII_HOME", Path.home() / ".hermes"))
+_SPARKII_HOME = Path(os.environ.get("SPARKII_HOME", Path.home() / ".sparkii"))
 DATA_DIR = _SPARKII_HOME / "skills" / "productivity" / "memento-flashcards" / "data"
 CARDS_FILE = DATA_DIR / "cards.json"
 

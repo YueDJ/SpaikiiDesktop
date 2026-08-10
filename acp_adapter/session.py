@@ -1,4 +1,4 @@
-"""ACP session manager — maps ACP sessions to Hermes AIAgent instances.
+"""ACP session manager — maps ACP sessions to Sparkii AIAgent instances.
 
 Sessions are persisted to the shared SessionDB (``~/.sparkii/state.db``) so they
 survive process restarts and appear in ``session_search``.  When the editor
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 def _translate_acp_cwd(cwd: str) -> str:
-    """Translate Windows ACP cwd values when Hermes itself is running in WSL.
+    """Translate Windows ACP cwd values when Sparkii itself is running in WSL.
 
     Windows ACP clients can launch ``sparkii acp`` inside WSL while still sending
     editor workspaces as Windows drive paths (``E:\\Projects``) or
@@ -112,7 +112,7 @@ def _acp_stderr_print(*args, **kwargs) -> None:
 def _register_task_cwd(task_id: str, cwd: str) -> None:
     """Bind a task/session id to the editor's working directory for tools.
 
-    Zed can launch Hermes from a Windows workspace while the ACP process runs
+    Zed can launch Sparkii from a Windows workspace while the ACP process runs
     inside WSL. In that case ACP sends cwd as e.g. ``E:\\Projects\\POTI``;
     local tools need the WSL mount equivalent or subprocess creation fails
     before the command can run.
@@ -157,7 +157,7 @@ def _clear_task_cwd(task_id: str) -> None:
 
 @dataclass
 class SessionState:
-    """Tracks per-session state for an ACP-managed Hermes agent."""
+    """Tracks per-session state for an ACP-managed Sparkii agent."""
 
     session_id: str
     agent: Any  # AIAgent instance
@@ -173,7 +173,7 @@ class SessionState:
 
 
 class SessionManager:
-    """Thread-safe manager for ACP sessions backed by Hermes AIAgent instances.
+    """Thread-safe manager for ACP sessions backed by Sparkii AIAgent instances.
 
     Sessions are held in-memory for fast access **and** persisted to the
     shared SessionDB so they survive process restarts and are searchable
@@ -185,7 +185,7 @@ class SessionManager:
         Args:
             agent_factory: Optional callable that creates an AIAgent-like object.
                            Used by tests. When omitted, a real AIAgent is created
-                           using the current Hermes runtime provider configuration.
+                           using the current Sparkii runtime provider configuration.
             db:            Optional SessionDB instance. When omitted, the default
                            SessionDB (``~/.sparkii/state.db``) is lazily created.
         """
@@ -662,7 +662,7 @@ class SessionManager:
         # construction site self-sufficient.  Bounded by
         # ``mcp_discovery_timeout`` (config.yaml, default ~1.5s) so a dead
         # server can't block — servers that miss the bound are picked up by
-        # the automatic late-refresh (see HermesACPAgent._schedule_mcp_late_refresh).
+        # the automatic late-refresh (see SparkiiACPAgent._schedule_mcp_late_refresh).
         try:
             from sparkii_cli.mcp_startup import ensure_mcp_discovery_before_agent_build
 
@@ -676,7 +676,7 @@ class SessionManager:
         agent = AIAgent(**kwargs)
         # Codex app-server sessions are spawned lazily on the first turn. Stamp
         # the ACP workspace onto the agent so the Codex runtime starts from the
-        # editor/session cwd instead of the Hermes daemon's process cwd.
+        # editor/session cwd instead of the Sparkii daemon's process cwd.
         agent.session_cwd = cwd
         # ACP stdio transport requires stdout to remain protocol-only JSON-RPC.
         # Route any incidental human-readable agent output to stderr instead.

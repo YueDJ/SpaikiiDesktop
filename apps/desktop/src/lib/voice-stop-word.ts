@@ -33,9 +33,9 @@ const STOP_PHRASES: readonly string[] = [
   'cancel'
 ]
 
-// Optional address prefixes so "hermes stop" / "ok stop" / "hey hermes, stop"
+// Optional address prefixes so "sparkii stop" / "ok stop" / "hey sparkii, stop"
 // still count. Stripped before matching the core phrase.
-const ADDRESS_PREFIXES: readonly string[] = ['hey hermes', 'hey hermes,', 'hermes', 'hermes,', 'ok', 'okay', 'hey']
+const ADDRESS_PREFIXES: readonly string[] = ['hey sparkii', 'hey sparkii,', 'sparkii', 'sparkii,', 'ok', 'okay', 'hey']
 
 // Normalise: lowercase, strip surrounding punctuation/whitespace, collapse
 // internal runs of spaces. Trailing punctuation (".", "!", "…") is common in
@@ -51,7 +51,7 @@ function normalize(text: string): string {
 function stripAddress(text: string): string {
   for (const prefix of ADDRESS_PREFIXES) {
     if (text === prefix) {
-      // Bare address ("hermes") is not a stop command on its own.
+      // Bare address ("sparkii") is not a stop command on its own.
       continue
     }
 

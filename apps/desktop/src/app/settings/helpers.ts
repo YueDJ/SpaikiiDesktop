@@ -1,5 +1,5 @@
 import { asText, normalize } from '@/lib/text'
-import type { ConfigFieldSchema, SparkiiConfigRecord, ToolsetInfo } from '@/types/hermes'
+import type { ConfigFieldSchema, SparkiiConfigRecord, ToolsetInfo } from '@/types/sparkii'
 
 import { BUILTIN_PERSONALITIES, ENUM_OPTIONS, PROVIDER_GROUPS, SECTIONS } from './constants'
 

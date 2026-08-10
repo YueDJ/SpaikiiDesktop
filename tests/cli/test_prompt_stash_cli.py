@@ -1,8 +1,8 @@
-"""Tests for the Ctrl+S prompt stash wiring inside HermesCLI.
+"""Tests for the Ctrl+S prompt stash wiring inside SparkiiCLI.
 
 The state machine itself is covered by tests/cli/test_prompt_stash.py. These
 tests verify the cli.py side:
-  - HermesCLI.__init__ creates a PromptStash
+  - SparkiiCLI.__init__ creates a PromptStash
   - the layout hook makes room for the stash browse panel
   - _render_stash_panel renders bounded, display-width-correct rows
   - the status-bar indicator appears / disappears with stash contents
@@ -21,7 +21,7 @@ import pytest
 
 
 def _make_cli(**kwargs):
-    """Create a HermesCLI with prompt_toolkit stubbed out."""
+    """Create a SparkiiCLI with prompt_toolkit stubbed out."""
     _clean_config = {
         "model": {
             "default": "anthropic/claude-opus-4.6",
@@ -59,7 +59,7 @@ def _make_cli(**kwargs):
         with patch.object(_cli_mod, "get_tool_definitions", return_value=[]), patch.dict(
             _cli_mod.__dict__, {"CLI_CONFIG": _clean_config}
         ):
-            return _cli_mod.HermesCLI(**kwargs)
+            return _cli_mod.SparkiiCLI(**kwargs)
 
 
 @pytest.fixture(scope="module")
@@ -95,7 +95,7 @@ class TestKeybindingRegistration:
     """Behavioral coverage for the stash keybinding surface.
 
     NOTE: the Ctrl+S / panel-navigation handlers are registered inside
-    ``HermesCLI.run()``'s local ``KeyBindings`` instance, so they are not
+    ``SparkiiCLI.run()``'s local ``KeyBindings`` instance, so they are not
     importable without launching the TUI. Asserting on cli.py's SOURCE TEXT
     to prove they exist is the banned change-detector antipattern (root
     AGENTS.md, "Never read source code in tests"): it passes when the

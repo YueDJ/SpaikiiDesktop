@@ -253,7 +253,7 @@ registry.registerMany([
     get: () => $layoutEditMode.get(),
     set: enabled => $layoutEditMode.set(enabled)
   }),
-  // The agent's write -> see loop: rescan <hermes home>/desktop-plugins
+  // The agent's write -> see loop: rescan <sparkii home>/desktop-plugins
   // without relaunching (same-id reloads dispose the previous incarnation).
   {
     id: 'plugins.reload',
@@ -295,7 +295,7 @@ registry.registerMany([
       id: 'keybinds.panel',
       label: 'Keyboard shortcuts',
       keywords: ['keybinds', 'shortcuts', 'hotkeys', 'keyboard'],
-      run: () => window.dispatchEvent(new CustomEvent('hermes:open-keybinds'))
+      run: () => window.dispatchEvent(new CustomEvent('sparkii:open-keybinds'))
     } satisfies PaletteContribution
   },
   // Profile sharing: bundle the active profile (config, skills, theme, layout)

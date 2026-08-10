@@ -32,8 +32,8 @@ def _state_dir() -> Path:
     override = os.environ.get("WATCHER_STATE_DIR")
     if override:
         return Path(override)
-    # Default: $SPARKII_HOME/watcher-state/, falling back to ~/.hermes/watcher-state/.
-    sparkii_home = os.environ.get("SPARKII_HOME") or str(Path.home() / ".hermes")
+    # Default: $SPARKII_HOME/watcher-state/, falling back to ~/.sparkii/watcher-state/.
+    sparkii_home = os.environ.get("SPARKII_HOME") or str(Path.home() / ".sparkii")
     return Path(sparkii_home) / "watcher-state"
 
 

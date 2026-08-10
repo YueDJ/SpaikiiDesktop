@@ -25,7 +25,7 @@ an ``[unverified]`` marker rather than silently blended in.
 
 Ledger path resolution (first wins):
   --ledger PATH
-  $HERMES_CITATION_LEDGER
+  $SPARKII_CITATION_LEDGER
   $SPARKII_HOME/cache/citations/ledger.json
 """
 
@@ -65,7 +65,7 @@ _UNVERIFIED_RE = re.compile(r"\[unverified\]", re.IGNORECASE)
 def resolve_ledger_path(explicit: str | None = None) -> Path:
     if explicit:
         return Path(explicit).expanduser()
-    env = os.environ.get("HERMES_CITATION_LEDGER", "").strip()
+    env = os.environ.get("SPARKII_CITATION_LEDGER", "").strip()
     if env:
         return Path(env).expanduser()
     return get_sparkii_home() / "cache" / "citations" / "ledger.json"

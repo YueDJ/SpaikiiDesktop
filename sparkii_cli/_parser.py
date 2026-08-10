@@ -73,7 +73,7 @@ Examples:
     sparkii logs errors            View errors.log
     sparkii logs --since 1h        Lines from the last hour
     sparkii debug share             Upload debug report for support
-    sparkii console                Open the safe Hermes command console
+    sparkii console                Open the safe Sparkii command console
     sparkii update                 Update to latest version
     sparkii dashboard              Start web UI dashboard (port 9119)
     sparkii dashboard --stop       Stop running dashboard processes
@@ -470,7 +470,7 @@ def build_top_level_parser():
         "--safe-mode",
         action="store_true",
         default=argparse.SUPPRESS,
-        help="Troubleshooting mode: disable ALL customizations — user config, AGENTS.md/memory injection, plugins, and MCP servers (implies --ignore-user-config and --ignore-rules). Use to isolate whether a problem comes from your setup or from Hermes itself.",
+        help="Troubleshooting mode: disable ALL customizations — user config, AGENTS.md/memory injection, plugins, and MCP servers (implies --ignore-user-config and --ignore-rules). Use to isolate whether a problem comes from your setup or from Sparkii itself.",
     )
     chat_parser.add_argument(
         "--source",

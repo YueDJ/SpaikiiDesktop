@@ -212,7 +212,7 @@ FOOTGUNS: list[Footgun] = [
         ),
         fix=(
             "Use psutil.pid_exists(pid) (psutil is a core dependency). "
-            "Or gateway.status._pid_exists(pid) for the hermes wrapper "
+            "Or gateway.status._pid_exists(pid) for the sparkii wrapper "
             "with a stdlib fallback."
         ),
     ),

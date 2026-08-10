@@ -88,7 +88,7 @@ def _sqlite_upgrade_hint(install_method: str | None = None) -> str:
     method = install_method or detect_install_method(PROJECT_ROOT)
     if method == "docker":
         command = recommended_update_command_for_method(method)
-        action = f"run `{command}`, then recreate all Hermes containers"
+        action = f"run `{command}`, then recreate all Sparkii containers"
     elif method in {"nix", "nixos"}:
         action = recommended_update_command_for_method(method)
     else:
@@ -100,7 +100,7 @@ def _sqlite_upgrade_hint(install_method: str | None = None) -> str:
 
 
 def _sparkii_database_paths(sparkii_home: Path) -> list[tuple[str, Path]]:
-    """Return (display name, path) pairs for Hermes-managed SQLite databases."""
+    """Return (display name, path) pairs for Sparkii-managed SQLite databases."""
     # backup.py owns the canonical list of per-profile stores; reuse it.
     from sparkii_cli.backup import _QUICK_STATE_FILES
 
@@ -165,7 +165,7 @@ def _report_database_journal_modes(
     try:
         databases = _sparkii_database_paths(home)
     except Exception as exc:
-        check_warn(f"Could not list Hermes databases: {exc}")
+        check_warn(f"Could not list Sparkii databases: {exc}")
         return
     exposed = []
     for name, path in databases:
@@ -940,7 +940,7 @@ def run_doctor(args):
 
     print()
     print(color("┌─────────────────────────────────────────────────────────┐", Colors.CYAN))
-    print(color("│                 🩺 Hermes Doctor                        │", Colors.CYAN))
+    print(color("│                 🩺 Sparkii Doctor                        │", Colors.CYAN))
     print(color("└─────────────────────────────────────────────────────────┘", Colors.CYAN))
 
     _section("Security Advisories")
@@ -1043,7 +1043,7 @@ def run_doctor(args):
             (_sqlite_src[:48] + "…") if len(_sqlite_src) > 48 else _sqlite_src
         )
         if is_sqlite_wal_reset_vulnerable():
-            # Warn-only: Hermes already refuses to enable WAL on fresh DBs.
+            # Warn-only: Sparkii already refuses to enable WAL on fresh DBs.
             # Do not append to ``issues`` because runtime repair remains
             # best-effort and unsupported installs may need manual action.
             check_warn(
@@ -1582,7 +1582,7 @@ def run_doctor(args):
             check_warn("OpenAI Codex auth", "(not logged in)")
             if codex_status.get("error"):
                 check_info(codex_status["error"])
-            # Native OAuth uses Hermes' own device-code flow — the Codex CLI is
+            # Native OAuth uses Sparkii' own device-code flow — the Codex CLI is
             # only needed to import existing tokens from ~/.codex/auth.json.
             # Attach the hint to the Codex auth row so it doesn't read as
             # remediation for whichever provider happens to print next (#27975).
@@ -1651,13 +1651,13 @@ def run_doctor(args):
         else:
             check_info(f"{_DHH}/SOUL.md exists but is empty — edit it to customize personality")
     else:
-        check_warn(f"{_DHH}/SOUL.md not found", "(create it to give Hermes a custom personality)")
+        check_warn(f"{_DHH}/SOUL.md not found", "(create it to give Sparkii a custom personality)")
         if should_fix:
             soul_path.parent.mkdir(parents=True, exist_ok=True)
             soul_path.write_text(
                 "# Sparkii Agent Persona\n\n"
-                "<!-- Edit this file to customize how Hermes communicates. -->\n\n"
-                "You are Hermes, a helpful AI assistant.\n",
+                "<!-- Edit this file to customize how Sparkii communicates. -->\n\n"
+                "You are Sparkii, a helpful AI assistant.\n",
                 encoding="utf-8",
             )
             check_ok(f"Created {_DHH}/SOUL.md with basic template")
@@ -1786,7 +1786,7 @@ def run_doctor(args):
                 check_warn(f"{_DHH}/state.db exists but has issues: {e}")
 
         # Health/stats snapshot (#statedb-visibility): a multi-GB state.db
-        # with a runaway WAL was previously invisible to every Hermes
+        # with a runaway WAL was previously invisible to every Sparkii
         # surface. Strictly read-only (mode=ro) so it is safe against a
         # live DB held by the gateway; any failure degrades to one info
         # line rather than failing doctor.
@@ -2112,7 +2112,7 @@ def run_doctor(args):
         agent_browser_ok = False
         _which_ab = shutil.which("agent-browser")
         # `sparkii acp --setup-browser` installs agent-browser into the
-        # Hermes-managed node prefix, which isn't necessarily on PATH. Mirror
+        # Sparkii-managed node prefix, which isn't necessarily on PATH. Mirror
         # dep_ensure._has_sparkii_agent_browser() so doctor and dep_ensure agree
         # on what "installed" means; otherwise doctor false-negatives (#53192).
         # Resolve with PATHEXT-aware ``shutil.which`` (not a bare is_file())
@@ -2298,7 +2298,7 @@ def run_doctor(args):
                         # tooling (esbuild/vite, etc.), not runtime code that ships
                         # to users. Manual npm remediation may error with a known
                         # arborist crash (edgesOut / isDescendantOf) on this monorepo
-                        # tree — in that case it is an npm bug, not a Hermes one.
+                        # tree — in that case it is an npm bug, not a Sparkii one.
                         check_info(
                             "  ^ build-time tooling (not runtime); if manual npm remediation "
                             "errors with an arborist crash it's a known npm bug — clears "

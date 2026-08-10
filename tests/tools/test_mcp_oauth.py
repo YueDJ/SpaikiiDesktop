@@ -12,7 +12,7 @@ import pytest
 import asyncio
 
 from tools.mcp_oauth import (
-    HermesTokenStorage,
+    SparkiiTokenStorage,
     OAuthNonInteractiveError,
     build_oauth_auth,
     remove_oauth_tokens,
@@ -53,13 +53,13 @@ def _hit_callback_when_ready(url: str, timeout: float = 15.0) -> None:
 
 
 # ---------------------------------------------------------------------------
-# HermesTokenStorage
+# SparkiiTokenStorage
 # ---------------------------------------------------------------------------
 
-class TestHermesTokenStorage:
+class TestSparkiiTokenStorage:
     def test_roundtrip_tokens(self, tmp_path, monkeypatch):
         monkeypatch.setenv("SPARKII_HOME", str(tmp_path))
-        storage = HermesTokenStorage("test-server")
+        storage = SparkiiTokenStorage("test-server")
 
         import asyncio
 
@@ -91,7 +91,7 @@ class TestHermesTokenStorage:
         the fix shipped for ``agent/google_oauth.py`` in #19673.
         """
         monkeypatch.setenv("SPARKII_HOME", str(tmp_path))
-        storage = HermesTokenStorage("perm-test-server")
+        storage = SparkiiTokenStorage("perm-test-server")
 
         import asyncio
         mock_token = MagicMock()
@@ -115,7 +115,7 @@ class TestHermesTokenStorage:
 
     def test_corrupt_tokens_returns_none(self, tmp_path, monkeypatch):
         monkeypatch.setenv("SPARKII_HOME", str(tmp_path))
-        storage = HermesTokenStorage("bad-server")
+        storage = SparkiiTokenStorage("bad-server")
 
         d = tmp_path / "mcp-tokens"
         d.mkdir(parents=True)
@@ -220,19 +220,19 @@ class TestPathTraversal:
 
     def test_dots_and_slashes_sanitized(self, tmp_path, monkeypatch):
         monkeypatch.setenv("SPARKII_HOME", str(tmp_path))
-        storage = HermesTokenStorage("../../../etc/passwd")
+        storage = SparkiiTokenStorage("../../../etc/passwd")
         path = storage._tokens_path()
         resolved = path.resolve()
         assert resolved.is_relative_to((tmp_path / "mcp-tokens").resolve())
 
     def test_normal_name_unchanged(self, tmp_path, monkeypatch):
         monkeypatch.setenv("SPARKII_HOME", str(tmp_path))
-        storage = HermesTokenStorage("my-mcp-server")
+        storage = SparkiiTokenStorage("my-mcp-server")
         assert "my-mcp-server.json" in str(storage._tokens_path())
 
     def test_special_chars_sanitized(self, tmp_path, monkeypatch):
         monkeypatch.setenv("SPARKII_HOME", str(tmp_path))
-        storage = HermesTokenStorage("server@host:8080/path")
+        storage = SparkiiTokenStorage("server@host:8080/path")
         path = storage._tokens_path()
         assert "@" not in path.name
         assert ":" not in path.name
@@ -622,7 +622,7 @@ def test_build_oauth_auth_preserves_server_url_path():
     breaking RFC 9728 protected-resource validation against servers whose PRM
     advertises a path-scoped resource (Notion). The MCP SDK strips the path
     itself for authorization-server discovery via
-    ``OAuthContext.get_authorization_base_url``; Hermes must not pre-strip.
+    ``OAuthContext.get_authorization_base_url``; Sparkii must not pre-strip.
     """
     from tools import mcp_oauth
 
@@ -636,7 +636,7 @@ def test_build_oauth_auth_preserves_server_url_path():
          patch.object(mcp_oauth, "OAuthClientProvider", _FakeProvider), \
          patch.object(mcp_oauth, "_is_interactive", return_value=True), \
          patch.object(mcp_oauth, "_maybe_preregister_client"), \
-         patch.object(mcp_oauth, "HermesTokenStorage") as mock_storage_cls:
+         patch.object(mcp_oauth, "SparkiiTokenStorage") as mock_storage_cls:
         mock_storage_cls.return_value = MagicMock(has_cached_tokens=lambda: True)
         build_oauth_auth(
             server_name="notion",
@@ -764,7 +764,7 @@ class TestWaitForCallbackSkipIntegration:
 class TestPoisonClientRegistration:
     def test_poison_backs_up_and_removes_client_and_meta(self, tmp_path, monkeypatch):
         monkeypatch.setenv("SPARKII_HOME", str(tmp_path))
-        storage = HermesTokenStorage("srv")
+        storage = SparkiiTokenStorage("srv")
         d = tmp_path / "mcp-tokens"
         d.mkdir(parents=True)
         (d / "srv.json").write_text('{"access_token": "keep-me"}')

@@ -204,19 +204,19 @@ def _bare_custom_provider_def(current_base_url: str) -> Optional[ProviderDef]:
 # ---------------------------------------------------------------------------
 
 _SPARKII_MODEL_WARNING = (
-    "Nous Research Hermes 3 & 4 models are NOT agentic and are not designed "
+    "Nous Research Sparkii 3 & 4 models are NOT agentic and are not designed "
     "for use with Sparkii Agent. They lack the tool-calling capabilities "
     "required for agent workflows. Consider using an agentic model instead "
     "(Claude, GPT, Gemini, DeepSeek, etc.)."
 )
 
-# Match only the real Nous Research Hermes 3 / Hermes 4 chat families.
+# Match only the real Nous Research Sparkii 3 / Sparkii 4 chat families.
 # The previous substring check (`"sparkii" in name.lower()`) false-positived on
 # unrelated local Modelfiles like ``sparkii-brain:qwen3-14b-ctx16k`` that just
 # happen to carry "sparkii" in their tag but are fully tool-capable.
 #
 # Positive examples the regex must match:
-#   NousResearch/Hermes-3-Llama-3.1-70B, sparkii-4-405b, openrouter/sparkii3:70b
+#   NousResearch/Sparkii-3-Llama-3.1-70B, sparkii-4-405b, openrouter/sparkii3:70b
 # Negative examples it must NOT match:
 #   sparkii-brain:qwen3-14b-ctx16k, qwen3:14b, claude-opus-4-6
 _NOUS_SPARKII_NON_AGENTIC_RE = re.compile(
@@ -271,7 +271,7 @@ def format_model_for_display(model_name: str) -> str:
 
 # ---------------------------------------------------------------------------
 def is_nous_sparkii_non_agentic(model_name: str) -> bool:
-    """Return True if *model_name* is a real Nous Hermes 3/4 chat model.
+    """Return True if *model_name* is a real Nous Sparkii 3/4 chat model.
 
     Used to decide whether to surface the non-agentic warning at startup.
     Callers in :mod:`cli.py` and here should go through this single helper
@@ -283,7 +283,7 @@ def is_nous_sparkii_non_agentic(model_name: str) -> bool:
 
 
 def _check_sparkii_model_warning(model_name: str) -> str:
-    """Return a warning string if *model_name* is a Nous Hermes 3/4 chat model."""
+    """Return a warning string if *model_name* is a Nous Sparkii 3/4 chat model."""
     if is_nous_sparkii_non_agentic(model_name):
         return _SPARKII_MODEL_WARNING
     return ""
@@ -2221,7 +2221,7 @@ def list_authenticated_providers(
     # "nous" pulls from the remote model-catalog manifest published at
     # https://sparkii-agent.nousresearch.com/docs/api/model-catalog.json so
     # newly added Portal models surface in the /model picker without
-    # requiring a Hermes release. Falls back to the in-repo
+    # requiring a Sparkii release. Falls back to the in-repo
     # _PROVIDER_MODELS["nous"] snapshot when the manifest is unreachable.
     curated["nous"] = get_curated_nous_model_ids()
     # Ollama Cloud uses dynamic discovery (no static curated list)
@@ -2257,7 +2257,7 @@ def list_authenticated_providers(
             live = [current_model]
         curated["lmstudio"] = live
 
-    # --- 1. Check Hermes-mapped providers ---
+    # --- 1. Check Sparkii-mapped providers ---
     from sparkii_cli.models import _AGGREGATOR_PROVIDERS as _AGG_PROVIDERS
     from sparkii_cli.providers import ALIASES as _PROVIDER_ALIAS_TABLE
     for sparkii_id, mdev_id in PROVIDER_TO_MODELS_DEV.items():
@@ -2315,7 +2315,7 @@ def list_authenticated_providers(
         # section 2 (SPARKII_OVERLAYS) with proper auth store checking.
         if pconfig and pconfig.auth_type != "api_key":
             continue
-        # models.dev catalogs include providers Hermes may not route yet.
+        # models.dev catalogs include providers Sparkii may not route yet.
         # Gate on runtime capability rather than registry membership: special
         # providers and plugin aliases can be routable without a registry row.
         from sparkii_cli.auth import is_runtime_provider_routable
@@ -2389,20 +2389,20 @@ def list_authenticated_providers(
         seen_slugs.add(slug.lower())
         _record_builtin_endpoint(slug)
 
-    # --- 2. Check Hermes-only providers (nous, openai-codex, copilot, opencode-go) ---
+    # --- 2. Check Sparkii-only providers (nous, openai-codex, copilot, opencode-go) ---
     from sparkii_cli.providers import SPARKII_OVERLAYS
     from sparkii_cli.auth import PROVIDER_REGISTRY as _auth_registry
 
-    # Build reverse mapping: models.dev ID → Hermes provider ID.
+    # Build reverse mapping: models.dev ID → Sparkii provider ID.
     # SPARKII_OVERLAYS keys may be models.dev IDs (e.g. "github-copilot")
-    # while _PROVIDER_MODELS and config.yaml use Hermes IDs ("copilot").
+    # while _PROVIDER_MODELS and config.yaml use Sparkii IDs ("copilot").
     _mdev_to_sparkii = {v: k for k, v in PROVIDER_TO_MODELS_DEV.items()}
 
     for pid, overlay in SPARKII_OVERLAYS.items():
         if pid.lower() in seen_slugs:
             continue
 
-        # Resolve Hermes slug — e.g. "github-copilot" → "copilot"
+        # Resolve Sparkii slug — e.g. "github-copilot" → "copilot"
         sparkii_slug = _mdev_to_sparkii.get(pid, pid)
         if sparkii_slug.lower() in seen_slugs:
             continue
@@ -2718,7 +2718,7 @@ def list_authenticated_providers(
             # custom_providers entries use, so accept either.
             default_model = ep_cfg.get("default_model", "") or ep_cfg.get("model", "")
             # Build models list from both default_model and full models array.
-            # Hermes writes ``models:`` as a dict keyed by model id, but older
+            # Sparkii writes ``models:`` as a dict keyed by model id, but older
             # or hand-edited configs may use strings or ``[{id: ...}]`` rows —
             # _declared_model_ids() owns that contract.
             entry_models: list = []
@@ -2732,7 +2732,7 @@ def list_authenticated_providers(
             if group_key not in ep_groups:
                 # Strip per-model suffix so "Palantir Claude 4.7 Opus" becomes
                 # "Palantir Claude". Em dash and " - " are the separators
-                # Hermes's own writer uses (mirrors section-4 grouping).
+                # Sparkii's own writer uses (mirrors section-4 grouping).
                 grp_display = display_name
                 for sep in ("—", " - "):
                     if sep in grp_display:
@@ -3070,7 +3070,7 @@ def list_authenticated_providers(
             )
 
             # The singular ``model:`` field only holds the currently
-            # active model. Hermes's own writer (main.py::_save_custom_provider)
+            # active model. Sparkii's own writer (main.py::_save_custom_provider)
             # stores every configured model as a dict under ``models:``;
             # downstream readers (agent/models_dev.py, gateway/run.py,
             # run_agent.py, sparkii_cli/config.py) already consume that dict.

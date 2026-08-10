@@ -180,7 +180,7 @@ afterEach(() => {
   vi.useRealTimers()
   ;(globalThis as { WebSocket: unknown }).WebSocket = originalWebSocket
   delete (window as { sparkiiDesktop?: unknown }).sparkiiDesktop
-  window.localStorage.removeItem('hermes.desktop.workspace-cwd')
+  window.localStorage.removeItem('sparkii.desktop.workspace-cwd')
   $currentCwd.set('')
 })
 

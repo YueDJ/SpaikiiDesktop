@@ -60,7 +60,7 @@ def _run_gateway_import(sparkii_home: Path, initial_env: dict[str, str]) -> dict
     env["SPARKII_HOME"] = str(sparkii_home)
     # Keep interpreter paths plus the Windows bootstrap variables required by
     # stdlib platform detection and native dependency loading.  The child is
-    # otherwise intentionally clean so stale Hermes settings cannot leak in.
+    # otherwise intentionally clean so stale Sparkii settings cannot leak in.
     for k in (
         "PATH",
         "PYTHONPATH",

@@ -81,12 +81,12 @@ class TestDeleteSessionIfEmpty:
 
 
 class TestCLIDiscardSessionIfEmpty:
-    """Wiring tests for HermesCLI._discard_session_if_empty."""
+    """Wiring tests for SparkiiCLI._discard_session_if_empty."""
 
     def _make_cli(self, db):
-        from cli import HermesCLI
+        from cli import SparkiiCLI
 
-        cli = HermesCLI.__new__(HermesCLI)
+        cli = SparkiiCLI.__new__(SparkiiCLI)
         cli._session_db = db
         cli.conversation_history = []
         return cli

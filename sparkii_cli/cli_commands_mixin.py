@@ -1,7 +1,7 @@
 """Slash-command handlers for the interactive CLI (god-file decomposition Phase 4).
 
 This module hosts the ``_handle_*_command`` slash-command handlers lifted out of
-``cli.py``'s ``HermesCLI`` class. ``HermesCLI`` inherits ``CLICommandsMixin`` so
+``cli.py``'s ``SparkiiCLI`` class. ``SparkiiCLI`` inherits ``CLICommandsMixin`` so
 every ``self.<handler>`` call resolves unchanged via the MRO — behavior-neutral.
 
 Import discipline (mirrors gateway/slash_commands.py, PR #41886):
@@ -45,7 +45,7 @@ class CLICommandsMixin:
 
     All methods use only ``self`` state plus the imports above and per-method
     lazy ``from cli import ...`` lines, so they compose cleanly onto
-    ``HermesCLI`` via the MRO.
+    ``SparkiiCLI`` via the MRO.
     """
 
     def _handle_rollback_command(self, command: str):
@@ -149,7 +149,7 @@ class CLICommandsMixin:
             /diff                  — unstaged changes + untracked files
             /diff staged           — staged changes (git diff --cached)
             /diff all              — staged + unstaged + untracked (vs HEAD)
-            /diff session          — everything Hermes changed (checkpoint baseline)
+            /diff session          — everything Sparkii changed (checkpoint baseline)
             /diff [mode] --stat    — summary only (changed files + counts)
             /diff [mode] <path...> — restrict to specific paths
         """
@@ -242,7 +242,7 @@ class CLICommandsMixin:
         stat = result.get("stat", "")
         diff = result.get("diff", "")
         if result.get("empty") or (not stat and not diff):
-            print("  No changes — Hermes hasn't edited any files here yet.")
+            print("  No changes — Sparkii hasn't edited any files here yet.")
             return
 
         if stat:
@@ -277,7 +277,7 @@ class CLICommandsMixin:
         print(text)
 
     def _handle_snapshot_command(self, command: str):
-        """Handle /snapshot — lightweight state snapshots for Hermes config/state.
+        """Handle /snapshot — lightweight state snapshots for Sparkii config/state.
 
         Syntax:
             /snapshot                  — list recent snapshots
@@ -2067,11 +2067,11 @@ class CLICommandsMixin:
                     try:
                         from sparkii_cli.skin_engine import get_active_skin
                         _skin = get_active_skin()
-                        label = _skin.get_branding("response_label", "⚕ Hermes")
+                        label = _skin.get_branding("response_label", "⚕ Sparkii")
                         _resp_color = _maybe_remap_for_light_mode(_skin.get_color("response_border", "#CD7F32"))
                         _resp_text = _maybe_remap_for_light_mode(_skin.get_color("banner_text", "#FFF8DC"))
                     except Exception:
-                        label = "⚕ Hermes"
+                        label = "⚕ Sparkii"
                         _resp_color = "#CD7F32"
                         _resp_text = "#FFF8DC"
 
@@ -2300,7 +2300,7 @@ class CLICommandsMixin:
                     "Your browser_navigate, browser_snapshot, browser_click, and other browser tools now "
                     "control that CDP browser. The command itself is a signal that using browser tools for "
                     "their current browser-related request is expected; do not wait for separate permission "
-                    "just because CDP is connected. This is typically a Hermes-managed isolated debug "
+                    "just because CDP is connected. This is typically a Sparkii-managed isolated debug "
                     "profile, not the user's main everyday browser. It is still user-visible and may contain "
                     "pages, logged-in sessions, or cookies in that debug profile, so avoid destructive actions, "
                     "closing tabs, or navigating away unless the user's task calls for it.]"
@@ -2469,7 +2469,7 @@ class CLICommandsMixin:
         _cprint(
             f"  {_DIM}Fires as a normal turn whenever the session is idle and the "
             f"interval has elapsed. /heartbeat pause | resume | clear to manage; "
-            f"lives only while this Hermes process runs — use `sparkii cron` for "
+            f"lives only while this Sparkii process runs — use `sparkii cron` for "
             f"durable schedules.{_RST}"
         )
 
@@ -2677,7 +2677,7 @@ class CLICommandsMixin:
         _cprint(
             f"  {_DIM}After each turn, a judge model checks if the goal is done"
             f"{' against the contract above' if state.has_contract() else ''}. "
-            f"Hermes keeps working until it is, you pause/clear it, or the budget is "
+            f"Sparkii keeps working until it is, you pause/clear it, or the budget is "
             f"exhausted. Use /goal status, /goal show, /goal pause, /goal resume, /goal clear.{_RST}"
         )
         # Kick the loop off immediately so the user doesn't have to send a
@@ -3290,7 +3290,7 @@ class CLICommandsMixin:
             _cprint(f"  {_ACCENT}✓ Reasoning effort set to '{arg}' (this session — use --global to persist){_RST}")
 
     def _handle_busy_command(self, cmd: str):
-        """Handle /busy — control what Enter does while Hermes is working.
+        """Handle /busy — control what Enter does while Sparkii is working.
 
         Usage:
             /busy               Show current busy input mode
@@ -3322,11 +3322,11 @@ class CLICommandsMixin:
         self.busy_input_mode = arg
         if save_config_value("display.busy_input_mode", arg):
             if arg == "queue":
-                behavior = "Enter will queue follow-up input while Hermes is busy."
+                behavior = "Enter will queue follow-up input while Sparkii is busy."
             elif arg == "steer":
                 behavior = "Enter will steer your message into the current run (after the next tool call)."
             else:
-                behavior = "Enter will redirect the current run while Hermes is busy; /stop still cancels it."
+                behavior = "Enter will redirect the current run while Sparkii is busy; /stop still cancels it."
             _cprint(f"  {_ACCENT}✓ Busy input mode set to '{arg}' (saved to config){_RST}")
             _cprint(f"  {_DIM}{behavior}{_RST}")
         else:
@@ -3530,7 +3530,7 @@ class CLICommandsMixin:
             _cprint("Usage: /voice [on|off|tts|status]")
 
     def _handle_wake_command(self, command: str):
-        """Handle /wake [on|off|status] — the 'Hey Hermes' hotword listener.
+        """Handle /wake [on|off|status] — the 'Hey Sparkii' hotword listener.
 
         The toggle IS the config: an explicit on/off (or bare toggle) also
         writes ``wake_word.enabled`` to config.yaml so the choice persists

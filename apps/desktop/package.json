@@ -3,7 +3,7 @@
   "productName": "Sparkii",
   "private": true,
   "version": "0.17.0",
-  "description": "Native desktop shell for Hermes Agent.",
+  "description": "Native desktop shell for Sparkii Agent.",
   "author": "Nous Research",
   "type": "module",
   "main": "dist/electron-main.mjs",
@@ -77,7 +77,7 @@
     "@dnd-kit/core": "6.3.1",
     "@dnd-kit/sortable": "10.0.0",
     "@dnd-kit/utilities": "3.2.2",
-    "@hermes/shared": "file:../shared",
+    "@sparkii/shared": "file:../shared",
     "@icons-pack/react-simple-icons": "13.11.1",
     "@lezer/highlight": "1.2.3",
     "@nanostores/react": "1.1.0",
@@ -165,16 +165,16 @@
     "electronVersion": "40.10.6",
     "appId": "com.sparkii.desktop",
         "productName": "Sparkii",
-    "executableName": "Hermes",
+    "executableName": "Sparkii",
     "protocols": [
       {
-        "name": "Hermes Protocol",
+        "name": "Sparkii Protocol",
         "schemes": [
-          "hermes"
+          "sparkii"
         ]
       }
     ],
-    "artifactName": "Hermes-${version}-${os}-${arch}.${ext}",
+    "artifactName": "Sparkii-${version}-${os}-${arch}.${ext}",
     "icon": "assets/icon",
     "directories": {
       "output": "release"
@@ -210,12 +210,12 @@
       "entitlements": "electron/entitlements.mac.plist",
       "entitlementsInherit": "electron/entitlements.mac.inherit.plist",
       "extendInfo": {
-        "CFBundleDisplayName": "Hermes",
-        "CFBundleExecutable": "Hermes",
-        "CFBundleName": "Hermes",
-        "NSAudioCaptureUsageDescription": "Hermes uses audio capture for voice conversations.",
-        "NSCameraUsageDescription": "Hermes uses the camera when a plugin or feature you enable requests it.",
-        "NSMicrophoneUsageDescription": "Hermes uses the microphone for voice input and voice conversations."
+        "CFBundleDisplayName": "Sparkii",
+        "CFBundleExecutable": "Sparkii",
+        "CFBundleName": "Sparkii",
+        "NSAudioCaptureUsageDescription": "Sparkii uses audio capture for voice conversations.",
+        "NSCameraUsageDescription": "Sparkii uses the camera when a plugin or feature you enable requests it.",
+        "NSMicrophoneUsageDescription": "Sparkii uses the microphone for voice input and voice conversations."
       },
       "gatekeeperAssess": false,
       "hardenedRuntime": true,
@@ -225,7 +225,7 @@
       ]
     },
     "dmg": {
-      "title": "Install Hermes",
+      "title": "Install Sparkii",
       "backgroundColor": "#f5f5f7",
       "iconSize": 96,
       "window": {
@@ -247,7 +247,7 @@
       ]
     },
     "win": {
-      "legalTrademarks": "Hermes",
+      "legalTrademarks": "Sparkii",
       "target": [
         "nsis",
         "msi"
@@ -257,7 +257,7 @@
     "linux": {
       "category": "Development",
       "maintainer": "Nous Research <support@nousresearch.com>",
-      "synopsis": "Native desktop shell for Hermes Agent.",
+      "synopsis": "Native desktop shell for Sparkii Agent.",
       "target": [
         "AppImage",
         "deb",
@@ -268,8 +268,8 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "perMachine": false,
-      "shortcutName": "Hermes",
-      "uninstallDisplayName": "Hermes",
+      "shortcutName": "Sparkii",
+      "uninstallDisplayName": "Sparkii",
       "warningsAsErrors": false
     }
   }

@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { atom } from 'nanostores'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { ProfileInfo } from '@/types/hermes'
+import type { ProfileInfo } from '@/types/sparkii'
 
 const getConnectionConfig = vi.fn()
 const saveConnectionConfig = vi.fn()
@@ -31,7 +31,7 @@ beforeEach(() => {
       is_default: true,
       model: null,
       name: 'default',
-      path: '/tmp/hermes',
+      path: '/tmp/sparkii',
       provider: null,
       skill_count: 0
     },
@@ -40,7 +40,7 @@ beforeEach(() => {
       is_default: false,
       model: null,
       name: 'work',
-      path: '/tmp/hermes/profiles/work',
+      path: '/tmp/sparkii/profiles/work',
       provider: null,
       skill_count: 0
     }
@@ -89,7 +89,7 @@ describe('GatewaySettings', () => {
             sshUser: 'alice',
             sshPort: 22,
             sshKeyPath: '',
-            sshRemoteSparkiiPath: '/opt/hermes/bin/hermes',
+            sshRemoteSparkiiPath: '/opt/sparkii/bin/sparkii',
             sshRemoteProfile: 'default'
           }
         : localConnection

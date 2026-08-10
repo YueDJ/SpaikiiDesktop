@@ -60,7 +60,7 @@ class StashEntry:
     preview: str = ""
 
     def as_dict(self) -> dict:
-        """Render in the shape ``HermesCLI._render_stash_panel`` consumes."""
+        """Render in the shape ``SparkiiCLI._render_stash_panel`` consumes."""
         return {
             "text": self.text,
             "images": list(self.images),

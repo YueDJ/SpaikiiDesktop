@@ -1,4 +1,4 @@
-import type { GatewayWsUrlResult } from '@hermes/shared'
+import type { GatewayWsUrlResult } from '@sparkii/shared'
 
 import type { WakeIndicatorState } from './lib/wake-indicator'
 import type {
@@ -440,7 +440,7 @@ export interface DesktopUpdateApplyResult {
   error?: string
   message?: string
   /** True when no staged updater exists (CLI install) and the user should run
-   *  `hermes update` themselves. `command` is the exact line to run. */
+   *  `sparkii update` themselves. `command` is the exact line to run. */
   manual?: boolean
   command?: string
   hermesRoot?: string
@@ -594,7 +594,7 @@ export interface DesktopConnectionTestResult {
   reachable?: boolean
   sshError?:
     | 'auth-failed'
-    | 'hermes-not-found'
+    | 'sparkii-not-found'
     | 'host-key-changed'
     | 'timeout'
     | 'unreachable'
@@ -657,7 +657,7 @@ export interface DesktopCloudStatus {
   portalBaseUrl: string
   // Whether the OAuth partition holds a live Nous portal (Privy) session — the
   // portal authenticates via Privy, so this reflects the privy-token cookie, NOT
-  // the hermes gateway session cookies. See cookiesHavePrivySession.
+  // the sparkii gateway session cookies. See cookiesHavePrivySession.
   signedIn: boolean
 }
 

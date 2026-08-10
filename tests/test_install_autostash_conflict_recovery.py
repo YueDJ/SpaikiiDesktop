@@ -124,7 +124,7 @@ def test_install_ps1_repository_stage_recovers_from_autostash_conflict(
             "-NonInteractive",
             "-InstallDir",
             str(managed),
-            "-HermesHome",
+            "-SparkiiHome",
             str(tmp_path / "sparkii-home"),
         ],
         cwd=tmp_path,

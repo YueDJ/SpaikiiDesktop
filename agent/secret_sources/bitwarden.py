@@ -1,13 +1,13 @@
 """Bitwarden Secrets Manager (`bws` CLI) integration.
 
-Hermes pulls API keys from Bitwarden Secrets Manager at process startup
+Sparkii pulls API keys from Bitwarden Secrets Manager at process startup
 so they don't have to live in plaintext in ``~/.sparkii/.env``.
 
 Design summary
 --------------
 
 * The ``bws`` binary is auto-installed into ``<sparkii_home>/bin/bws`` on
-  first use.  Hermes pins one version (``_BWS_VERSION``) and downloads
+  first use.  Sparkii pins one version (``_BWS_VERSION``) and downloads
   the matching asset from the official GitHub Releases page, verifying
   the SHA-256 against the release's published checksum file.
 * The access token is stored in ``~/.sparkii/.env`` as
@@ -18,7 +18,7 @@ Design summary
   --output json`` call.  We cache the result in-process for
   ``cache_ttl_seconds`` so back-to-back ``sparkii`` invocations don't
   hammer the API.
-* Failures NEVER block Hermes startup.  Missing binary, no network,
+* Failures NEVER block Sparkii startup.  Missing binary, no network,
   expired token, etc. all emit a one-line warning and continue with
   whatever credentials ``.env`` already had.
 
@@ -136,7 +136,7 @@ def _encrypted_disk_cache_path(home_path: Optional[Path] = None) -> Path:
 
 
 def _sparkii_bin_dir() -> Path:
-    """Where Hermes stores its managed binaries.  Profile-aware."""
+    """Where Sparkii stores its managed binaries.  Profile-aware."""
     from sparkii_constants import get_sparkii_home
 
     return get_sparkii_home() / "bin"
@@ -643,7 +643,7 @@ def _summarize_bws_stderr(raw: str) -> str:
            crates/bws/src/main.rs:108
         ...
 
-    Everything from ``Location:`` on is diagnostic noise for a Hermes
+    Everything from ``Location:`` on is diagnostic noise for a Sparkii
     user.  Keep the numbered cause lines (joined), drop the rest, and
     fall back to the stripped raw text when the shape is unrecognized.
     """

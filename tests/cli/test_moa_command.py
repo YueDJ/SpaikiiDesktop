@@ -1,12 +1,12 @@
 import queue
 from unittest.mock import patch
 
-from cli import HermesCLI
+from cli import SparkiiCLI
 from sparkii_cli.moa_config import decode_moa_turn
 
 
 def _make_cli():
-    cli = HermesCLI.__new__(HermesCLI)
+    cli = SparkiiCLI.__new__(SparkiiCLI)
     cli.config = {
         "moa": {
             "default_preset": "default",

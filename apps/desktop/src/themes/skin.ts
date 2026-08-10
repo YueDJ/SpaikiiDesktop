@@ -2,7 +2,7 @@
  * Sparkii skin → DesktopTheme converter.
  *
  * A "skin" is the CLI/TUI theme unit: a YAML file in `$SPARKII_HOME/skins/` (or a
- * built-in) resolved by `hermes_cli/skin_engine.py` and pushed to every surface
+ * built-in) resolved by `sparkii_cli/skin_engine.py` and pushed to every surface
  * over JSON-RPC (`gateway.ready`, `skin.changed`, `config.get skin`). This is the
  * one place the desktop turns that CLI-shaped palette into a `DesktopTheme`, so a
  * skin Sparkii authors from a prompt lights up all three surfaces from one file.
@@ -15,7 +15,7 @@
  * still picks `.dark` from the real background luminance.
  */
 
-import type { SparkiiSkin, SkinColors } from '@hermes/shared/skin'
+import type { SparkiiSkin, SkinColors } from '@sparkii/shared/skin'
 
 import { ensureContrast, luminance, mix, normalizeHex, readableOn } from './color'
 import type { DesktopTheme, DesktopThemeColors } from './types'

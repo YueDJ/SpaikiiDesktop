@@ -110,7 +110,7 @@ _CONTROL_WRAPPERS = (
     ("<ide_selection>", "</ide_selection>"),
 )
 
-# Hermes' own machine-authored openers. A compaction handoff or a resumed
+# Sparkii' own machine-authored openers. A compaction handoff or a resumed
 # session must not be titled after the scaffolding that carried it.
 _MACHINE_PREFIXES = (
     "[CONTEXT COMPACTION",
@@ -512,7 +512,7 @@ def auto_title_session(
         # names the likely cause so "restart the process" is discoverable.
         logger.warning(
             "Auto-title failed (harmless; if this started after an update, "
-            "restart the running Hermes process): %s",
+            "restart the running Sparkii process): %s",
             e,
         )
         logger.debug("Auto-title traceback", exc_info=True)

@@ -21,7 +21,7 @@
  * fenced out until a later page confirms the value we wrote.
  */
 
-import { setSessionPinnedRemote } from '@/hermes'
+import { setSessionPinnedRemote } from '@/sparkii'
 import { $pinnedSessionIds, pinSession, unpinSession } from '@/store/layout'
 import { $sessions, sessionMatchesStoredId, sessionPinId } from '@/store/session'
 

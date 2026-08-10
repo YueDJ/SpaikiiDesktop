@@ -6,7 +6,7 @@ Covers:
 - Clean response without interrupt still drives the judge + enqueues.
 
 These tests exercise ``_maybe_continue_goal_after_turn`` directly on a
-minimal ``HermesCLI`` stub (pattern used elsewhere in tests/cli).
+minimal ``SparkiiCLI`` stub (pattern used elsewhere in tests/cli).
 """
 
 from __future__ import annotations
@@ -40,11 +40,11 @@ def sparkii_home(tmp_path, monkeypatch):
 
 
 def _make_cli_with_goal(session_id: str, goal_text: str = "build a thing"):
-    """Build a minimal HermesCLI stub with an active goal wired in."""
-    from cli import HermesCLI
+    """Build a minimal SparkiiCLI stub with an active goal wired in."""
+    from cli import SparkiiCLI
     from sparkii_cli.goals import GoalManager
 
-    cli = HermesCLI.__new__(HermesCLI)
+    cli = SparkiiCLI.__new__(SparkiiCLI)
     # State the hook + helpers touch directly.
     cli._pending_input = queue.Queue()
     cli._last_turn_interrupted = False
@@ -140,10 +140,10 @@ class TestInterruptFlagLifecycle:
         # We can't run chat() end-to-end here, but we can assert the reset
         # is the first thing after the secret-capture registration by
         # inspecting the source shape.
-        from cli import HermesCLI
+        from cli import SparkiiCLI
         import inspect
 
-        src = inspect.getsource(HermesCLI.chat)
+        src = inspect.getsource(SparkiiCLI.chat)
         # Look for an explicit reset near the top of chat().
         head = src.split("if not self._ensure_runtime_credentials", 1)[0]
         assert "self._last_turn_interrupted = False" in head, (

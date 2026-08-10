@@ -228,7 +228,7 @@ def build_gateway_parser(
         "migrate-legacy",
         help="Remove legacy sparkii.service units from pre-rename installs",
         description=(
-            "Stop, disable, and remove legacy Hermes gateway unit files "
+            "Stop, disable, and remove legacy Sparkii gateway unit files "
             "(e.g. sparkii.service) left over from older installs. Profile "
             "units (sparkii-gateway-<profile>.service) and unrelated "
             "third-party services are never touched."

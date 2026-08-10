@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { getElevenLabsVoices, getSparkiiConfigSchema, saveSparkiiConfig } from '@/hermes'
+import { getElevenLabsVoices, getSparkiiConfigSchema, saveSparkiiConfig } from '@/sparkii'
 import { useI18n } from '@/i18n'
 import { notifyError } from '@/store/notifications'
-import type { SparkiiConfigRecord } from '@/types/hermes'
+import type { SparkiiConfigRecord } from '@/types/sparkii'
 
 import { setSparkiiConfigCache, useSparkiiConfigRecord } from '../hooks/use-config-record'
 
@@ -36,7 +36,7 @@ export function VoiceProviderFields({ section, providerKey }: { section: 'tts' |
   const { data: loadedConfig } = useSparkiiConfigRecord()
 
   const { data: schemaResponse } = useQuery({
-    queryKey: ['hermes-config-schema'],
+    queryKey: ['sparkii-config-schema'],
     queryFn: getSparkiiConfigSchema,
     staleTime: 5 * 60 * 1000
   })

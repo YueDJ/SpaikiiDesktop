@@ -1,8 +1,8 @@
 import type { Dispatch, SetStateAction } from 'react'
 
-import type { SparkiiGateway } from '@/hermes'
+import type { SparkiiGateway } from '@/sparkii'
 import type { IconComponent } from '@/lib/icons'
-import type { EnvVarInfo } from '@/types/hermes'
+import type { EnvVarInfo } from '@/types/sparkii'
 
 export type SettingsView =
   | 'about'

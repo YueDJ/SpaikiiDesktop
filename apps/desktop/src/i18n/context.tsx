@@ -1,6 +1,6 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 
-import { getSparkiiConfigRecord, type SparkiiConfigRecord, saveSparkiiConfig } from '@/hermes'
+import { getSparkiiConfigRecord, type SparkiiConfigRecord, saveSparkiiConfig } from '@/sparkii'
 
 import { TRANSLATIONS } from './catalog'
 import { DEFAULT_LOCALE, localeConfigValue, normalizeLocale } from './languages'

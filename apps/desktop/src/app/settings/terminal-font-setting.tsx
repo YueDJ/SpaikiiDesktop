@@ -8,10 +8,10 @@ import {
 } from '@/app/right-sidebar/terminal/terminal-font'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { saveSparkiiConfig } from '@/hermes'
+import { saveSparkiiConfig } from '@/sparkii'
 import { useI18n } from '@/i18n'
 import { notifyError } from '@/store/notifications'
-import type { SparkiiConfigRecord } from '@/types/hermes'
+import type { SparkiiConfigRecord } from '@/types/sparkii'
 
 import { setSparkiiConfigCache, useSparkiiConfigRecord } from '../hooks/use-config-record'
 import { useOnProfileSwitch } from '../hooks/use-on-profile-switch'
@@ -135,7 +135,7 @@ export function TerminalFontSetting() {
               aria-label={copy.terminalFontTitle}
               className="flex-1"
               disabled={draft === null}
-              list="hermes-terminal-font-families"
+              list="sparkii-terminal-font-families"
               onChange={event => update(event.target.value)}
               placeholder={copy.terminalFontPlaceholder}
               value={value}
@@ -144,7 +144,7 @@ export function TerminalFontSetting() {
               {copy.terminalFontReset}
             </Button>
           </div>
-          <datalist id="hermes-terminal-font-families">
+          <datalist id="sparkii-terminal-font-families">
             {TERMINAL_FONT_SUGGESTIONS.map(font => (
               <option key={font} value={font} />
             ))}

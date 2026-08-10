@@ -239,8 +239,8 @@ def _setup_platform(sparkii_home: str, config: dict, flags: dict[str, str]) -> N
     """
     schema = [
         {"key": "api_key", "description": "Mem0 Platform API key", "secret": True, "required": True, "env_var": "MEM0_API_KEY", "url": "https://app.mem0.ai"},
-        {"key": "user_id", "description": "User identifier", "default": "hermes-user"},
-        {"key": "agent_id", "description": "Agent identifier", "default": "hermes"},
+        {"key": "user_id", "description": "User identifier", "default": "sparkii-user"},
+        {"key": "agent_id", "description": "Agent identifier", "default": "sparkii"},
         {"key": "rerank", "description": "Enable reranking for recall", "default": "false", "choices": ["true", "false"]},
     ]
 
@@ -313,13 +313,13 @@ def _setup_platform(sparkii_home: str, config: dict, flags: dict[str, str]) -> N
     provider_config["host"] = ""
     # The json-file clear above can't help when the host comes from the
     # environment: _load_config() seeds ``host`` from MEM0_HOST, and the
-    # docs tell self-hosted users to put MEM0_HOST in ~/.hermes/.env. Warn
+    # docs tell self-hosted users to put MEM0_HOST in ~/.sparkii/.env. Warn
     # so the user knows platform mode won't take effect until it's removed.
     if os.environ.get("MEM0_HOST", "").strip():
         print(
             "\n  ⚠ MEM0_HOST is set in your environment "
             f"({os.environ['MEM0_HOST']}). It overrides platform mode — "
-            "remove it from ~/.hermes/.env (or unset it) or Hermes will keep "
+            "remove it from ~/.sparkii/.env (or unset it) or Sparkii will keep "
             "routing to the self-hosted server."
         )
 
@@ -400,9 +400,9 @@ def _setup_selfhosted(sparkii_home: str, config: dict, flags: dict[str, str]) ->
             env_writes["MEM0_API_KEY"] = val
 
     user_id = flags.get("user_id") or _prompt(
-        "User identifier", default=provider_config.get("user_id") or "hermes-user"
+        "User identifier", default=provider_config.get("user_id") or "sparkii-user"
     )
-    agent_id = _prompt("Agent identifier", default=provider_config.get("agent_id") or "hermes")
+    agent_id = _prompt("Agent identifier", default=provider_config.get("agent_id") or "sparkii")
 
     if flags.get("dry_run"):
         print(f"\n  [dry-run] Would save config: host={host}, user_id={user_id}, agent_id={agent_id}")
@@ -455,7 +455,7 @@ def _setup_oss(sparkii_home: str, config: dict, flags: dict[str, str]) -> None:
             print(f"  Error: {e}", file=sys.stderr)
         sys.exit(1)
 
-    user_id = flags.get("user_id") or os.getenv("USER", "hermes-user")
+    user_id = flags.get("user_id") or os.getenv("USER", "sparkii-user")
 
     llm_id = oss_config["llm"]["provider"]
     embedder_id = oss_config["embedder"]["provider"]
@@ -474,7 +474,7 @@ def _setup_oss(sparkii_home: str, config: dict, flags: dict[str, str]) -> None:
 
     if env_writes:
         _write_env(Path(sparkii_home) / ".env", env_writes)
-    _save_mem0_json(sparkii_home, {"mode": "oss", "user_id": user_id, "agent_id": "hermes", "oss": oss_config})
+    _save_mem0_json(sparkii_home, {"mode": "oss", "user_id": user_id, "agent_id": "sparkii", "oss": oss_config})
 
     _install_provider_deps(llm_id, embedder_id, vector_id)
 
@@ -515,9 +515,9 @@ def _prompt_api_key(label: str, env_var: str, sparkii_home: str) -> str:
     return getpass.getpass(f"  {label} API key: ").strip()
 
 
-_PGVECTOR_CONTAINER = "hermes-pgvector"
+_PGVECTOR_CONTAINER = "sparkii-pgvector"
 _PGVECTOR_IMAGE = "pgvector/pgvector:pg17"
-_PGVECTOR_PASSWORD = "hermes"
+_PGVECTOR_PASSWORD = "sparkii"
 
 
 def _ensure_pgvector(host: str = "localhost", port: int = 5432) -> dict | None:
@@ -799,11 +799,11 @@ def _setup_oss_interactive(sparkii_home: str, config: dict) -> None:
             if pg_password:
                 pgvector_config["password"] = pg_password
 
-    user_id = input(f"  User ID [{os.getenv('USER', 'hermes-user')}]: ").strip()
-    user_id = user_id or os.getenv("USER", "hermes-user")
+    user_id = input(f"  User ID [{os.getenv('USER', 'sparkii-user')}]: ").strip()
+    user_id = user_id or os.getenv("USER", "sparkii-user")
 
-    agent_id = input("  Agent ID [hermes]: ").strip()
-    agent_id = agent_id or "hermes"
+    agent_id = input("  Agent ID [sparkii]: ").strip()
+    agent_id = agent_id or "sparkii"
 
     flags = {
         "oss_llm": llm_id,
@@ -864,7 +864,7 @@ def _install_provider_deps(llm_id: str, embedder_id: str, vector_id: str) -> Non
         try:
             print(f"  Installing {dep}...")
             # Environment-aware install: sealed hosted venvs redirect to the
-            # durable data-volume target instead of /opt/hermes (NS-605).
+            # durable data-volume target instead of /opt/sparkii (NS-605).
             from tools.lazy_deps import install_specs
 
             outcome = install_specs([dep], timeout=60)
@@ -962,7 +962,7 @@ def _check_min_dep_version() -> None:
 
 
 def post_setup(sparkii_home: str, config: dict) -> None:
-    """Entry point called by hermes memory setup framework.
+    """Entry point called by sparkii memory setup framework.
 
     Routes on --mode (platform / selfhosted / oss); with no flag it shows an
     interactive picker with all three modes. Platform keeps the framework's

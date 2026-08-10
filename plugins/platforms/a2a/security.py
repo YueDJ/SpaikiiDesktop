@@ -350,7 +350,7 @@ def _audit_path() -> Path:
         from sparkii_constants import get_sparkii_home
         base = Path(get_sparkii_home())
     except Exception:
-        base = Path(os.path.expanduser("~/.hermes"))
+        base = Path(os.path.expanduser("~/.sparkii"))
     return base / "a2a_audit.jsonl"
 
 

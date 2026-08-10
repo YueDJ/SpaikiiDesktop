@@ -3,11 +3,11 @@
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
-from cli import HermesCLI
+from cli import SparkiiCLI
 
 
 def _make_cli(session_id="20260524_000001_abc123"):
-    cli_obj = HermesCLI.__new__(HermesCLI)
+    cli_obj = SparkiiCLI.__new__(SparkiiCLI)
     cli_obj.session_id = session_id
     # _print_exit_summary requires a populated conversation history (msg_count > 0)
     # to print the resume hint at all. One synthetic user turn is enough.

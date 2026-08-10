@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { useSessionView } from '@/app/chat/session-view'
 import { Codicon } from '@/components/ui/codicon'
 import { DropdownMenuItem, dropdownMenuRow } from '@/components/ui/dropdown-menu'
-import type { SparkiiGateway } from '@/hermes'
+import type { SparkiiGateway } from '@/sparkii'
 import { useI18n } from '@/i18n'
 import { modelOptionsQueryKey, requestModelOptions } from '@/lib/model-options'
 import { currentPickerSelection } from '@/lib/model-status-label'
@@ -21,7 +21,7 @@ import {
   setCurrentReasoningEffort
 } from '@/store/session'
 import { sessionTileDelegate } from '@/store/session-states'
-import type { ModelOptionsResponse } from '@/types/hermes'
+import type { ModelOptionsResponse } from '@/types/sparkii'
 
 import { ModelCatalogMenu, type ModelMenuController } from './model-catalog-menu'
 

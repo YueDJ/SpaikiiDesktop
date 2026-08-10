@@ -330,7 +330,7 @@ _detached_ws_transport = _DropTransport()
 
 
 class _SlashWorker:
-    """Persistent HermesCLI subprocess for slash commands."""
+    """Persistent SparkiiCLI subprocess for slash commands."""
 
     def __init__(self, session_key: str, model: str, profile_home: str | None = None):
         self._lock = threading.Lock()
@@ -351,7 +351,7 @@ class _SlashWorker:
         self._closed = False
         from sparkii_cli._subprocess_compat import windows_hide_flags
 
-        # slash_worker runs the Hermes agent → needs provider credentials.
+        # slash_worker runs the Sparkii agent → needs provider credentials.
         # Tier-1 secrets (gateway/GitHub/infra) are still stripped (#29157).
         # Global-remote / multi-profile sessions: the worker must resolve
         # config/skills/state against the session's profile home, not the
@@ -3539,7 +3539,7 @@ _skin_watcher_started = False
 
 def _ensure_skin_watcher() -> None:
     """Watch cheap on-disk signatures and broadcast change events — so a skin
-    Hermes activates, a pet ``/pet`` adopts, a cron the scheduler fires, or a
+    Sparkii activates, a pet ``/pet`` adopts, a cron the scheduler fires, or a
     messaging turn another process writes goes live on every surface within a
     couple seconds, on its own, with no client-side poll in the loop.
     Idempotent; started at gateway.ready. (Named for its original skin-only
@@ -4174,7 +4174,7 @@ def _gui_surface_toolsets(platform: str) -> set[str]:
     driving a local, SSH, URL, or cloud backend, and only the local/SSH spawn
     paths run with ``SPARKII_DESKTOP=1``. Keying GUI capability off that env var
     silently stripped every pane/browser tool from URL and cloud gateways while
-    the same backend told the model it was "chatting inside the Hermes desktop
+    the same backend told the model it was "chatting inside the Sparkii desktop
     app". See the surface-capability rule in AGENTS.md.
     """
     surfaces = {"project"}
@@ -4193,7 +4193,7 @@ def _load_enabled_toolsets(platform: str | None = None) -> list[str] | None:
     cfg = None
     fallback_notice = None
 
-    # Coding posture (base Hermes): with no explicit pin, collapse to the
+    # Coding posture (base Sparkii): with no explicit pin, collapse to the
     # coding toolset (+ enabled MCP servers) when sitting in a code workspace.
     # The desktop app and `sparkii --tui` both land here. See
     # agent/coding_context.py. No config is loaded yet at this point, so we let
@@ -5817,7 +5817,7 @@ def _agent_cbs(sid: str) -> dict:
         ),
         # read_window_below tool (desktop GUI): the renderer asks its main
         # process (which owns native window enumeration) which OS window sits
-        # directly underneath the Hermes window, and answers
+        # directly underneath the Sparkii window, and answers
         # window.read.respond with the serialized metadata.
         "read_window_below_callback": lambda: _block(
             "window.read.request",
@@ -6067,7 +6067,7 @@ def _load_fallback_model():
     """Return the configured fallback chain for TUI-created agents.
 
     Delegates to the shared ``get_fallback_chain`` helper so the TUI path
-    stays in parity with ``HermesCLI.__init__`` and ``gateway/run.py``:
+    stays in parity with ``SparkiiCLI.__init__`` and ``gateway/run.py``:
     ``fallback_providers`` is the primary source of truth and keeps its
     order, with legacy ``fallback_model`` entries merged in afterwards
     (deduped on provider/model/base_url).
@@ -8330,7 +8330,7 @@ def _pet_active_selection():
 def _pet_state_rows(spritesheet) -> list[str]:
     """Row taxonomy for the concrete active pet sheet.
 
-    Hermes has to support both the legacy 8-row petdex atlas and the current
+    Sparkii has to support both the legacy 8-row petdex atlas and the current
     Codex/petdex 9-row atlas. The desktop canvas gets this list and indexes it
     with the same `PetState` names the Python renderer uses.
     """
@@ -11675,7 +11675,7 @@ def _discover_repos_payload(
                 # NOTE: `last_seen` is when the disk scan last saw the directory,
                 # not when the user last worked in it. Folding it into
                 # `last_active` stamped every scanned repo with the scan time —
-                # i.e. "just now" — so a git checkout with zero Hermes sessions
+                # i.e. "just now" — so a git checkout with zero Sparkii sessions
                 # outranked the repos the user actually works in. Activity stays
                 # session-derived; a repo with no sessions has no activity.
 
@@ -12017,7 +12017,7 @@ def _rank_slash_completions(
     ``usage``/``origin_of`` are the callables :func:`_skill_usage_lookup`
     returns. Registry commands keep their existing order — only the skill
     block is reordered, most-used first and A-Z within a tie, so the handful
-    of skills someone invokes daily lead the ones that shipped with Hermes
+    of skills someone invokes daily lead the ones that shipped with Sparkii
     and were never opened.
 
     ``score_of`` (optional) is the fuzzy-match scorer from
@@ -12501,7 +12501,7 @@ def _format_live_history_output(session: dict) -> str:
     lines = ["Conversation History", "────────────────────────────────────────"]
     for idx, message in enumerate(messages, start=1):
         role = str(message.get("role") or "unknown")
-        label = "You" if role == "user" else "Hermes" if role == "assistant" else role.title()
+        label = "You" if role == "user" else "Sparkii" if role == "assistant" else role.title()
         text = str(message.get("text") or message.get("context") or "").strip()
         if len(text) > 400:
             text = f"{text[:400]}..."
@@ -13191,7 +13191,7 @@ def _voice_record_key() -> str:
     return str(record_key) if isinstance(record_key, str) and record_key else "ctrl+b"
 
 
-# ── Wake word ("Hey Hermes") ──────────────────────────────────────────────
+# ── Wake word ("Hey Sparkii") ──────────────────────────────────────────────
 # The detector is process-global (one mic), like voice. The first eligible
 # transport to call wake.start owns it until stop, disconnect, or stream failure.
 # On detection we emit wake.detected; the client opens a new session and starts

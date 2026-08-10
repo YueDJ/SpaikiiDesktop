@@ -37,7 +37,7 @@ import {
   type McpTestResult,
   saveMcpServers,
   testMcpServer
-} from '@/hermes'
+} from '@/sparkii'
 import { type Translations, useI18n } from '@/i18n'
 import { completeMcpDesktopOAuth } from '@/lib/mcp-dashboard-oauth'
 import { countEnabledTools, isToolEnabled, toggleToolInServer } from '@/lib/mcp-tool-filter'
@@ -45,7 +45,7 @@ import { cn } from '@/lib/utils'
 import { notify, notifyError } from '@/store/notifications'
 import { $activeGatewayProfile, normalizeProfileKey } from '@/store/profile'
 import { $activeSessionId } from '@/store/session'
-import type { SparkiiConfigRecord } from '@/types/hermes'
+import type { SparkiiConfigRecord } from '@/types/sparkii'
 
 import { setSparkiiConfigCache, useSparkiiConfigRecord } from '../hooks/use-config-record'
 import { useOnProfileSwitch } from '../hooks/use-on-profile-switch'
@@ -108,7 +108,7 @@ function getServers(config: SparkiiConfigRecord | null): McpServers {
   return raw && typeof raw === 'object' && !Array.isArray(raw) ? (raw as McpServers) : {}
 }
 
-// The runtime gate is `enabled: false` — the same flag `hermes mcp` and the
+// The runtime gate is `enabled: false` — the same flag `sparkii mcp` and the
 // agent's MCP loader read.
 const serverEnabled = (server: Record<string, unknown>) => server.enabled !== false
 

@@ -1899,7 +1899,7 @@ def dump_api_request_debug(
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
         # Sanitize the session ID into a traversal-free path segment — it can
-        # originate from untrusted input (X-Hermes-Session-Id header), and an
+        # originate from untrusted input (X-Sparkii-Session-Id header), and an
         # unsanitized "../"-shaped ID would write the dump outside logs_dir.
         safe_sid = _ra()._safe_session_filename_component(agent.session_id)
         dump_file = agent.logs_dir / f"request_dump_{safe_sid}_{timestamp}.json"
@@ -3677,7 +3677,7 @@ def reapply_reasoning_echo_for_provider(agent, api_messages: list) -> int:
 def _iter_httpx_pool_objects(http_client: Any):
     """Yield httpcore pool objects reachable from an httpx client.
 
-    Hermes' keepalive client (#10324 / ``_build_keepalive_http_client``) and
+    Sparkii' keepalive client (#10324 / ``_build_keepalive_http_client``) and
     any ``HTTP(S)_PROXY`` configuration put live connections on *mounted*
     transports (``client._mounts``), not only on the default
     ``client._transport``. Walking the default transport alone makes

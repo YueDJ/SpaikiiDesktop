@@ -17,7 +17,7 @@ import { codiconIcon } from '@/components/ui/codicon'
 import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { HighlightMatches } from '@/components/ui/highlight-matches'
 import { KbdCombo } from '@/components/ui/kbd'
-import { getSparkiiConfigRecord, listAllProfileSessions } from '@/hermes'
+import { getSparkiiConfigRecord, listAllProfileSessions } from '@/sparkii'
 import { useI18n } from '@/i18n'
 import { sessionTitle } from '@/lib/chat-runtime'
 import {
@@ -874,8 +874,8 @@ function CommandPaletteBody({ onExited }: { onExited: () => void }) {
           {
             detail: updateVersionLabel,
             icon: Download,
-            id: 'cc-update-hermes',
-            keywords: ['update', 'upgrade', 'hermes', 'version', 'system', 'restart'],
+            id: 'cc-update-sparkii',
+            keywords: ['update', 'upgrade', 'sparkii', 'version', 'system', 'restart'],
             label: cc.updateSparkii,
             run: () => requestActiveUpdate()
           }

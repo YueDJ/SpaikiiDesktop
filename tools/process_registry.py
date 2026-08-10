@@ -83,13 +83,13 @@ WATCH_GLOBAL_COOLDOWN_SECONDS = 30
 # ---------------------------------------------------------------------------
 # systemd cgroup isolation for gateway-spawned local executors (#70716)
 # ---------------------------------------------------------------------------
-# When Hermes runs as a systemd gateway with MemoryHigh/MemoryMax limits,
+# When Sparkii runs as a systemd gateway with MemoryHigh/MemoryMax limits,
 # local background terminal commands inherit the gateway's cgroup.  A
 # memory-heavy executor (Codex, tests, Node) can push the whole cgroup past
 # MemoryMax and trigger systemd-oomd to kill the ENTIRE gateway — taking down
 # the messaging control plane and silently losing the active turn.
 #
-# Wrapping the spawn in ``systemd-run --user --scope --unit=hermes-worker-<pid>``
+# Wrapping the spawn in ``systemd-run --user --scope --unit=sparkii-worker-<pid>``
 # places the worker in its own transient cgroup so an OOM in the worker kills
 # only the worker, not the gateway.  We probe *once* whether
 # ``systemd-run --user --scope`` is actually usable (the binary can exist on
@@ -213,7 +213,7 @@ def _systemd_run_user_scope_available() -> bool:
                 if binary:
                     # Probe: create a transient scope that immediately exits.
                     # A unique unit avoids collisions; timeout bounds D-Bus.
-                    probe_unit = f"hermes-probe-scope-{os.getpid()}-{uuid.uuid4().hex[:8]}"
+                    probe_unit = f"sparkii-probe-scope-{os.getpid()}-{uuid.uuid4().hex[:8]}"
                     result = subprocess.run(
                         [
                             binary, "--user", "--scope", "--quiet",
@@ -263,7 +263,7 @@ def _build_systemd_scope_argv(
         # Caller should have checked _systemd_run_user_scope_available();
         # guard anyway so we never pass None into Popen.
         return shell_argv
-    unit_name = f"hermes-worker-{unit_suffix}"
+    unit_name = f"sparkii-worker-{unit_suffix}"
     memory_max = _worker_memory_max_bytes()
     return [
         binary,
@@ -1008,7 +1008,7 @@ class ProcessRegistry:
                     pty_argv = _build_systemd_scope_argv(
                         pty_argv, unit_suffix=session.id,
                     )
-                    session.systemd_unit = f"hermes-worker-{session.id}.scope"
+                    session.systemd_unit = f"sparkii-worker-{session.id}.scope"
                     pty_scope_attempted = True
                 elif not _IS_WINDOWS:
                     try:
@@ -1103,7 +1103,7 @@ class ProcessRegistry:
             spawn_argv = _build_systemd_scope_argv(
                 shell_argv, unit_suffix=unit_suffix,
             )
-            session.systemd_unit = f"hermes-worker-{unit_suffix}.scope"
+            session.systemd_unit = f"sparkii-worker-{unit_suffix}.scope"
             # systemd-run creates the new session/cgroup for us; do NOT also
             # set start_new_session (harmless, but redundant and it can mask
             # scope-creation failures in some systemd versions).
@@ -1220,9 +1220,9 @@ class ProcessRegistry:
 
         # Run the command in the sandbox with output capture
         temp_dir = self._env_temp_dir(env)
-        log_path = f"{temp_dir}/hermes_bg_{session.id}.log"
-        pid_path = f"{temp_dir}/hermes_bg_{session.id}.pid"
-        exit_path = f"{temp_dir}/hermes_bg_{session.id}.exit"
+        log_path = f"{temp_dir}/sparkii_bg_{session.id}.log"
+        pid_path = f"{temp_dir}/sparkii_bg_{session.id}.pid"
+        exit_path = f"{temp_dir}/sparkii_bg_{session.id}.exit"
         quoted_command = shlex.quote(command)
         quoted_temp_dir = shlex.quote(temp_dir)
         quoted_log_path = shlex.quote(log_path)
@@ -1722,7 +1722,7 @@ class ProcessRegistry:
         The reader thread (`_reader_loop`) sets `session.exited = True` only
         in its `finally` block, which runs when `stdout.read()` returns EOF.
         If the direct `Popen` child has exited but a descendant process (e.g.
-        a daemon spawned by `hermes update` restarting the gateway) is still
+        a daemon spawned by `sparkii update` restarting the gateway) is still
         holding the stdout pipe open, the reader blocks forever and poll()
         keeps returning "running" indefinitely (issue #17327 — 74 polls over
         7 minutes on Feishu).
@@ -2154,7 +2154,7 @@ class ProcessRegistry:
         if sink is None:
             return {
                 "status": "error",
-                "error": "close_terminal is only available in the Hermes desktop app.",
+                "error": "close_terminal is only available in the Sparkii desktop app.",
             }
         # The session may already be finished (or pruned) — the tab can still
         # linger and be closed, so a missing session is not an error here.
@@ -2448,7 +2448,7 @@ class ProcessRegistry:
                             "session_id": s.id,
                             # Redact inline credentials before persisting to
                             # disk — the checkpoint file lives under
-                            # ~/.hermes/processes.json with the raw command
+                            # ~/.sparkii/processes.json with the raw command
                             # (issue #77484). Recovery only uses command for
                             # display/logging (the process is already running;
                             # adoption re-validates the PID, never re-runs the
@@ -2790,7 +2790,7 @@ def format_process_notification(evt: dict) -> "str | None":
     if _exit in {-15, 143, "-15", "143"}:
         _signal = ", SIGTERM"
     if _reason == "killed":
-        _status = f"terminated by {_source or 'Hermes'}"
+        _status = f"terminated by {_source or 'Sparkii'}"
     elif _reason == "lost":
         _status = "marked lost because the process backend disappeared"
     elif _reason == "failed_start":

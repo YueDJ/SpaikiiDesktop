@@ -621,15 +621,15 @@ class TestGithubProviderLabeling:
         assert meta.extra.get("provider") == "NVIDIA"
 
 def _make_index_source(skills):
-    """Build a HermesIndexSource pre-loaded with a fixed skill list."""
-    from tools.skills_hub import HermesIndexSource
-    src = HermesIndexSource(auth=GitHubAuth())
+    """Build a SparkiiIndexSource pre-loaded with a fixed skill list."""
+    from tools.skills_hub import SparkiiIndexSource
+    src = SparkiiIndexSource(auth=GitHubAuth())
     src._index = {"skills": skills}
     src._loaded = True
     return src
 
 
-class TestHermesIndexSearch:
+class TestSparkiiIndexSearch:
     def test_search_matches_identifier_and_provider(self):
         # NVIDIA skill whose name/description does NOT contain "nvidia" — only
         # the identifier and the provider label do. The old substring-only
@@ -1558,7 +1558,7 @@ class TestParallelSearchSourcesTimeout:
 # ---------------------------------------------------------------------------
 
 
-class TestLoadHermesIndex:
+class TestLoadSparkiiIndex:
     """Regression coverage for the Skills-Hub index fetch.
 
     The centralized index is a large body served with Content-Encoding: br.

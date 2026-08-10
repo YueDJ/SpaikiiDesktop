@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import type { SparkiiConfigRecord } from '@/types/hermes'
+import type { SparkiiConfigRecord } from '@/types/sparkii'
 
 import { voiceFieldVisible } from './config-settings'
 

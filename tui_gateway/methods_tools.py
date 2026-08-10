@@ -1849,7 +1849,7 @@ def _(rid, params: dict) -> dict:
                         "source": source,
                         "status": status,
                         # Agent Plugins v1 package (plugin.json — the portable
-                        # skills/MCP format) vs a native Hermes plugin.
+                        # skills/MCP format) vs a native Sparkii plugin.
                         "portable": _is_portable_plugin_dir(_dir),
                     }
                 )

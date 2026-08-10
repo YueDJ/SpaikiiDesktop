@@ -40,7 +40,7 @@ def _reset_caches():
 
 @pytest.fixture
 def sparkii_home(tmp_path, monkeypatch):
-    """Point Hermes at an isolated home directory."""
+    """Point Sparkii at an isolated home directory."""
     home = tmp_path / ".sparkii"
     home.mkdir()
     monkeypatch.setenv("SPARKII_HOME", str(home))

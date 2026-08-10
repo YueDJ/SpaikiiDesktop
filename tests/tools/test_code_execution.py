@@ -80,7 +80,7 @@ class TestSandboxRequirements(unittest.TestCase):
         self.assertIn("code", EXECUTE_CODE_SCHEMA["parameters"]["required"])
 
 
-class TestHermesToolsGeneration(unittest.TestCase):
+class TestSparkiiToolsGeneration(unittest.TestCase):
     def test_generates_all_allowed_tools(self):
         src = generate_sparkii_tools_module(list(SANDBOX_ALLOWED_TOOLS))
         for tool in SANDBOX_ALLOWED_TOOLS:

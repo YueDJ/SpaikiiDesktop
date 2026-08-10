@@ -1,7 +1,7 @@
 import { useStore } from '@nanostores/react'
 
 import { ModelVisibilityDialog } from '@/components/model-visibility-dialog'
-import type { SparkiiGateway } from '@/hermes'
+import type { SparkiiGateway } from '@/sparkii'
 import { $modelVisibilityOpen, setModelVisibilityOpen } from '@/store/model-visibility'
 import { $activeSessionId, $gatewayState } from '@/store/session'
 

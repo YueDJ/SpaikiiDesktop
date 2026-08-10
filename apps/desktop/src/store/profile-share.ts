@@ -1,7 +1,7 @@
 /**
  * Profile share: export/import a profile as a portable bundle.
  *
- * The archive is the CLI's own `hermes profile export` tar.gz (config, skills,
+ * The archive is the CLI's own `sparkii profile export` tar.gz (config, skills,
  * SOUL.md, cron — credentials always excluded), plus one desktop-only file at
  * the root: `desktop.json`, the appearance/interface overlay (skin + mode,
  * any user-theme definitions the skin needs, the profile rail color, and the
@@ -15,13 +15,13 @@
 
 import { isLayoutNode, normalize } from '@/components/pane-shell/tree/model'
 import { $layoutTree, markActivePreset, persistTree } from '@/components/pane-shell/tree/store'
-import { exportProfileArchive, importProfileArchive } from '@/hermes'
+import { exportProfileArchive, importProfileArchive } from '@/sparkii'
 import { translateNow } from '@/i18n'
 import { modePref, skinPref, type ThemeMode } from '@/themes/context'
 import { BUILTIN_THEMES } from '@/themes/presets'
 import type { DesktopTheme } from '@/themes/types'
 import { $userThemes, installUserTheme, resolveTheme } from '@/themes/user-themes'
-import type { ProfileDesktopOverlay } from '@/types/hermes'
+import type { ProfileDesktopOverlay } from '@/types/sparkii'
 
 import { notify, notifyError } from './notifications'
 import {

@@ -1,5 +1,5 @@
-import { getGlobalModelOptions, type SparkiiGateway, type ModelOptionsResponse } from '@/hermes'
-import type { ModelOptionProvider } from '@/types/hermes'
+import { getGlobalModelOptions, type SparkiiGateway, type ModelOptionsResponse } from '@/sparkii'
+import type { ModelOptionProvider } from '@/types/sparkii'
 
 /**
  * True only when a persisted **manual** composer pick has been removed from the

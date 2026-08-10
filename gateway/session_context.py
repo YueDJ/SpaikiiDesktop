@@ -1,5 +1,5 @@
 """
-Session-scoped context variables for the Hermes gateway.
+Session-scoped context variables for the Sparkii gateway.
 
 Replaces the previous ``os.environ``-based session state
 (``SPARKII_SESSION_PLATFORM``, ``SPARKII_SESSION_CHAT_ID``, etc.) with

@@ -1,4 +1,4 @@
-"""Tests for acp_adapter.server — HermesACPAgent ACP server."""
+"""Tests for acp_adapter.server — SparkiiACPAgent ACP server."""
 
 import asyncio
 import os
@@ -38,7 +38,7 @@ from acp.schema import (
 from acp_adapter.auth import TERMINAL_SETUP_AUTH_METHOD_ID
 from acp_adapter.server import (
     ACP_MAX_MODELS_PER_PROVIDER,
-    HermesACPAgent,
+    SparkiiACPAgent,
     SPARKII_VERSION,
 )
 from acp_adapter.session import SessionManager
@@ -53,8 +53,8 @@ def mock_manager():
 
 @pytest.fixture()
 def agent(mock_manager):
-    """HermesACPAgent backed by a mock session manager."""
-    return HermesACPAgent(session_manager=mock_manager)
+    """SparkiiACPAgent backed by a mock session manager."""
+    return SparkiiACPAgent(session_manager=mock_manager)
 
 
 @pytest.mark.asyncio
@@ -186,7 +186,7 @@ class TestSessionOps:
                 base_url="https://api.openai.com/v1",
             )
         )
-        acp_agent = HermesACPAgent(session_manager=manager)
+        acp_agent = SparkiiACPAgent(session_manager=manager)
         picker_context = MagicMock()
         picker_context.with_overrides.return_value = picker_context
         payload = {

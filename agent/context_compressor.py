@@ -2837,7 +2837,7 @@ class ContextCompressor(ContextEngine):
         """Return True when a high rough preflight estimate is known-noisy.
 
         ``estimate_request_tokens_rough(..., tools=...)`` intentionally
-        overestimates so Hermes compresses before a provider rejects the
+        overestimates so Sparkii compresses before a provider rejects the
         payload — but the margin is not a fixed percentage: CJK text is
         counted at ~1.7x its o200k cost and Responses-mode reasoning replay
         blobs at several times their billed cost, so heavy sessions can show

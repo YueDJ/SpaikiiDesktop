@@ -25,7 +25,7 @@ except ModuleNotFoundError:
     pass
 else:
     # Stop a ``utils/``/``proxy/``/``ui/`` package in the launch directory from
-    # shadowing Hermes's own modules — ``sparkii acp`` can be started from any
+    # shadowing Sparkii's own modules — ``sparkii acp`` can be started from any
     # cwd, including a project that has same-named packages on its path.
     sparkii_bootstrap.harden_import_path()
 
@@ -119,9 +119,9 @@ def _load_env() -> None:
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="sparkii-acp",
-        description="Run Hermes Agent as an ACP stdio server.",
+        description="Run Sparkii Agent as an ACP stdio server.",
     )
-    parser.add_argument("--version", action="store_true", help="Print Hermes version and exit")
+    parser.add_argument("--version", action="store_true", help="Print Sparkii version and exit")
     parser.add_argument(
         "--check",
         action="store_true",
@@ -130,7 +130,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--setup",
         action="store_true",
-        help="Run interactive Hermes provider/model setup for ACP terminal auth",
+        help="Run interactive Sparkii provider/model setup for ACP terminal auth",
     )
     parser.add_argument(
         "--setup-browser",
@@ -157,9 +157,9 @@ def _print_version() -> None:
 
 def _run_check() -> None:
     import acp  # noqa: F401
-    from acp_adapter.server import HermesACPAgent  # noqa: F401
+    from acp_adapter.server import SparkiiACPAgent  # noqa: F401
 
-    print("Hermes ACP check OK")
+    print("Sparkii ACP check OK")
 
 
 def _run_setup() -> None:
@@ -247,7 +247,7 @@ def main(argv: list[str] | None = None) -> None:
         sys.path.insert(0, project_root)
 
     import acp
-    from .server import HermesACPAgent
+    from .server import SparkiiACPAgent
 
     # MCP tool discovery from config.yaml — fire-and-forget in a
     # background daemon thread so the ACP server becomes responsive
@@ -268,7 +268,7 @@ def main(argv: list[str] | None = None) -> None:
         except Exception:
             logger.debug("MCP tool discovery failed at ACP startup", exc_info=True)
 
-    agent = HermesACPAgent()
+    agent = SparkiiACPAgent()
     try:
         asyncio.run(acp.run_agent(agent, use_unstable_protocol=True))
     except KeyboardInterrupt:

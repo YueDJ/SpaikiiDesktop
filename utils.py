@@ -283,7 +283,7 @@ def warn_if_credential_file_broadly_readable(
 ) -> bool:
     """Warn (once per call) when a credential file is group/world-readable.
 
-    Secret-bearing files that users create by hand (or that older Hermes
+    Secret-bearing files that users create by hand (or that older Sparkii
     versions wrote without an explicit mode) commonly end up 0o644 under the
     default umask. This helper is the shared read-time check for that class:
     call it before loading any token/credential file so the owner gets a

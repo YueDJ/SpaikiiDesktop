@@ -15,7 +15,7 @@ def build_plugins_parser(subparsers, *, cmd_plugins: Callable) -> None:
         "plugins",
         help="Manage plugins — install, update, remove, list",
         description=(
-            "Install, update, remove, or list native Hermes plugins and "
+            "Install, update, remove, or list native Sparkii plugins and "
             "portable Agent Plugins v1 packages. Portable packages install disabled."
         ),
     )

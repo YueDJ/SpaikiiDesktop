@@ -198,9 +198,9 @@ class TestStatusBarSegment:
 
     @pytest.mark.parametrize("width", [40, 60, 120])
     def test_text_renderer_includes_the_badge_at_every_width_tier(self, width):
-        from cli import HermesCLI
+        from cli import SparkiiCLI
 
-        host = HermesCLI.__new__(HermesCLI)
+        host = SparkiiCLI.__new__(SparkiiCLI)
         host.model = "opus"
         host._focus_view_enabled = True
 
@@ -222,9 +222,9 @@ class TestStatusBarSegment:
             "idle_since": "",
         }
 
-        with patch.object(HermesCLI, "_get_status_bar_snapshot", return_value=snapshot), \
-             patch.object(HermesCLI, "_is_session_yolo_active", return_value=False):
-            text = HermesCLI._build_status_bar_text(host, width=width)
+        with patch.object(SparkiiCLI, "_get_status_bar_snapshot", return_value=snapshot), \
+             patch.object(SparkiiCLI, "_is_session_yolo_active", return_value=False):
+            text = SparkiiCLI._build_status_bar_text(host, width=width)
 
         assert "focus" in text
 
@@ -373,9 +373,9 @@ class TestCommandRegistration:
     def test_verbose_cycle_releases_focus_view(self):
         # /verbose is the explicit tool-progress control; cycling it must clear
         # the focus badge so the indicator can never contradict the display.
-        from cli import HermesCLI
+        from cli import SparkiiCLI
 
-        host = HermesCLI.__new__(HermesCLI)
+        host = SparkiiCLI.__new__(SparkiiCLI)
         host.tool_progress_mode = "off"
         host._focus_view_enabled = True
         host._focus_saved_tool_progress = "all"
@@ -384,7 +384,7 @@ class TestCommandRegistration:
         host.agent = None
 
         with patch("cli.save_config_value", return_value=True), patch("cli._cprint"):
-            HermesCLI._toggle_verbose(host)
+            SparkiiCLI._toggle_verbose(host)
 
         assert host._focus_view_enabled is False
         assert host._focus_saved_tool_progress is None

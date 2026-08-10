@@ -96,7 +96,7 @@ def current_secret_scope() -> Optional[Mapping[str, str]]:
 # Membership test is by exact name OR prefix (see _is_global_env). Keep this
 # list tight: when in doubt a value is a profile secret, not a global.
 _GLOBAL_ENV_EXACT = frozenset({
-    # Hermes runtime / deployment
+    # Sparkii runtime / deployment
     "SPARKII_HOME", "SPARKII_PROFILE", "SPARKII_GATEWAY_LOCK_DIR",
     "SPARKII_MAX_ITERATIONS", "SPARKII_MAX_TOKENS", "SPARKII_API_TIMEOUT",
     "SPARKII_REDACT_SECRETS", "SPARKII_NOUS_TIMEOUT_SECONDS",
@@ -227,7 +227,7 @@ def load_env_file(env_path: Path) -> Dict[str, str]:
     """Parse a ``.env`` file into a plain dict WITHOUT touching ``os.environ``.
 
     Used to load a profile's secrets into an isolated mapping for
-    ``set_secret_scope``. Parses the small KEY=VALUE subset Hermes writes
+    ``set_secret_scope``. Parses the small KEY=VALUE subset Sparkii writes
     itself (``export`` prefix, ``#`` comments — full-line and
     dotenv-compatible inline, matching quotes with the
     writer's ``\\"``/``\\\\`` escapes reversed — the same semantics as
@@ -244,7 +244,7 @@ def load_env_file(env_path: Path) -> Dict[str, str]:
     except (FileNotFoundError, OSError, UnicodeDecodeError):
         return secrets
 
-    # Parse values with the canonical Hermes parser: save_env_value
+    # Parse values with the canonical Sparkii parser: save_env_value
     # escapes " and \ inside double quotes, and every other reader
     # (load_env, python-dotenv) reverses those escapes. Stripping only
     # the outer quotes here would corrupt credentials containing "

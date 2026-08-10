@@ -1,7 +1,7 @@
-"""Safe Hermes Console command engine.
+"""Safe Sparkii Console command engine.
 
 This module backs ``sparkii console`` and is intentionally narrower than the
-full Hermes CLI. It exposes a curated set of native adapters that can later be
+full Sparkii CLI. It exposes a curated set of native adapters that can later be
 shared by the dashboard console websocket without becoming a raw shell.
 """
 
@@ -43,7 +43,7 @@ class ConsoleCommand:
     path: tuple[str, ...]
     usage: str
     summary: str
-    handler: Callable[["HermesConsoleEngine", list[str]], str]
+    handler: Callable[["SparkiiConsoleEngine", list[str]], str]
     mutating: bool = False
     confirmation: str = ""
 
@@ -217,7 +217,7 @@ def _noop_console_command(_args: argparse.Namespace) -> None:
 # The CLI surface these helpers reflect is process-static: they import a
 # subcommand module and build a throwaway argparse tree purely to extract help
 # summaries. Nothing about the result changes across engine instances, but the
-# dashboard opens a fresh HermesConsoleEngine per /api/console connection, so
+# dashboard opens a fresh SparkiiConsoleEngine per /api/console connection, so
 # without memoization every reconnect re-imports + re-parses the whole surface.
 # Cache by args (all hashable strings); callers only read the returned map.
 @functools.lru_cache(maxsize=None)
@@ -382,8 +382,8 @@ def _extracted_handler(
     builder_name: str,
     main_handler_name: str,
     namespace_update: Callable[[argparse.Namespace], None] | None = None,
-) -> Callable[["HermesConsoleEngine", list[str]], str]:
-    def handler(_engine: HermesConsoleEngine, args: list[str]) -> str:
+) -> Callable[["SparkiiConsoleEngine", list[str]], str]:
+    def handler(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
         return _dispatch_extracted_subcommand(
             root=root,
             fixed=fixed,
@@ -404,8 +404,8 @@ def _registered_handler(
     register_name: str,
     handler_name: str | None = None,
     namespace_update: Callable[[argparse.Namespace], None] | None = None,
-) -> Callable[["HermesConsoleEngine", list[str]], str]:
-    def handler(_engine: HermesConsoleEngine, args: list[str]) -> str:
+) -> Callable[["SparkiiConsoleEngine", list[str]], str]:
+    def handler(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
         return _dispatch_registered_subcommand(
             root=root,
             fixed=fixed,
@@ -426,8 +426,8 @@ def _builder_handler(
     builder_name: str,
     main_handler_name: str,
     namespace_update: Callable[[argparse.Namespace], None] | None = None,
-) -> Callable[["HermesConsoleEngine", list[str]], str]:
-    def handler(_engine: HermesConsoleEngine, args: list[str]) -> str:
+) -> Callable[["SparkiiConsoleEngine", list[str]], str]:
+    def handler(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
         return _dispatch_builder_subcommand(
             root=root,
             fixed=fixed,
@@ -447,8 +447,8 @@ def _adder_handler(
     module_name: str,
     add_name: str,
     namespace_update: Callable[[argparse.Namespace], None] | None = None,
-) -> Callable[["HermesConsoleEngine", list[str]], str]:
-    def handler(_engine: HermesConsoleEngine, args: list[str]) -> str:
+) -> Callable[["SparkiiConsoleEngine", list[str]], str]:
+    def handler(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
         return _dispatch_adder_subcommand(
             root=root,
             fixed=fixed,
@@ -462,11 +462,11 @@ def _adder_handler(
 
 
 def _register_command_family(
-    engine: "HermesConsoleEngine",
+    engine: "SparkiiConsoleEngine",
     *,
     root: str,
     paths: Iterable[Sequence[str]],
-    handler_factory: Callable[[Sequence[str]], Callable[["HermesConsoleEngine", list[str]], str]],
+    handler_factory: Callable[[Sequence[str]], Callable[["SparkiiConsoleEngine", list[str]], str]],
     mutating: Iterable[Sequence[str]] = (),
     summary: str = "",
     summaries: dict[tuple[str, ...], str] | None = None,
@@ -488,8 +488,8 @@ def _register_command_family(
         )
 
 
-class HermesConsoleEngine:
-    """Curated line-command executor for Hermes Console."""
+class SparkiiConsoleEngine:
+    """Curated line-command executor for Sparkii Console."""
 
     def __init__(self, *, output_limit: int = 20000):
         self.output_limit = output_limit
@@ -511,8 +511,8 @@ class HermesConsoleEngine:
 
             if _contains_shell_syntax(raw_line, tokens):
                 raise ConsoleCommandError(
-                    "Hermes Console does not run shell syntax. Use one supported "
-                    "Hermes command at a time."
+                    "Sparkii Console does not run shell syntax. Use one supported "
+                    "Sparkii command at a time."
                 )
 
             builtin = self._execute_builtin(tokens)
@@ -544,7 +544,7 @@ class HermesConsoleEngine:
             return f"{command.usage}\n{command.summary}"
 
         lines = [
-            "Hermes Console",
+            "Sparkii Console",
             "",
             "Supported commands:",
         ]
@@ -561,9 +561,9 @@ class HermesConsoleEngine:
         return "\n".join(lines)
 
     def _register_defaults(self) -> None:
-        self.register(("status",), "status", "Show Hermes component status.", _status)
+        self.register(("status",), "status", "Show Sparkii component status.", _status)
         self.register(("doctor",), "doctor", "Run diagnostics without auto-fix.", _doctor)
-        self.register(("logs",), "logs [name] [-n N]", "Show recent Hermes logs.", _logs)
+        self.register(("logs",), "logs [name] [-n N]", "Show recent Sparkii logs.", _logs)
         self.register(("sessions", "list"), "sessions list [--limit N]", "List recent sessions.", _sessions_list)
         self.register(("sessions", "stats"), "sessions stats", "Show session store statistics.", _sessions_stats)
         self.register(("config", "show"), "config show", "Show current configuration.", _config_show)
@@ -574,7 +574,7 @@ class HermesConsoleEngine:
             "Set a configuration value.",
             _config_set,
             mutating=True,
-            confirmation="Update Hermes configuration?",
+            confirmation="Update Sparkii configuration?",
         )
         self.register(("cron", "list"), "cron list [--all]", "List scheduled jobs.", _cron_list)
         self.register(("cron", "status"), "cron status", "Show cron scheduler status.", _cron_status)
@@ -605,7 +605,7 @@ class HermesConsoleEngine:
         self._register_broad_cli_surface()
 
     def _register_broad_cli_surface(self) -> None:
-        """Register non-admin CLI commands that are safe for Hermes Console."""
+        """Register non-admin CLI commands that are safe for Sparkii Console."""
 
         extracted = {
             "version": (
@@ -874,7 +874,7 @@ class HermesConsoleEngine:
             "Update config with new options.",
             _config_migrate,
             mutating=True,
-            confirmation="Update Hermes configuration with missing defaults?",
+            confirmation="Update Sparkii configuration with missing defaults?",
         )
         self.register(
             ("sessions", "export"),
@@ -1121,7 +1121,7 @@ class HermesConsoleEngine:
         path: Iterable[str],
         usage: str,
         summary: str,
-        handler: Callable[["HermesConsoleEngine", list[str]], str],
+        handler: Callable[["SparkiiConsoleEngine", list[str]], str],
         *,
         mutating: bool = False,
         confirmation: str = "",
@@ -1169,12 +1169,12 @@ class HermesConsoleEngine:
         probe = " ".join(tokens[:2]) if len(tokens) > 1 else tokens[0]
         suggestions = difflib.get_close_matches(probe, available, n=3, cutoff=0.45)
         suffix = f" Did you mean: {', '.join(suggestions)}?" if suggestions else ""
-        raise ConsoleCommandError(f"Unsupported Hermes Console command: {probe}.{suffix}")
+        raise ConsoleCommandError(f"Unsupported Sparkii Console command: {probe}.{suffix}")
 
     def _rejection_for(self, tokens: Sequence[str]) -> str:
         first = tokens[0]
         if first.startswith("-"):
-            return f"{first} is not available in Hermes Console."
+            return f"{first} is not available in Sparkii Console."
         blocked_top = {
             "acp",
             "chat",
@@ -1200,30 +1200,30 @@ class HermesConsoleEngine:
             "whatsapp-cloud",
         }
         if first in blocked_top:
-            return f"`sparkii {first}` is not available in Hermes Console."
+            return f"`sparkii {first}` is not available in Sparkii Console."
         blocked_pairs = {
-            ("config", "edit"): "`config edit` opens an editor and is not available in Hermes Console.",
-            ("mcp", "serve"): "`mcp serve` starts a server and is not available in Hermes Console.",
-            ("profile", "alias"): "`profile alias` creates shell wrappers and is not available in Hermes Console.",
-            ("skills", "config"): "`skills config` is interactive and is not available in Hermes Console.",
-            ("skills", "publish"): "`skills publish` is not available in Hermes Console.",
-            ("portal", "login"): "`portal login` is interactive and is not available in Hermes Console.",
-            ("portal", "open"): "`portal open` opens a browser and is not available in Hermes Console.",
-            ("kanban", "tail"): "`kanban tail` streams output and is not available in Hermes Console.",
-            ("kanban", "watch"): "`kanban watch` streams output and is not available in Hermes Console.",
-            ("kanban", "daemon"): "`kanban daemon` starts a service and is not available in Hermes Console.",
-            ("kanban", "dispatcher"): "`kanban dispatcher` starts a worker and is not available in Hermes Console.",
-            ("kanban", "swarm"): "`kanban swarm` starts agent work and is not available in Hermes Console.",
-            ("kanban", "decompose"): "`kanban decompose` starts agent work and is not available in Hermes Console.",
-            ("kanban", "specify"): "`kanban specify` starts agent work and is not available in Hermes Console.",
-            ("kanban", "gc"): "`kanban gc` is not available in Hermes Console.",
+            ("config", "edit"): "`config edit` opens an editor and is not available in Sparkii Console.",
+            ("mcp", "serve"): "`mcp serve` starts a server and is not available in Sparkii Console.",
+            ("profile", "alias"): "`profile alias` creates shell wrappers and is not available in Sparkii Console.",
+            ("skills", "config"): "`skills config` is interactive and is not available in Sparkii Console.",
+            ("skills", "publish"): "`skills publish` is not available in Sparkii Console.",
+            ("portal", "login"): "`portal login` is interactive and is not available in Sparkii Console.",
+            ("portal", "open"): "`portal open` opens a browser and is not available in Sparkii Console.",
+            ("kanban", "tail"): "`kanban tail` streams output and is not available in Sparkii Console.",
+            ("kanban", "watch"): "`kanban watch` streams output and is not available in Sparkii Console.",
+            ("kanban", "daemon"): "`kanban daemon` starts a service and is not available in Sparkii Console.",
+            ("kanban", "dispatcher"): "`kanban dispatcher` starts a worker and is not available in Sparkii Console.",
+            ("kanban", "swarm"): "`kanban swarm` starts agent work and is not available in Sparkii Console.",
+            ("kanban", "decompose"): "`kanban decompose` starts agent work and is not available in Sparkii Console.",
+            ("kanban", "specify"): "`kanban specify` starts agent work and is not available in Sparkii Console.",
+            ("kanban", "gc"): "`kanban gc` is not available in Sparkii Console.",
         }
         if len(tokens) >= 2:
             pair = (tokens[0], tokens[1])
             if pair in blocked_pairs:
                 return blocked_pairs[pair]
         if tuple(tokens[:2]) in {("sessions", "delete"), ("sessions", "prune")}:
-            return "`sessions delete` and `sessions prune` are not available in Hermes Console."
+            return "`sessions delete` and `sessions prune` are not available in Sparkii Console."
         return ""
 
     def _help_result(self) -> ConsoleResult:
@@ -1257,7 +1257,7 @@ def _apply_confirmed_defaults(args: argparse.Namespace) -> None:
     if getattr(args, "auth_action", None) == "add":
         auth_type = getattr(args, "auth_type", None)
         if auth_type in {"api-key", "api_key"} and not getattr(args, "api_key", None):
-            raise ConsoleCommandError("auth add --type api-key requires --api-key in Hermes Console.")
+            raise ConsoleCommandError("auth add --type api-key requires --api-key in Sparkii Console.")
     if getattr(args, "import_name", None) is not None:
         # profile import has no prompt flag; leave it alone.
         return
@@ -1272,7 +1272,7 @@ def _apply_confirmed_defaults(args: argparse.Namespace) -> None:
         setattr(args, "yes", True)
 
 
-def _status(_engine: HermesConsoleEngine, args: list[str]) -> str:
+def _status(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
     _expect_no_args(args, "status")
     from types import SimpleNamespace
 
@@ -1282,7 +1282,7 @@ def _status(_engine: HermesConsoleEngine, args: list[str]) -> str:
     return _strip_console_status_footer(output)
 
 
-def _doctor(_engine: HermesConsoleEngine, args: list[str]) -> str:
+def _doctor(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
     _expect_no_args(args, "doctor")
     from types import SimpleNamespace
 
@@ -1291,9 +1291,9 @@ def _doctor(_engine: HermesConsoleEngine, args: list[str]) -> str:
     return _capture_output(lambda: run_doctor(SimpleNamespace(fix=False, ack=None)))
 
 
-def _logs(_engine: HermesConsoleEngine, args: list[str]) -> str:
+def _logs(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
     if "-f" in args or "--follow" in args:
-        raise ConsoleCommandError("`logs -f` is not available in Hermes Console.")
+        raise ConsoleCommandError("`logs -f` is not available in Sparkii Console.")
     parser = _ArgumentParser(prog="logs", add_help=False)
     parser.add_argument("log_name", nargs="?", default="agent")
     parser.add_argument("-n", "--lines", type=int, default=50)
@@ -1322,7 +1322,7 @@ def _logs(_engine: HermesConsoleEngine, args: list[str]) -> str:
     )
 
 
-def _sessions_list(_engine: HermesConsoleEngine, args: list[str]) -> str:
+def _sessions_list(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
     parser = _ArgumentParser(prog="sessions list", add_help=False)
     parser.add_argument("--limit", type=int, default=20)
     ns = parser.parse_args(args)
@@ -1343,7 +1343,7 @@ def _sessions_list(_engine: HermesConsoleEngine, args: list[str]) -> str:
     return _format_sessions(sessions)
 
 
-def _sessions_stats(_engine: HermesConsoleEngine, args: list[str]) -> str:
+def _sessions_stats(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
     _expect_no_args(args, "sessions stats")
     from sparkii_state import SessionDB
 
@@ -1366,21 +1366,21 @@ def _sessions_stats(_engine: HermesConsoleEngine, args: list[str]) -> str:
         db.close()
 
 
-def _config_show(_engine: HermesConsoleEngine, args: list[str]) -> str:
+def _config_show(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
     _expect_no_args(args, "config show")
     from sparkii_cli.config import show_config
 
     return _capture_output(show_config)
 
 
-def _config_path(_engine: HermesConsoleEngine, args: list[str]) -> str:
+def _config_path(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
     _expect_no_args(args, "config path")
     from sparkii_cli.config import get_config_path
 
     return str(get_config_path())
 
 
-def _config_set(_engine: HermesConsoleEngine, args: list[str]) -> str:
+def _config_set(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
     if len(args) < 2:
         raise ConsoleCommandError("Usage: config set <key> <value>")
     key = args[0]
@@ -1390,7 +1390,7 @@ def _config_set(_engine: HermesConsoleEngine, args: list[str]) -> str:
     return _capture_output(lambda: set_config_value(key, value))
 
 
-def _config_migrate(_engine: HermesConsoleEngine, args: list[str]) -> str:
+def _config_migrate(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
     _expect_no_args(args, "config migrate")
 
     def _run() -> None:
@@ -1408,7 +1408,7 @@ def _config_migrate(_engine: HermesConsoleEngine, args: list[str]) -> str:
     return _capture_output(_run)
 
 
-def _sessions_export(_engine: HermesConsoleEngine, args: list[str]) -> str:
+def _sessions_export(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
     parser = _ArgumentParser(prog="sessions export", add_help=False)
     parser.add_argument("output")
     parser.add_argument("--source")
@@ -1476,7 +1476,7 @@ def _sessions_export(_engine: HermesConsoleEngine, args: list[str]) -> str:
     return _capture_output(_run)
 
 
-def _sessions_rename(_engine: HermesConsoleEngine, args: list[str]) -> str:
+def _sessions_rename(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
     parser = _ArgumentParser(prog="sessions rename", add_help=False)
     parser.add_argument("session_id")
     parser.add_argument("title", nargs="+")
@@ -1500,7 +1500,7 @@ def _sessions_rename(_engine: HermesConsoleEngine, args: list[str]) -> str:
     return _capture_output(_run)
 
 
-def _sessions_optimize(_engine: HermesConsoleEngine, args: list[str]) -> str:
+def _sessions_optimize(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
     _expect_no_args(args, "sessions optimize")
 
     def _run() -> None:
@@ -1516,7 +1516,7 @@ def _sessions_optimize(_engine: HermesConsoleEngine, args: list[str]) -> str:
     return _capture_output(_run)
 
 
-def _sessions_repair(_engine: HermesConsoleEngine, args: list[str]) -> str:
+def _sessions_repair(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
     parser = _ArgumentParser(prog="sessions repair", add_help=False)
     parser.add_argument("--check-only", action="store_true")
     parser.add_argument("--no-backup", action="store_true")
@@ -1548,7 +1548,7 @@ def _sessions_repair(_engine: HermesConsoleEngine, args: list[str]) -> str:
     return _capture_output(_run)
 
 
-def _profile_status(_engine: HermesConsoleEngine, args: list[str]) -> str:
+def _profile_status(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
     _expect_no_args(args, "profile")
     return _dispatch_extracted_subcommand(
         root="profile",
@@ -1560,7 +1560,7 @@ def _profile_status(_engine: HermesConsoleEngine, args: list[str]) -> str:
     )
 
 
-def _cron_list(_engine: HermesConsoleEngine, args: list[str]) -> str:
+def _cron_list(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
     parser = _ArgumentParser(prog="cron list", add_help=False)
     parser.add_argument("--all", action="store_true")
     ns = parser.parse_args(args)
@@ -1569,14 +1569,14 @@ def _cron_list(_engine: HermesConsoleEngine, args: list[str]) -> str:
     return _capture_output(lambda: cron_list(show_all=ns.all))
 
 
-def _cron_status(_engine: HermesConsoleEngine, args: list[str]) -> str:
+def _cron_status(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
     _expect_no_args(args, "cron status")
     from sparkii_cli.cron import cron_status
 
     return _capture_output(cron_status)
 
 
-def _cron_pause(_engine: HermesConsoleEngine, args: list[str]) -> str:
+def _cron_pause(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
     if len(args) != 1:
         raise ConsoleCommandError("Usage: cron pause <job>")
     from cron.jobs import AmbiguousJobReference, pause_job
@@ -1590,7 +1590,7 @@ def _cron_pause(_engine: HermesConsoleEngine, args: list[str]) -> str:
     return _format_job(job, "Paused")
 
 
-def _cron_resume(_engine: HermesConsoleEngine, args: list[str]) -> str:
+def _cron_resume(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
     if len(args) != 1:
         raise ConsoleCommandError("Usage: cron resume <job>")
     from cron.jobs import AmbiguousJobReference, resume_job
@@ -1604,7 +1604,7 @@ def _cron_resume(_engine: HermesConsoleEngine, args: list[str]) -> str:
     return _format_job(job, "Resumed")
 
 
-def _cron_run(_engine: HermesConsoleEngine, args: list[str]) -> str:
+def _cron_run(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
     if len(args) != 1:
         raise ConsoleCommandError("Usage: cron run <job>")
     from cron.jobs import AmbiguousJobReference, trigger_job
@@ -1633,9 +1633,9 @@ def run_console_repl(
     if interactive is None:
         interactive = bool(getattr(stdin, "isatty", lambda: False)())
 
-    engine = HermesConsoleEngine()
+    engine = SparkiiConsoleEngine()
     if interactive:
-        print("Hermes Console. Type `help` for commands, `exit` to quit.", file=stdout)
+        print("Sparkii Console. Type `help` for commands, `exit` to quit.", file=stdout)
 
     while True:
         if interactive:

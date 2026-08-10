@@ -1,6 +1,6 @@
 """``sparkii approvals suggest`` — mine approval history into allowlist proposals.
 
-Hermes has no dedicated approval-decision ledger: ``always`` answers land in
+Sparkii has no dedicated approval-decision ledger: ``always`` answers land in
 ``command_allowlist`` (config.yaml) via :func:`tools.approval.save_permanent_allowlist`,
 while ``once``/``session`` approvals are in-memory only.  What *does* persist
 is the session DB (``~/.sparkii/state.db``): every assistant ``terminal`` tool

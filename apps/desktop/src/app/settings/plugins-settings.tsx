@@ -29,12 +29,12 @@ import { EmptyState, ListRowSkeleton, Pill, SettingsContent, SettingsSection } f
 
 const KIND_ORDER: Record<PluginRecord['kind'], number> = { disk: 0, runtime: 1, bundled: 2 }
 
-// User-installed plugins first, bundled last — mirrors `hermes plugins list`.
+// User-installed plugins first, bundled last — mirrors `sparkii plugins list`.
 const SOURCE_ORDER: Record<string, number> = { user: 0, git: 0, project: 1, entrypoint: 2, bundled: 3 }
 
 // Plugin categories (by registry key prefix) that other surfaces own — same
 // curation stance as desktop-slash-commands.ts. dashboard_auth/* only matters
-// to `hermes dashboard`; model-providers/* are configured in Settings →
+// to `sparkii dashboard`; model-providers/* are configured in Settings →
 // Models; platforms/* are managed from Messaging. The plugin switch is not
 // the user-facing control for any of them, so listing them here is noise.
 const HIDDEN_KEY_PREFIXES = ['dashboard_auth/', 'model-providers/', 'platforms/']
@@ -69,7 +69,7 @@ async function revealPluginsDir() {
   }
 }
 
-// Agent plugins live under the BACKEND's hermes home (profile-aware), so the
+// Agent plugins live under the BACKEND's sparkii home (profile-aware), so the
 // path comes from the gateway — not from the renderer's local SPARKII_HOME.
 // Callers gate on a local connection: openDir mkdir-creates the path, which
 // must never happen for a directory that belongs to a remote box.

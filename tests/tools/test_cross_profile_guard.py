@@ -20,7 +20,7 @@ import pytest
 
 @pytest.fixture
 def fake_sparkii(tmp_path, monkeypatch):
-    """Build a two-profile Hermes layout and point SPARKII_HOME at
+    """Build a two-profile Sparkii layout and point SPARKII_HOME at
     the sparkii-security profile (matching the original-incident shape).
     """
     root = tmp_path / "fake-sparkii"
@@ -225,9 +225,9 @@ class TestSystemPromptActiveProfile:
         # explicit user direction.
         from pathlib import Path
         src = Path("agent/system_prompt.py").read_text()
-        assert "Active Hermes profile" in src
+        assert "Active Sparkii profile" in src
         assert "cross_profile=True" in src
         assert "~/.sparkii/profiles/" in src
         # Both branches present (default and named profile).
-        assert "Active Hermes profile: default" in src
-        assert "Active Hermes profile: {active_profile}" in src
+        assert "Active Sparkii profile: default" in src
+        assert "Active Sparkii profile: {active_profile}" in src

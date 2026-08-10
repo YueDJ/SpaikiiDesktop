@@ -17,7 +17,7 @@ def build_gui_parser(subparsers, *, cmd_gui: Callable) -> None:
         aliases=["gui"],
         help="Build and launch the native desktop app",
         description=(
-            "Launch the Hermes Electron desktop app. By default this installs "
+            "Launch the Sparkii Electron desktop app. By default this installs "
             "workspace Node dependencies, builds the current OS's unpacked "
             "Electron app, then launches that packaged artifact."
         ),
@@ -44,7 +44,7 @@ def build_gui_parser(subparsers, *, cmd_gui: Callable) -> None:
     )
     gui_parser.add_argument(
         "--sparkii-root",
-        help="Override the Hermes source root used by Desktop (sets SPARKII_DESKTOP_SPARKII_ROOT)",
+        help="Override the Sparkii source root used by Desktop (sets SPARKII_DESKTOP_SPARKII_ROOT)",
     )
     gui_parser.add_argument(
         "--cwd",

@@ -49,7 +49,7 @@ class TestHandleFastCommand(unittest.TestCase):
             patch.object(cli_mod, "_cprint") as mock_cprint,
             patch.object(cli_mod, "save_config_value") as mock_save,
         ):
-            cli_mod.HermesCLI._handle_fast_command(stub, "/fast")
+            cli_mod.SparkiiCLI._handle_fast_command(stub, "/fast")
 
         # Bare /fast shows status, does not change config
         mock_save.assert_not_called()
@@ -65,7 +65,7 @@ class TestHandleFastCommand(unittest.TestCase):
             patch.object(cli_mod, "_cprint"),
             patch.object(cli_mod, "save_config_value", return_value=True) as mock_save,
         ):
-            cli_mod.HermesCLI._handle_fast_command(stub, "/fast normal")
+            cli_mod.SparkiiCLI._handle_fast_command(stub, "/fast normal")
 
         # Session-scoped by default: no config write.
         mock_save.assert_not_called()
@@ -88,7 +88,7 @@ class TestHandleFastCommand(unittest.TestCase):
             patch.object(cli_mod, "_cprint") as mock_cprint,
             patch.object(cli_mod, "save_config_value") as mock_save,
         ):
-            cli_mod.HermesCLI._handle_fast_command(stub, "/fast")
+            cli_mod.SparkiiCLI._handle_fast_command(stub, "/fast")
 
         mock_save.assert_not_called()
         self.assertTrue(mock_cprint.called)
@@ -139,7 +139,7 @@ class TestFastModeRouting(unittest.TestCase):
         cli_mod = _import_cli()
         stub = SimpleNamespace(provider="auto", requested_provider="auto", model="gpt-5.4", agent=None)
 
-        assert cli_mod.HermesCLI._fast_command_available(stub) is True
+        assert cli_mod.SparkiiCLI._fast_command_available(stub) is True
 
 
     def test_turn_route_injects_overrides_without_provider_switch(self):
@@ -157,7 +157,7 @@ class TestFastModeRouting(unittest.TestCase):
             service_tier="priority",
         )
 
-        route = cli_mod.HermesCLI._resolve_turn_agent_config(stub, "hi")
+        route = cli_mod.SparkiiCLI._resolve_turn_agent_config(stub, "hi")
 
         # Provider should NOT have changed
         assert route["runtime"]["provider"] == "openrouter"
@@ -179,7 +179,7 @@ class TestFastModeRouting(unittest.TestCase):
             service_tier="priority",
         )
 
-        route = cli_mod.HermesCLI._resolve_turn_agent_config(stub, "hi")
+        route = cli_mod.SparkiiCLI._resolve_turn_agent_config(stub, "hi")
 
         assert route["runtime"]["provider"] == "openrouter"
         assert route.get("request_overrides") is None
@@ -238,7 +238,7 @@ class TestAnthropicFastMode(unittest.TestCase):
             provider="anthropic", requested_provider="anthropic",
             model="claude-sonnet-4-6", agent=None,
         )
-        assert cli_mod.HermesCLI._fast_command_available(stub) is False
+        assert cli_mod.SparkiiCLI._fast_command_available(stub) is False
 
 
 
@@ -257,7 +257,7 @@ class TestAnthropicFastMode(unittest.TestCase):
             service_tier="priority",
         )
 
-        route = cli_mod.HermesCLI._resolve_turn_agent_config(stub, "hi")
+        route = cli_mod.SparkiiCLI._resolve_turn_agent_config(stub, "hi")
 
         assert route["runtime"]["provider"] == "anthropic"
         assert route["request_overrides"] == {"speed": "fast"}

@@ -1,5 +1,5 @@
 """
-Hermes Plugin System
+Sparkii Plugin System
 ====================
 
 Discovers, loads, and manages plugins from four sources:
@@ -104,7 +104,7 @@ def _install_plugin_debug_handler(force: bool = False) -> None:
     """When SPARKII_PLUGINS_DEBUG is on, tee plugin logs to stderr at DEBUG.
 
     Idempotent: only attaches the handler once per process unless ``force``
-    is passed. Does not touch the root logger or other Hermes loggers.
+    is passed. Does not touch the root logger or other Sparkii loggers.
     """
     global _DEBUG_HANDLER_INSTALLED, _PLUGINS_DEBUG
     if force:
@@ -151,7 +151,7 @@ VALID_HOOKS: Set[str] = {
     #   {"action": "continue", "message": "<follow-up instruction>"}
     # The Claude-Code Stop shape {"decision": "block", "reason": "..."} (block
     # the stop == keep going) is accepted too. Anything else lets the turn
-    # finish. Hermes' shipped guidance lives in the evidence-based
+    # finish. Sparkii' shipped guidance lives in the evidence-based
     # verification-stop nudge; this hook is for user/plugin policy and is
     # bounded by agent.max_verify_nudges.
     "pre_verify",
@@ -416,7 +416,7 @@ class PluginContext:
 
     @property
     def profile_name(self) -> str:
-        """Return the active Hermes profile name (e.g. ``"default"``).
+        """Return the active Sparkii profile name (e.g. ``"default"``).
 
         Derived from ``SPARKII_HOME`` via
         :func:`sparkii_cli.profiles.get_active_profile_name`, so it works in
@@ -498,7 +498,7 @@ class PluginContext:
     def _tool_override_allowed(self, tool_name: str) -> bool:
         """Return True if this plugin is configured to override built-in tools.
 
-        Bundled plugins (shipped with Hermes core) are trusted by default —
+        Bundled plugins (shipped with Sparkii core) are trusted by default —
         an override there is a deliberate maintainer choice, not a third-party
         plugin trying to elevate privilege. For every other source, require
         ``allow_tool_override: true`` under
@@ -853,7 +853,7 @@ class PluginContext:
         ``source`` must be an instance of
         :class:`agent.secret_sources.base.SecretSource`.  Registered
         sources run during ``load_sparkii_dotenv()`` startup — after
-        ``~/.sparkii/.env`` loads, before Hermes reads credentials — when
+        ``~/.sparkii/.env`` loads, before Sparkii reads credentials — when
         their ``secrets.<source.name>`` config section is enabled.  The
         orchestrator (``agent.secret_sources.registry.apply_all``) owns
         ordering, mapped-vs-bulk precedence, conflict warnings, and
@@ -863,7 +863,7 @@ class PluginContext:
         the first ``load_sparkii_dotenv()`` call, so a plugin-registered
         source is not consulted by the initial env load of the process
         that discovers it.  It IS consulted by every subsequently
-        spawned Hermes process (gateway children, cron sessions,
+        spawned Sparkii process (gateway children, cron sessions,
         subagents), and immediately after a
         ``reset_secret_source_cache()`` re-pull.  Plugin sources are
         therefore best for supplying credentials to the running fleet;
@@ -1047,7 +1047,7 @@ class PluginContext:
     ) -> None:
         """Register a Slack Block Kit action handler from a plugin.
 
-        Hermes' Slack adapter wires registered handlers into its
+        Sparkii' Slack adapter wires registered handlers into its
         ``slack_bolt.AsyncApp`` at connect time. The callback is invoked
         when a user clicks a button (or interacts with another Block Kit
         action element) whose ``action_id`` matches.
@@ -1459,7 +1459,7 @@ class PluginManager:
             # gateway platform. Instead we register a cheap deferred loader in
             # the platform_registry keyed on the platform name; the real module
             # is imported only when the gateway / cron / setup / send_message
-            # path actually asks for that platform. Every platform Hermes ships
+            # path actually asks for that platform. Every platform Sparkii ships
             # remains available out of the box — it just loads on first use.
             if manifest.source == "bundled" and manifest.kind == "platform":
                 self._register_deferred_platform(manifest)

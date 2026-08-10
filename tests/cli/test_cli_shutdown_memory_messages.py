@@ -166,7 +166,7 @@ def test_cli_close_preflush_resumed_prefix_is_not_duplicated(tmp_path, monkeypat
     worker.start()
     assert entered_flush.wait(timeout=5)
 
-    cli = object.__new__(cli_mod.HermesCLI)
+    cli = object.__new__(cli_mod.SparkiiCLI)
     cli.conversation_history = list(loaded) + [{"role": "user", "content": "ui prompt"}]
     cli.session_id = session_id
     cli.agent = agent
@@ -223,7 +223,7 @@ def test_cli_close_hands_staged_user_marker_to_turn_start(tmp_path, monkeypatch)
     cli_history = list(prefix) + [staged]
     agent._pending_cli_user_message = staged
 
-    cli = object.__new__(cli_mod.HermesCLI)
+    cli = object.__new__(cli_mod.SparkiiCLI)
     cli.conversation_history = cli_history
     cli.session_id = session_id
     cli.agent = agent
@@ -278,7 +278,7 @@ def test_cli_close_uses_clean_override_for_shortened_pending_snapshot(tmp_path, 
     agent._persist_user_message_override = "new prompt"
     agent._persist_user_message_timestamp = None
 
-    cli = object.__new__(cli_mod.HermesCLI)
+    cli = object.__new__(cli_mod.SparkiiCLI)
     cli.conversation_history = list(prefix) + [staged]
     cli.session_id = session_id
     cli.agent = agent
@@ -316,7 +316,7 @@ def test_cli_close_builds_prompt_before_creating_first_session_row(tmp_path, mon
 
     monkeypatch.setattr(loop_mod, "_restore_or_build_system_prompt", _build_prompt)
 
-    cli = object.__new__(cli_mod.HermesCLI)
+    cli = object.__new__(cli_mod.SparkiiCLI)
     cli.conversation_history = [staged]
     cli.session_id = session_id
     cli.agent = agent

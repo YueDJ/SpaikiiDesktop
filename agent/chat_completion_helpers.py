@@ -2356,12 +2356,12 @@ def handle_max_iterations(agent, messages: list, api_call_count: int) -> str:
             # tool_name (SQLite FTS bookkeeping), the codex_* reasoning carriers,
             # timestamp (preserved on gateway user replay entries for the
             # stale-confirmation expiry check — #47868 rejection class),
-            # and every Hermes-internal underscore-prefixed scaffolding key.
+            # and every Sparkii-internal underscore-prefixed scaffolding key.
             for schema_foreign in ("tool_name", "codex_reasoning_items", "codex_message_items", "timestamp"):
                 api_msg.pop(schema_foreign, None)
             # api_content (the persist-what-you-send sidecar) carries the
             # exact bytes every main-loop call sent for this message —
-            # substitute it before dropping the key (Hermes bookkeeping,
+            # substitute it before dropping the key (Sparkii bookkeeping,
             # never a provider field), mirroring the loop's api_messages
             # build. Popping without substituting would send CLEAN content
             # here, diverging the summary request's prefix at the EARLIEST
@@ -3301,7 +3301,7 @@ def interruptible_streaming_api_call(agent, api_kwargs: dict, *, on_first_delta=
 
         def _accept_stream_chunk(_chunk: Any) -> bool:
             # A stale-attempt fence can win while Relay is handing an
-            # already-received tool-call chunk back to Hermes. Preserve only
+            # already-received tool-call chunk back to Sparkii. Preserve only
             # the fact that a tool call was in flight so retry policy does not
             # misclassify the attempt as a partial text response. The chunk
             # itself is still rejected below and never reaches callbacks.
@@ -3376,7 +3376,7 @@ def interruptible_streaming_api_call(agent, api_kwargs: dict, *, on_first_delta=
             )
         )
         if agent.provider == "moa":
-            # Hermes interrupts the managed stream; Relay retains sole
+            # Sparkii interrupts the managed stream; Relay retains sole
             # ownership of closing the underlying provider stream.
             _set_request_stream_handle(stream)
         for chunk in stream:
@@ -3570,7 +3570,7 @@ def interruptible_streaming_api_call(agent, api_kwargs: dict, *, on_first_delta=
             )
 
         # Some OpenAI-compatible adapters accept ``stream=True`` but return a
-        # completed response. Relay records that attempt while Hermes preserves
+        # completed response. Relay records that attempt while Sparkii preserves
         # its existing switch-to-non-streaming behavior for later calls.
         if stream.final_response is not None:
             final_response = stream.final_response

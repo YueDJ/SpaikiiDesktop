@@ -193,7 +193,7 @@ def test_webhook_subscriptions_blocked(fake_home):
 def test_identically_named_sparkii_files_outside_home_not_blocked(
     fake_home, tmp_path
 ):
-    """Hermes-specific filenames (``auth.json``, ``mcp-tokens/``, ``google_oauth.json``)
+    """Sparkii-specific filenames (``auth.json``, ``mcp-tokens/``, ``google_oauth.json``)
     outside SPARKII_HOME must remain readable — the gate is per-location for
     those, not per-filename. ``.env`` is the exception: it's blocked anywhere
     on disk (see test_project_local_env_blocked) because the basename always

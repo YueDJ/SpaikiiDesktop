@@ -29,7 +29,7 @@
 #    it here. s6-supervise will keep using the same files; it never
 #    re-asserts ownership on a running service.
 #
-# This script runs as root after 01-hermes-setup but before
+# This script runs as root after 01-sparkii-setup but before
 # 02-reconcile-profiles, so the chowns are settled before the
 # Python reconciler walks the scandir. Lexicographic ordering
 # guarantees this — the suffix is unusual because we want to slot

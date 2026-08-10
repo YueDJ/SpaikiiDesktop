@@ -564,7 +564,7 @@ class TestDiskFailureMarker:
 # SPARKII_HOME isolation
 # ---------------------------------------------------------------------------
 
-class TestHermesHomeIsolation:
+class TestSparkiiHomeIsolation:
     def test_sparkii_bin_dir_respects_sparkii_home(self):
         """_sparkii_bin_dir must use SPARKII_HOME, not hardcoded ~/.sparkii."""
         from tools.tirith_security import _sparkii_bin_dir

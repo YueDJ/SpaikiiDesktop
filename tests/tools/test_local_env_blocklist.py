@@ -1,8 +1,8 @@
 """Tests for subprocess env sanitization in LocalEnvironment.
 
-Verifies that Hermes-managed provider, tool, and gateway env vars are
+Verifies that Sparkii-managed provider, tool, and gateway env vars are
 stripped from subprocess environments so external CLIs are not silently
-misrouted or handed Hermes secrets.
+misrouted or handed Sparkii secrets.
 
 See: https://github.com/NousResearch/sparkii-agent/issues/1002
 See: https://github.com/NousResearch/sparkii-agent/issues/1264
@@ -95,14 +95,14 @@ class TestProviderEnvBlocklist:
             assert var not in result_env, f"{var} leaked into subprocess env"
 
     def test_bedrock_bearer_token_is_stripped(self):
-        """The Bedrock-specific bearer token is a Hermes inference secret
+        """The Bedrock-specific bearer token is a Sparkii inference secret
         (analogous to OPENAI_API_KEY) and must not leak into subprocesses.
 
         Regression for #32314: AWS_BEARER_TOKEN_BEDROCK leaked into terminal /
         execute_code children because the ``bedrock`` ProviderConfig declares
         ``api_key_env_vars=()`` (auth_type="aws_sdk") and the blocklist builder
         only consulted that field. The reporter caught it when ``opencode
-        models`` run inside a Hermes terminal enumerated the entire Bedrock
+        models`` run inside a Sparkii terminal enumerated the entire Bedrock
         catalog off the leaked bearer token.
         """
         result_env = _run_with_env(extra_os_env={
@@ -148,7 +148,7 @@ class TestProviderEnvBlocklist:
         unconditionally — and (b) be unrecoverable, because env_passthrough.py
         refuses to re-allow anything in _SPARKII_PROVIDER_ENV_BLOCKLIST
         (GHSA-rhgp-j443-p4rf). Only the Bedrock inference bearer token is
-        Hermes-managed; the rest belongs to the user.
+        Sparkii-managed; the rest belongs to the user.
         """
         general_chain = {
             "AWS_ACCESS_KEY_ID": "AKIAIOSFODNN7EXAMPLE",
@@ -272,9 +272,9 @@ class TestActiveVenvMarkerStripping:
     VIRTUAL_ENV (and possibly CONDA_PREFIX). If those leak into commands the
     agent runs against ANOTHER Python project, ``uv``/``poetry`` treat the
     inherited value as the active environment and build that project's deps
-    into the Hermes venv path instead of the project's own ``.venv`` —
-    silently clobbering the Hermes environment (and, when the other project
-    pins a different Python, breaking the gateway outright). The Hermes venv
+    into the Sparkii venv path instead of the project's own ``.venv`` —
+    silently clobbering the Sparkii environment (and, when the other project
+    pins a different Python, breaking the gateway outright). The Sparkii venv
     stays reachable via PATH, so stripping the markers is safe.
     """
 
@@ -374,7 +374,7 @@ class TestBlocklistCoverage:
         must appear in the blocklist — ensures no drift.
 
         CLAUDE_CODE_OAUTH_TOKEN is the one deliberate exemption: it is owned
-        by the user's Claude Code install, not Hermes (#55878).
+        by the user's Claude Code install, not Sparkii (#55878).
         """
         from sparkii_cli.auth import PROVIDER_REGISTRY
 
@@ -393,7 +393,7 @@ class TestBlocklistCoverage:
                 )
 
     def test_bedrock_bearer_token_is_in_blocklist(self):
-        """auth_type='aws_sdk' providers contribute their Hermes-managed
+        """auth_type='aws_sdk' providers contribute their Sparkii-managed
         inference token (the Bedrock bearer) to the blocklist, keyed off
         auth_type so any future SDK-cred provider is covered automatically."""
         assert "AWS_BEARER_TOKEN_BEDROCK" in _SPARKII_PROVIDER_ENV_BLOCKLIST
@@ -401,7 +401,7 @@ class TestBlocklistCoverage:
     def test_general_aws_chain_not_in_blocklist(self):
         """The general AWS credential chain must NOT be in the blocklist —
         no-regression guard for #32314. These belong to the user's trusted
-        operator shell (SECURITY.md §3.2), not to Hermes, and blocklisting
+        operator shell (SECURITY.md §3.2), not to Sparkii, and blocklisting
         them would be unrecoverable via env_passthrough (GHSA-rhgp-j443-p4rf).
         """
         general_chain = {
@@ -430,7 +430,7 @@ class TestBlocklistCoverage:
 
     def test_claude_code_oauth_token_is_inheritable(self):
         """CLAUDE_CODE_OAUTH_TOKEN is owned by the user's Claude Code install
-        (subscription OAuth), not a Hermes inference credential. Stripping it
+        (subscription OAuth), not a Sparkii inference credential. Stripping it
         made agent-spawned ``claude`` fall through to the shared Keychain /
         ~/.claude credential store and clobber the user's interactive login
         on auth failure (#55878). It must stay inheritable."""
@@ -520,7 +520,7 @@ class TestSanePathIncludesHomebrew:
     def _disable_sparkii_bin_injection(self):
         """These tests assert the sane-path merge in isolation. Disable the
         sparkii-install-dir prepend (a separate concern, covered by
-        TestHermesBinDirOnPath) so a real ``sparkii`` on the test runner's PATH
+        TestSparkiiBinDirOnPath) so a real ``sparkii`` on the test runner's PATH
         doesn't shift the asserted PATH layout."""
         from tools.environments import local as local_mod
         saved = local_mod._SPARKII_BIN_DIR
@@ -569,7 +569,7 @@ class TestSanePathIncludesHomebrew:
         assert "PATH" not in result
 
 
-class TestHermesBinDirOnPath:
+class TestSparkiiBinDirOnPath:
     """The sparkii install dir is reachable in the terminal subshell PATH.
 
     Plugins shelling out to bare ``sparkii`` via the terminal tool must work
@@ -611,8 +611,8 @@ class TestHermesBinDirOnPath:
         assert "/usr/bin" in entries
 
 
-class TestHermesInternalDynamicSecrets:
-    """Dynamically-named Hermes secrets injected at gateway/CLI startup must
+class TestSparkiiInternalDynamicSecrets:
+    """Dynamically-named Sparkii secrets injected at gateway/CLI startup must
     not leak into terminal subprocesses.
 
     The static ``_SPARKII_PROVIDER_ENV_BLOCKLIST`` is name-based and derived

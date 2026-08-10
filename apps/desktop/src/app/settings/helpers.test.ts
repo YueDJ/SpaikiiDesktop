@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import type { SparkiiConfigRecord } from '@/types/hermes'
+import type { SparkiiConfigRecord } from '@/types/sparkii'
 
 import { FIELD_DESCRIPTIONS, FIELD_LABELS, SECTIONS } from './constants'
 import { defineFieldCopy, fieldCopyForSchemaKey, schemaKeyToFieldCopyKey } from './field-copy'
@@ -172,8 +172,8 @@ describe('settings helpers', () => {
       // KIMI_CN_ likewise must beat KIMI_.
       expect(providerGroup('KIMI_CN_API_KEY')).toBe('Kimi (China)')
       expect(providerGroup('KIMI_API_KEY')).toBe('Kimi / Moonshot')
-      // HERMES_QWEN_ shares the HERMES_ stem with other integrations.
-      expect(providerGroup('HERMES_QWEN_BASE_URL')).toBe('DashScope (Qwen)')
+      // SPARKII_QWEN_ shares the SPARKII_ stem with other integrations.
+      expect(providerGroup('SPARKII_QWEN_BASE_URL')).toBe('DashScope (Qwen)')
       expect(providerGroup('GEMINI_API_KEY')).toBe('Gemini')
     })
 

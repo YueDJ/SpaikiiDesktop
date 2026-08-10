@@ -2,7 +2,7 @@ import { useStore } from '@nanostores/react'
 import { useEffect, useMemo, useState } from 'react'
 
 import type { SparkiiGitWorktree } from '@/global'
-import type { SessionInfo } from '@/hermes'
+import type { SessionInfo } from '@/sparkii'
 import { desktopGit } from '@/lib/desktop-git'
 import { mapPool } from '@/lib/pool'
 import { $sidebarWorkspaceNodeOpen, toggleWorkspaceNodeCollapsed } from '@/store/layout'

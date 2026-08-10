@@ -11,15 +11,15 @@ import pytest
 
 
 def _make_voice_cli(**overrides):
-    """Create a minimal HermesCLI with only voice-related attrs initialized.
+    """Create a minimal SparkiiCLI with only voice-related attrs initialized.
 
     Uses ``__new__()`` to bypass ``__init__`` so no config/env/API setup is
     needed.  Only the voice state attributes (from __init__ lines 3749-3758)
     are populated.
     """
-    from cli import HermesCLI
+    from cli import SparkiiCLI
 
-    cli = HermesCLI.__new__(HermesCLI)
+    cli = SparkiiCLI.__new__(SparkiiCLI)
     cli._voice_lock = threading.Lock()
     cli._voice_mode = False
     cli._voice_tts = False
@@ -425,7 +425,7 @@ class TestVoiceBargeCaptureSubmit:
 
     def test_playback_phase_echo_of_own_tts_is_dropped(self, tmp_path, monkeypatch):
         """#75780: a playback-phase capture that closely matches the TTS
-        text Hermes just spoke is speaker bleed, not real user speech --
+        text Sparkii just spoke is speaker bleed, not real user speech --
         it must be dropped instead of queued as the next turn, and the mic
         handed back so continuous mode keeps listening."""
         cli = _make_voice_cli(_voice_mode=True, _voice_continuous=True)

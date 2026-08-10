@@ -31,12 +31,12 @@ UA = "python-httpx/0.27"  # CF blocks default urllib UA on many providers
 
 
 def _sparkii_home():
-    # Prefer Hermes' own resolver (profile-safe); fall back to env then ~/.hermes.
+    # Prefer Sparkii' own resolver (profile-safe); fall back to env then ~/.sparkii.
     try:
         from sparkii_constants import get_sparkii_home
         return str(get_sparkii_home())
     except Exception:
-        return os.environ.get("SPARKII_HOME") or os.path.expanduser("~/.hermes")
+        return os.environ.get("SPARKII_HOME") or os.path.expanduser("~/.sparkii")
 
 
 def _tokens_dir():
@@ -70,7 +70,7 @@ def _mcp_initialize(mcp_url, access_token):
         data={
             "jsonrpc": "2.0", "id": 1, "method": "initialize",
             "params": {"protocolVersion": "2025-06-18", "capabilities": {},
-                       "clientInfo": {"name": "hermes-diag", "version": "1.0"}},
+                       "clientInfo": {"name": "sparkii-diag", "version": "1.0"}},
         },
         headers={
             "Authorization": "Bearer " + access_token,

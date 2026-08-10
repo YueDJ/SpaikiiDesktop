@@ -46,8 +46,8 @@ describe('ingestBackendSkin', () => {
     expect($pendingSkinApply.get()).toBeNull()
 
     // The activation event was missed (skin set while disconnected / backend
-    // restarted). Sparkii re-affirms it — `hermes config set display.skin neon`
-    // or a `hermes skin set` recolor. That explicit event must repaint even
+    // restarted). Sparkii re-affirms it — `sparkii config set display.skin neon`
+    // or a `sparkii skin set` recolor. That explicit event must repaint even
     // though the name matches the seed.
     ingestBackendSkin(skin('neon'), { apply: true })
     expect($pendingSkinApply.get()).toBe('neon')

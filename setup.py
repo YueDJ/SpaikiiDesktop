@@ -2,7 +2,7 @@
 setup.py — wheel/sdist build guard.
 
 pip/PyPI and Homebrew are no longer supported distribution methods for
-Hermes Agent (see website/docs/getting-started/platform-support.md). The
+Sparkii Agent (see website/docs/getting-started/platform-support.md). The
 wheel would ship without bundled assets (locales, skills, optional-mcps,
 web_dist, tui_dist, plugin manifests) since those are resolved at runtime
 via env-var overrides set by the nix wrapper or the source-checkout layout.
@@ -17,7 +17,7 @@ fires for ``uv build``, ``pip wheel``, ``python -m build``, and direct
 The one legitimate consumer of ``build_wheel`` is uv2nix, which calls
 ``setuptools.build_meta.build_wheel`` (→ ``bdist_wheel``) inside a Nix
 build sandbox. ``nix/python.nix`` sets ``SPARKII_NIX_BUILD=1`` on the
-Hermes package derivation, so only that build may create an artifact.
+Sparkii package derivation, so only that build may create an artifact.
 
 Editable installs (``uv sync``, ``pip install -e .``, ``nix develop``)
 use ``build_editable``, which does NOT call ``bdist_wheel`` — it calls
@@ -33,14 +33,14 @@ _IN_NIX_BUILD = os.environ.get("SPARKII_NIX_BUILD") == "1"
 
 _BLOCK_MESSAGE = (
     "Building wheels or sdists for sparkii-agent is not supported.\n"
-    "Hermes is distributed via the shell installer, Docker image, or Nix.\n"
+    "Sparkii is distributed via the shell installer, Docker image, or Nix.\n"
     "See: https://sparkii-agent.nousresearch.com/docs/getting-started/installation\n"
     "\n"
     "If you are developing, use an editable install instead:\n"
     "  uv sync          # or: uv pip install -e .\n"
     "\n"
     "If you are building with Nix (uv2nix), this error should not fire —\n"
-    "the Hermes Nix derivation sets SPARKII_NIX_BUILD=1. If it does, file a bug."
+    "the Sparkii Nix derivation sets SPARKII_NIX_BUILD=1. If it does, file a bug."
 )
 
 

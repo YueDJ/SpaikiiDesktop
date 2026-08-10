@@ -1,7 +1,7 @@
 """Auto-installation of LSP server binaries.
 
 Tries to install missing servers using whatever package manager is
-appropriate.  All installs go to a Hermes-owned bin staging dir,
+appropriate.  All installs go to a Sparkii-owned bin staging dir,
 ``<SPARKII_HOME>/lsp/bin/``, so we don't pollute the user's global
 toolchain.
 
@@ -123,7 +123,7 @@ def _is_windows() -> bool:
 
 
 def sparkii_lsp_bin_dir() -> Path:
-    """Return the Hermes-owned bin staging dir for LSP servers."""
+    """Return the Sparkii-owned bin staging dir for LSP servers."""
     from sparkii_constants import get_sparkii_home
 
     p = get_sparkii_home() / "lsp" / "bin"
@@ -251,7 +251,7 @@ def _install_npm(
     needs ``typescript`` next to it; intelephense ships standalone).
     """
     # Managed npm first: $SPARKII_HOME/node is not on an arbitrary process's
-    # PATH, so a bare which() misses the Node that Hermes installed and
+    # PATH, so a bare which() misses the Node that Sparkii installed and
     # reports "npm not on PATH" on a machine that has a perfectly good one.
     npm = find_node_executable("npm")
     if npm is None:

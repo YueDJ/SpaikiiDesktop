@@ -1,5 +1,5 @@
 """
-Unified self-relaunch for Hermes CLI.
+Unified self-relaunch for Sparkii CLI.
 
 Preserves critical flags (--tui, --dev, --profile, --model, etc.) across
 process replacement so that ``sparkii sessions browse`` or post-setup relaunch
@@ -195,7 +195,7 @@ def relaunch(
             # cryptic.  Common causes: ``sparkii`` not on PATH yet (install
             # hasn't propagated User PATH into this shell) or a stale shim.
             print(
-                f"\nHermes relaunch failed: {exc}\n"
+                f"\nSparkii relaunch failed: {exc}\n"
                 f"Command: {' '.join(new_argv)}\n"
                 f"Fix: open a new terminal so PATH picks up, then re-run sparkii.",
                 file=sys.stderr,

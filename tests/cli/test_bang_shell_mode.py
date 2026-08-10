@@ -125,10 +125,10 @@ class TestBangExecution:
 # ── CLI handler: approval gate, usage hint, exit codes ─────────────────────
 
 def _make_cli(history=None):
-    """Build a HermesCLI shell with only what handle_bang_shell touches."""
-    from cli import HermesCLI
+    """Build a SparkiiCLI shell with only what handle_bang_shell touches."""
+    from cli import SparkiiCLI
 
-    cli = HermesCLI.__new__(HermesCLI)
+    cli = SparkiiCLI.__new__(SparkiiCLI)
     cli.config = {}
     cli.console = MagicMock()
     cli.agent = None
@@ -231,7 +231,7 @@ class TestBangApprovalGate:
 # ── THE load-bearing invariant ─────────────────────────────────────────────
 
 _SEED_HISTORY = [
-    {"role": "system", "content": "You are Hermes."},
+    {"role": "system", "content": "You are Sparkii."},
     {"role": "user", "content": "hello"},
     {"role": "assistant", "content": "Hi there."},
     {"role": "user", "content": "list the files"},

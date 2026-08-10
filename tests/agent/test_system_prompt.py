@@ -144,7 +144,7 @@ def test_coding_prompt_preserves_legacy_workspace_order(monkeypatch):
     monkeypatch.setattr(system_prompt, "get_sparkii_home", lambda: Path("/sparkii"))
 
     expected_profile = (
-        "Active Hermes profile: default. Other profiles (if any) live "
+        "Active Sparkii profile: default. Other profiles (if any) live "
         "under /sparkii/profiles/<name>/. Each profile has its own skills/, "
         "plugins/, cron/, and memories/ that affect a different session than "
         "this one. Do not modify another profile's skills/plugins/cron/memories "

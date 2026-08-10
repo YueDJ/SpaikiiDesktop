@@ -55,7 +55,7 @@ _FALLBACK_PATTERNS = re.compile(
 )
 _ACCESS_DENIED_PATTERN = re.compile(r"(access is denied|acceso denegado)", re.IGNORECASE)
 
-_TASK_NAME_DEFAULT = "Hermes_Gateway"
+_TASK_NAME_DEFAULT = "Sparkii_Gateway"
 _TASK_DESCRIPTION = "Sparkii Agent Gateway - Messaging Platform Integration"
 _TASK_LOGON_DELAY = "PT30S"
 _TASK_RESTART_INTERVAL = "PT1M"
@@ -86,7 +86,7 @@ def _assert_windows() -> None:
 
 
 def _preserve_sparkii_home_path(path: str | Path) -> str:
-    """Render Hermes-owned paths under the configured SPARKII_HOME spelling.
+    """Render Sparkii-owned paths under the configured SPARKII_HOME spelling.
 
     Windows installs may keep ``%LOCALAPPDATA%\\sparkii`` as a symlink/junction to
     another drive. Runtime state should still identify itself by the configured
@@ -198,7 +198,7 @@ def _is_running_as_admin() -> bool:
 
 
 def _current_profile_cli_args() -> list[str]:
-    """Return CLI args that preserve the current Hermes profile."""
+    """Return CLI args that preserve the current Sparkii profile."""
     from sparkii_cli.gateway import _profile_arg
 
     profile_arg = _profile_arg()
@@ -290,8 +290,8 @@ def _launch_elevated_uninstall() -> bool:
 def get_task_name() -> str:
     """Scheduled Task name, scoped per profile.
 
-    Default profile: ``Hermes_Gateway``
-    Named profile X: ``Hermes_Gateway_<X>``
+    Default profile: ``Sparkii_Gateway``
+    Named profile X: ``Sparkii_Gateway_<X>``
     """
     _assert_windows()
     # Local import to avoid circular module initialization during sparkii_cli boot.
@@ -313,7 +313,7 @@ def get_task_script_path() -> Path:
 
     Lives under ``%LOCALAPPDATA%\\sparkii\\gateway-service\\<task_name>.cmd``
     (or ``<SPARKII_HOME>/gateway-service/<task_name>.cmd`` so per-profile
-    Hermes installs stay self-contained).
+    Sparkii installs stay self-contained).
     """
     _assert_windows()
     from sparkii_cli.config import get_sparkii_home
@@ -657,7 +657,7 @@ def _write_scheduled_task_xml(task_name: str, launcher_path: Path, user: str | N
 def _install_scheduled_task(task_name: str, script_path: Path) -> tuple[bool, str]:
     """Create or replace the Scheduled Task. Returns (success, detail).
 
-    Always recreate instead of ``/Change``. Older Hermes builds and failed
+    Always recreate instead of ``/Change``. Older Sparkii builds and failed
     experiments may have left repeat/restart settings on the task; ``/Change``
     preserves those stale triggers and can make the gateway relaunch every
     minute. Delete+create gives us a clean ONLOGON task every install.
@@ -1079,7 +1079,7 @@ def install(
         print("  UAC is Windows' admin approval prompt; it is needed to create/update the Scheduled Task.")
         if prompt_yes_no("  Open the UAC prompt now?", False):
             if _launch_elevated_install(force=force, start_now=start_now, start_on_login=start_on_login):
-                print("✓ Launched elevated Hermes gateway install prompt.")
+                print("✓ Launched elevated Sparkii gateway install prompt.")
                 if start_now:
                     print("  Approve the Windows UAC prompt; the elevated install will start the gateway afterwards.")
                 else:
@@ -1120,7 +1120,7 @@ def install(
         print("  UAC is Windows' admin approval prompt; it is needed to create/update the Scheduled Task.")
         if prompt_yes_no("  Open the UAC prompt now?", False):
             if _launch_elevated_install(force=force, start_now=start_now, start_on_login=start_on_login):
-                print("✓ Launched elevated Hermes gateway install prompt.")
+                print("✓ Launched elevated Sparkii gateway install prompt.")
                 if start_now:
                     print("  Approve the Windows UAC prompt; the elevated install will start the gateway afterwards.")
                 else:
@@ -1223,7 +1223,7 @@ def uninstall() -> None:
             print("  UAC is Windows' admin approval prompt; it is needed to remove the Scheduled Task.")
             if prompt_yes_no("  Open the UAC prompt now?", False):
                 if _launch_elevated_uninstall():
-                    print("✓ Launched elevated Hermes gateway uninstall prompt.")
+                    print("✓ Launched elevated Sparkii gateway uninstall prompt.")
                     print("  Approve the Windows UAC prompt, then run: sparkii gateway status")
                     return
                 print("⚠ Elevated uninstall prompt was unavailable or cancelled.")

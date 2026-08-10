@@ -2,7 +2,7 @@ import { useStore } from '@nanostores/react'
 
 import type { ModelSelection } from '@/app/shell/model-menu-panel'
 import { ModelPickerDialog } from '@/components/model-picker'
-import type { SparkiiGateway } from '@/hermes'
+import type { SparkiiGateway } from '@/sparkii'
 import { useStoreSelector } from '@/lib/use-session-slice'
 import {
   $activeSessionId,

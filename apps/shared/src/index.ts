@@ -55,12 +55,12 @@ export {
   type SkinColorToken
 } from './skin'
 export {
-  buildHermesWebSocketUrl,
+  buildSparkiiWebSocketUrl,
   type GatewayAuthMode,
   GatewayReauthRequiredError,
   type GatewayWsConnection,
   type GatewayWsUrlResult,
-  type HermesWebSocketUrlOptions,
+  type SparkiiWebSocketUrlOptions,
   isGatewayReauthRequired,
   resolveGatewayWsUrl,
   type ResolveGatewayWsUrlDeps,

@@ -571,7 +571,7 @@ TOOL_CATEGORIES = {
         "name": "X (Twitter) Search",
         "setup_title": "Select xAI Credential Source",
         "setup_note": (
-            "Hermes routes X searches through xAI's built-in x_search "
+            "Sparkii routes X searches through xAI's built-in x_search "
             "Responses tool for read-only public X discovery. Use the xurl "
             "skill for authenticated X API reads and account actions. Both "
             "credential sources hit the same "
@@ -765,7 +765,7 @@ def _resolved_cua_driver_cmd() -> Optional[str]:
 
 
 def _cua_driver_env() -> dict:
-    """cua-driver child env with the Hermes telemetry policy applied.
+    """cua-driver child env with the Sparkii telemetry policy applied.
 
     Delegates to ``cua_backend.cua_driver_child_env`` (telemetry disabled by
     default; user opt-in via ``computer_use.cua_telemetry``). Falls back to the
@@ -806,7 +806,7 @@ def _pip_install(
     uv_env = {**os.environ, "VIRTUAL_ENV": str(venv_root)}
 
     # Managed uv first: $SPARKII_HOME/bin is never on PATH, so a bare which()
-    # misses the uv Hermes installed and prefers a system one when both exist.
+    # misses the uv Sparkii installed and prefers a system one when both exist.
     # ensure_uv() rather than a pure lookup because this runs during setup,
     # where installing uv is in scope — and tier 2 is a pip that the Windows
     # installer's `uv venv` does not seed, so failing to find uv here is the
@@ -1602,7 +1602,7 @@ def _run_cua_driver_installer(
                     _print_info("    IMPORTANT — grant macOS permissions now:")
                     _print_info("      System Settings > Privacy & Security > Accessibility")
                     _print_info("      System Settings > Privacy & Security > Screen Recording")
-                    _print_info("    Both must allow the terminal / Hermes process.")
+                    _print_info("    Both must allow the terminal / Sparkii process.")
             return True
         _print_warning(f"    cua-driver {label.lower()} did not complete. Re-run manually:")
         _print_info(f"      {manual_hint}")
@@ -1639,7 +1639,7 @@ def _run_post_setup(post_setup_key: str):
         node_modules = PROJECT_ROOT / "node_modules" / "agent-browser"
         # Managed Node first — $SPARKII_HOME/node is not on PATH, so a bare
         # which() reports "no npm" on installs whose only Node is the one
-        # Hermes installed for exactly this toolchain.
+        # Sparkii installed for exactly this toolchain.
         npm_bin = find_node_executable("npm")
         npx_bin = find_node_executable("npx")
         # Step 1: install the agent-browser npm package into node_modules/
@@ -1938,7 +1938,7 @@ def _run_post_setup(post_setup_key: str):
         except Exception as exc:
             _print_warning(f"    Could not enable plugin automatically: {exc}")
             _print_info("    Run manually: sparkii plugins enable observability/langfuse")
-        _print_info("    Restart Hermes for tracing to take effect.")
+        _print_info("    Restart Sparkii for tracing to take effect.")
         _print_info("    Verify: sparkii plugins list")
 
     elif post_setup_key == "xai_grok":
@@ -4901,7 +4901,7 @@ def tools_command(args=None, first_install: bool = False, config: dict = None):
                 print(color("    (none enabled)", Colors.DIM))
         print()
         return
-    print(color("⚕ Hermes Tool Configuration", Colors.CYAN, Colors.BOLD))
+    print(color("⚕ Sparkii Tool Configuration", Colors.CYAN, Colors.BOLD))
     print(color("  Enable or disable tools per platform.", Colors.DIM))
     print(color("  Tools that need API keys will be configured when enabled.", Colors.DIM))
     print(color("  Guide: https://sparkii-agent.nousresearch.com/docs/user-guide/features/tools", Colors.DIM))

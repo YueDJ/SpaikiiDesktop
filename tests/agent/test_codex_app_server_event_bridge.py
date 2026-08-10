@@ -1,4 +1,4 @@
-"""Regression tests for the codex_app_server → Hermes UI event bridge.
+"""Regression tests for the codex_app_server → Sparkii UI event bridge.
 
 Pin the translation of codex JSON-RPC notifications into agent callbacks
 (`tool_progress_callback`, `_fire_stream_delta`, `_fire_reasoning_delta`,
@@ -64,7 +64,7 @@ class TestCodexItemToToolName:
         ) == "web_search"
 
     def test_sparkii_tools_mcp_server_emits_bare_tool_name(self):
-        """The sparkii-tools MCP server wraps Hermes' own tools for codex;
+        """The sparkii-tools MCP server wraps Sparkii' own tools for codex;
         the inner dispatch subprocess can't fire native progress events,
         so the codex-level event IS the display event — shown without the
         mcp.sparkii-tools.* namespacing (from #26541 by @simpolism)."""

@@ -1,4 +1,4 @@
-"""Shared constants for Hermes Agent.
+"""Shared constants for Sparkii Agent.
 
 Import-safe module with no dependencies — can be imported from anywhere
 without risk of circular imports.
@@ -28,7 +28,7 @@ DEFAULT_INDICATOR_STYLE: str = "kaomoji"
 
 
 def set_sparkii_home_override(path: str | Path | None) -> Token:
-    """Set a context-local Hermes home override and return its reset token.
+    """Set a context-local Sparkii home override and return its reset token.
 
     This is for in-process, per-task scoping.  It deliberately does not mutate
     ``os.environ`` because that is shared by every thread in the process.
@@ -38,12 +38,12 @@ def set_sparkii_home_override(path: str | Path | None) -> Token:
 
 
 def reset_sparkii_home_override(token: Token) -> None:
-    """Restore the previous context-local Hermes home override."""
+    """Restore the previous context-local Sparkii home override."""
     _SPARKII_HOME_OVERRIDE.reset(token)
 
 
 def get_sparkii_home_override() -> str | None:
-    """Return the active context-local Hermes home override, if any."""
+    """Return the active context-local Sparkii home override, if any."""
     override = _SPARKII_HOME_OVERRIDE.get()
     if override is _UNSET or not override:
         return None
@@ -51,7 +51,7 @@ def get_sparkii_home_override() -> str | None:
 
 
 def _get_platform_default_sparkii_home() -> Path:
-    """Return the platform-native default Hermes home path."""
+    """Return the platform-native default Sparkii home path."""
     if sys.platform == "win32":
         local_appdata = os.environ.get("LOCALAPPDATA", "").strip()
         base = Path(local_appdata) if local_appdata else Path.home() / "AppData" / "Local"
@@ -112,7 +112,7 @@ def _warn_profile_fallback_once() -> None:
 
 
 def get_sparkii_home() -> Path:
-    """Return the Hermes home directory (default: platform-native path).
+    """Return the Sparkii home directory (default: platform-native path).
 
     Resolution order: context-local override (see
     :func:`set_sparkii_home_override`) → ``SPARKII_HOME`` env var → the
@@ -140,7 +140,7 @@ def get_sparkii_home() -> Path:
 
 
 def get_process_sparkii_home() -> Path:
-    """Return the Hermes home for the running process, ignoring task overrides.
+    """Return the Sparkii home for the running process, ignoring task overrides.
 
     Unlike :func:`get_sparkii_home`, this never follows the context-local
     override set by :func:`set_sparkii_home_override`.  It resolves only the
@@ -159,9 +159,9 @@ def get_process_sparkii_home() -> Path:
 
 
 def get_default_sparkii_root() -> Path:
-    """Return the root Hermes directory for profile-level operations.
+    """Return the root Sparkii directory for profile-level operations.
 
-    In standard deployments this is the platform-native Hermes home
+    In standard deployments this is the platform-native Sparkii home
     (``~/.sparkii`` on POSIX, ``%LOCALAPPDATA%\\sparkii`` on native Windows).
 
     In Docker or custom deployments where ``SPARKII_HOME`` points outside
@@ -250,7 +250,7 @@ def get_sparkii_dir(
     *,
     home: Path | None = None,
 ) -> Path:
-    """Resolve a Hermes subdirectory with backward compatibility.
+    """Resolve a Sparkii subdirectory with backward compatibility.
 
     New installs get the consolidated layout (e.g. ``cache/images``).
     Existing installs that already have the old path (e.g. ``image_cache``)
@@ -267,7 +267,7 @@ def get_sparkii_dir(
     Args:
         new_subpath: Preferred path relative to SPARKII_HOME (e.g. ``"cache/images"``).
         old_name: Legacy path relative to SPARKII_HOME (e.g. ``"image_cache"``).
-        home: Optional explicit Hermes home. Profile-aware callers that manage
+        home: Optional explicit Sparkii home. Profile-aware callers that manage
             more than one home in the same process use this instead of
             temporarily mutating the process or context-local SPARKII_HOME.
 
@@ -283,7 +283,7 @@ def get_sparkii_dir(
 
 
 def iter_sparkii_node_dirs(home: Path | None = None) -> list[Path]:
-    """Return Hermes-managed Node.js directories in preferred lookup order.
+    """Return Sparkii-managed Node.js directories in preferred lookup order.
 
     Windows installs from ``scripts/install.ps1`` unpack portable Node directly
     into ``%LOCALAPPDATA%\\sparkii\\node``. POSIX installs use
@@ -325,7 +325,7 @@ _NODE_BOOTSTRAP_SCRIPT = Path(__file__).resolve().parent / "scripts" / "lib" / "
 def node_tool_runnable(path: str | None) -> bool:
     """Return True only when *path* is a Node/npm/npx binary that actually runs.
 
-    Hermes-managed Node trees live under ``$SPARKII_HOME/node`` (or a profile's
+    Sparkii-managed Node trees live under ``$SPARKII_HOME/node`` (or a profile's
     ``SPARKII_HOME``). A partial upgrade or interrupted install can leave
     ``bin/npm`` behind while ``lib/cli.js`` is missing — the wrapper exists but
     immediately throws ``MODULE_NOT_FOUND``. ``find_sparkii_node_executable``
@@ -362,7 +362,7 @@ def node_tool_runnable(path: str | None) -> bool:
 
 
 def sparkii_managed_node_tree_present(home: Path | None = None) -> bool:
-    """Return True when any Hermes-managed node/npm/npx shim exists on disk."""
+    """Return True when any Sparkii-managed node/npm/npx shim exists on disk."""
     names = set()
     for command in ("node", "npm", "npx"):
         names.update(_candidate_node_command_names(command))
@@ -477,11 +477,11 @@ def _bootstrap_managed_node_posix() -> bool:
 
 
 def bootstrap_sparkii_managed_node() -> str | None:
-    """Install a Hermes-managed Node tree and return its npm path.
+    """Install a Sparkii-managed Node tree and return its npm path.
 
     Used when the only Node/npm on the machine belongs to the user (system,
     nvm, brew, Nix) and cannot satisfy the repo's ``engines`` requirements —
-    Hermes never modifies a toolchain it does not own, so instead it provisions
+    Sparkii never modifies a toolchain it does not own, so instead it provisions
     its own tree under ``$SPARKII_HOME/node`` (the same tree a fresh install
     creates) and works with that.
 
@@ -513,7 +513,7 @@ def bootstrap_sparkii_managed_node() -> str | None:
 
 
 def heal_sparkii_managed_node() -> bool:
-    """Redownload Hermes-managed Node when the tree exists but is broken.
+    """Redownload Sparkii-managed Node when the tree exists but is broken.
 
     Runs at most once per process. POSIX installs shell out to
     ``heal_managed_node`` in ``scripts/lib/node-bootstrap.sh``; Windows
@@ -587,7 +587,7 @@ def _managed_node_tree_outdated(home: Path | None = None) -> bool:
 
 
 def find_sparkii_node_executable(command: str) -> str | None:
-    """Return a Hermes-managed Node/npm executable path, healing broken trees.
+    """Return a Sparkii-managed Node/npm executable path, healing broken trees.
 
     Outdated trees (node major below ``_SPARKII_NODE_TARGET_MAJOR``) heal the
     same way broken ones do — the once-per-process heal redownloads the target
@@ -627,7 +627,7 @@ def find_node_executable_on_path(command: str) -> str | None:
 
     ``shutil.which("npm")`` can resolve an extensionless npm shim before the
     ``.cmd`` shim on Windows. Python's CreateProcess cannot execute that shim
-    directly, so prefer the launchable variants explicitly for Hermes-owned
+    directly, so prefer the launchable variants explicitly for Sparkii-owned
     subprocesses.
     """
     if sys.platform != "win32":
@@ -651,9 +651,9 @@ def find_node_executable_on_path(command: str) -> str | None:
 
 
 def find_node_executable(command: str) -> str | None:
-    """Resolve a Node.js command, preferring healthy Hermes-managed installs.
+    """Resolve a Node.js command, preferring healthy Sparkii-managed installs.
 
-    This is for Hermes-owned subprocesses that should not be broken by a bad,
+    This is for Sparkii-owned subprocesses that should not be broken by a bad,
     missing, or elevation-triggering system Node/npm on PATH. When a managed
     tree exists but cannot be healed, returns ``None`` instead of falling back
     to system npm on PATH.
@@ -667,7 +667,7 @@ def find_node_executable(command: str) -> str | None:
 
 
 def with_sparkii_node_path(env: dict[str, str] | None = None) -> dict[str, str]:
-    """Return *env* with Hermes-managed Node directories prepended to PATH."""
+    """Return *env* with Sparkii-managed Node directories prepended to PATH."""
     merged = dict(os.environ if env is None else env)
     existing = merged.get("PATH", "")
     parts = [p for p in existing.split(os.pathsep) if p]
@@ -874,9 +874,9 @@ def _iter_real_home_candidates(env: dict[str, str] | None = None) -> list[str]:
 
 
 def get_real_home(env: dict[str, str] | None = None) -> str:
-    """Return the OS user's real home directory, avoiding Hermes profile HOME.
+    """Return the OS user's real home directory, avoiding Sparkii profile HOME.
 
-    ``SPARKII_HOME`` scopes Hermes state. ``HOME`` is reserved for the OS/user
+    ``SPARKII_HOME`` scopes Sparkii state. ``HOME`` is reserved for the OS/user
     account and the many external CLIs that store credentials under ``~``.
     If a parent process is already running with ``HOME={SPARKII_HOME}/home``,
     this helper repairs back to the account home when possible.
@@ -930,7 +930,7 @@ def get_subprocess_home(env: dict[str, str] | None = None) -> str | None:
 
 
 def apply_subprocess_home_env(env: dict[str, str]) -> None:
-    """Apply Hermes' subprocess HOME contract to *env* in-place."""
+    """Apply Sparkii' subprocess HOME contract to *env* in-place."""
     real_home = get_real_home(env)
     if real_home:
         env["SPARKII_REAL_HOME"] = real_home
@@ -1214,7 +1214,7 @@ def wsl_unc_path_to_posix(path: str) -> str | None:
 
 
 def translate_cwd_for_wsl_backend(cwd: str) -> str:
-    """Normalize a cross-boundary cwd when Hermes itself runs inside WSL.
+    """Normalize a cross-boundary cwd when Sparkii itself runs inside WSL.
 
     A Windows-host UI (native picker / drive path / ``\\\\wsl.localhost\\`` UNC)
     can hand the WSL backend a path it can't ``chdir`` into. Map it to the POSIX
@@ -1408,7 +1408,7 @@ def venv_python_path(venv_dir, *, windows: bool | None = None) -> Path:
 
 # ─── Partial-update diagnostics ──────────────────────────────────────────────
 
-# Top-level packages/modules that ship as part of Hermes itself. An ImportError
+# Top-level packages/modules that ship as part of Sparkii itself. An ImportError
 # naming one of these means our own tree is inconsistent; anything else is a
 # third-party problem with different remediation. Single source of truth —
 # `sparkii_cli.update_cmd`'s post-update probe consumes this same set so the
@@ -1433,7 +1433,7 @@ FIRST_PARTY_MODULE_ROOTS = frozenset(
 
 
 def is_first_party_module(name: str | None) -> bool:
-    """True when *name* is a module that ships with Hermes.
+    """True when *name* is a module that ships with Sparkii.
 
     Matches on the first dotted segment against an exact set — a substring or
     ``startswith`` test would also claim third-party ``agents``, ``agentops``,

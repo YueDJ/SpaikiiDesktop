@@ -70,7 +70,7 @@ def test_switch_away_from_headered_provider_clears_stale_headers(mock_ctx_len):
     agent = _make_agent(provider="openrouter", base_url="https://openrouter.ai/api/v1")
     agent._client_kwargs["default_headers"] = {
         "HTTP-Referer": "https://sparkii-agent.nousresearch.com",
-        "X-Title": "Hermes Agent",
+        "X-Title": "Sparkii Agent",
     }
 
     agent.switch_model(

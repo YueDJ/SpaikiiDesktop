@@ -43,7 +43,7 @@ def _scan_dashboard_processes(
     the kill path because we can't know their original launch args.
 
     *exclude_pids* is an optional set of PIDs that must never be returned.
-    This is used by the Hermes Desktop Electron app to protect its own
+    This is used by the Sparkii Desktop Electron app to protect its own
     backend child process: when the desktop spawns ``sparkii serve`` as
     a backend and triggers an auto-update, the update must not kill the
     backend that the desktop itself manages.  The desktop sets the
@@ -175,7 +175,7 @@ def _kill_stale_dashboard_processes(
     if restart_managed and _m()._restart_managed_dashboard_service(reason):
         return {"matched": [], "killed": [], "failed": []}
 
-    # When the Hermes Desktop Electron app spawns this dashboard as a
+    # When the Sparkii Desktop Electron app spawns this dashboard as a
     # backend child, it sets SPARKII_DESKTOP_CHILD_PID so that the update
     # path can skip killing the desktop-managed process.  (#37532)
     exclude: set[int] | None = None
@@ -348,7 +348,7 @@ def _detect_concurrent_sparkii_instances(
 
     Windows blocks DELETE/REPLACE on a running .exe — and even RENAME on the
     same .exe when another process opened it without ``FILE_SHARE_DELETE``.
-    The Hermes Desktop Electron app spawns ``sparkii.EXE`` as a backend child,
+    The Sparkii Desktop Electron app spawns ``sparkii.EXE`` as a backend child,
     so during ``sparkii update`` the user-invoked process and the desktop's
     child both hold the same file. The quarantine rename then fails with
     ``[WinError 32]`` and uv inherits the lock.
@@ -398,7 +398,7 @@ def _detect_concurrent_sparkii_instances(
     #      across session/elevation boundaries), leaving the launcher shim in
     #      the candidate set and re-triggering the false positive.
     #   2. Only exclude ancestors whose exe is itself a shim. A genuine second
-    #      sparkii.exe sitting *under* a non-Hermes parent (e.g. a Hermes
+    #      sparkii.exe sitting *under* a non-Sparkii parent (e.g. a Sparkii
     #      Desktop backend child) must still be flagged, so we don't blanket-
     #      exclude unrelated ancestors like the shell or terminal.
     # Broad ``except Exception`` guards against partially-stubbed psutil in

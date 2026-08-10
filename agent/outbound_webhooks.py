@@ -8,8 +8,8 @@ endpoints — CI systems, dashboards, other agents — with zero changes to
 call sites and zero polling on the receiving end.
 
 This is the outbound mirror of the inbound webhook platform
-(``gateway/platforms/webhook.py``): inbound wakes Hermes when the world
-changes; outbound tells the world when Hermes does something.
+(``gateway/platforms/webhook.py``): inbound wakes Sparkii when the world
+changes; outbound tells the world when Sparkii does something.
 
 Design notes
 ------------
@@ -19,7 +19,7 @@ Design notes
   enqueue, and return ``None`` immediately.  Outbound targets can never
   block a tool call, inject context, or otherwise influence agent flow.
 * Payloads are signed with HMAC-SHA256 (GitHub-style
-  ``X-Hermes-Signature-256: sha256=<hexdigest>`` over the raw body) when
+  ``X-Sparkii-Signature-256: sha256=<hexdigest>`` over the raw body) when
   a secret is configured.  Receivers verify exactly like they verify
   GitHub webhooks.
 * No consent prompt: unlike shell hooks, an outbound target executes no
@@ -58,10 +58,10 @@ Wire format (POST body)::
 Headers::
 
     Content-Type:            application/json
-    User-Agent:              Hermes-Agent-Outbound-Webhook
-    X-Hermes-Event:          <hook event name>
-    X-Hermes-Delivery:       <delivery_id>
-    X-Hermes-Signature-256:  sha256=<hmac hexdigest>   # only when secret set
+    User-Agent:              Sparkii-Agent-Outbound-Webhook
+    X-Sparkii-Event:          <hook event name>
+    X-Sparkii-Delivery:       <delivery_id>
+    X-Sparkii-Signature-256:  sha256=<hmac hexdigest>   # only when secret set
 """
 
 from __future__ import annotations
@@ -407,7 +407,7 @@ def _serialize_payload(
     """Render the POST body.  Same top-level shape as shell hooks' stdin
     (documented in :mod:`agent.shell_hooks`), plus delivery metadata.
 
-    ``delivery_id`` is shared with the ``X-Hermes-Delivery`` header so
+    ``delivery_id`` is shared with the ``X-Sparkii-Delivery`` header so
     receivers can dedupe on either — and since it (plus ``timestamp``)
     lives inside the HMAC-signed body, it doubles as replay protection.
     """
@@ -436,15 +436,15 @@ def _build_delivery(
 ) -> Dict[str, Any]:
     headers = {
         "Content-Type": "application/json",
-        "User-Agent": "Hermes-Agent-Outbound-Webhook",
-        "X-Hermes-Event": event,
-        "X-Hermes-Delivery": delivery_id,
+        "User-Agent": "Sparkii-Agent-Outbound-Webhook",
+        "X-Sparkii-Event": event,
+        "X-Sparkii-Delivery": delivery_id,
     }
     if target.secret:
         digest = hmac.new(
             target.secret.encode("utf-8"), body, hashlib.sha256
         ).hexdigest()
-        headers["X-Hermes-Signature-256"] = f"sha256={digest}"
+        headers["X-Sparkii-Signature-256"] = f"sha256={digest}"
     return {
         "url": target.url,
         "label": target.label,

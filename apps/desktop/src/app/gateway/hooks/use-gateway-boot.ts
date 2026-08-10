@@ -1,8 +1,8 @@
-import { isGatewayReauthRequired, resolveGatewayWsUrl } from '@hermes/shared'
+import { isGatewayReauthRequired, resolveGatewayWsUrl } from '@sparkii/shared'
 import { useEffect, useRef } from 'react'
 
 import type { SparkiiConnection } from '@/global'
-import { SparkiiGateway } from '@/hermes'
+import { SparkiiGateway } from '@/sparkii'
 import { translateNow } from '@/i18n'
 import { desktopDefaultCwd } from '@/lib/desktop-fs'
 import { reconnectBackoffDelayMs } from '@/lib/reconnect-backoff'
@@ -39,7 +39,7 @@ import {
   setSessionsLoading
 } from '@/store/session'
 import { $attentionSessionIds, $workingSessionIds, resetTileRuntimeBindings } from '@/store/session-states'
-import type { RpcEvent } from '@/types/hermes'
+import type { RpcEvent } from '@/types/sparkii'
 
 import { stashGatewaySurvivor, survivorIsStale, takeGatewaySurvivor } from './gateway-hmr-survivor'
 

@@ -1,5 +1,5 @@
 """
-Hermes CLI - Unified command-line interface for Sparkii Agent.
+Sparkii CLI - Unified command-line interface for Sparkii Agent.
 
 Provides subcommands for:
 - sparkii chat          - Interactive chat (same as ./sparkii)

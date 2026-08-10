@@ -1,4 +1,4 @@
-"""hermes-memory-store — holographic memory plugin using MemoryProvider interface.
+"""sparkii-memory-store — holographic memory plugin using MemoryProvider interface.
 
 Registers as a MemoryProvider plugin, giving the agent structured fact storage
 with entity resolution, trust scoring, and HRR-based compositional retrieval.
@@ -7,7 +7,7 @@ Original plugin by dusterbloom (PR #2351), adapted to the MemoryProvider ABC.
 
 Config in $SPARKII_HOME/config.yaml (profile-scoped):
   plugins:
-    hermes-memory-store:
+    sparkii-memory-store:
       db_path: $SPARKII_HOME/memory_store.db   # omit to use the default
       auto_extract: false
       default_trust: 0.5
@@ -101,7 +101,7 @@ def _load_plugin_config() -> dict:
         # overlay + ${VAR} expansion (e.g. an api key template) too.
         from sparkii_cli.config import load_config_readonly
         all_config = load_config_readonly()
-        return cfg_get(all_config, "plugins", "hermes-memory-store", default={}) or {}
+        return cfg_get(all_config, "plugins", "sparkii-memory-store", default={}) or {}
     except Exception:
         return {}
 
@@ -127,7 +127,7 @@ class HolographicMemoryProvider(MemoryProvider):
         return True  # SQLite is always available, numpy is optional
 
     def save_config(self, values, sparkii_home):
-        """Write config to config.yaml under plugins.hermes-memory-store."""
+        """Write config to config.yaml under plugins.sparkii-memory-store."""
         from pathlib import Path
         config_path = Path(sparkii_home) / "config.yaml"
         try:
@@ -137,7 +137,7 @@ class HolographicMemoryProvider(MemoryProvider):
             from sparkii_cli.config import read_user_config_raw
             existing = read_user_config_raw(config_path)
             existing.setdefault("plugins", {})
-            existing["plugins"]["hermes-memory-store"] = values
+            existing["plugins"]["sparkii-memory-store"] = values
             with open(config_path, "w", encoding="utf-8") as f:
                 yaml.dump(existing, f, default_flow_style=False)
         except Exception:
@@ -159,7 +159,7 @@ class HolographicMemoryProvider(MemoryProvider):
         _default_db = _sparkii_home + "/memory_store.db"
         db_path = self._config.get("db_path", _default_db)
         # Expand $SPARKII_HOME in user-supplied paths so config values like
-        # "$SPARKII_HOME/memory_store.db" or "~/.hermes/memory_store.db" both
+        # "$SPARKII_HOME/memory_store.db" or "~/.sparkii/memory_store.db" both
         # resolve to the active profile's directory.
         if isinstance(db_path, str):
             db_path = db_path.replace("$SPARKII_HOME", _sparkii_home)

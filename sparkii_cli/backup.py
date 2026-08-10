@@ -140,7 +140,7 @@ _EXTERNAL_PREFIX = "_external/"
 
 
 class BackupInProgressError(RuntimeError):
-    """Raised when another process already owns the Hermes backup slot."""
+    """Raised when another process already owns the Sparkii backup slot."""
 
 
 class _SQLiteSnapshotError(RuntimeError):
@@ -170,7 +170,7 @@ def _backup_operation_lock(sparkii_home: Path, timeout_seconds: float = 0.25):
                     break
                 except (OSError, PermissionError):
                     if time.monotonic() >= deadline:
-                        raise BackupInProgressError("another Hermes backup is already running")
+                        raise BackupInProgressError("another Sparkii backup is already running")
                     time.sleep(0.05)
         else:
             import fcntl
@@ -182,7 +182,7 @@ def _backup_operation_lock(sparkii_home: Path, timeout_seconds: float = 0.25):
                     break
                 except (BlockingIOError, OSError):
                     if time.monotonic() >= deadline:
-                        raise BackupInProgressError("another Hermes backup is already running")
+                        raise BackupInProgressError("another Sparkii backup is already running")
                     time.sleep(0.05)
 
         yield
@@ -579,11 +579,11 @@ def copy_db_and_verify(src: Path, dst: Path) -> bool:
 # ---------------------------------------------------------------------------
 
 def run_backup(args) -> None:
-    """Create a zip backup of the Hermes home directory."""
+    """Create a zip backup of the Sparkii home directory."""
     sparkii_root = get_default_sparkii_root()
 
     if not sparkii_root.is_dir():
-        print(f"Error: Hermes home directory not found at {sparkii_root}")
+        print(f"Error: Sparkii home directory not found at {sparkii_root}")
         sys.exit(1)
 
     try:
@@ -799,7 +799,7 @@ def _run_backup_locked(args, sparkii_root: Path) -> None:
 # ---------------------------------------------------------------------------
 
 def _validate_backup_zip(zf: zipfile.ZipFile) -> tuple[bool, str]:
-    """Check that a zip looks like a Hermes backup.
+    """Check that a zip looks like a Sparkii backup.
 
     Returns (ok, reason).
     """
@@ -818,7 +818,7 @@ def _validate_backup_zip(zf: zipfile.ZipFile) -> tuple[bool, str]:
 
     if not found:
         return False, (
-            "zip does not appear to be a Hermes backup "
+            "zip does not appear to be a Sparkii backup "
             "(no config.yaml, .env, or state databases found)"
         )
 
@@ -850,7 +850,7 @@ def _detect_prefix(zf: zipfile.ZipFile) -> str:
 
 
 def run_import(args) -> None:
-    """Restore a Hermes backup from a zip file."""
+    """Restore a Sparkii backup from a zip file."""
     zip_path = Path(args.zipfile).expanduser().resolve()
 
     if not zip_path.is_file():
@@ -886,7 +886,7 @@ def run_import(args) -> None:
 
         if (has_config or has_env) and not args.force:
             print()
-            print("Warning: Target directory already has Hermes configuration.")
+            print("Warning: Target directory already has Sparkii configuration.")
             print("Importing will overwrite existing files with backup contents.")
             print()
             try:
@@ -1066,7 +1066,7 @@ def run_import(args) -> None:
             for pname in gw_profiles:
                 print(f"  sparkii -p {pname} gateway install")
 
-        print("Done. Your Hermes configuration has been restored.")
+        print("Done. Your Sparkii configuration has been restored.")
 
 
 # ---------------------------------------------------------------------------
@@ -1529,7 +1529,7 @@ def restore_cron_jobs_if_emptied(
     Args:
         snapshot_id: The pre-update quick-snapshot id (from
             :func:`create_quick_snapshot`).
-        sparkii_home: Override for the Hermes home directory (tests).
+        sparkii_home: Override for the Sparkii home directory (tests).
 
     Returns:
         ``None`` when no action was taken (the common, healthy path). On a

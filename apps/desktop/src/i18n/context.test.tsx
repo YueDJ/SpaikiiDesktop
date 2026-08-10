@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import type { SparkiiConfigRecord } from '@/hermes'
+import type { SparkiiConfigRecord } from '@/sparkii'
 
 import { type I18nConfigClient, I18nProvider, useI18n } from './context'
 import type { Locale } from './types'

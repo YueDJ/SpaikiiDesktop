@@ -1,7 +1,7 @@
-import { type ConnectionState, type GatewayEvent, resolveGatewayWsUrl } from '@hermes/shared'
+import { type ConnectionState, type GatewayEvent, resolveGatewayWsUrl } from '@sparkii/shared'
 import { atom } from 'nanostores'
 
-import { SparkiiGateway } from '@/hermes'
+import { SparkiiGateway } from '@/sparkii'
 import { reconnectBackoffDelayMs } from '@/lib/reconnect-backoff'
 import { markNativeNotifyBaseline } from '@/store/notify-baseline'
 import { setGatewayState } from '@/store/session'
@@ -60,7 +60,7 @@ interface GatewayRegistryState {
   $gateway: ReturnType<typeof atom<SparkiiGateway | null>>
 }
 
-const STATE_KEY = Symbol.for('hermes.desktop.gatewayRegistryState')
+const STATE_KEY = Symbol.for('sparkii.desktop.gatewayRegistryState')
 
 function createRegistryState(): GatewayRegistryState {
   return {
