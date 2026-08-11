@@ -158,7 +158,7 @@ class TestCollectKanbanNotifications:
     def test_profile_scoped_session_reads_the_shared_board(self, tmp_path):
         """The kanban board is shared across profiles BY DESIGN (see the
         sparkii_cli/kanban_db.py module docstring): ``kanban_home()`` anchors on
-        ``get_default_sparkii_root()``, which resolves the process env and
+        ``get_default_hermes_root()``, which resolves the process env and
         ignores context-local profile overrides. A Desktop session bound to a
         non-launch profile (``session["profile_home"]``) must therefore still
         have its subscription claimed from the one shared board — the poller

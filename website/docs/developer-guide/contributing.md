@@ -89,7 +89,7 @@ which silently destroys the running runtime mid-session. Keeping it outside the
 tree means no relative path from the workspace resolves to it.
 
 ```bash
-git clone https://github.com/YueDJ/SparkiiAgent.git
+git clone https://github.com/NousResearch/sparkii-agent.git
 cd sparkii-agent
 
 # Create venv with Python 3.11, OUTSIDE the source tree
@@ -143,7 +143,7 @@ scripts/run_tests.sh
 - **Comments**: Only when explaining non-obvious intent, trade-offs, or API quirks
 - **Error handling**: Catch specific exceptions. Use `logger.warning()`/`logger.error()` with `exc_info=True` for unexpected errors
 - **Cross-platform**: Never assume Unix (see below)
-- **Profile-safe paths**: Never hardcode `~/.sparkii` — use `get_sparkii_home()` from `sparkii_constants` for code paths and `display_sparkii_home()` for user-facing messages. See [AGENTS.md](https://github.com/YueDJ/SparkiiAgent/blob/main/AGENTS.md#profiles-multi-instance-support) for full rules.
+- **Profile-safe paths**: Never hardcode `~/.sparkii` — use `get_sparkii_home()` from `sparkii_constants` for code paths and `display_sparkii_home()` for user-facing messages. See [AGENTS.md](https://github.com/NousResearch/sparkii-agent/blob/main/AGENTS.md#profiles-multi-instance-support) for full rules.
 
 ## Cross-Platform Compatibility
 
@@ -159,23 +159,7 @@ When contributing code, keep these rules in mind:
 
 Key patterns:
 
-### 1. `termios` and `fcntl` are Unix-only
-
-Always catch both `ImportError` and `NotImplementedError`:
-
-```python
-try:
-    from simple_term_menu import TerminalMenu
-    menu = TerminalMenu(options)
-    idx = menu.show()
-except (ImportError, NotImplementedError):
-    # Fallback: numbered menu
-    for i, opt in enumerate(options):
-        print(f"  {i+1}. {opt}")
-    idx = int(input("Choice: ")) - 1
-```
-
-### 2. File encoding
+### 1. File encoding
 
 Some environments may save `.env` files in non-UTF-8 encodings:
 
@@ -186,7 +170,7 @@ except UnicodeDecodeError:
     load_dotenv(env_path, encoding="latin-1")
 ```
 
-### 3. Process management
+### 2. Process management
 
 `os.setsid()`, `os.killpg()`, and signal handling differ across platforms:
 
@@ -196,7 +180,7 @@ if platform.system() != "Windows":
     kwargs["preexec_fn"] = os.setsid
 ```
 
-### 4. Path separators
+### 3. Path separators
 
 Use `pathlib.Path` instead of string concatenation with `/`.
 
@@ -302,7 +286,7 @@ When you ask Sparkii to review a PR in a repository that has `.agents/checks/`, 
 
 ## Reporting Issues
 
-- Use [GitHub Issues](https://github.com/YueDJ/SparkiiAgent/issues)
+- Use [GitHub Issues](https://github.com/NousResearch/sparkii-agent/issues)
 - Include: OS, Python version, Sparkii version (`sparkii version`), full error traceback
 - Include steps to reproduce
 - Check existing issues before creating duplicates
@@ -316,4 +300,4 @@ When you ask Sparkii to review a PR in a repository that has `.agents/checks/`, 
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the [MIT License](https://github.com/YueDJ/SparkiiAgent/blob/main/LICENSE).
+By contributing, you agree that your contributions will be licensed under the [MIT License](https://github.com/NousResearch/sparkii-agent/blob/main/LICENSE).

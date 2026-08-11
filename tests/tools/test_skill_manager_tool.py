@@ -856,10 +856,10 @@ def _curator_pass(tmp_path, *, monkeypatch):
     here; tests that specifically exercise the ownership guard set their own
     records instead.
     """
-    sparkii_home = tmp_path / ".sparkii"
-    skills_root = sparkii_home / "skills"
+    hermes_home = tmp_path / ".sparkii"
+    skills_root = hermes_home / "skills"
     skills_root.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
     with patch("tools.skill_manager_tool.SKILLS_DIR", skills_root), \
          patch("tools.skills_tool.SKILLS_DIR", skills_root), \
          patch("agent.skill_utils.get_all_skills_dirs", return_value=[skills_root]), \

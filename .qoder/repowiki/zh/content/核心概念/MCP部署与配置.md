@@ -4,7 +4,7 @@
 **本文引用的文件**
 - [sparkii_cli/mcp_config.py](file://sparkii_cli/mcp_config.py)
 - [docker/](file://docker/)
-- [setup-hermes.sh](file://setup-hermes.sh)
+- [setup-sparkii.sh](file://setup-sparkii.sh)
 - [cli-config.yaml.example](file://cli-config.yaml.example)
 </cite>
 
@@ -20,7 +20,7 @@
 ## 简介
 创建MCP部署与配置的完整指南。详细说明MCP服务的部署方式，包括本地开发环境、容器化部署和生产环境配置。深入讲解配置文件结构和环境变量设置，包括认证配置、网络设置、资源限制等。提供不同部署场景的配置示例，如单机部署、集群部署、云原生部署等。包含性能调优参数、监控指标收集和日志管理配置。解释版本升级策略和回滚方案。...
 
-本模块是 Sparkii/Hermes Agent 系统的重要组成部分，负责MCP部署与配置的核心功能实现。
+本模块是 Sparkii/Sparkii Agent 系统的重要组成部分，负责MCP部署与配置的核心功能实现。
 
 ## 核心概念
 

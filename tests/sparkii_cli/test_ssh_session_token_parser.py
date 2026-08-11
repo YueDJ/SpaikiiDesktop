@@ -39,13 +39,13 @@ def test_serve_help_advertises_secure_ssh_bootstrap_flags(capsys):
 def test_token_file_is_read_and_unlinked_through_private_directory(tmp_path, monkeypatch):
     home = tmp_path / "home"
     monkeypatch.setenv("HOME", str(home))
-    sparkii_home = home / ".sparkii"
-    token_dir = sparkii_home / "desktop-ssh" / ("a" * 32)
+    hermes_home = home / ".sparkii"
+    token_dir = hermes_home / "desktop-ssh" / ("a" * 32)
     token_dir.mkdir(parents=True, mode=0o700)
     token_path = token_dir / "0123456789abcdef.token"
     token_path.write_text("b" * 64)
     token_path.chmod(0o600)
-    override = set_sparkii_home_override(sparkii_home)
+    override = set_sparkii_home_override(hermes_home)
     try:
         assert _read_ssh_session_token_file(str(token_path)) == "b" * 64
         assert not token_path.exists()

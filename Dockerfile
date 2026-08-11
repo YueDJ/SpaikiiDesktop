@@ -319,7 +319,7 @@ RUN mkdir -p /opt/sparkii/bin && \
 # we can't tell which commit the user is actually running.
 #
 # Fix: write the commit SHA passed via the SPARKII_GIT_SHA build-arg to
-# /opt/sparkii/.sparkii_build_sha at build time, and have
+# /opt/sparkii/.hermes_build_sha at build time, and have
 # sparkii_cli/build_info.py read it at runtime.  Both `sparkii dump` and
 # banner.get_git_banner_state() try the baked SHA first, then fall back
 # to live `git rev-parse` for source installs (unchanged behaviour).
@@ -330,7 +330,7 @@ RUN mkdir -p /opt/sparkii/bin && \
 # every published image has it.
 ARG SPARKII_GIT_SHA=
 RUN if [ -n "${SPARKII_GIT_SHA}" ]; then \
-        printf '%s\n' "${SPARKII_GIT_SHA}" > /opt/sparkii/.sparkii_build_sha; \
+        printf '%s\n' "${SPARKII_GIT_SHA}" > /opt/sparkii/.hermes_build_sha; \
     fi
 
 # ---------- s6-overlay service wiring ----------

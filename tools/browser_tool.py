@@ -127,13 +127,13 @@ def _build_browser_env() -> dict:
 
     Strips Sparkii-managed secrets (provider keys, gateway tokens, GitHub auth,
     infra secrets) then re-adds only the browser-backend keys the worker needs.
-    The ``sparkii_subprocess_env`` import is deferred to keep ``browser_tool``
+    The ``hermes_subprocess_env`` import is deferred to keep ``browser_tool``
     importable under test harnesses that load it against a stubbed ``tools``
     package (tests/tools/test_managed_browserbase_and_modal.py).
     """
-    from tools.environments.local import sparkii_subprocess_env
+    from tools.environments.local import hermes_subprocess_env
 
-    env = sparkii_subprocess_env(inherit_credentials=False)
+    env = hermes_subprocess_env(inherit_credentials=False)
     for _key in _BROWSER_PASSTHROUGH_KEYS:
         if _key in os.environ:
             env[_key] = os.environ[_key]
@@ -182,6 +182,11 @@ try:
     from tools.browser_camofox import is_camofox_mode as _is_camofox_mode
 except ImportError:
     _is_camofox_mode = lambda: False  # noqa: E731
+# Browser Use CLI (optional)
+try:
+    from tools.browser_use_cli import is_browser_use_cli_mode as _is_browser_use_cli_mode
+except ImportError:
+    _is_browser_use_cli_mode = lambda: False  # noqa: E731
 
 logger = logging.getLogger(__name__)
 
@@ -228,11 +233,11 @@ def _discover_homebrew_node_dirs() -> tuple[str, ...]:
 
 def _browser_candidate_path_dirs() -> list[str]:
     """Return ordered browser CLI PATH candidates shared by discovery and execution."""
-    sparkii_home = get_sparkii_home()
-    sparkii_node_bin = str(sparkii_home / "node" / "bin")
-    sparkii_node_root = str(sparkii_home / "node")
-    sparkii_nm_bin = str(sparkii_home / "node_modules" / ".bin")
-    return [sparkii_node_bin, sparkii_node_root, sparkii_nm_bin, *list(_discover_homebrew_node_dirs()), *_SANE_PATH_DIRS]
+    hermes_home = get_sparkii_home()
+    hermes_node_bin = str(hermes_home / "node" / "bin")
+    hermes_node_root = str(hermes_home / "node")
+    hermes_nm_bin = str(hermes_home / "node_modules" / ".bin")
+    return [hermes_node_bin, hermes_node_root, hermes_nm_bin, *list(_discover_homebrew_node_dirs()), *_SANE_PATH_DIRS]
 
 
 def _merge_browser_path(existing_path: str = "") -> str:
@@ -407,7 +412,7 @@ def _format_browser_timeout_error(
             hints.append(
                 "The browser daemon may still be starting or Chromium may be "
                 "missing. Pull the latest image: "
-                "docker pull ghcr.io/yuedj/spaikiidesktop:latest"
+                "docker pull ghcr.io/nousresearch/sparkii-agent:latest"
             )
         else:
             hints.append(
@@ -1141,7 +1146,7 @@ def _run_chrome_fallback_command(
             hint = (
                 "Chrome fallback requires Chromium, but it is missing. "
                 "You're running in Docker — pull the latest image: "
-                "docker pull ghcr.io/yuedj/spaikiidesktop:latest"
+                "docker pull ghcr.io/nousresearch/sparkii-agent:latest"
             )
         else:
             hint = (
@@ -1495,7 +1500,7 @@ def _socket_safe_tmpdir() -> str:
     """Return a short temp directory path suitable for Unix domain sockets.
 
     macOS sets ``TMPDIR`` to ``/var/folders/xx/.../T/`` (~51 chars).  When we
-    append ``agent-browser-sparkii_…`` the resulting socket path exceeds the
+    append ``agent-browser-hermes_…`` the resulting socket path exceeds the
     104-byte macOS limit for ``AF_UNIX`` addresses, causing agent-browser to
     fail with "Failed to create socket directory" or silent screenshot failures.
 
@@ -1819,7 +1824,7 @@ def _reap_orphaned_browser_sessions():
     # Also pick up CDP sessions
     socket_dirs += glob.glob(os.path.join(tmpdir, "agent-browser-cdp_*"))
     # Also pick up cloud-provider sessions (browser-use/browserbase/firecrawl)
-    socket_dirs += glob.glob(os.path.join(tmpdir, "agent-browser-sparkii_*"))
+    socket_dirs += glob.glob(os.path.join(tmpdir, "agent-browser-hermes_*"))
 
     if not socket_dirs:
         return
@@ -2489,7 +2494,7 @@ def _run_browser_command(
             hint = (
                 "Chromium browser is missing. You're running in Docker — pull "
                 "the latest image to get the bundled Chromium: "
-                "docker pull ghcr.io/yuedj/spaikiidesktop:latest"
+                "docker pull ghcr.io/nousresearch/sparkii-agent:latest"
             )
         else:
             hint = (
@@ -2784,7 +2789,7 @@ def _store_full_snapshot(snapshot_text: str) -> Optional[str]:
     """
     try:
         import hashlib
-        from sparkii_constants import get_sparkii_dir
+        from sparkii_constants import get_hermes_dir
         from agent.redact import redact_sensitive_text
 
         content = redact_sensitive_text(snapshot_text, force=True)
@@ -2794,7 +2799,7 @@ def _store_full_snapshot(snapshot_text: str) -> Optional[str]:
                 + f"\n\n[... stored copy truncated at {MAX_STORED_SNAPSHOT_CHARS:,} chars "
                 f"of {len(content):,} ...]"
             )
-        cache_dir = get_sparkii_dir("cache/web", "web_cache")
+        cache_dir = get_hermes_dir("cache/web", "web_cache")
         cache_dir.mkdir(parents=True, exist_ok=True)
         digest = hashlib.sha256(content.encode("utf-8")).hexdigest()[:10]
         path = cache_dir / f"browser-snapshot-{digest}.txt"
@@ -2941,6 +2946,37 @@ def _redact_browser_output(value: Any) -> Any:
 # ============================================================================
 # Browser Tool Functions
 # ============================================================================
+
+def evaluate_url_safety(url: str) -> Optional[dict]:
+    """Run URL safety checks; None if safe, else an error dict"""
+    import urllib.parse
+    from agent.redact import _PREFIX_RE
+
+    _secret = {"success": False, "error": "Blocked: URL contains what appears to be an API key or token. Secrets must not be sent in URLs."}
+    if _PREFIX_RE.search(url) or _PREFIX_RE.search(urllib.parse.unquote(url)):
+        return _secret
+    url = _normalize_url_for_request(url)
+    if _PREFIX_RE.search(url) or _PREFIX_RE.search(urllib.parse.unquote(url)):
+        return _secret
+
+    local = _is_local_backend()
+    sensitive_query_key = _sensitive_query_param_name(url)
+    if sensitive_query_key and not local:
+        return {"success": False, "error": (
+            "Blocked: URL contains a credential-like query parameter "
+            f"({sensitive_query_key}). Cloud browser backends are third-party "
+            "readers; use a local browser/CDP session or remove the sensitive "
+            "query parameter before navigating.")}
+    if _is_always_blocked_url(url):
+        return {"success": False, "error": "Blocked: URL targets a cloud metadata endpoint"}
+    if not local and not _allow_private_urls() and not _is_safe_url(url):
+        return {"success": False, "error": "Blocked: URL targets a private or internal address"}
+    blocked = check_website_access(url)
+    if blocked:
+        return {"success": False, "error": blocked["message"],
+                "blocked_by_policy": {"host": blocked["host"], "rule": blocked["rule"], "source": blocked["source"]}}
+    return None
+
 
 def browser_navigate(url: str, task_id: Optional[str] = None) -> str:
     """
@@ -4051,14 +4087,14 @@ def _maybe_start_recording(task_id: str):
             return
     try:
         from sparkii_cli.config import read_raw_config
-        sparkii_home = get_sparkii_home()
+        hermes_home = get_sparkii_home()
         cfg = read_raw_config()
         record_enabled = cfg_get(cfg, "browser", "record_sessions", default=False)
 
         if not record_enabled:
             return
 
-        recordings_dir = sparkii_home / "browser_recordings"
+        recordings_dir = hermes_home / "browser_recordings"
         recordings_dir.mkdir(parents=True, exist_ok=True)
         _cleanup_old_recordings(max_age_hours=72)
 
@@ -4196,8 +4232,8 @@ def browser_vision(question: str, annotate: bool = False, task_id: Optional[str]
 
     import base64
     import uuid as uuid_mod
-    from sparkii_constants import get_sparkii_dir
-    screenshots_dir = get_sparkii_dir("cache/screenshots", "browser_screenshots")
+    from sparkii_constants import get_hermes_dir
+    screenshots_dir = get_hermes_dir("cache/screenshots", "browser_screenshots")
     screenshot_path = screenshots_dir / f"browser_screenshot_{uuid_mod.uuid4().hex}.png"
     effective_task_id = _last_session_key(task_id or "default")
 
@@ -4255,8 +4291,8 @@ def browser_vision(question: str, annotate: bool = False, task_id: Optional[str]
             _lp_fallback_warning = fb_result.get("fallback_warning")
             fb_path = fb_result.get("data", {}).get("path", "")
             if fb_path and os.path.exists(fb_path):
-                from sparkii_constants import get_sparkii_dir
-                screenshots_dir = get_sparkii_dir("cache/screenshots", "browser_screenshots")
+                from sparkii_constants import get_hermes_dir
+                screenshots_dir = get_hermes_dir("cache/screenshots", "browser_screenshots")
                 screenshots_dir.mkdir(parents=True, exist_ok=True)
                 import shutil as _shutil_vision
                 persistent_path = screenshots_dir / f"browser_screenshot_{uuid_mod.uuid4().hex}.png"
@@ -4499,8 +4535,8 @@ def _cleanup_old_screenshots(screenshots_dir, max_age_hours=24):
 def _cleanup_old_recordings(max_age_hours=72):
     """Remove browser recordings older than max_age_hours to prevent disk bloat."""
     try:
-        sparkii_home = get_sparkii_home()
-        recordings_dir = sparkii_home / "browser_recordings"
+        hermes_home = get_sparkii_home()
+        recordings_dir = hermes_home / "browser_recordings"
         if not recordings_dir.exists():
             return
         cutoff = time.time() - (max_age_hours * 3600)
@@ -4885,6 +4921,12 @@ def check_browser_requirements() -> bool:
     Returns:
         True if all requirements are met, False otherwise
     """
+    # Browser Use CLI backend — browser_exec replaces the whole browser_*
+    # surface (including browser_cdp/browser_dialog, whose check_fns funnel
+    # through here), so hide these tools from the model.
+    if _is_browser_use_cli_mode():
+        return False
+
     # Camofox backend — only needs the server URL, no agent-browser CLI
     if _is_camofox_mode():
         return True
@@ -4985,7 +5027,7 @@ if __name__ == "__main__":
                         "     Docker: pull the latest image — the current one "
                         "predates the bundled Chromium install"
                     )
-                    print("       docker pull ghcr.io/yuedj/spaikiidesktop:latest")
+                    print("       docker pull ghcr.io/nousresearch/sparkii-agent:latest")
                 else:
                     print("     Install it with:")
                     print("       npx agent-browser install --with-deps")

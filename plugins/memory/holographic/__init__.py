@@ -126,10 +126,10 @@ class HolographicMemoryProvider(MemoryProvider):
     def is_available(self) -> bool:
         return True  # SQLite is always available, numpy is optional
 
-    def save_config(self, values, sparkii_home):
+    def save_config(self, values, hermes_home):
         """Write config to config.yaml under plugins.sparkii-memory-store."""
         from pathlib import Path
-        config_path = Path(sparkii_home) / "config.yaml"
+        config_path = Path(hermes_home) / "config.yaml"
         try:
             import yaml
             # Write-back round-trip: raw read is correct (merged defaults

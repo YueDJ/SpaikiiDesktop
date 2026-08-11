@@ -1224,13 +1224,13 @@ class MemoryManager:
     def initialize_all(self, session_id: str, **kwargs) -> None:
         """Initialize all providers.
 
-        Automatically injects ``sparkii_home`` into *kwargs* so that every
+        Automatically injects ``hermes_home`` into *kwargs* so that every
         provider can resolve profile-scoped storage paths without importing
         ``get_sparkii_home()`` themselves.
         """
-        if "sparkii_home" not in kwargs:
+        if "hermes_home" not in kwargs:
             from sparkii_constants import get_sparkii_home
-            kwargs["sparkii_home"] = str(get_sparkii_home())
+            kwargs["hermes_home"] = str(get_sparkii_home())
         for provider in self._providers:
             try:
                 provider.initialize(session_id=session_id, **kwargs)

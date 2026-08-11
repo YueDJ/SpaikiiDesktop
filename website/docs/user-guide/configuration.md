@@ -69,6 +69,24 @@ cannot override, via a system-level managed directory. See
 [Managed Scope](/user-guide/managed-scope).
 :::
 
+## Runtime Limits
+
+Long-running Sparkii server surfaces (including the gateway and
+`sparkii serve --isolated`) apply the configured `RLIMIT_NOFILE` soft limit
+during startup when the operating system supports it:
+
+```yaml
+runtime:
+  nofile_soft_limit: 4096
+```
+
+The default is `4096`. Sparkii clamps the target to the operating system's hard
+limit and never lowers a process that already has a higher soft limit. Set the
+value to `0`, `false`, or `null` to disable the adjustment. On Windows and in
+sandboxes
+where the limit cannot be changed, startup continues without changing the
+limit.
+
 ## Environment Variable Substitution
 
 You can reference environment variables in `config.yaml` using `${VAR_NAME}` syntax:
@@ -95,7 +113,7 @@ You can set `providers.<id>.request_timeout_seconds` for a provider-wide request
 
 You can also set `providers.<id>.stale_timeout_seconds` for the non-streaming stale-call detector, plus `providers.<id>.models.<model>.stale_timeout_seconds` for a model-specific override. This wins over the legacy `SPARKII_API_CALL_STALE_TIMEOUT` env var.
 
-Leaving these unset keeps the legacy defaults (`SPARKII_API_TIMEOUT=1800`s, `SPARKII_API_CALL_STALE_TIMEOUT=90`s, native Anthropic 900s). The non-streaming stale detector is auto-disabled for local endpoints when left implicit and can scale upward for very large contexts. Not currently wired for AWS Bedrock (both `bedrock_converse` and AnthropicBedrock SDK paths use boto3 with its own timeout configuration). See the commented example in [`cli-config.yaml.example`](https://github.com/YueDJ/SparkiiAgent/blob/main/cli-config.yaml.example).
+Leaving these unset keeps the legacy defaults (`SPARKII_API_TIMEOUT=1800`s, `SPARKII_API_CALL_STALE_TIMEOUT=90`s, native Anthropic 900s). The non-streaming stale detector is auto-disabled for local endpoints when left implicit and can scale upward for very large contexts. Not currently wired for AWS Bedrock (both `bedrock_converse` and AnthropicBedrock SDK paths use boto3 with its own timeout configuration). See the commented example in [`cli-config.yaml.example`](https://github.com/NousResearch/sparkii-agent/blob/main/cli-config.yaml.example).
 
 ## Update Behavior
 
@@ -200,7 +218,7 @@ prefer `SPARKII_HOME` for Sparkii data and `SPARKII_REAL_HOME` for the account h
 from pathlib import Path
 import os
 
-sparkii_home = Path(os.environ["SPARKII_HOME"])
+hermes_home = Path(os.environ["SPARKII_HOME"])
 real_home = Path(os.environ.get("SPARKII_REAL_HOME", os.environ["HOME"]))
 ```
 
@@ -2351,7 +2369,7 @@ Sparkii uses two different context scopes:
 | File | Purpose | Scope |
 |------|---------|-------|
 | `SOUL.md` | **Primary agent identity** — defines who the agent is (slot #1 in the system prompt) | `~/.sparkii/SOUL.md` or `$SPARKII_HOME/SOUL.md` |
-| `.sparkii.md` / `SPARKII.md` | Project-specific instructions (highest priority) | Walks to git root |
+| `.sparkii.md` / `HERMES.md` | Project-specific instructions (highest priority) | Walks to git root |
 | `AGENTS.md` | Project-specific instructions, coding conventions | Recursive directory walk |
 | `CLAUDE.md` | Claude Code context files (also detected) | Working directory only |
 | `.cursorrules` | Cursor IDE rules (also detected) | Working directory only |

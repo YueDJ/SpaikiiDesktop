@@ -41,7 +41,7 @@ def make_args(path, **overrides):
 
 
 @pytest.fixture
-def sparkii_home(tmp_path, monkeypatch):
+def hermes_home(tmp_path, monkeypatch):
     monkeypatch.setenv("SPARKII_HOME", str(tmp_path / ".sparkii-home"))
     monkeypatch.delenv("SPARKII_SESSION_ID", raising=False)
     return tmp_path
@@ -55,9 +55,9 @@ def _workspace(tmp_path, *, scripts=None, manifest_recipe=None):
         json.dumps({"scripts": scripts} if scripts else {}), encoding="utf-8"
     )
     if manifest_recipe is not None:
-        sparkii_dir = project / ".sparkii"
-        sparkii_dir.mkdir()
-        (sparkii_dir / "environment.json").write_text(
+        hermes_dir = project / ".sparkii"
+        hermes_dir.mkdir()
+        (hermes_dir / "environment.json").write_text(
             json.dumps({"version": 1, "recipe": manifest_recipe}), encoding="utf-8"
         )
     return project
@@ -68,8 +68,8 @@ def _workspace(tmp_path, *, scripts=None, manifest_recipe=None):
 # ---------------------------------------------------------------------------
 
 
-def test_record_verify_run_marks_workspace_passed(sparkii_home):
-    project = _workspace(sparkii_home)
+def test_record_verify_run_marks_workspace_passed(hermes_home):
+    project = _workspace(hermes_home)
     event = record_verify_run(root=project, session_id="s1", ok=True, output="all green")
     assert event is not None
     assert event["status"] == "passed"
@@ -79,15 +79,15 @@ def test_record_verify_run_marks_workspace_passed(sparkii_home):
     assert status["evidence"]["canonical_command"] == "sparkii verify"
 
 
-def test_record_verify_run_records_failure(sparkii_home):
-    project = _workspace(sparkii_home)
+def test_record_verify_run_records_failure(hermes_home):
+    project = _workspace(hermes_home)
     record_verify_run(root=project, session_id="s1", ok=False, output="boom")
     status = verification_status(session_id="s1", cwd=project)
     assert status["status"] == "failed"
 
 
-def test_cli_passing_run_writes_ledger_evidence(sparkii_home, capsys):
-    project = _workspace(sparkii_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
+def test_cli_passing_run_writes_ledger_evidence(hermes_home, capsys):
+    project = _workspace(hermes_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
     code = run_verify_command(make_args(project))
     assert code == 0
     assert json.loads(capsys.readouterr().out)["ok"] is True
@@ -96,26 +96,26 @@ def test_cli_passing_run_writes_ledger_evidence(sparkii_home, capsys):
     assert status["evidence"]["scope"] == "full"
 
 
-def test_cli_failing_run_writes_failed_evidence(sparkii_home, capsys):
-    project = _workspace(sparkii_home, manifest_recipe={"name": "Fake", "test": ["false"]})
+def test_cli_failing_run_writes_failed_evidence(hermes_home, capsys):
+    project = _workspace(hermes_home, manifest_recipe={"name": "Fake", "test": ["false"]})
     code = run_verify_command(make_args(project))
     assert code == 1
     status = verification_status(session_id=None, cwd=project)
     assert status["status"] == "failed"
 
 
-def test_cli_partial_run_records_targeted_scope(sparkii_home, capsys):
+def test_cli_partial_run_records_targeted_scope(hermes_home, capsys):
     # --skip-start / --phase subsets must never present as full workspace green.
-    project = _workspace(sparkii_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
+    project = _workspace(hermes_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
     code = run_verify_command(make_args(project, skip_start=True))
     assert code == 0
     status = verification_status(session_id=None, cwd=project)
     assert status["evidence"]["scope"] == "targeted"
 
 
-def test_cli_run_uses_sparkii_session_id_env(sparkii_home, capsys, monkeypatch):
+def test_cli_run_uses_hermes_session_id_env(hermes_home, capsys, monkeypatch):
     monkeypatch.setenv("SPARKII_SESSION_ID", "sess-42")
-    project = _workspace(sparkii_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
+    project = _workspace(hermes_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
     run_verify_command(make_args(project))
     assert verification_status(session_id="sess-42", cwd=project)["status"] == "passed"
 
@@ -125,8 +125,8 @@ def test_cli_run_uses_sparkii_session_id_env(sparkii_home, capsys, monkeypatch):
 # ---------------------------------------------------------------------------
 
 
-def test_passing_verify_run_satisfies_stop_guard(sparkii_home, capsys):
-    project = _workspace(sparkii_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
+def test_passing_verify_run_satisfies_stop_guard(hermes_home, capsys):
+    project = _workspace(hermes_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
     changed = str(project / "src" / "app.ts")
     mark_workspace_edited(session_id="default", cwd=project, paths=[changed])
     assert build_verify_on_stop_nudge(session_id="default", changed_paths=[changed]) is not None
@@ -141,8 +141,8 @@ def test_passing_verify_run_satisfies_stop_guard(sparkii_home, capsys):
 # ---------------------------------------------------------------------------
 
 
-def test_nudge_mentions_sparkii_verify_when_recipe_has_start(sparkii_home):
-    project = _workspace(sparkii_home, scripts={"test": "vitest", "dev": "vite"})
+def test_nudge_mentions_hermes_verify_when_recipe_has_start(hermes_home):
+    project = _workspace(hermes_home, scripts={"test": "vitest", "dev": "vite"})
     changed = str(project / "src" / "app.ts")
     mark_workspace_edited(session_id="s1", cwd=project, paths=[changed])
     nudge = build_verify_on_stop_nudge(session_id="s1", changed_paths=[changed])
@@ -152,10 +152,10 @@ def test_nudge_mentions_sparkii_verify_when_recipe_has_start(sparkii_home):
     assert "npm run test" in nudge
 
 
-def test_nudge_mentions_sparkii_verify_when_manifest_exists(sparkii_home):
+def test_nudge_mentions_hermes_verify_when_manifest_exists(hermes_home):
     # No start script, but a saved .sparkii/environment.json qualifies.
     project = _workspace(
-        sparkii_home,
+        hermes_home,
         scripts={"test": "vitest"},
         manifest_recipe={"name": "Fake", "test": ["echo ok"]},
     )
@@ -166,9 +166,9 @@ def test_nudge_mentions_sparkii_verify_when_manifest_exists(sparkii_home):
     assert "sparkii verify --json" in nudge
 
 
-def test_nudge_keeps_plain_wording_without_recipe_start(sparkii_home):
+def test_nudge_keeps_plain_wording_without_recipe_start(hermes_home):
     # Verify commands but no start script and no manifest: today's wording.
-    project = _workspace(sparkii_home, scripts={"test": "vitest"})
+    project = _workspace(hermes_home, scripts={"test": "vitest"})
     changed = str(project / "src" / "app.ts")
     mark_workspace_edited(session_id="s1", cwd=project, paths=[changed])
     nudge = build_verify_on_stop_nudge(session_id="s1", changed_paths=[changed])
@@ -176,7 +176,7 @@ def test_nudge_keeps_plain_wording_without_recipe_start(sparkii_home):
     assert "sparkii verify" not in nudge
 
 
-def test_nudge_recipe_detection_failure_is_silent(sparkii_home, monkeypatch):
+def test_nudge_recipe_detection_failure_is_silent(hermes_home, monkeypatch):
     # A broken recipe detector must never break the nudge path.
     import agent.verify.recipes as recipes
 
@@ -184,7 +184,7 @@ def test_nudge_recipe_detection_failure_is_silent(sparkii_home, monkeypatch):
         raise RuntimeError("detector exploded")
 
     monkeypatch.setattr(recipes, "detect_recipe", boom)
-    project = _workspace(sparkii_home, scripts={"test": "vitest", "dev": "vite"})
+    project = _workspace(hermes_home, scripts={"test": "vitest", "dev": "vite"})
     changed = str(project / "src" / "app.ts")
     mark_workspace_edited(session_id="s1", cwd=project, paths=[changed])
     nudge = build_verify_on_stop_nudge(session_id="s1", changed_paths=[changed])
@@ -197,8 +197,8 @@ def test_nudge_recipe_detection_failure_is_silent(sparkii_home, monkeypatch):
 # ---------------------------------------------------------------------------
 
 
-def test_detect_path_merges_project_facts_commands(sparkii_home, capsys):
-    project = _workspace(sparkii_home)  # package.json with no scripts
+def test_detect_path_merges_project_facts_commands(hermes_home, capsys):
+    project = _workspace(hermes_home)  # package.json with no scripts
     scripts_dir = project / "scripts"
     scripts_dir.mkdir()
     (scripts_dir / "run_tests.sh").write_text("#!/bin/sh\n", encoding="utf-8")
@@ -213,9 +213,9 @@ def test_detect_path_merges_project_facts_commands(sparkii_home, capsys):
     assert "pytest" in tests
 
 
-def test_manifest_recipe_is_not_merged(sparkii_home, capsys):
+def test_manifest_recipe_is_not_merged(hermes_home, capsys):
     # A saved manifest is the user-edited source of truth; leave it alone.
-    project = _workspace(sparkii_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
+    project = _workspace(hermes_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
     (project / "pytest.ini").write_text("[pytest]\n", encoding="utf-8")
     code = run_verify_command(make_args(project, detect_only=True))
     assert code == 0
@@ -224,8 +224,8 @@ def test_manifest_recipe_is_not_merged(sparkii_home, capsys):
     assert payload["recipe"]["test"] == ["echo ok"]
 
 
-def test_merge_skips_commands_recipe_already_has(sparkii_home, capsys):
-    project = _workspace(sparkii_home, scripts={"test": "vitest"})
+def test_merge_skips_commands_recipe_already_has(hermes_home, capsys):
+    project = _workspace(hermes_home, scripts={"test": "vitest"})
     code = run_verify_command(make_args(project, detect_only=True))
     assert code == 0
     payload = json.loads(capsys.readouterr().out)

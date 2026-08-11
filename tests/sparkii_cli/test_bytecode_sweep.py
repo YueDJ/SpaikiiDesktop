@@ -13,7 +13,7 @@ updaters).
 
 from pathlib import Path
 
-from sparkii_cli import main as sparkii_main
+from sparkii_cli import main as hermes_main
 
 
 def _make_repo(tmp_path: Path, sha: str = "a" * 40) -> Path:
@@ -36,17 +36,17 @@ def _make_pycache(repo: Path, subdir: str = "sparkii_cli") -> Path:
 def test_sweep_clears_pycache_when_checkout_changed(monkeypatch, tmp_path):
     repo = _make_repo(tmp_path, sha="b" * 40)
     cache = _make_pycache(repo)
-    monkeypatch.setattr(sparkii_main, "PROJECT_ROOT", repo)
+    monkeypatch.setattr(hermes_main, "PROJECT_ROOT", repo)
     # Stamp records a different (older) fingerprint.
-    (repo / sparkii_main._BYTECODE_FINGERPRINT_FILE).write_text(
+    (repo / hermes_main._BYTECODE_FINGERPRINT_FILE).write_text(
         "git:refs/heads/main:" + "a" * 40, encoding="utf-8"
     )
 
-    sparkii_main._sweep_stale_bytecode_if_checkout_changed()
+    hermes_main._sweep_stale_bytecode_if_checkout_changed()
 
     assert not cache.exists()
     # Stamp updated to the current fingerprint.
-    recorded = (repo / sparkii_main._BYTECODE_FINGERPRINT_FILE).read_text(encoding="utf-8")
+    recorded = (repo / hermes_main._BYTECODE_FINGERPRINT_FILE).read_text(encoding="utf-8")
     assert recorded.strip().endswith("b" * 40)
 
 

@@ -68,9 +68,9 @@ def is_safe_path(path: Path) -> bool:
 
     Rejects Windows mounts (``/mnt/c`` etc.) and any system directory.
     """
-    sparkii_home = get_sparkii_home()
+    hermes_home = get_sparkii_home()
     try:
-        path.resolve().relative_to(sparkii_home)
+        path.resolve().relative_to(hermes_home)
         return True
     except (ValueError, OSError):
         pass
@@ -180,9 +180,9 @@ def _is_protected_cron_path(p: Path) -> bool:
     # Lazily build the set once per process so SPARKII_HOME is resolved
     # exactly once.
     if not _PROTECTED_CRON_PATHS:
-        sparkii_home = get_sparkii_home()
+        hermes_home = get_sparkii_home()
         for parent in ("cron", "cronjobs"):
-            base = sparkii_home / parent
+            base = hermes_home / parent
             _PROTECTED_CRON_PATHS.add(str(base))
             _PROTECTED_CRON_PATHS.add(str(base / "output"))
             _PROTECTED_CRON_PATHS.add(str(base / "jobs.json"))
@@ -386,11 +386,11 @@ def quick() -> Dict[str, Any]:
     # durable state trees.  Some installs place the Sparkii checkout, venv,
     # and desktop build under SPARKII_HOME; a full rglob over that tree can
     # stall the gateway event loop for minutes.
-    sparkii_home = get_sparkii_home()
+    hermes_home = get_sparkii_home()
     empty_removed = 0
     sweep_stack: List[Tuple[Path, bool]] = []
     try:
-        for top in sparkii_home.iterdir():
+        for top in hermes_home.iterdir():
             if (
                 top.is_dir()
                 and not top.is_symlink()
@@ -573,9 +573,9 @@ def guess_category(path: Path) -> Optional[str]:
         return None
 
     # Skip the state dir itself, logs, memory files, sessions, config.
-    sparkii_home = get_sparkii_home()
+    hermes_home = get_sparkii_home()
     try:
-        rel = path.resolve().relative_to(sparkii_home)
+        rel = path.resolve().relative_to(hermes_home)
         top = rel.parts[0] if rel.parts else ""
         if top in {
             "disk-cleanup", "logs", "memories", "sessions", "config.yaml",

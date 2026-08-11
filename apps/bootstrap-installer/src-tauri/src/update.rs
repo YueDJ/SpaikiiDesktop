@@ -18,7 +18,7 @@
 //! sees discrete steps (with the live log underneath) instead of one bar.
 //!
 //! Cross-platform note: `sparkii update` already handles macOS/Linux (git/pip).
-//! The only OS-specific bits here are the venv shim path (resolve_sparkii) and
+//! The only OS-specific bits here are the venv shim path (resolve_hermes) and
 //! the no-window creation flag — both already cfg-gated. Keep new logic
 //! OS-agnostic so the mac/linux port stays "fill in the paths".
 
@@ -252,13 +252,13 @@ impl Drop for UpdateMarkerGuard {
 }
 
 async fn run_update(app: AppHandle) -> Result<()> {
-    let sparkii_home = crate::paths::sparkii_home();
-    let install_root = sparkii_home.join("sparkii-agent");
+    let hermes_home = crate::paths::hermes_home();
+    let install_root = hermes_home.join("sparkii-agent");
 
     // Mutual exclusion (#50238): publish an "update in progress" marker for the
     // entire duration of this update. A desktop instance the user relaunches
     // mid-update consults this before spawning its own local backend — without
-    // it, that backend re-locks the venv shim, our `force_kill_other_sparkii`
+    // it, that backend re-locks the venv shim, our `force_kill_other_hermes`
     // straggler-cleanup kills it, and the relaunch/kill cycle loops. The guard
     // removes the marker on every exit path (incl. early returns / panics).
     //
@@ -304,7 +304,7 @@ async fn run_update(app: AppHandle) -> Result<()> {
         None
     };
 
-    let sparkii = resolve_sparkii(&install_root).ok_or_else(|| {
+    let sparkii = resolve_hermes(&install_root).ok_or_else(|| {
         let msg = format!(
             "Could not find the sparkii CLI under {}. Is Sparkii installed? \
              Re-run the installer to repair the install.",
@@ -457,7 +457,7 @@ async fn run_update(app: AppHandle) -> Result<()> {
             let msg = format!(
                 "sparkii update failed (exit {:?}). See {} for details.",
                 other,
-                crate::paths::sparkii_home()
+                crate::paths::hermes_home()
                     .join("logs")
                     .join("update.log")
                     .display()
@@ -611,7 +611,7 @@ async fn run_update(app: AppHandle) -> Result<()> {
             );
         }
     } else if let Err(err) =
-        crate::bootstrap::launch_sparkii_desktop(app.clone(), install_root.to_string_lossy().into_owned()).await
+        crate::bootstrap::launch_hermes_desktop(app.clone(), install_root.to_string_lossy().into_owned()).await
     {
         // Launch failed: don't hard-fail the update (it succeeded); surface a
         // log line so the success screen can still tell the user to launch
@@ -676,7 +676,7 @@ pub(crate) async fn wait_for_install_locks_free(install_root: &Path, app: &AppHa
                     format_locked_paths(&locked)
                 ),
             );
-            force_kill_other_sparkii();
+            force_kill_other_hermes();
             tokio::time::sleep(Duration::from_millis(800)).await;
             let locked_after_kill = locked_paths(&lock_targets);
             if locked_after_kill.is_empty() {
@@ -704,7 +704,7 @@ pub(crate) async fn wait_for_install_locks_free(install_root: &Path, app: &AppHa
 }
 
 fn install_lock_probe_paths(install_root: &Path) -> Vec<PathBuf> {
-    let mut paths = vec![venv_sparkii(install_root)];
+    let mut paths = vec![venv_hermes(install_root)];
     paths.extend(desktop_app_payload_paths(install_root));
     paths
 }
@@ -743,12 +743,12 @@ fn format_locked_paths(paths: &[PathBuf]) -> String {
 /// Safe w.r.t. our own update child: this runs inside the install-lock wait,
 /// which completes BEFORE we spawn `venv\Scripts\sparkii.exe update`. And a
 /// desktop the user relaunches mid-update will NOT have spawned a backend —
-/// `startSparkii()` in the desktop gates local-backend startup on our
+/// `startHermes()` in the desktop gates local-backend startup on our
 /// update-in-progress marker and parks until we finish (#50238). So the only
 /// sparkii.exe images here are stragglers from the old desktop — exactly what
 /// we want gone. (`/FI PID ne <self>` also spares this Tauri process, though it
 /// isn't named sparkii.exe.)
-fn force_kill_other_sparkii() {
+fn force_kill_other_hermes() {
     if !cfg!(target_os = "windows") {
         return;
     }
@@ -866,7 +866,7 @@ struct CmdResult {
 }
 
 /// Path to the venv sparkii shim under an install root, regardless of existence.
-fn venv_sparkii(install_root: &Path) -> PathBuf {
+fn venv_hermes(install_root: &Path) -> PathBuf {
     if cfg!(target_os = "windows") {
         install_root.join("venv").join("Scripts").join("sparkii.exe")
     } else {
@@ -876,8 +876,8 @@ fn venv_sparkii(install_root: &Path) -> PathBuf {
 
 /// Resolve the sparkii CLI to drive. Prefer the venv shim in the install we
 /// just updated; fall back to `sparkii` on PATH.
-fn resolve_sparkii(install_root: &Path) -> Option<PathBuf> {
-    let shim = venv_sparkii(install_root);
+fn resolve_hermes(install_root: &Path) -> Option<PathBuf> {
+    let shim = venv_hermes(install_root);
     if shim.exists() {
         return Some(shim);
     }
@@ -896,10 +896,10 @@ fn resolve_sparkii(install_root: &Path) -> Option<PathBuf> {
 }
 
 fn update_child_env(install_root: &Path) -> Vec<(String, OsString)> {
-    let sparkii_home = crate::paths::sparkii_home();
+    let hermes_home = crate::paths::hermes_home();
     let mut envs = vec![(
         "SPARKII_HOME".to_string(),
-        sparkii_home.as_os_str().to_os_string(),
+        hermes_home.as_os_str().to_os_string(),
     )];
     // `sparkii update` is a Python CLI writing to a pipe here, so CPython
     // block-buffers its stdout: nothing reaches run_streamed (and the live
@@ -920,7 +920,7 @@ fn update_child_env(install_root: &Path) -> Vec<(String, OsString)> {
         OsString::from(std::process::id().to_string()),
     ));
     if let Some(path) = path_with_prepended_entries(&[
-        sparkii_home.join("node").join("bin"),
+        hermes_home.join("node").join("bin"),
         venv_bin_dir(install_root),
     ]) {
         envs.push(("PATH".to_string(), path));
@@ -994,7 +994,7 @@ async fn install_macos_app_update(
         ));
     }
 
-    let rebuilt_app = crate::bootstrap::resolve_sparkii_desktop_app(install_root).ok_or_else(|| {
+    let rebuilt_app = crate::bootstrap::resolve_hermes_desktop_app(install_root).ok_or_else(|| {
         anyhow!(
             "desktop rebuild succeeded but no Sparkii.app was found under {}",
             install_root.join("apps").join("desktop").join("release").display()
@@ -1040,7 +1040,7 @@ async fn install_macos_app_update(
     let ditto = Command::new("/usr/bin/ditto")
         .arg(&rebuilt_app)
         .arg(&tmp)
-        .current_dir(crate::paths::sparkii_home())
+        .current_dir(crate::paths::hermes_home())
         .status()
         .await
         .map_err(|e| anyhow!("running ditto: {e}"))?;
@@ -1060,7 +1060,7 @@ async fn install_macos_app_update(
         .arg("-dr")
         .arg("com.apple.quarantine")
         .arg(target_app)
-        .current_dir(crate::paths::sparkii_home())
+        .current_dir(crate::paths::hermes_home())
         .status()
         .await;
 
@@ -1220,9 +1220,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn venv_sparkii_is_under_install_root() {
+    fn venv_hermes_is_under_install_root() {
         let root = Path::new("/x/sparkii-agent");
-        let shim = venv_sparkii(root);
+        let shim = venv_hermes(root);
         assert!(shim.starts_with(root));
         assert!(shim.to_string_lossy().contains("venv"));
     }
@@ -1259,7 +1259,7 @@ mod tests {
         let probes = install_lock_probe_paths(root);
 
         assert!(
-            probes.iter().any(|p| p == &venv_sparkii(root)),
+            probes.iter().any(|p| p == &venv_hermes(root)),
             "venv shim remains part of the update lock probe"
         );
         assert!(

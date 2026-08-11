@@ -241,7 +241,7 @@ class TestGatewayRuntimeStatus:
         for cmdline in (
             "sparkii -p coder gateway run --replace",
             "/opt/sparkii/.venv/bin/sparkii --profile coder gateway run --replace",
-            "sparkii_home=/opt/data/profiles/coder sparkii gateway run --replace",
+            "hermes_home=/opt/data/profiles/coder sparkii gateway run --replace",
         ):
             monkeypatch.setattr(status, "_read_process_cmdline", lambda pid, c=cmdline: c)
             assert (
@@ -255,7 +255,7 @@ class TestGatewayRuntimeStatus:
         profile's Path may carry forward slashes (and, on Windows, vice
         versa).  The separator difference must not defeat the match."""
         home = Path("c:/opt/data/profiles/coder")
-        cmdline = r"sparkii_home=c:\opt\data\profiles\coder sparkii gateway run --replace"
+        cmdline = r"hermes_home=c:\opt\data\profiles\coder sparkii gateway run --replace"
         assert status._command_line_belongs_to_profile(cmdline, home) is True
 
 
@@ -727,7 +727,7 @@ class TestScopedLockTakeover:
             "kind": "sparkii-gateway",
             "argv": ["python", "-m", "sparkii_cli.main", "gateway", "run"],
             "start_time": start_time,
-            "sparkii_home": str(target_home),
+            "hermes_home": str(target_home),
         }
         (target_home / "gateway.pid").write_text(json.dumps(record))
         return record

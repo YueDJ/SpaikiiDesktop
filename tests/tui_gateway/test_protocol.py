@@ -28,7 +28,7 @@ def server():
     # (a fixed shared path) forever, leaking active-session registry entries
     # across every later test in the process. Scope the patch to the import.
     with patch.dict("sys.modules", {
-        "sparkii_constants": MagicMock(get_sparkii_home=MagicMock(return_value="/tmp/sparkii_test")),
+        "sparkii_constants": MagicMock(get_sparkii_home=MagicMock(return_value="/tmp/hermes_test")),
         "sparkii_cli.env_loader": MagicMock(),
         "sparkii_cli.banner": MagicMock(),
         "sparkii_state": MagicMock(),

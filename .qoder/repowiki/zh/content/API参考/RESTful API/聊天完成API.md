@@ -19,15 +19,15 @@
 10. [附录](#附录)
 
 ## 简介
-本文件为“聊天完成”API（POST /v1/chat/completions）的完整规范文档。该端点提供与 OpenAI Chat Completions API 兼容的请求格式，支持文本与图像等多模态内容，支持流式（SSE）与非流式响应，并提供可选的会话连续性控制（通过请求头 X-Hermes-Session-Id 与 X-Hermes-Session-Key）。服务端基于 gateway/platforms/api_server.py 实现，遵循 OpenAI 兼容协议，便于对接各类前端（如 Open WebUI、LobeChat、LibreChat 等）。
+本文件为“聊天完成”API（POST /v1/chat/completions）的完整规范文档。该端点提供与 OpenAI Chat Completions API 兼容的请求格式，支持文本与图像等多模态内容，支持流式（SSE）与非流式响应，并提供可选的会话连续性控制（通过请求头 X-Sparkii-Session-Id 与 X-Sparkii-Session-Key）。服务端基于 gateway/platforms/api_server.py 实现，遵循 OpenAI 兼容协议，便于对接各类前端（如 Open WebUI、LobeChat、LibreChat 等）。
 
 ## 项目结构
 - 路由注册：/v1/chat/completions 由 api_server 平台适配器统一注册并处理。
 - 请求解析与校验：对 messages、model、stream、temperature 等字段进行解析与规范化。
 - 多模态内容：支持 text 与 image_url/input_image 类型的内容片段，自动归一化为内部结构。
 - 会话连续性：
-  - X-Hermes-Session-Id：用于加载历史消息，实现跨请求会话延续（需启用 API 密钥认证）。
-  - X-Hermes-Session-Key：用于长期记忆作用域隔离（例如按频道/渠道维度）。
+  - X-Sparkii-Session-Id：用于加载历史消息，实现跨请求会话延续（需启用 API 密钥认证）。
+  - X-Sparkii-Session-Key：用于长期记忆作用域隔离（例如按频道/渠道维度）。
 - 流式响应：使用 SSE 事件流返回增量内容，并在结束时发送 finish chunk 与 [DONE]。
 - 非流式响应：一次性返回完整结果，包含 usage 统计与 finish_reason。
 
@@ -58,8 +58,8 @@ SSE --> |事件流| Client
 - SSE 写入器：_write_sse_chat_completion
   - 将增量内容以 chat.completion.chunk 形式推送，附带 role 初始块与最终 finish chunk，并在结束处发送 [DONE]。
 - 会话与鉴权：
-  - X-Hermes-Session-Id：若存在且已配置 API 密钥，则从会话数据库加载历史消息；否则根据首条用户消息与系统提示派生稳定 session ID。
-  - X-Hermes-Session-Key：用于长期记忆作用域隔离，独立于会话 ID。
+  - X-Sparkii-Session-Id：若存在且已配置 API 密钥，则从会话数据库加载历史消息；否则根据首条用户消息与系统提示派生稳定 session ID。
+  - X-Sparkii-Session-Key：用于长期记忆作用域隔离，独立于会话 ID。
 - 错误与状态：
   - 非流式路径在失败或截断时设置 finish_reason 为 error/length，并通过响应头与扩展字段指示 partial/completed/error。
   - 流式路径在结束时根据结果计算 finish_reason，并在错误时附加 error 与 sparkii 扩展信息。
@@ -86,7 +86,7 @@ A->>P : "解析messages/model/stream等"
 P-->>A : "标准化后的消息与参数"
 A->>M : "归一化content(文本/图像)"
 M-->>A : "内部结构(content parts)"
-A->>S : "读取X-Hermes-Session-Id历史(可选)"
+A->>S : "读取X-Sparkii-Session-Id历史(可选)"
 S-->>A : "历史消息列表"
 A->>G : "执行run_conversation(含回调)"
 G-->>W : "增量内容/工具进度(回调)"
@@ -112,8 +112,8 @@ W-->>C : "finish chunk + [DONE]"
   - temperature：数值，采样温度（由下游模型/运行时决定取值范围）
   - provider、model_options、tools、tool_choice：可选，用于运行时覆盖与工具选择
 - 请求头：
-  - X-Hermes-Session-Id：可选，指定会话ID以加载历史消息（需已配置 API 密钥）
-  - X-Hermes-Session-Key：可选，长期记忆作用域键（独立于会话ID）
+  - X-Sparkii-Session-Id：可选，指定会话ID以加载历史消息（需已配置 API 密钥）
+  - X-Sparkii-Session-Key：可选，长期记忆作用域键（独立于会话ID）
   - Idempotency-Key：可选，非流式路径下用于幂等缓存（基于指纹）
 
 **章节来源**
@@ -134,10 +134,10 @@ W-->>C : "finish chunk + [DONE]"
 - [gateway/platforms/api_server.py:550-666](file://gateway/platforms/api_server.py#L550-L666)
 
 ### 会话连续性控制
-- X-Hermes-Session-Id：
+- X-Sparkii-Session-Id：
   - 若提供且已配置 API 密钥，则从会话数据库加载历史消息作为 conversation_history
-  - 若未提供，则根据首条用户消息与系统提示派生稳定的 session ID，使同一对话映射到同一 Hermes 会话
-- X-Hermes-Session-Key：
+  - 若未提供，则根据首条用户消息与系统提示派生稳定的 session ID，使同一对话映射到同一 Sparkii 会话
+- X-Sparkii-Session-Key：
   - 用于长期记忆作用域隔离，与会话ID解耦，适合跨转录的上下文限定
 - 安全限制：
   - 会话ID禁止控制字符与路径穿越形状，长度受限
@@ -169,7 +169,7 @@ W-->>C : "finish chunk + [DONE]"
   - usage：prompt_tokens、completion_tokens、total_tokens
 - 扩展字段：
   - sparkii.completed/partial/failed/error/error_code
-  - 响应头：X-Hermes-Session-Id、X-Hermes-Session-Key、X-Hermes-Completed、X-Hermes-Partial、X-Hermes-Error（必要时）
+  - 响应头：X-Sparkii-Session-Id、X-Sparkii-Session-Key、X-Sparkii-Completed、X-Sparkii-Partial、X-Sparkii-Error（必要时）
 
 **章节来源**
 - [gateway/platforms/api_server.py:4265-4380](file://gateway/platforms/api_server.py#L4265-L4380)
@@ -198,7 +198,7 @@ W-->>C : "finish chunk + [DONE]"
 - 基本请求（非流式）：
   - 设置 Authorization: Bearer <API_SERVER_KEY>
   - 发送 messages 数组，role 包含 system/user/assistant
-  - 如需会话连续性，添加 X-Hermes-Session-Id（并确保已配置 API 密钥）
+  - 如需会话连续性，添加 X-Sparkii-Session-Id（并确保已配置 API 密钥）
 - 流式请求：
   - 设置 stream=true
   - 客户端应消费 SSE 事件流，累积 delta.content，直到收到 finish chunk 与 [DONE]
@@ -208,7 +208,7 @@ W-->>C : "finish chunk + [DONE]"
 - 最佳实践：
   - 合理设置 temperature 与 max_tokens（由下游模型/运行时决定）
   - 使用 Idempotency-Key 提高幂等性（非流式）
-  - 使用 X-Hermes-Session-Key 隔离长期记忆作用域
+  - 使用 X-Sparkii-Session-Key 隔离长期记忆作用域
   - 处理 finish_reason 与 sparkii 扩展字段以区分正常完成、截断与错误
 
 **章节来源**
@@ -268,7 +268,7 @@ T --> S
 - [gateway/platforms/api_server.py:4381-4573](file://gateway/platforms/api_server.py#L4381-L4573)
 
 ## 结论
-POST /v1/chat/completions 提供了与 OpenAI 兼容的聊天完成能力，支持多模态内容与流式响应，并通过 X-Hermes-Session-Id 与 X-Hermes-Session-Key 实现灵活的会话连续性与长期记忆作用域隔离。服务端在请求校验、多模态归一化、会话加载、Agent 执行与 SSE 输出方面具备完善的错误处理与性能优化，适用于多种前端集成场景。
+POST /v1/chat/completions 提供了与 OpenAI 兼容的聊天完成能力，支持多模态内容与流式响应，并通过 X-Sparkii-Session-Id 与 X-Sparkii-Session-Key 实现灵活的会话连续性与长期记忆作用域隔离。服务端在请求校验、多模态归一化、会话加载、Agent 执行与 SSE 输出方面具备完善的错误处理与性能优化，适用于多种前端集成场景。
 
 ## 附录
 - 参考计划文档：

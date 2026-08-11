@@ -67,7 +67,7 @@ export HOME=/opt/data
 # Save the Docker -w (or default) working directory before init
 # scripts cd to /opt/data, so the container starts in the
 # directory the user requested.
-_sparkii_orig_cwd="${SPARKII_ORIG_CWD:-$PWD}"
+_hermes_orig_cwd="${SPARKII_ORIG_CWD:-$PWD}"
 
 cd /opt/data
 # shellcheck disable=SC1091
@@ -76,7 +76,7 @@ cd /opt/data
 # Restore the original working directory before handing off to
 # the user's command so `sparkii chat` starts in the Docker -w
 # directory, not /opt/data.
-cd "$_sparkii_orig_cwd"
+cd "$_hermes_orig_cwd"
 
 if [ $# -eq 0 ]; then
     drop sparkii

@@ -37,6 +37,7 @@ Usage:
 import asyncio
 import base64
 import datetime
+import importlib.util
 import json
 import logging
 import os
@@ -97,7 +98,7 @@ from tools.tool_backend_helpers import (
     prefers_gateway,
     resolve_openai_audio_api_key,
 )
-from tools.xai_http import sparkii_xai_user_agent
+from tools.xai_http import hermes_xai_user_agent
 
 # ---------------------------------------------------------------------------
 # Lazy imports -- providers are imported only when actually used to avoid
@@ -259,8 +260,8 @@ TTS_RESPONSE_BODY_LIMIT_BYTES = 16 * 1024 * 1024
 TTS_RESPONSE_BODY_CHUNK_BYTES = 64 * 1024
 
 def _get_default_output_dir() -> str:
-    from sparkii_constants import get_sparkii_dir
-    return str(get_sparkii_dir("cache/audio", "audio_cache"))
+    from sparkii_constants import get_hermes_dir
+    return str(get_hermes_dir("cache/audio", "audio_cache"))
 
 DEFAULT_OUTPUT_DIR = _get_default_output_dir()
 
@@ -1186,9 +1187,9 @@ def _run_command_tts(
     propagating delegated-child lineage markers when applicable.
     """
     from agent.delegation_context import delegated_child_subprocess_env
-    from tools.environments.local import sparkii_subprocess_env
+    from tools.environments.local import hermes_subprocess_env
 
-    scrubbed = sparkii_subprocess_env(inherit_credentials=False)
+    scrubbed = hermes_subprocess_env(inherit_credentials=False)
     for key in env_passthrough or []:
         value = os.environ.get(key)
         if value is not None:
@@ -2195,7 +2196,7 @@ def _generate_xai_tts(text: str, output_path: str, tts_config: Dict[str, Any]) -
         headers={
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
-            "User-Agent": sparkii_xai_user_agent(),
+            "User-Agent": hermes_xai_user_agent(),
         },
         json=payload,
         timeout=60,
@@ -2664,13 +2665,13 @@ def _generate_gemini_tts(text: str, output_path: str, tts_config: Dict[str, Any]
         try:
             import sparkii_cli as _sparkii_cli
 
-            _sparkii_version = str(_sparkii_cli.__version__)
+            _hermes_version = str(_sparkii_cli.__version__)
         except Exception:
-            _sparkii_version = "0.0.0"
+            _hermes_version = "0.0.0"
         # Include Sparkii client context following Gemini's partner
         # integration guidance:
         # https://ai.google.dev/gemini-api/docs/partner-integration
-        headers["X-Goog-Api-Client"] = f"sparkii-agent/{_sparkii_version}"
+        headers["X-Goog-Api-Client"] = f"sparkii-agent/{_hermes_version}"
 
     endpoint = f"{base_url}/models/{model}:generateContent"
     response = requests.post(
@@ -2901,8 +2902,8 @@ def _get_piper_voices_dir() -> Path:
     Resolves to ``~/.sparkii/cache/piper-voices/`` under the active
     SPARKII_HOME so voice downloads follow profile boundaries.
     """
-    from sparkii_constants import get_sparkii_dir
-    root = Path(get_sparkii_dir("cache/piper-voices", "piper_voices_cache"))
+    from sparkii_constants import get_hermes_dir
+    root = Path(get_hermes_dir("cache/piper-voices", "piper_voices_cache"))
     root.mkdir(parents=True, exist_ok=True)
     return root
 
@@ -3727,15 +3728,11 @@ def check_tts_requirements() -> bool:
             return False
         return bool(_resolve_provider_key("ELEVENLABS_API_KEY", "elevenlabs"))
     if provider == "openai":
-        try:
-            _import_openai_client()
-        except ImportError:
+        if importlib.util.find_spec("openai") is None:
             return False
         return _has_openai_audio_backend()
     if provider == "deepinfra":
-        try:
-            _import_openai_client()
-        except ImportError:
+        if importlib.util.find_spec("openai") is None:
             return False
         return bool(_resolve_provider_key("DEEPINFRA_API_KEY", "deepinfra"))
     if provider == "minimax":

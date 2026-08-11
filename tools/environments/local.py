@@ -349,7 +349,7 @@ _SPARKII_PROVIDER_ENV_BLOCKLIST = _build_provider_env_blocklist()
 _ACTIVE_VENV_MARKER_VARS = ("VIRTUAL_ENV", "CONDA_PREFIX")
 
 
-def _is_sparkii_internal_secret(key: str) -> bool:
+def _is_hermes_internal_secret(key: str) -> bool:
     """Return True for Sparkii-internal secrets injected under *dynamic* names.
 
     ``_SPARKII_PROVIDER_ENV_BLOCKLIST`` is name-based and derived from the
@@ -377,7 +377,7 @@ def _is_sparkii_internal_secret(key: str) -> bool:
     This is the single source of truth for "Sparkii-internal dynamic secret"
     across every spawn path — the terminal ``_make_run_env`` /
     ``_sanitize_subprocess_env`` filters, the Docker passthrough filter, and the
-    non-terminal :func:`sparkii_subprocess_env` helper all call it, so the
+    non-terminal :func:`hermes_subprocess_env` helper all call it, so the
     dynamic patterns are stripped **unconditionally** regardless of
     ``env_passthrough`` skill registration or ``inherit_credentials``. Nothing
     a model-driving CLI legitimately needs matches these patterns.
@@ -469,7 +469,7 @@ def _sanitize_subprocess_env(base_env: dict | None, extra_env: dict | None = Non
     for key, value in (base_env or {}).items():
         if key.startswith(_SPARKII_PROVIDER_ENV_FORCE_PREFIX):
             continue
-        if _is_sparkii_internal_secret(key):
+        if _is_hermes_internal_secret(key):
             continue
         passthrough = _is_passthrough(key)
         if key in _SPARKII_PROVIDER_ENV_BLOCKLIST and not passthrough:
@@ -481,10 +481,10 @@ def _sanitize_subprocess_env(base_env: dict | None, extra_env: dict | None = Non
     for key, value in (extra_env or {}).items():
         if key.startswith(_SPARKII_PROVIDER_ENV_FORCE_PREFIX):
             real_key = key[len(_SPARKII_PROVIDER_ENV_FORCE_PREFIX):]
-            if _is_sparkii_internal_secret(real_key):
+            if _is_hermes_internal_secret(real_key):
                 continue
             sanitized[real_key] = value
-        elif _is_sparkii_internal_secret(key):
+        elif _is_hermes_internal_secret(key):
             continue
         else:
             passthrough = _is_passthrough(key)
@@ -535,7 +535,7 @@ def _scrub_delegated_child_kanban_env(env: dict[str, str]) -> dict[str, str]:
 # secrets to keep out of a compromised dependency's reach (gateway bot tokens,
 # GitHub auth, remote-compute tokens, dashboard session secret).  The set is a
 # narrow subset of _SPARKII_PROVIDER_ENV_BLOCKLIST; provider keys are handled by
-# the conditional Tier-2 strip in sparkii_subprocess_env().
+# the conditional Tier-2 strip in hermes_subprocess_env().
 _ALWAYS_STRIP_KEYS: frozenset[str] = frozenset({
     # GitHub auth
     "GH_TOKEN",
@@ -555,7 +555,7 @@ _ALWAYS_STRIP_KEYS: frozenset[str] = frozenset({
     # provisions and persists to the 0600 .env. Stripped unconditionally on
     # EVERY spawn surface (terminal + model-driving CLIs) so it can't drift
     # between paths: _SECRET / _DELIVERY_KEY are also matched by
-    # _is_sparkii_internal_secret, but _ID has no secret suffix, so it must be
+    # _is_hermes_internal_secret, but _ID has no secret suffix, so it must be
     # enumerated here to stay stripped on the inherit_credentials=True path
     # (codex / copilot), which skips the Tier-2 blocklist.
     "GATEWAY_RELAY_ID",
@@ -571,7 +571,7 @@ _ALWAYS_STRIP_KEYS: frozenset[str] = frozenset({
 })
 
 
-def sparkii_subprocess_env(*, inherit_credentials: bool = False) -> dict[str, str]:
+def hermes_subprocess_env(*, inherit_credentials: bool = False) -> dict[str, str]:
     """Build a sanitized environment dict for a spawned subprocess.
 
     Centralized helper for the **non-terminal** spawn surface (browser,
@@ -612,11 +612,11 @@ def sparkii_subprocess_env(*, inherit_credentials: bool = False) -> dict[str, st
     # (``AUXILIARY_<TASK>_API_KEY`` / ``_BASE_URL`` side-LLM credentials,
     # ``GATEWAY_RELAY_*`` relay-auth material) must never reach a child,
     # regardless of ``inherit_credentials`` — a model-driving CLI has no
-    # legitimate use for them. See :func:`_is_sparkii_internal_secret`.
+    # legitimate use for them. See :func:`_is_hermes_internal_secret`.
     for key in list(env):
         if key.startswith(_SPARKII_PROVIDER_ENV_FORCE_PREFIX):
             env.pop(key, None)
-        elif _is_sparkii_internal_secret(key):
+        elif _is_hermes_internal_secret(key):
             env.pop(key, None)
 
     if not inherit_credentials:
@@ -666,7 +666,7 @@ def build_subprocess_env(
     """Single factory for building a child-process environment.
 
     Every spawn site in the codebase should build its env through this
-    function (or :func:`sparkii_subprocess_env` for the model-driving-CLI
+    function (or :func:`hermes_subprocess_env` for the model-driving-CLI
     surface) instead of copying ``os.environ`` directly, so profile-home
     propagation (``SPARKII_HOME`` / subprocess ``HOME`` contract) and the
     Sparkii secret-scrub policy have a single owner.  History: ~11 separate
@@ -680,7 +680,7 @@ def build_subprocess_env(
       env instead.
     * ``scrub_secrets=True`` (default) — delegate to
       :func:`_sanitize_subprocess_env`, the long-standing owner of the scrub
-      list (provider blocklist + ``_is_sparkii_internal_secret`` dynamic
+      list (provider blocklist + ``_is_hermes_internal_secret`` dynamic
       patterns + kanban/venv-marker/session-context guards) **and** of
       ``SPARKII_HOME`` / subprocess-HOME propagation.  On this path profile
       home propagation is inherent — ``inherit_profile_home`` is ignored
@@ -745,11 +745,11 @@ def _find_bash() -> str:
     #   PortableGit: %LOCALAPPDATA%\sparkii\git\bin\bash.exe   (primary)
     #   MinGit:      %LOCALAPPDATA%\sparkii\git\usr\bin\bash.exe (legacy/32-bit fallback)
     _local_appdata = os.environ.get("LOCALAPPDATA", "")
-    _sparkii_portable_git = os.path.join(_local_appdata, "sparkii", "git") if _local_appdata else ""
-    if _sparkii_portable_git:
+    _hermes_portable_git = os.path.join(_local_appdata, "sparkii", "git") if _local_appdata else ""
+    if _hermes_portable_git:
         for candidate in (
-            os.path.join(_sparkii_portable_git, "bin", "bash.exe"),        # PortableGit (primary)
-            os.path.join(_sparkii_portable_git, "usr", "bin", "bash.exe"), # MinGit fallback
+            os.path.join(_hermes_portable_git, "bin", "bash.exe"),        # PortableGit (primary)
+            os.path.join(_hermes_portable_git, "usr", "bin", "bash.exe"), # MinGit fallback
         ):
             if os.path.isfile(candidate) and candidate not in candidates:
                 candidates.append(candidate)
@@ -1066,7 +1066,7 @@ _SENTINEL = object()
 _SPARKII_BIN_DIR: "str | None | object" = _SENTINEL
 
 
-def _resolve_sparkii_bin_dir() -> str | None:
+def _resolve_hermes_bin_dir() -> str | None:
     """Return the directory holding the ``sparkii`` console-script, or None.
 
     The terminal tool runs in a freshly-spawned subshell whose PATH is the
@@ -1123,14 +1123,14 @@ def _resolve_sparkii_bin_dir() -> str | None:
     return candidate
 
 
-def _prepend_sparkii_bin_dir(existing_path: str) -> str:
+def _prepend_hermes_bin_dir(existing_path: str) -> str:
     """Prepend the sparkii install dir to ``existing_path`` if it's missing.
 
     Cross-platform (uses ``os.pathsep``). First-occurrence wins, so a PATH
     that already contains the dir is returned unchanged. Returns the input
     unchanged when the install dir can't be resolved.
     """
-    bin_dir = _resolve_sparkii_bin_dir()
+    bin_dir = _resolve_hermes_bin_dir()
     if not bin_dir:
         return existing_path
     sep = os.pathsep
@@ -1157,12 +1157,12 @@ def _managed_runtime_path_entries() -> list[str]:
 
     Resolved per call rather than cached in a module constant because
     ``get_sparkii_home()`` is profile-scoped and a managed tree can appear
-    mid-process (``heal_sparkii_managed_node``, a first browser install).
+    mid-process (``heal_hermes_managed_node``, a first browser install).
     """
     try:
-        from sparkii_constants import get_sparkii_home, iter_sparkii_node_dirs
+        from sparkii_constants import get_sparkii_home, iter_hermes_node_dirs
 
-        candidates = [*iter_sparkii_node_dirs(), get_sparkii_home() / "bin"]
+        candidates = [*iter_hermes_node_dirs(), get_sparkii_home() / "bin"]
         return [str(d) for d in candidates if d.is_dir()]
     except Exception:
         return []
@@ -1281,10 +1281,10 @@ def _make_run_env(env: dict) -> dict:
     for k, v in merged.items():
         if k.startswith(_SPARKII_PROVIDER_ENV_FORCE_PREFIX):
             real_key = k[len(_SPARKII_PROVIDER_ENV_FORCE_PREFIX):]
-            if _is_sparkii_internal_secret(real_key):
+            if _is_hermes_internal_secret(real_key):
                 continue
             run_env[real_key] = v
-        elif _is_sparkii_internal_secret(k):
+        elif _is_hermes_internal_secret(k):
             continue
         else:
             passthrough = _is_passthrough(k)
@@ -1306,7 +1306,7 @@ def _make_run_env(env: dict) -> dict:
         # Ensure the sparkii install dir is reachable so plugins can shell out
         # to bare ``sparkii`` via the terminal tool even when the gateway was
         # launched without it on PATH (systemd, service managers, cron, etc.).
-        run_env[path_key] = _prepend_sparkii_bin_dir(new_path)
+        run_env[path_key] = _prepend_hermes_bin_dir(new_path)
 
     _inject_context_sparkii_home(run_env)
 
@@ -1455,7 +1455,7 @@ class LocalEnvironment(BaseEnvironment):
                 from sparkii_constants import get_sparkii_home
                 cache_dir = get_sparkii_home() / "cache" / "terminal"
             except Exception:
-                cache_dir = Path(tempfile.gettempdir()) / "sparkii_terminal"
+                cache_dir = Path(tempfile.gettempdir()) / "hermes_terminal"
             cache_dir.mkdir(parents=True, exist_ok=True)
             # Force forward slashes so the same string serves both contexts.
             return str(cache_dir).replace("\\", "/")
@@ -1544,7 +1544,7 @@ class LocalEnvironment(BaseEnvironment):
         )
         if not _IS_WINDOWS:
             try:
-                proc._sparkii_pgid = os.getpgid(proc.pid)
+                proc._hermes_pgid = os.getpgid(proc.pid)
             except ProcessLookupError:
                 pass
 
@@ -1601,7 +1601,7 @@ class LocalEnvironment(BaseEnvironment):
                 try:
                     pgid = os.getpgid(proc.pid)
                 except ProcessLookupError:
-                    pgid = getattr(proc, "_sparkii_pgid", None)
+                    pgid = getattr(proc, "_hermes_pgid", None)
                     if pgid is None:
                         raise
 

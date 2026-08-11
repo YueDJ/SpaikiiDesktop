@@ -81,7 +81,7 @@ class TestSessionDbInitTimeout:
 
         with patch("cron.scheduler._sparkii_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
+             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
              patch("sparkii_state.SessionDB"), \
              patch(
@@ -116,7 +116,7 @@ class TestSessionDbInitTimeout:
 
         with patch("cron.scheduler._sparkii_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
+             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
              patch("sparkii_state.SessionDB", return_value=fake_db), \
              patch(
@@ -159,7 +159,7 @@ class TestSessionDbInitTimeout:
 
         with patch("cron.scheduler._sparkii_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
+             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
              patch("sparkii_state.SessionDB"), \
              patch(
@@ -209,7 +209,7 @@ class TestDispatchGuardReleasedAfterHang:
         try:
             with patch("cron.scheduler._sparkii_home", tmp_path), \
                  patch("cron.scheduler._resolve_origin", return_value=None), \
-                 patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
+                 patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
                  patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
                  patch("sparkii_state.SessionDB"), \
                  patch(

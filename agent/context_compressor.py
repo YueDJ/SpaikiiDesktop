@@ -137,7 +137,7 @@ LEGACY_SUMMARY_PREFIX = "[CONTEXT SUMMARY]:"
 # Metadata key added to context compression summary messages so that frontends
 # (CLI, Desktop, gateway, TUI) can distinguish them from real assistant/user
 # messages and filter or render them appropriately without content-prefix
-# heuristics. See https://github.com/YueDJ/SparkiiAgent/issues/38389
+# heuristics. See https://github.com/NousResearch/sparkii-agent/issues/38389
 #
 # Underscore-prefixed ON PURPOSE: the wire sanitizers
 # (agent/transports/chat_completions.py convert_messages and the summary-path
@@ -3973,9 +3973,9 @@ Summary generation was unavailable, so this is a best-effort deterministic fallb
         # date here never affects prompt-cache stability. Resolved defensively —
         # a clock failure must never block compaction.
         try:
-            from sparkii_time import now as _sparkii_now
+            from sparkii_time import now as _hermes_now
 
-            _today_str = _sparkii_now().strftime("%Y-%m-%d")
+            _today_str = _hermes_now().strftime("%Y-%m-%d")
         except Exception:  # pragma: no cover - clock resolution is best-effort
             _today_str = ""
 

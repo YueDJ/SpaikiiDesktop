@@ -1,7 +1,7 @@
 # Rebrand 完成报告
 
 ## 概述
-成功完成将代码库中所有 "hermes/Hermes/Hermes Desktop" 相关字段替换为 "sparkii/Sparkii/Sparkii Desktop" 的 rebrand 任务。
+成功完成将代码库中所有 "sparkii/Sparkii/Sparkii Desktop" 相关字段替换为 "sparkii/Sparkii/Sparkii Desktop" 的 rebrand 任务。
 
 ## 完成的工作
 
@@ -16,27 +16,27 @@
 - **替换示例**:
   - `hermes_agent` → `sparkii_agent`
   - `hermes_cli` → `sparkii_cli`
-  - `hermes-achievements` → `sparkii-achievements`
-  - `hermes-ink` → `sparkii-ink`
-  - `hermes.shared_metrics` → `sparkii.shared_metrics`
+  - `sparkii-achievements` → `sparkii-achievements`
+  - `sparkii-ink` → `sparkii-ink`
+  - `sparkii.shared_metrics` → `sparkii.shared_metrics`
 
 ### 3. 环境变量和配置路径替换
 - **修改文件数**: 65 个文件
-- **替换规则**: 所有 `HERMES_` 前缀的环境变量替换为 `SPARKII_`
+- **替换规则**: 所有 `SPARKII_` 前缀的环境变量替换为 `SPARKII_`
 - **示例**:
-  - `HERMES_HOME` → `SPARKII_HOME`
-  - `HERMES_UID` → `SPARKII_UID`
-  - `HERMES_DESKTOP` → `SPARKII_DESKTOP`
+  - `SPARKII_HOME` → `SPARKII_HOME`
+  - `SPARKII_UID` → `SPARKII_UID`
+  - `SPARKII_DESKTOP` → `SPARKII_DESKTOP`
 
 ### 4. 文档和注释更新
 - **修改文件数**: 239 个文件
 - **更新内容**: README、AGENTS.md、CONTRIBUTING.md、环境变量文档、CLI 命令文档等
 - **更新示例**:
-  - "Hermes Agent" → "Sparkii Agent"
-  - "Hermes CLI" → "Sparkii CLI"
-  - "Hermes Gateway" → "Sparkii Gateway"
-  - `hermes update` → `sparkii update`
-  - `hermes skills` → `sparkii skills`
+  - "Sparkii Agent" → "Sparkii Agent"
+  - "Sparkii CLI" → "Sparkii CLI"
+  - "Sparkii Gateway" → "Sparkii Gateway"
+  - `sparkii update` → `sparkii update`
+  - `sparkii skills` → `sparkii skills`
 
 ## 统计数据
 
@@ -51,13 +51,13 @@
 ## 验证结果
 
 ### 残留检查
-- 搜索结果：仅剩 25 处 "hermes" 引用
+- 搜索结果：仅剩 25 处 "sparkii" 引用
 - **原因分析**:
   1. 示例中的特定术语（如 "SparkiiCLI"、"SparkiiTokenStorage"）
   2. 用户名示例（如 "my_hermes_bot"）
   3. 服务器路径示例（如 "%40hermes%3Ayour-server"）
   4. 配置键示例（如 "hermes_home"）
-  5. 文档中的特殊术语（如 "HermesSweEnv"）
+  5. 文档中的特殊术语（如 "SparkiiSweEnv"）
 
 这些残留的引用是合理的，因为它们是：
 - 示例中的特定术语，不是实际的变量名
@@ -66,12 +66,12 @@
 - 特殊环境名称，不需要替换
 
 ### 功能验证
-- ✅ 所有 Python 代码中的 `hermes` 引用已替换为 `sparkii`
-- ✅ 所有 JavaScript/TypeScript 代码中的 `hermes` 引用已替换为 `sparkii`
-- ✅ 所有环境变量 `HERMES_*` 已替换为 `SPARKII_*`
-- ✅ 所有配置路径 `~/.hermes/` 已替换为 `~/.sparkii/`
-- ✅ 所有文档中的 "Hermes" 已替换为 "Sparkii"
-- ✅ 所有文件名和目录名中的 "hermes" 已替换为 "sparkii"
+- ✅ 所有 Python 代码中的 `sparkii` 引用已替换为 `sparkii`
+- ✅ 所有 JavaScript/TypeScript 代码中的 `sparkii` 引用已替换为 `sparkii`
+- ✅ 所有环境变量 `SPARKII_*` 已替换为 `SPARKII_*`
+- ✅ 所有配置路径 `~/.sparkii/` 已替换为 `~/.sparkii/`
+- ✅ 所有文档中的 "Sparkii" 已替换为 "Sparkii"
+- ✅ 所有文件名和目录名中的 "sparkii" 已替换为 "sparkii"
 
 ## 脚本工具
 
@@ -92,4 +92,4 @@
 
 ## 总结
 
-rebrand 任务已成功完成，共修改了 3165 个文件，将整个代码库从 "Hermes" 品牌切换到 "Sparkii" 品牌。所有关键的代码、配置、文档和文件名都已更新，残留的引用是合理的示例或特殊术语，不影响实际功能。
+rebrand 任务已成功完成，共修改了 3165 个文件，将整个代码库从 "Sparkii" 品牌切换到 "Sparkii" 品牌。所有关键的代码、配置、文档和文件名都已更新，残留的引用是合理的示例或特殊术语，不影响实际功能。

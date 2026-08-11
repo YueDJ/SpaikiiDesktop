@@ -35,11 +35,11 @@ Sparkii Agent 提供了一个 Nix flake，支持三个层级的集成：
 
 ```bash
 # 直接运行（首次使用时构建，之后使用缓存）
-nix run github:YueDJ/SparkiiAgent -- setup
-nix run github:YueDJ/SparkiiAgent -- chat
+nix run github:NousResearch/sparkii-agent -- setup
+nix run github:NousResearch/sparkii-agent -- chat
 
 # 或持久化安装
-nix profile install github:YueDJ/SparkiiAgent
+nix profile install github:NousResearch/sparkii-agent
 sparkii setup
 sparkii chat
 ```
@@ -50,7 +50,7 @@ sparkii chat
 <summary><strong>从本地克隆构建</strong></summary>
 
 ```bash
-git clone https://github.com/YueDJ/SparkiiAgent.git
+git clone https://github.com/NousResearch/sparkii-agent.git
 cd sparkii-agent
 nix build
 ./result/bin/sparkii setup
@@ -75,7 +75,7 @@ nix build
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    sparkii-agent.url = "github:YueDJ/SparkiiAgent";
+    sparkii-agent.url = "github:NousResearch/sparkii-agent";
   };
 
   outputs = { nixpkgs, sparkii-agent, ... }: {
@@ -685,7 +685,7 @@ services.sparkii-agent = {
 
 ```nix
 {
-  inputs.sparkii-agent.url = "github:YueDJ/SparkiiAgent";
+  inputs.sparkii-agent.url = "github:NousResearch/sparkii-agent";
   outputs = { sparkii-agent, nixpkgs, ... }: {
     nixpkgs.overlays = [ sparkii-agent.overlays.default ];
     # 然后：

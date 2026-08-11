@@ -122,7 +122,7 @@ def _get_scoped_secret(name, default=None):
 logger = logging.getLogger(__name__)
 
 
-def _sparkii_version() -> str:
+def _hermes_version() -> str:
     """Return the canonical Sparkii Agent version string.
 
     ``sparkii_cli.__version__`` is the runtime source of truth used by the CLI,
@@ -2512,9 +2512,9 @@ class APIServerAdapter(BasePlatformAdapter):
     @staticmethod
     def _normalize_session_source(value: Any) -> str:
         text = str(value or "").strip().lower()
-        allowed = {"api_server", "sparkii_browser", "browser", "cli", "telegram", "discord", "slack", "desktop", "dashboard"}
+        allowed = {"api_server", "hermes_browser", "browser", "cli", "telegram", "discord", "slack", "desktop", "dashboard"}
         if text in allowed:
-            return "sparkii_browser" if text == "browser" else text
+            return "hermes_browser" if text == "browser" else text
         return "api_server"
 
     def _session_model_override_for(self, session_key: Optional[str]) -> Optional[Dict[str, Any]]:
@@ -2912,7 +2912,7 @@ class APIServerAdapter(BasePlatformAdapter):
             agent_kwargs["service_tier"] = request_service_tier
 
         agent = AIAgent(**agent_kwargs)
-        agent._sparkii_api_runtime = {
+        agent._hermes_api_runtime = {
             "provider": runtime_kwargs.get("provider") or getattr(agent, "provider", "") or "",
             "model": getattr(agent, "model", None) or model,
             "route_source": (
@@ -2934,7 +2934,7 @@ class APIServerAdapter(BasePlatformAdapter):
     async def _handle_health(self, request: "web.Request") -> "web.Response":
         """GET /health — simple health check."""
         return web.json_response(
-            {"status": "ok", "platform": "sparkii-agent", "version": _sparkii_version()}
+            {"status": "ok", "platform": "sparkii-agent", "version": _hermes_version()}
         )
 
     async def _handle_health_detailed(self, request: "web.Request") -> "web.Response":
@@ -2976,7 +2976,7 @@ class APIServerAdapter(BasePlatformAdapter):
             "status": readiness["status"],
             "readiness": readiness,
             "platform": "sparkii-agent",
-            "version": _sparkii_version(),
+            "version": _hermes_version(),
             "gateway_state": gw_state,
             "platforms": runtime.get("platforms", {}),
             "active_agents": gw_active,
@@ -6228,7 +6228,7 @@ class APIServerAdapter(BasePlatformAdapter):
                         or (route_source and route_source != "global")
                     )
                     if include_runtime:
-                        runtime = dict(getattr(agent, "_sparkii_api_runtime", {}) or {})
+                        runtime = dict(getattr(agent, "_hermes_api_runtime", {}) or {})
                         raw_provider = getattr(agent, "provider", "")
                         raw_model = getattr(agent, "model", "")
                         actual_provider = (

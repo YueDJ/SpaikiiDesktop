@@ -29,7 +29,7 @@ load_dotenv()
 # Default datasets to sample from
 DEFAULT_DATASETS = [
     "NousResearch/swe-terminus-agent-glm-kimi-minimax",
-    "YueDJ/SparkiiAgent-megascience-sft1",
+    "NousResearch/sparkii-agent-megascience-sft1",
     "NousResearch/Sparkii-Agent-Thinking-GLM-4.7-SFT2",
     "NousResearch/Sparkii-Agent-Thinking-GLM-4.7-SFT1",
     "NousResearch/terminal-tasks-glm-sparkii-agent"

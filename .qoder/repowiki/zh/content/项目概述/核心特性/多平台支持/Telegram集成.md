@@ -266,7 +266,7 @@ CFG["gateway/config.py"] --> AD
 - [tests/gateway/test_telegram_clarify_buttons.py:148-188](file://tests/gateway/test_telegram_clarify_buttons.py#L148-L188)
 
 ## 结论
-Hermes Agent的Telegram集成通过高内聚的适配器与健壮的网络回退机制，提供了完整的消息收发、富媒体与交互能力，并在安全、性能与可靠性方面做了充分考量。借助托管机器人创建与灵活配置，用户可以快速搭建可用的Telegram机器人。
+Sparkii Agent的Telegram集成通过高内聚的适配器与健壮的网络回退机制，提供了完整的消息收发、富媒体与交互能力，并在安全、性能与可靠性方面做了充分考量。借助托管机器人创建与灵活配置，用户可以快速搭建可用的Telegram机器人。
 
 [本节为总结性内容，不直接分析具体文件]
 

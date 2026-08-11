@@ -1,6 +1,6 @@
 ---
 kind: logging_system
-name: Hermes/Sparkii 集中式日志系统：多文件轮转、组件路由与敏感信息脱敏
+name: Sparkii/Sparkii 集中式日志系统：多文件轮转、组件路由与敏感信息脱敏
 category: logging_system
 scope:
     - '**'

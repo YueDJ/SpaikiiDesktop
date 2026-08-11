@@ -13,7 +13,7 @@ import urllib.request
 
 DEFAULT_UA = (
     "sparkii-osint-investigation/0.2 "
-    "(+https://github.com/YueDJ/SparkiiAgent; "
+    "(+https://github.com/NousResearch/sparkii-agent; "
     "set SPARKII_OSINT_UA env var to identify yourself per "
     "Wikimedia / SEC fair-use guidance)"
 )

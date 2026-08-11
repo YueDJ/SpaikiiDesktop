@@ -109,7 +109,7 @@ class TestScopedLockTakeoverReapsChildren:
             "kind": "sparkii-gateway",
             "argv": ["python", "-m", "sparkii_cli.main", "gateway", "run"],
             "start_time": start_time,
-            "sparkii_home": str(target_home),
+            "hermes_home": str(target_home),
         }
         (target_home / "gateway.pid").write_text(json.dumps(record))
         return record
@@ -226,7 +226,7 @@ async def test_start_gateway_replace_reaps_old_gateway_children_posix(
     monkeypatch.setattr("time.sleep", lambda _: None)
     monkeypatch.setattr("tools.skills_sync.sync_skills", lambda quiet=True: None)
     monkeypatch.setattr(
-        "sparkii_logging.setup_logging", lambda sparkii_home, mode: tmp_path
+        "sparkii_logging.setup_logging", lambda hermes_home, mode: tmp_path
     )
     monkeypatch.setattr(
         "sparkii_logging._add_rotating_handler", lambda *args, **kwargs: None

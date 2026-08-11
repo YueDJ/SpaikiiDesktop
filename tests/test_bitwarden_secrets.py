@@ -39,7 +39,7 @@ def _reset_caches():
 
 
 @pytest.fixture
-def sparkii_home(tmp_path, monkeypatch):
+def hermes_home(tmp_path, monkeypatch):
     """Point Sparkii at an isolated home directory."""
     home = tmp_path / ".sparkii"
     home.mkdir()
@@ -135,7 +135,7 @@ def test_safe_extract_member_rejects_traversal(tmp_path, evil_name):
 
 
 
-def test_install_bws_happy_path(sparkii_home, monkeypatch):
+def test_install_bws_happy_path(hermes_home, monkeypatch):
     fake_binary = b"#!/bin/sh\necho 'bws fake 2.0.0'\n"
     zip_bytes = _make_fake_zip(fake_binary)
     asset_name = bw._platform_asset_name()

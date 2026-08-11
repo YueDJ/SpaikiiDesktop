@@ -168,7 +168,7 @@ Note over Client,Dashboard : "OpenAI兼容端点由gateway/platforms/api_server.
   - POST /v1/responses
   - GET /v1/responses/{response_id}
   - DELETE /v1/responses/{response_id}
-  - 支持previous_response_id维持上下文；X-Hermes-Session-Key用于长期记忆作用域
+  - 支持previous_response_id维持上下文；X-Sparkii-Session-Key用于长期记忆作用域
 - 模型列表
   - GET /v1/models
   - 响应：虚拟模型与别名列表
@@ -453,7 +453,7 @@ O["OpenAI兼容API"] --> G["网关/代理"]
 
 ### 认证与安全
 - 会话令牌
-  - 头部：X-Hermes-Session-Token
+  - 头部：X-Sparkii-Session-Token
   - 回退：Authorization: Bearer <token>
   - 部分下载端点支持查询参数token
 - OAuth门控

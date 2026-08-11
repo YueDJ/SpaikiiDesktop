@@ -6,9 +6,9 @@ import json
 
 
 def _write_auth_store(tmp_path, payload: dict) -> None:
-    sparkii_home = tmp_path / "sparkii"
-    sparkii_home.mkdir(parents=True, exist_ok=True)
-    (sparkii_home / "auth.json").write_text(json.dumps(payload, indent=2))
+    hermes_home = tmp_path / "sparkii"
+    hermes_home.mkdir(parents=True, exist_ok=True)
+    (hermes_home / "auth.json").write_text(json.dumps(payload, indent=2))
 
 
 def test_key_rotation_clears_exhausted_status(tmp_path, monkeypatch):

@@ -110,7 +110,7 @@ S-->>C : 流式事件或最终JSON
   - messages：支持字符串或数组形式的多模态内容（text/image_url/input_image），自动归一化。
   - stream：布尔或字符串化的布尔值均被识别。
   - model_options：包含reasoning(enabled/effort)、service_tier/fast等运行时选项。
-  - 头部：Authorization Bearer令牌用于鉴权；可选X-Hermes-Session-Id/X-Hermes-Session-Key用于会话与长期记忆作用域。
+  - 头部：Authorization Bearer令牌用于鉴权；可选X-Sparkii-Session-Id/X-Sparkii-Session-Key用于会话与长期记忆作用域。
 - 响应：
   - 非流式：标准OpenAI聊天完成JSON。
   - 流式：SSE事件，data字段为增量片段，event可为delta等。

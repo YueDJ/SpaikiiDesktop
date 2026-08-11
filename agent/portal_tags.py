@@ -82,7 +82,7 @@ def get_conversation_context() -> Optional[str]:
     return _conversation_id.get()
 
 
-def _sparkii_version() -> str:
+def _hermes_version() -> str:
     """Return the current Sparkii release version, e.g. ``"0.13.0"``.
 
     Falls back to ``"unknown"`` if ``sparkii_cli`` cannot be imported (should
@@ -100,7 +100,7 @@ def sparkii_client_tag() -> str:
 
     Format: ``client=sparkii-client-v<MAJOR>.<MINOR>.<PATCH>``.
     """
-    return f"client=sparkii-client-v{_sparkii_version()}"
+    return f"client=sparkii-client-v{_hermes_version()}"
 
 
 def conversation_tag(session_id: str) -> str:

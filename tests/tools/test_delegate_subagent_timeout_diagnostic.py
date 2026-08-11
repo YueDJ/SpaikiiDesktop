@@ -25,7 +25,7 @@ import pytest
 
 
 @pytest.fixture
-def sparkii_home(tmp_path, monkeypatch):
+def hermes_home(tmp_path, monkeypatch):
     home = tmp_path / ".sparkii"
     home.mkdir()
     monkeypatch.setenv("SPARKII_HOME", str(home))
@@ -85,7 +85,7 @@ class _StubChild:
 
 class TestDumpSubagentTimeoutDiagnostic:
 
-    def test_writes_log_with_expected_sections(self, sparkii_home):
+    def test_writes_log_with_expected_sections(self, hermes_home):
         from tools.delegate_tool import _dump_subagent_timeout_diagnostic
         child = _StubChild(subagent_id="sa-7-abc123")
 
@@ -112,7 +112,7 @@ class TestDumpSubagentTimeoutDiagnostic:
         p = Path(path)
         assert p.is_file()
         # File lives under SPARKII_HOME/logs/
-        assert p.parent == sparkii_home / "logs"
+        assert p.parent == hermes_home / "logs"
         assert p.name.startswith("subagent-timeout-sa-7-abc123-")
         assert p.suffix == ".log"
 
@@ -195,7 +195,7 @@ class TestRunSingleChildTimeoutDump:
             parent_agent=parent,
         )
 
-    def test_zero_api_calls_writes_dump_and_surfaces_path(self, sparkii_home, monkeypatch):
+    def test_zero_api_calls_writes_dump_and_surfaces_path(self, hermes_home, monkeypatch):
         child = _StubChild(api_call_count=0, hang_seconds=10.0)
         result = self._invoke_with_short_timeout(child, monkeypatch)
 
@@ -204,7 +204,7 @@ class TestRunSingleChildTimeoutDump:
         assert result["diagnostic_path"] is not None
         dump_path = Path(result["diagnostic_path"])
         assert dump_path.is_file()
-        assert dump_path.parent == sparkii_home / "logs"
+        assert dump_path.parent == hermes_home / "logs"
 
         # Error message surfaces the path and the "no API call" phrasing
         assert "without making any API call" in result["error"]
@@ -215,7 +215,7 @@ class TestRunSingleChildTimeoutDump:
     # ── explicit timeout metadata (#51690, salvaged from PR #60378) ────
 
 
-    def test_non_timeout_error_has_null_timeout_metadata(self, sparkii_home, monkeypatch):
+    def test_non_timeout_error_has_null_timeout_metadata(self, hermes_home, monkeypatch):
         """The metadata fields are timeout-specific — a child that raises
         must report them as None so consumers can key on presence."""
         from tools import delegate_tool

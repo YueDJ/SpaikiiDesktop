@@ -52,7 +52,7 @@ end
 subgraph "出站"
 H["插件钩子触发<br/>invoke_hook()"]
 I["队列+单线程Worker<br/>有限重试"]
-J["HMAC签名(可选)<br/>X-Hermes-Signature-256"]
+J["HMAC签名(可选)<br/>X-Sparkii-Signature-256"]
 end
 A --> B --> C --> D --> E --> F --> G
 F --> H --> I --> J
@@ -184,7 +184,7 @@ Cross --> End
 - 注册：幂等注册到插件管理器，Safe Mode下跳过。
 - 回调：对pre/post_tool_call支持matcher精确匹配工具名。
 - 负载：包含hook_event_name/tool_name/tool_input/session_id/cwd/extra/delivery_id/timestamp。
-- 签名：当配置secret时，计算HMAC-SHA256并放入X-Hermes-Signature-256。
+- 签名：当配置secret时，计算HMAC-SHA256并放入X-Sparkii-Signature-256。
 - 投递：单线程Worker，队列满丢弃并告警；连接错误/5xx重试一次；3xx不跟随；4xx不重试。
 - 退出：atexit flush保证短生命周期进程也能尽量发送。
 
@@ -303,7 +303,7 @@ G["ssl_guard.py"] --> HTTP
 
 ### HTTP请求签名验证
 - 入站：必须配置secret；支持X-Hub-Signature-256与X-Webhook-Signature-V2；V1已弃用但仍接受并警告。
-- 出站：当配置secret_env或secret时，发送X-Hermes-Signature-256。
+- 出站：当配置secret_env或secret时，发送X-Sparkii-Signature-256。
 - 测试：使用sparkii webhook test自动生成签名并发送。
 
 章节来源

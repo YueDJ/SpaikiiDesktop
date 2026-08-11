@@ -61,7 +61,7 @@ agent:
 
     from sparkii_cli import kanban_db as kb
 
-    monkeypatch.setattr(kb, "_resolve_sparkii_argv", lambda: ["sparkii"])
+    monkeypatch.setattr(kb, "_resolve_hermes_argv", lambda: ["sparkii"])
 
     captured = {}
 
@@ -104,7 +104,7 @@ def test_default_spawn_model_override_survives_real_cli_parse(monkeypatch, tmp_p
     from sparkii_cli import kanban_db as kb
     from sparkii_cli._parser import build_top_level_parser
 
-    monkeypatch.setattr(kb, "_resolve_sparkii_argv", lambda: ["sparkii"])
+    monkeypatch.setattr(kb, "_resolve_hermes_argv", lambda: ["sparkii"])
     captured = {}
 
     class FakeProc:

@@ -20,18 +20,18 @@ from utils import atomic_replace, fast_safe_load
 _CREDENTIAL_SUFFIXES = ("_API_KEY", "_TOKEN", "_SECRET", "_KEY")
 
 # Names we've already warned about during this process, so repeated
-# load_sparkii_dotenv() calls (user env + project env, gateway hot-reload,
+# load_hermes_dotenv() calls (user env + project env, gateway hot-reload,
 # tests) don't spam the same warning multiple times.
 _WARNED_KEYS: set[str] = set()
 
 # Paths we've already emitted a UTF-32 refuse-to-mangle warning for.
-# load_sparkii_dotenv can call _sanitize_env_file_if_needed multiple times
+# load_hermes_dotenv can call _sanitize_env_file_if_needed multiple times
 # for the same file (user env + project env + hot-reload); once per path
 # is enough.
 _WARNED_UTF32_PATHS: set[str] = set()
 
 # Map of env-var name → source label ("bitwarden", etc.) for credentials
-# that were injected by an external secret source during load_sparkii_dotenv().
+# that were injected by an external secret source during load_hermes_dotenv().
 # Used by setup / `sparkii model` flows to label detected credentials so
 # users understand WHERE a key came from when their .env doesn't contain it
 # directly (otherwise the "credentials detected ✓" line looks identical to
@@ -42,7 +42,7 @@ _SECRET_SOURCES: dict[str, str] = {}
 _SECRET_SOURCE_VALUES_BY_HOME: dict[str, dict[str, str]] = {}
 
 # SPARKII_HOME paths we've already pulled external secrets for during this
-# process.  ``load_sparkii_dotenv()`` is called at module-import time from
+# process.  ``load_hermes_dotenv()`` is called at module-import time from
 # several hot modules (cli.py, sparkii_cli/main.py, run_agent.py,
 # trajectory_compressor.py, gateway/run.py, ...), so without this guard the
 # Bitwarden status line gets printed 3-5x per startup.  Bitwarden's own
@@ -52,13 +52,13 @@ _APPLIED_HOMES: set[str] = set()
 _SECRET_SOURCE_CACHE_LOCK = threading.RLock()
 
 
-def _known_sparkii_env_keys() -> set[str]:
+def _known_hermes_env_keys() -> set[str]:
     """Return the combined set of known Sparkii env-var keys.
 
     Includes both ``OPTIONAL_ENV_VARS`` (setup-flow vars with metadata) and
     ``_EXTRA_ENV_KEYS`` (provider/platform keys managed outside the setup
     wizard).  Lazy-imported to avoid circular-dependency during early-bootstrap
-    ``load_sparkii_dotenv()`` calls.
+    ``load_hermes_dotenv()`` calls.
     """
     from sparkii_cli.config import _EXTRA_ENV_KEYS
     from sparkii_cli.config_defaults import OPTIONAL_ENV_VARS
@@ -149,7 +149,7 @@ def get_secret_source(env_var: str) -> str | None:
     """Return the label of the secret source that supplied ``env_var``, if any.
 
     Returns ``"bitwarden"`` for keys pulled from Bitwarden Secrets Manager
-    during the current process's ``load_sparkii_dotenv()`` call.  Returns
+    during the current process's ``load_hermes_dotenv()`` call.  Returns
     ``None`` for keys that came from ``.env``, the shell environment, or
     aren't tracked.  The returned label is metadata only: credential-pool
     persistence may store it to explain the origin of a borrowed secret, but
@@ -159,15 +159,15 @@ def get_secret_source(env_var: str) -> str | None:
 
 
 def get_secret_source_values(
-    sparkii_home: str | os.PathLike,
+    hermes_home: str | os.PathLike,
 ) -> dict[str, str]:
-    """Return the external-secret value snapshot for ``sparkii_home``."""
-    home_key = str(Path(sparkii_home).resolve())
+    """Return the external-secret value snapshot for ``hermes_home``."""
+    home_key = str(Path(hermes_home).resolve())
     return dict(_SECRET_SOURCE_VALUES_BY_HOME.get(home_key, {}))
 
 
 def hydrate_profile_secret_sources(
-    sparkii_home: str | os.PathLike,
+    hermes_home: str | os.PathLike,
 ) -> dict[str, str]:
     """Resolve one profile's configured sources without mutating ``os.environ``.
 
@@ -182,7 +182,7 @@ def hydrate_profile_secret_sources(
     plaintext ``.env`` entries.
     """
     with _SECRET_SOURCE_CACHE_LOCK:
-        return _hydrate_profile_secret_sources(Path(sparkii_home))
+        return _hydrate_profile_secret_sources(Path(hermes_home))
 
 
 def _hydrate_profile_secret_sources(home: Path) -> dict[str, str]:
@@ -208,7 +208,7 @@ def _hydrate_profile_secret_sources(home: Path) -> dict[str, str]:
             if _is_global_env(name)
         }
         local_env.update(load_env_file(home / ".env"))
-        # Mirror load_sparkii_dotenv()'s .op.env bootstrap: the 1Password
+        # Mirror load_hermes_dotenv()'s .op.env bootstrap: the 1Password
         # service-account token lives in <home>/.op.env (gitignored), not
         # .env. Without seeding it here a cold profile configured for the
         # supported .op.env flow fails 1Password hydration (sweeper review
@@ -467,9 +467,9 @@ def _sanitize_env_file_if_needed(path: Path) -> None:
         pass  # best-effort — don't block gateway startup
 
 
-def load_sparkii_dotenv(
+def load_hermes_dotenv(
     *,
-    sparkii_home: str | os.PathLike | None = None,
+    hermes_home: str | os.PathLike | None = None,
     project_env: str | os.PathLike | None = None,
 ) -> list[Path]:
     """Load Sparkii environment files with user config taking precedence.
@@ -482,7 +482,7 @@ def load_sparkii_dotenv(
     """
     loaded: list[Path] = []
 
-    home_path = Path(sparkii_home or os.getenv("SPARKII_HOME", Path.home() / ".sparkii"))
+    home_path = Path(hermes_home or os.getenv("SPARKII_HOME", Path.home() / ".sparkii"))
     user_env = home_path / ".env"
     project_env_path = Path(project_env) if project_env else None
 
@@ -526,7 +526,7 @@ def load_sparkii_dotenv(
     # `sparkii setup` before the user switched terminal.backend in config.yaml)
     # silently wins again on every reload. Startup launchers bridge
     # config→env once, but long-lived processes (gateway per-turn reload,
-    # cron standalone runs) call load_sparkii_dotenv() repeatedly and used to
+    # cron standalone runs) call load_hermes_dotenv() repeatedly and used to
     # flip the effective backend back to the stale .env value mid-session
     # (#29186, #67323). Re-apply config.yaml's explicit terminal keys last so
     # the documented config path always wins. Runs after _apply_managed_env()
@@ -550,7 +550,7 @@ def _reapply_terminal_config_bridge(home_path: Path) -> None:
 
     Scoped to the process SPARKII_HOME: the shared bridge reads the
     process-global config, so re-applying it for a *different* profile's
-    ``load_sparkii_dotenv(sparkii_home=...)`` call would bridge the wrong
+    ``load_hermes_dotenv(hermes_home=...)`` call would bridge the wrong
     profile's config. Fail-open — a config problem must never break dotenv
     loading (the historical env-driven behavior still applies).
     """
@@ -612,7 +612,7 @@ def _apply_external_secret_sources(home_path: Path) -> None:
     UI surfaces read, and the startup status lines.
 
     Idempotent within a process: subsequent calls for the same
-    ``home_path`` are no-ops.  ``load_sparkii_dotenv()`` runs at import
+    ``home_path`` are no-ops.  ``load_hermes_dotenv()`` runs at import
     time from several hot modules (cli.py, sparkii_cli/main.py,
     run_agent.py, trajectory_compressor.py, ...), so without this guard
     the status lines would print 3-5x per CLI startup.  Use
@@ -634,7 +634,7 @@ def _apply_external_secret_sources(home_path: Path) -> None:
         # No secrets section (or everything disabled at parse level).  Not
         # marked applied either — the re-parse is a cheap fast_safe_load and
         # leaving the home unmarked lets a process pick up a config change
-        # on its next load_sparkii_dotenv() call instead of never.
+        # on its next load_hermes_dotenv() call instead of never.
         return
 
     try:
@@ -654,7 +654,7 @@ def _apply_external_secret_sources(home_path: Path) -> None:
         return
 
     # A real fetch attempt happened (success OR error).  Mark the home now
-    # so the 3-5 import-time load_sparkii_dotenv() calls per startup don't
+    # so the 3-5 import-time load_hermes_dotenv() calls per startup don't
     # re-fetch / re-print — error retries within one process are opt-in via
     # reset_secret_source_cache().  Marking AFTER the attempt (not before,
     # see #40597) is what lets the earlier failure paths stay retryable.

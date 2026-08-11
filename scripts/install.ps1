@@ -365,7 +365,7 @@ $script:ResolvedPathReport = @{
     normalized        = $script:NormalizedPathRewrites
     resolver          = $script:LastResolver
     temp              = $env:TEMP
-    sparkii_home       = $SparkiiHome
+    hermes_home       = $SparkiiHome
     install_dir       = $InstallDir
 }
 
@@ -373,8 +373,8 @@ $script:ResolvedPathReport = @{
 # Configuration
 # ============================================================================
 
-$RepoUrlSsh = "git@github.com:YueDJ/SpaikiiDesktop.git"
-$RepoUrlHttps = "https://github.com/YueDJ/SpaikiiDesktop.git"
+$RepoUrlSsh = "git@github.com:NousResearch/sparkii-agent.git"
+$RepoUrlHttps = "https://github.com/NousResearch/sparkii-agent.git"
 $PythonVersion = "3.11"
 # Minor versions the installer accepts when the requested $PythonVersion isn't
 # available, in preference order.  uv discovers both uv-managed and system
@@ -2121,13 +2121,13 @@ function Install-Repository {
                 # for.  GitHub supports archive URLs for commits, tags, and
                 # branches; we honour Commit > Tag > Branch.
                 if ($Commit) {
-                    $zipUrl = "https://github.com/YueDJ/SpaikiiDesktop/archive/$Commit.zip"
+                    $zipUrl = "https://github.com/NousResearch/sparkii-agent/archive/$Commit.zip"
                     $zipLabel = $Commit
                 } elseif ($Tag) {
-                    $zipUrl = "https://github.com/YueDJ/SpaikiiDesktop/archive/refs/tags/$Tag.zip"
+                    $zipUrl = "https://github.com/NousResearch/sparkii-agent/archive/refs/tags/$Tag.zip"
                     $zipLabel = $Tag
                 } else {
-                    $zipUrl = "https://github.com/YueDJ/SpaikiiDesktop/archive/refs/heads/$Branch.zip"
+                    $zipUrl = "https://github.com/NousResearch/sparkii-agent/archive/refs/heads/$Branch.zip"
                     $zipLabel = $Branch
                 }
                 $zipPath = "$env:TEMP\sparkii-agent-$zipLabel.zip"
@@ -2303,7 +2303,7 @@ function Install-Venv {
             # on failure -- but only for tasks that were enabled to begin with.
             # Best-effort: a missing task just errors quietly.
             try {
-                schtasks /Query /FO CSV 2>$null | ConvertFrom-Csv | Where-Object { $_.TaskName -like '*Sparkii_Gateway*' } | ForEach-Object {
+                schtasks /Query /FO CSV 2>$null | ConvertFrom-Csv | Where-Object { $_.TaskName -like '*Hermes_Gateway*' } | ForEach-Object {
                     $tn = $_.TaskName
                     if ($_.Status -eq 'Disabled') {
                         Write-Info "  gateway autostart task $tn is already disabled; leaving it that way"
@@ -3317,7 +3317,7 @@ function Install-Desktop {
     # itself, ~150MB), then run `npm run pack` in apps/desktop which
     # produces the unpacked binary at apps/desktop/release/<os>-unpacked/.
     #
-    # The Tauri bootstrap installer's launch_sparkii_desktop command
+    # The Tauri bootstrap installer's launch_hermes_desktop command
     # resolves apps/desktop/release/win-unpacked/Sparkii.exe directly,
     # so an "unpacked" build (electron-builder --dir) is enough -- we
     # don't need to produce an NSIS/MSI artifact here.

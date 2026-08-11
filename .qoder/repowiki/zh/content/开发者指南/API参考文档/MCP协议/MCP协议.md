@@ -27,7 +27,7 @@
 
 ## 项目结构
 围绕MCP的关键实现分布在以下模块：
-- mcp_serve.py：以FastMCP实现的“Hermes MCP服务器”，将对话会话、消息、事件等暴露为MCP工具，供外部MCP客户端消费。
+- mcp_serve.py：以FastMCP实现的“Sparkii MCP服务器”，将对话会话、消息、事件等暴露为MCP工具，供外部MCP客户端消费。
 - tools/mcp_tool.py：MCP客户端支持，负责连接外部MCP服务器（stdio/HTTP/SSE）、发现工具、注册到代理工具表、执行调用、重连与生命周期管理。
 - sparkii_cli/mcp_config.py：CLI命令用于添加/删除/列出/测试/配置MCP服务器，包含交互式工具选择、鉴权配置与探测。
 - tools/mcp_oauth.py：MCP OAuth 2.1（PKCE）客户端实现，含本地回调服务、令牌持久化、动态客户端注册与元数据缓存。

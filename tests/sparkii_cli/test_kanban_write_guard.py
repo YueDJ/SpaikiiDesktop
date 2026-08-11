@@ -9,7 +9,7 @@ from sparkii_cli import kanban_db
 
 def test_connect_succeeds_under_test_home(tmp_path, monkeypatch):
     """When SPARKII_HOME is a temp dir, kanban connect succeeds normally."""
-    home = tmp_path / "sparkii_home"
+    home = tmp_path / "hermes_home"
     home.mkdir()
     monkeypatch.setenv("SPARKII_HOME", str(home))
     conn = kanban_db.connect()

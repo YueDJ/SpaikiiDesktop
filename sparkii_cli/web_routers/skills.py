@@ -8,7 +8,7 @@ its original registration point.
 
 Handler bodies are byte-identical; web_server-owned helpers are reached via
 the late-binding seam in :mod:`sparkii_cli.web_deps` so tests that
-``monkeypatch.setattr(web_server, "_spawn_sparkii_action", ...)`` keep
+``monkeypatch.setattr(web_server, "_spawn_hermes_action", ...)`` keep
 working.
 """
 
@@ -43,7 +43,7 @@ _installed_hub_identifiers = late("_installed_hub_identifiers")
 _profile_cli_args = late("_profile_cli_args")
 _profile_scope = late("_profile_scope")
 _skill_meta_to_payload = late("_skill_meta_to_payload")
-_spawn_sparkii_action = late("_spawn_sparkii_action")
+_spawn_hermes_action = late("_spawn_hermes_action")
 load_config = late("load_config")
 
 # Live proxies for web_server-owned module state (mutations/monkeypatches
@@ -62,7 +62,7 @@ async def install_skill_hub(body: SkillInstallRequest, profile: Optional[str] = 
         raise HTTPException(status_code=400, detail="identifier is required")
     name = _hub_action_name("install", identifier)
     try:
-        proc = _spawn_sparkii_action(
+        proc = _spawn_hermes_action(
             _profile_cli_args(body.profile or profile)
             + ["skills", "install", identifier, "--yes"],
             name,
@@ -82,7 +82,7 @@ async def uninstall_skill_hub(body: SkillUninstallRequest, profile: Optional[str
         raise HTTPException(status_code=400, detail="name is required")
     action = _hub_action_name("uninstall", name)
     try:
-        proc = _spawn_sparkii_action(
+        proc = _spawn_hermes_action(
             _profile_cli_args(body.profile or profile) + ["skills", "uninstall", name, "--yes"],
             action,
         )
@@ -100,7 +100,7 @@ async def update_skills_hub(
 ):
     try:
         effective = (body.profile if body else None) or profile
-        proc = _spawn_sparkii_action(
+        proc = _spawn_hermes_action(
             _profile_cli_args(effective) + ["skills", "update"], "skills-update"
         )
     except HTTPException:

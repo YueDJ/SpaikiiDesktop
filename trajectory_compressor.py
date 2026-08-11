@@ -49,11 +49,11 @@ from sparkii_constants import OPENROUTER_BASE_URL, get_sparkii_home
 from agent.retry_utils import jittered_backoff
 
 # Load .env from SPARKII_HOME first, then project root as a dev fallback.
-from sparkii_cli.env_loader import load_sparkii_dotenv
+from sparkii_cli.env_loader import load_hermes_dotenv
 
 _sparkii_home = get_sparkii_home()
 _project_env = Path(__file__).parent / ".env"
-load_sparkii_dotenv(sparkii_home=_sparkii_home, project_env=_project_env)
+load_hermes_dotenv(hermes_home=_sparkii_home, project_env=_project_env)
 
 
 def _effective_temperature_for_model(

@@ -5589,7 +5589,7 @@ class GatewaySlashCommandsMixin:
         files are written so either the current gateway process or the next one
         can notify the user when the update finishes.
         """
-        from gateway.run import _sparkii_home, _resolve_sparkii_bin
+        from gateway.run import _sparkii_home, _resolve_hermes_bin
         import json
         import shutil
         import subprocess
@@ -5618,9 +5618,9 @@ class GatewaySlashCommandsMixin:
         if not git_dir.exists():
             return t("gateway.update.not_git_repo")
 
-        sparkii_cmd = _resolve_sparkii_bin()
-        if not sparkii_cmd:
-            return t("gateway.update.sparkii_cmd_not_found")
+        hermes_cmd = _resolve_hermes_bin()
+        if not hermes_cmd:
+            return t("gateway.update.hermes_cmd_not_found")
 
         pending_path = _sparkii_home / ".update_pending.json"
         output_path = _sparkii_home / ".update_output.txt"
@@ -5672,7 +5672,7 @@ class GatewaySlashCommandsMixin:
                 import textwrap
                 from sparkii_cli._subprocess_compat import windows_detach_popen_kwargs
 
-                # sparkii_cmd is a list of argv parts we can pass directly
+                # hermes_cmd is a list of argv parts we can pass directly
                 # (no shell-quoting needed).
                 helper = textwrap.dedent(
                     """
@@ -5693,16 +5693,16 @@ class GatewaySlashCommandsMixin:
                     [
                         sys.executable, "-c", helper,
                         str(output_path), str(exit_code_path),
-                        *sparkii_cmd, "update", "--gateway",
+                        *hermes_cmd, "update", "--gateway",
                     ],
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                     **windows_detach_popen_kwargs(),
                 )
             else:
-                sparkii_cmd_str = " ".join(shlex.quote(part) for part in sparkii_cmd)
+                hermes_cmd_str = " ".join(shlex.quote(part) for part in hermes_cmd)
                 update_cmd = (
-                    f"PYTHONUNBUFFERED=1 {sparkii_cmd_str} update --gateway"
+                    f"PYTHONUNBUFFERED=1 {hermes_cmd_str} update --gateway"
                     f" > {shlex.quote(str(output_path))} 2>&1; "
                     # Avoid `status=$?`: `status` is a read-only special parameter
                     # in zsh, and this command string is copied/reused in macOS/zsh

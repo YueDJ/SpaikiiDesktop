@@ -47,7 +47,7 @@ def _load_plugin_router():
     plugin_file = repo_root / "plugins" / "kanban" / "dashboard" / "plugin_api.py"
     assert plugin_file.exists(), f"plugin file missing: {plugin_file}"
     spec = importlib.util.spec_from_file_location(
-        "sparkii_dashboard_plugin_kanban_model_override_test", plugin_file,
+        "hermes_dashboard_plugin_kanban_model_override_test", plugin_file,
     )
     assert spec is not None and spec.loader is not None
     mod = importlib.util.module_from_spec(spec)
@@ -118,7 +118,7 @@ def test_migration_adds_provider_override_column(conn):
 
 
 def _spawn_and_capture(monkeypatch, tmp_path, task):
-    monkeypatch.setattr(kb, "_resolve_sparkii_argv", lambda: ["sparkii"])
+    monkeypatch.setattr(kb, "_resolve_hermes_argv", lambda: ["sparkii"])
     captured = {}
 
     class FakeProc:

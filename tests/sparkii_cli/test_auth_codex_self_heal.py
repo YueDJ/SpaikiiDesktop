@@ -59,11 +59,11 @@ def test_self_heals_on_stale_refresh_token(monkeypatch):
 
 def test_self_heals_missing_singleton_access_token_from_codex_cli(tmp_path, monkeypatch):
     """Exact cron failure path: Sparkii auth has refresh_token but missing access_token."""
-    sparkii_home = tmp_path / "sparkii"
+    hermes_home = tmp_path / "sparkii"
     codex_home = tmp_path / "codex"
-    sparkii_home.mkdir()
+    hermes_home.mkdir()
     codex_home.mkdir()
-    (sparkii_home / "auth.json").write_text(json.dumps({
+    (hermes_home / "auth.json").write_text(json.dumps({
         "version": 1,
         "providers": {
             "openai-codex": {
@@ -79,14 +79,14 @@ def test_self_heals_missing_singleton_access_token_from_codex_cli(tmp_path, monk
             "refresh_token": "fresh-refresh",
         },
     }))
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
     monkeypatch.setenv("CODEX_HOME", str(codex_home))
 
     resolved = resolve_codex_runtime_credentials()
 
     assert resolved["api_key"] == "fresh-access"
     assert resolved["source"] == "sparkii-auth-store"
-    stored = json.loads((sparkii_home / "auth.json").read_text())
+    stored = json.loads((hermes_home / "auth.json").read_text())
     tokens = stored["providers"]["openai-codex"]["tokens"]
     assert tokens["access_token"] == "fresh-access"
     assert tokens["refresh_token"] == "fresh-refresh"

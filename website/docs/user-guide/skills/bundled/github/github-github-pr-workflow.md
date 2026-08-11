@@ -48,8 +48,8 @@ else
   AUTH="git"
   # Ensure we have a token for API calls
   if [ -z "$GITHUB_TOKEN" ]; then
-    if _sparkii_env="${SPARKII_HOME:-$HOME/.sparkii}/.env"; [ -f "$_sparkii_env" ] && grep -q "^GITHUB_TOKEN=" "$_sparkii_env"; then
-      GITHUB_TOKEN=$(grep "^GITHUB_TOKEN=" "$_sparkii_env" | head -1 | cut -d= -f2 | tr -d '\n\r')
+    if _hermes_env="${SPARKII_HOME:-$HOME/.sparkii}/.env"; [ -f "$_hermes_env" ] && grep -q "^GITHUB_TOKEN=" "$_hermes_env"; then
+      GITHUB_TOKEN=$(grep "^GITHUB_TOKEN=" "$_hermes_env" | head -1 | cut -d= -f2 | tr -d '\n\r')
     elif grep -q "github.com" ~/.git-credentials 2>/dev/null; then
       GITHUB_TOKEN=$(uv run python3 "${SPARKII_HOME:-$HOME/.sparkii}/skills/github/github-auth/scripts/git-credential-token.py")
     fi

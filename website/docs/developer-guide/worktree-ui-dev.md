@@ -41,13 +41,13 @@ The Ink TUI has a dev path already: `sparkii --tui --dev` runs the TypeScript so
 ```bash
 htui() {
   local root
-  root="$(_sparkii_root)" || { echo "htui: not in a Sparkii checkout" >&2; return 1; }
+  root="$(_hermes_root)" || { echo "htui: not in a Sparkii checkout" >&2; return 1; }
   ( cd "$root" && PYTHONPATH="$root" \
       "$SPARKII_MAIN_CHECKOUT/.venv/bin/python" -m sparkii_cli.main --tui --dev "$@" )
 }
 ```
 
-`--dev` compiles from source, so it links `ui-tui/node_modules` from `SPARKII_MAIN_CHECKOUT` when the root lockfile matches and installs locally otherwise (see [`_sparkii_root` / linking helpers](#shared-helpers)).
+`--dev` compiles from source, so it links `ui-tui/node_modules` from `SPARKII_MAIN_CHECKOUT` when the root lockfile matches and installs locally otherwise (see [`_hermes_root` / linking helpers](#shared-helpers)).
 
 :::warning `--dev` and `SPARKII_TUI_DIR` are mutually exclusive
 `SPARKII_TUI_DIR` points Sparkii at a *prebuilt* bundle (Nix, system packages), which has no source to hot-reload. If it's set in your shell, `sparkii --tui --dev` exits with an error. Run `unset SPARKII_TUI_DIR` before `htui`.
@@ -60,14 +60,14 @@ The desktop app is heavier: it needs `node_modules` at both the repo root and `a
 ```bash
 hgui() {
   local root deps desktop
-  root="$(_sparkii_root)" || { echo "hgui: not in a Sparkii checkout" >&2; return 1; }
+  root="$(_hermes_root)" || { echo "hgui: not in a Sparkii checkout" >&2; return 1; }
   deps="${SPARKII_GUI_DEPS_CHECKOUT:-$SPARKII_MAIN_CHECKOUT}"
   desktop="$root/apps/desktop"
 
   # Borrow deps when locks match; otherwise install locally in the worktree.
   if cmp -s "$root/package-lock.json" "$deps/package-lock.json"; then
-    _sparkii_link_deps "$desktop" "$deps/apps/desktop"
-    _sparkii_link_deps "$root" "$deps"
+    _hermes_link_deps "$desktop" "$deps/apps/desktop"
+    _hermes_link_deps "$root" "$deps"
   else
     ( cd "$root" && npm ci ) || return 1
   fi
@@ -76,7 +76,7 @@ hgui() {
   lsof -t -i:5174 >/dev/null 2>&1 && killport 5174
 
   # Electron often survives Ctrl+C without reaping its ephemeral backends.
-  trap '_sparkii_gui_cleanup "$root"' INT TERM EXIT
+  trap '_hermes_gui_cleanup "$root"' INT TERM EXIT
 
   ( cd "$desktop"
     export PATH="$root/node_modules/.bin:$PATH"
@@ -108,21 +108,21 @@ Both functions resolve the enclosing checkout and link deps the same way:
 
 ```bash
 # The enclosing worktree, verified as a real Sparkii checkout.
-_sparkii_root() {
+_hermes_root() {
   local root
   root="$(git rev-parse --show-toplevel 2>/dev/null)" || return 1
   [[ -f "$root/sparkii_cli/main.py" && -d "$root/ui-tui" ]] && print -r "$root"
 }
 
 # Symlink node_modules from the deps checkout — never over an existing tree.
-_sparkii_link_deps() {
+_hermes_link_deps() {
   local target="${1%/}" source="${2%/}"
   [[ -d "$source/node_modules" ]] || return 1
   [[ -e "$target/node_modules" ]] || ln -s "$source/node_modules" "$target/node_modules"
 }
 
 # Reap ephemeral backends Electron leaves behind on exit.
-_sparkii_gui_cleanup() {
+_hermes_gui_cleanup() {
   local root="$1"
   [[ -n "$root" ]] && pkill -TERM -f "${root}/apps/desktop/node_modules/electron" 2>/dev/null
   lsof -t -i:5174 >/dev/null 2>&1 && killport 5174
@@ -141,5 +141,5 @@ A symlink to a divergent `node_modules` is worse than no install — the worktre
 - [Git Worktrees](../user-guide/git-worktrees.md) — the isolation model these helpers build on
 - [TUI](../user-guide/tui.md) — `sparkii --tui --dev` and the `SPARKII_TUI_DIR` prebuild path
 - [Desktop App](../user-guide/desktop.md) — building from source and the backend resolution ladder
-- [`apps/desktop/README.md`](https://github.com/YueDJ/SparkiiAgent/blob/main/apps/desktop/README.md) — dev server, sandbox script, and packaging
+- [`apps/desktop/README.md`](https://github.com/NousResearch/sparkii-agent/blob/main/apps/desktop/README.md) — dev server, sandbox script, and packaging
 - [Environment Variables](../reference/environment-variables.md) — every `SPARKII_*` variable Sparkii reads

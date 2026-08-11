@@ -25,7 +25,7 @@ import pytest
 
 
 @pytest.fixture
-def sparkii_home(tmp_path, monkeypatch):
+def hermes_home(tmp_path, monkeypatch):
     """Isolated SPARKII_HOME so SessionDB.state_meta writes stay hermetic."""
     home = tmp_path / ".sparkii"
     home.mkdir()
@@ -68,7 +68,7 @@ def _make_cli_with_goal(session_id: str, goal_text: str = "build a thing"):
 
 class TestInterruptAutoPause:
 
-    def test_interrupted_turn_is_resumable(self, sparkii_home):
+    def test_interrupted_turn_is_resumable(self, hermes_home):
         """After auto-pause from Ctrl+C, /goal resume puts it back to active."""
         sid = f"sid-resume-{uuid.uuid4().hex}"
         cli, mgr = _make_cli_with_goal(sid)
@@ -88,7 +88,7 @@ class TestInterruptAutoPause:
 
 class TestHealthyTurnStillRuns:
     def test_clean_response_enqueues_continuation_when_judge_says_continue(
-        self, sparkii_home,
+        self, hermes_home,
     ):
         """Sanity check: the hook still works in the happy path."""
         sid = f"sid-healthy-{uuid.uuid4().hex}"
@@ -112,7 +112,7 @@ class TestHealthyTurnStillRuns:
         assert "Continuing toward your standing goal" in queued
         assert mgr.state.status == "active"
 
-    def test_clean_response_marks_done_when_judge_says_done(self, sparkii_home):
+    def test_clean_response_marks_done_when_judge_says_done(self, hermes_home):
         sid = f"sid-done-{uuid.uuid4().hex}"
         cli, mgr = _make_cli_with_goal(sid)
         cli._last_turn_interrupted = False
@@ -131,7 +131,7 @@ class TestHealthyTurnStillRuns:
 
 
 class TestInterruptFlagLifecycle:
-    def test_chat_resets_flag_at_entry(self, sparkii_home):
+    def test_chat_resets_flag_at_entry(self, hermes_home):
         """chat() must reset _last_turn_interrupted at the top of each turn.
 
         This guards against stale flag state: if turn N was interrupted and

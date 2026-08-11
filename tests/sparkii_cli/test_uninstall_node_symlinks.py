@@ -25,9 +25,9 @@ def fake_home(tmp_path, monkeypatch):
     return home
 
 
-def _make_sparkii_node(sparkii_home: Path) -> Path:
+def _make_hermes_node(hermes_home: Path) -> Path:
     """Create a fake $SPARKII_HOME/node/bin/{node,npm,npx} tree."""
-    node_bin = sparkii_home / "node" / "bin"
+    node_bin = hermes_home / "node" / "bin"
     node_bin.mkdir(parents=True)
     for name in ("node", "npm", "npx"):
         (node_bin / name).write_text("#!/bin/sh\n")
@@ -39,8 +39,8 @@ def _make_sparkii_node(sparkii_home: Path) -> Path:
 
 def test_leaves_unrelated_symlinks_untouched(fake_home):
     """A node symlink the user repointed at nvm must survive uninstall."""
-    sparkii_home = fake_home / ".sparkii"
-    _make_sparkii_node(sparkii_home)
+    hermes_home = fake_home / ".sparkii"
+    _make_hermes_node(hermes_home)
     local_bin = fake_home / ".local" / "bin"
 
     # Simulate nvm's node living elsewhere; user's ~/.local/bin/node -> nvm.
@@ -49,7 +49,7 @@ def test_leaves_unrelated_symlinks_untouched(fake_home):
     (nvm_bin / "node").write_text("#!/bin/sh\n")
     (local_bin / "node").symlink_to(nvm_bin / "node")
 
-    removed = uninstall.remove_node_symlinks(sparkii_home)
+    removed = uninstall.remove_node_symlinks(hermes_home)
 
     assert removed == []
     assert (local_bin / "node").is_symlink()
@@ -70,8 +70,8 @@ def test_removes_fhs_symlinks_in_usr_local_bin(fake_home, tmp_path, monkeypatch)
     We monkeypatch _node_symlink_candidate_dirs to return a temp dir standing
     in for /usr/local/bin so the test doesn't need real root privileges.
     """
-    sparkii_home = fake_home / ".sparkii"
-    node_bin = _make_sparkii_node(sparkii_home)
+    hermes_home = fake_home / ".sparkii"
+    node_bin = _make_hermes_node(hermes_home)
 
     # Fake /usr/local/bin as a temp dir with our symlinks.
     fhs_bin = tmp_path / "usr_local_bin"
@@ -91,7 +91,7 @@ def test_removes_fhs_symlinks_in_usr_local_bin(fake_home, tmp_path, monkeypatch)
         uninstall, "_node_symlink_candidate_dirs", lambda: [fhs_bin]
     )
 
-    removed = uninstall.remove_node_symlinks(sparkii_home)
+    removed = uninstall.remove_node_symlinks(hermes_home)
 
     assert sorted(p.name for p in removed) == ["node", "npm", "npx"]
     for name in ("node", "npm", "npx"):

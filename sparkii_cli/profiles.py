@@ -216,7 +216,7 @@ _DEFAULT_EXPORT_EXCLUDE_ROOT = frozenset({
     ".env",                 # API keys (dotenv)
     "auth.lock", "active_profile", ".update_check",
     "errors.log",
-    ".sparkii_history",
+    ".hermes_history",
     # Caches (regenerated on use)
     "image_cache", "audio_cache", "document_cache",
     "browser_screenshots", "checkpoints",
@@ -285,8 +285,8 @@ def _get_default_sparkii_home() -> Path:
     In Docker/custom deployments where SPARKII_HOME is outside ``~/.sparkii``
     (e.g. ``/opt/data``), returns SPARKII_HOME directly.
     """
-    from sparkii_constants import get_default_sparkii_root
-    return get_default_sparkii_root()
+    from sparkii_constants import get_default_hermes_root
+    return get_default_hermes_root()
 
 
 def _get_active_profile_path() -> Path:
@@ -461,7 +461,7 @@ def create_wrapper_script(name: str, target: Optional[str] = None) -> Optional[P
     if is_windows:
         wrapper_path = wrapper_dir / f"{canon}.bat"
         try:
-            wrapper_path.write_text(f"@echo off\r\nsparkii -p {profile} %*\r\n", encoding="utf-8")
+            wrapper_path.write_text(f"@echo off\r\nhermes -p {profile} %*\r\n", encoding="utf-8")
             return wrapper_path
         except OSError as e:
             print(f"⚠ Could not create wrapper at {wrapper_path}: {e}")
@@ -469,8 +469,8 @@ def create_wrapper_script(name: str, target: Optional[str] = None) -> Optional[P
     else:
         wrapper_path = wrapper_dir / canon
         try:
-            sparkii_exe = shutil.which("sparkii") or "sparkii"
-            wrapper_path.write_text(f'#!/bin/sh\nexec {shlex.quote(sparkii_exe)} -p {profile} "$@"\n', encoding="utf-8")
+            hermes_exe = shutil.which("sparkii") or "sparkii"
+            wrapper_path.write_text(f'#!/bin/sh\nexec {shlex.quote(hermes_exe)} -p {profile} "$@"\n', encoding="utf-8")
             wrapper_path.chmod(wrapper_path.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
             return wrapper_path
         except OSError as e:
@@ -955,7 +955,7 @@ def list_profiles() -> List[ProfileInfo]:
 
 
 def profiles_to_serve(multiplex: bool) -> List[Tuple[str, Path]]:
-    """Return the ``(profile_name, sparkii_home)`` pairs a gateway should serve.
+    """Return the ``(profile_name, hermes_home)`` pairs a gateway should serve.
 
     This is the single chokepoint for "which profiles does the inbound gateway
     handle" so later multiplexing phases never re-derive the set.
@@ -971,7 +971,7 @@ def profiles_to_serve(multiplex: bool) -> List[Tuple[str, Path]]:
     per-profile config reads, gateway-running probes, or skill counts like
     :func:`list_profiles`. It runs on gateway startup and must stay cheap.
 
-    The returned ``sparkii_home`` is the path to pass to
+    The returned ``hermes_home`` is the path to pass to
     ``set_sparkii_home_override`` when scoping a turn to that profile.
     """
     active = get_active_profile_name() or "default"
@@ -1330,7 +1330,7 @@ def _profile_bound_backend_pids(canon: str, profile_dir: Path) -> list[int]:
         current_user = None
 
     backend_tokens = {"serve", "dashboard", "gateway"}
-    sparkii_markers = ("sparkii_cli.main", "sparkii-gateway", "tui_gateway")
+    hermes_markers = ("sparkii_cli.main", "sparkii-gateway", "tui_gateway")
     pids: list[int] = []
 
     for proc in psutil.process_iter(["pid", "name", "username", "cmdline"]):
@@ -1350,12 +1350,12 @@ def _profile_bound_backend_pids(canon: str, profile_dir: Path) -> list[int]:
             # a resolved executable named `sparkii`.
             joined = " ".join(argv)
             exe_name = os.path.basename(argv[0]).lower()
-            is_sparkii = (
-                any(marker in joined for marker in sparkii_markers)
+            is_hermes = (
+                any(marker in joined for marker in hermes_markers)
                 or exe_name == "sparkii"
                 or exe_name.startswith("sparkii")
             )
-            if not is_sparkii:
+            if not is_hermes:
                 continue
 
             # Restrict to backend subcommands so we never kill an interactive
@@ -1845,8 +1845,8 @@ def get_active_profile_name() -> str:
     Returns ``"custom"`` if SPARKII_HOME is set to an unrecognized path.
     """
     from sparkii_constants import get_sparkii_home
-    sparkii_home = get_sparkii_home()
-    resolved = sparkii_home.resolve()
+    hermes_home = get_sparkii_home()
+    resolved = hermes_home.resolve()
 
     default_resolved = _get_default_sparkii_home().resolve()
     if resolved == default_resolved:
@@ -1882,7 +1882,8 @@ def _default_export_ignore(root_dir: Path):
     * **Universal exclusions at any depth** — ``__pycache__``, sockets,
       temp files; plus npm lockfiles, which may appear at the root.
 
-    All other profile artifacts are copied through untouched.
+    Surviving text files are later force-redacted by
+    :func:`_scrub_export_secrets` before the archive is written.
     """
 
     def _ignore(directory: str, contents: list) -> set:
@@ -1922,13 +1923,89 @@ def _make_profile_archive(base: str, root_dir: str, base_dir: str) -> str:
     return archive_path
 
 
+# Text / config suffixes walked during export secret scrubbing. Binary DBs,
+# images, and other non-text artifacts are left alone (they may still leave
+# via named-profile export — scrubbing those is a separate concern).
+_EXPORT_REDACT_SUFFIXES = frozenset({
+    ".md", ".txt", ".yaml", ".yml", ".json", ".jsonl",
+    ".toml", ".ini", ".cfg", ".conf", ".py", ".sh",
+    ".bash", ".zsh", ".js", ".ts", ".tsx", ".jsx",
+    ".css", ".html", ".xml", ".csv",
+})
+# pathlib.Path(".cursorrules").suffix is "" — name-match these.
+# ``*.env.example`` uses endswith (suffix would be ``.example``).
+_EXPORT_REDACT_NAMES = frozenset({
+    ".cursorrules",
+})
+
+
+def _should_redact_export_file(path: Path) -> bool:
+    """True when *path* is a text-ish file we should secret-scrub on export."""
+    name = path.name
+    if name in _EXPORT_REDACT_NAMES:
+        return True
+    if name.lower().endswith(".env.example"):
+        return True
+    return path.suffix.lower() in _EXPORT_REDACT_SUFFIXES
+
+
+def _scrub_export_secrets(staged: Path) -> None:
+    """Force-redact secret-shaped strings in a staged export tree.
+
+    Same ``agent.redact.redact_sensitive_text(..., force=True)`` pass used by
+    ``sparkii sessions export --redact``. Runs on the *staged copy only* so the
+    live profile is never rewritten. ``force=True`` ignores
+    ``security.redact_secrets`` / ``SPARKII_REDACT_SECRETS`` — share archives
+    must not emit raw keys even when the user has disabled live redaction.
+
+    Symlinks to text files are materialized into regular files when their
+    content changes, so redaction never follows a link back into the source
+    profile (``copytree(..., symlinks=True)``).
+    """
+    from agent.redact import redact_sensitive_text
+
+    for path in staged.rglob("*"):
+        try:
+            is_link = path.is_symlink()
+        except OSError:
+            continue
+        if is_link:
+            # Skip broken links and symlinked directories.
+            try:
+                if not path.exists() or path.is_dir():
+                    continue
+            except OSError:
+                continue
+        elif not path.is_file():
+            continue
+
+        if not _should_redact_export_file(path):
+            continue
+
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue
+
+        redacted = redact_sensitive_text(text, force=True)
+        if redacted == text:
+            continue
+
+        if is_link:
+            path.unlink()
+        path.write_text(redacted, encoding="utf-8")
+
+
 def export_profile(name: str, output_path: str, extra_files: Optional[Dict[str, str]] = None) -> Path:
     """Export a profile to a tar.gz archive.
 
     ``extra_files`` maps root-relative filenames (e.g. ``desktop.json``) to
     text content staged into the archive alongside the profile's own files —
     the desktop app uses it to bundle its appearance/interface overlay.
-    Returns the output file path.
+
+    Credential files (``auth.json``, ``.env``) are excluded, and secret-shaped
+    strings in staged text files are force-redacted before the archive is
+    written. Returns the output file path.
     """
     import tempfile
 
@@ -1962,6 +2039,7 @@ def export_profile(name: str, output_path: str, extra_files: Optional[Dict[str, 
                 ignore=_default_export_ignore(profile_dir),
             )
             _stage_extras(staged)
+            _scrub_export_secrets(staged)
             result = _make_profile_archive(base, tmpdir, "default")
             return Path(result)
 
@@ -1976,6 +2054,7 @@ def export_profile(name: str, output_path: str, extra_files: Optional[Dict[str, 
             ignore=lambda d, contents: _CREDENTIAL_FILES & set(contents),
         )
         _stage_extras(staged)
+        _scrub_export_secrets(staged)
         result = _make_profile_archive(base, tmpdir, canon)
         return Path(result)
 
@@ -2126,9 +2205,9 @@ def import_profile(archive_path: str, name: Optional[str] = None) -> Path:
 
 def _migrate_honcho_profile_host(old_name: str, new_name: str, new_dir: Path) -> None:
     """Rename Honcho host blocks for a renamed profile without changing peers."""
-    old_host = f"sparkii_{old_name}"
+    old_host = f"hermes_{old_name}"
     legacy_old_host = f"sparkii.{old_name}"
-    new_host = f"sparkii_{new_name}"
+    new_host = f"hermes_{new_name}"
 
     candidates = [
         new_dir / "honcho.json",
@@ -2164,7 +2243,7 @@ def _migrate_honcho_profile_host(old_name: str, new_name: str, new_dir: Path) ->
 
         block = hosts[source_host]
         if isinstance(block, dict) and "aiPeer" not in block:
-            if source_host.startswith("sparkii_"):
+            if source_host.startswith("hermes_"):
                 bare = source_host.split("_", 1)[1]
             else:
                 bare = source_host.split(".", 1)[1] if "." in source_host else source_host

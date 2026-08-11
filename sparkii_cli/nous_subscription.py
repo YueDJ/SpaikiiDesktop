@@ -159,7 +159,7 @@ def _toolset_enabled(config: Dict[str, object], toolset_key: str) -> bool:
 def _has_agent_browser() -> bool:
     import shutil
 
-    from sparkii_constants import agent_browser_runnable, with_sparkii_node_path
+    from sparkii_constants import agent_browser_runnable, with_hermes_node_path
 
     # Validate the resolved binary actually runs — a dangling global symlink
     # (issue #48521) is reported by ``which`` but fails at exec. Fall through to
@@ -171,7 +171,7 @@ def _has_agent_browser() -> bool:
     # are prepended to PATH at runtime but usually absent from the *probe*
     # process's PATH — the same rung `_find_agent_browser` searches. Without
     # it a successful install keeps reporting "needs setup" on Windows.
-    managed_path = with_sparkii_node_path().get("PATH", "")
+    managed_path = with_hermes_node_path().get("PATH", "")
     if managed_path:
         managed_hit = shutil.which("agent-browser", path=managed_path)
         if managed_hit and agent_browser_runnable(managed_hit):

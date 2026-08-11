@@ -4,7 +4,7 @@ import { join } from 'node:path'
 
 const MAX = 1000
 const dir = process.env.SPARKII_HOME ?? join(homedir(), '.sparkii')
-const file = join(dir, '.sparkii_history')
+const file = join(dir, '.hermes_history')
 
 let cache: string[] | null = null
 

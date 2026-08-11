@@ -63,7 +63,7 @@ class TestProfileScopedDiscovery:
         # profiles inside profiles is how a `-p work` CLI and its gateway end
         # up reading different files. Patch that seam, not get_sparkii_home.
         with patch("gateway.pairing.PAIRING_DIR", global_dir), patch(
-            "gateway.pairing.get_default_sparkii_root", return_value=home
+            "gateway.pairing.get_default_hermes_root", return_value=home
         ):
             store = PairingStore(profile="alice")
             # Scoped under the mocked root's profile dir, using the same
@@ -587,14 +587,14 @@ class TestProfileScopedStorage:
 
     def test_profile_store_matches_profile_cli_home(self, tmp_path, monkeypatch):
         """Gateway and ``sparkii -p`` must resolve the same pairing store."""
-        from sparkii_constants import get_sparkii_dir
+        from sparkii_constants import get_hermes_dir
 
         monkeypatch.setenv("SPARKII_HOME", str(tmp_path))
         profile_home = tmp_path / "profiles" / "coder"
         profile_home.mkdir(parents=True)
 
         gateway_store = PairingStore(profile="coder")
-        cli_dir = get_sparkii_dir(
+        cli_dir = get_hermes_dir(
             "platforms/pairing",
             "pairing",
             home=profile_home,
@@ -604,10 +604,10 @@ class TestProfileScopedStorage:
 
     def test_default_profile_store_is_global_store(self, tmp_path, monkeypatch):
         """Multiplexing must not invent a ``profiles/default`` store."""
-        from sparkii_constants import get_sparkii_dir
+        from sparkii_constants import get_hermes_dir
 
         monkeypatch.setenv("SPARKII_HOME", str(tmp_path))
-        expected = get_sparkii_dir(
+        expected = get_hermes_dir(
             "platforms/pairing",
             "pairing",
             home=tmp_path,

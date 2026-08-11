@@ -210,7 +210,7 @@ class TestMigrate:
 
 
     def test_full_migration_round_trip(self, tmp_path):
-        sparkii_cfg = {
+        hermes_cfg = {
             "mcp_servers": {
                 "filesystem": {
                     "command": "npx",
@@ -222,7 +222,7 @@ class TestMigrate:
                 },
             }
         }
-        report = migrate(sparkii_cfg, codex_home=tmp_path, expose_sparkii_tools=False)
+        report = migrate(hermes_cfg, codex_home=tmp_path, expose_sparkii_tools=False)
         assert report.written
         text = (tmp_path / "config.toml").read_text()
         assert "[mcp_servers.filesystem]" in text

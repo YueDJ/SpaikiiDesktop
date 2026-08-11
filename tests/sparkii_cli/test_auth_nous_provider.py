@@ -86,7 +86,7 @@ class TestResolveVerifyFallback:
 
 
 def _setup_nous_auth(
-    sparkii_home: Path,
+    hermes_home: Path,
     *,
     access_token: str = "",
     refresh_token: str = "refresh-old",
@@ -97,7 +97,7 @@ def _setup_nous_auth(
     agent_key_expires_at: str | None = None,
 ) -> None:
     access_token = access_token or _invoke_jwt(seconds=3600, scope=scope)
-    sparkii_home.mkdir(parents=True, exist_ok=True)
+    hermes_home.mkdir(parents=True, exist_ok=True)
     auth_store = {
         "version": 1,
         "active_provider": "nous",
@@ -122,7 +122,7 @@ def _setup_nous_auth(
             }
         },
     }
-    (sparkii_home / "auth.json").write_text(json.dumps(auth_store, indent=2))
+    (hermes_home / "auth.json").write_text(json.dumps(auth_store, indent=2))
 
 
 def _jwt_with_claims(claims: dict) -> str:
@@ -151,16 +151,16 @@ def test_resolve_nous_runtime_credentials_prefers_invoke_jwt_and_mirrors(
 ):
     import sparkii_cli.auth as auth_mod
 
-    sparkii_home = tmp_path / "sparkii"
+    hermes_home = tmp_path / "sparkii"
     token = _invoke_jwt(seconds=3600)
     _setup_nous_auth(
-        sparkii_home,
+        hermes_home,
         access_token=token,
         scope=auth_mod.DEFAULT_NOUS_SCOPE,
         expires_at=_future_iso(3600),
         expires_in=3600,
     )
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     creds = auth_mod.resolve_nous_runtime_credentials()
 
@@ -168,7 +168,7 @@ def test_resolve_nous_runtime_credentials_prefers_invoke_jwt_and_mirrors(
     assert creds["source"] == auth_mod.NOUS_AUTH_PATH_INVOKE_JWT
     assert creds["auth_path"] == auth_mod.NOUS_AUTH_PATH_INVOKE_JWT
 
-    payload = json.loads((sparkii_home / "auth.json").read_text())
+    payload = json.loads((hermes_home / "auth.json").read_text())
     singleton = payload["providers"]["nous"]
     assert singleton["agent_key"] == token
     assert datetime.fromisoformat(singleton["agent_key_expires_at"]).timestamp() > time.time() + 300
@@ -185,8 +185,8 @@ def test_resolve_nous_runtime_credentials_invoke_jwt_is_idempotent(
 ):
     import sparkii_cli.auth as auth_mod
 
-    sparkii_home = tmp_path / "sparkii"
-    sparkii_home.mkdir(parents=True, exist_ok=True)
+    hermes_home = tmp_path / "sparkii"
+    hermes_home.mkdir(parents=True, exist_ok=True)
     exp = int(time.time() + 3600)
     expires_at = datetime.fromtimestamp(exp, tz=timezone.utc).isoformat()
     token = _jwt_with_claims({
@@ -220,11 +220,11 @@ def test_resolve_nous_runtime_credentials_invoke_jwt_is_idempotent(
             },
         },
     }
-    auth_path = sparkii_home / "auth.json"
+    auth_path = hermes_home / "auth.json"
     auth_path.write_text(json.dumps(auth_store, indent=2))
     before_content = auth_path.read_text()
     before_mtime = auth_path.stat().st_mtime_ns
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     def _unexpected_shared_write(*args, **kwargs):
         raise AssertionError("unchanged invoke JWT resolution should not sync shared store")
@@ -258,28 +258,28 @@ def test_resolve_nous_runtime_credentials_reauths_when_invoke_scope_missing(
 ):
     import sparkii_cli.auth as auth_mod
 
-    sparkii_home = tmp_path / "sparkii"
+    hermes_home = tmp_path / "sparkii"
     token = _jwt_with_claims({
         "sub": "test-user",
         "scope": "inference:mint_agent_key",
         "exp": int(time.time() + 3600),
     })
     _setup_nous_auth(
-        sparkii_home,
+        hermes_home,
         access_token=token,
         refresh_token="",
         scope="inference:mint_agent_key",
         expires_at=_future_iso(3600),
         expires_in=3600,
     )
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     with pytest.raises(AuthError) as exc:
         auth_mod.resolve_nous_runtime_credentials()
 
     assert exc.value.code == "missing_inference_invoke_scope"
     assert exc.value.relogin_required is True
-    payload = json.loads((sparkii_home / "auth.json").read_text())
+    payload = json.loads((hermes_home / "auth.json").read_text())
     assert payload["providers"]["nous"]["agent_key"] is None
     assert "credential_pool" not in payload or not payload["credential_pool"].get("nous")
 
@@ -289,22 +289,22 @@ def test_resolve_nous_runtime_credentials_reauths_when_invoke_scope_missing(
 def test_removed_legacy_session_env_var_does_not_change_jwt_auth(tmp_path, monkeypatch):
     import sparkii_cli.auth as auth_mod
 
-    sparkii_home = tmp_path / "sparkii"
+    hermes_home = tmp_path / "sparkii"
     token = _invoke_jwt(seconds=3600)
     _setup_nous_auth(
-        sparkii_home,
+        hermes_home,
         access_token=token,
         scope=auth_mod.DEFAULT_NOUS_SCOPE,
         expires_at=_future_iso(3600),
         expires_in=3600,
     )
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
     monkeypatch.setenv("SPARKII_AGENT_USE_LEGACY_SESSION_KEYS", "true")
 
     creds = auth_mod.resolve_nous_runtime_credentials()
 
     assert creds["api_key"] == token
-    payload = json.loads((sparkii_home / "auth.json").read_text())
+    payload = json.loads((hermes_home / "auth.json").read_text())
     assert payload["providers"]["nous"]["agent_key"] == token
 
     requested_scopes = []
@@ -352,19 +352,19 @@ def test_nous_inference_auth_logs_do_not_include_secret_values(
 ):
     import sparkii_cli.auth as auth_mod
 
-    sparkii_home = tmp_path / "sparkii"
+    hermes_home = tmp_path / "sparkii"
     token = _invoke_jwt(seconds=3600)
     refreshed_token = _invoke_jwt(seconds=7200)
     refresh_token = "refresh-secret-token"
     _setup_nous_auth(
-        sparkii_home,
+        hermes_home,
         access_token=token,
         refresh_token=refresh_token,
         scope=auth_mod.DEFAULT_NOUS_SCOPE,
         expires_at=_future_iso(3600),
         expires_in=3600,
     )
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     def _fake_refresh_access_token(*, client, portal_base_url, client_id, refresh_token):
         del client, portal_base_url, client_id, refresh_token
@@ -403,13 +403,13 @@ def test_get_nous_auth_status_checks_credential_pool(tmp_path, monkeypatch):
     """
     from sparkii_cli.auth import get_nous_auth_status
 
-    sparkii_home = tmp_path / "sparkii"
-    sparkii_home.mkdir(parents=True, exist_ok=True)
+    hermes_home = tmp_path / "sparkii"
+    hermes_home.mkdir(parents=True, exist_ok=True)
     # Empty auth store — no Nous provider entry
-    (sparkii_home / "auth.json").write_text(json.dumps({
+    (hermes_home / "auth.json").write_text(json.dumps({
         "version": 1, "providers": {},
     }))
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     # Seed the credential pool with a Nous entry
     from agent.credential_pool import PooledCredential, load_pool
@@ -442,12 +442,12 @@ def test_get_nous_auth_status_empty_returns_not_logged_in(tmp_path, monkeypatch)
     """
     from sparkii_cli.auth import get_nous_auth_status
 
-    sparkii_home = tmp_path / "sparkii"
-    sparkii_home.mkdir(parents=True, exist_ok=True)
-    (sparkii_home / "auth.json").write_text(json.dumps({
+    hermes_home = tmp_path / "sparkii"
+    hermes_home.mkdir(parents=True, exist_ok=True)
+    (hermes_home / "auth.json").write_text(json.dumps({
         "version": 1, "providers": {},
     }))
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     status = get_nous_auth_status()
     assert status["logged_in"] is False
@@ -476,11 +476,11 @@ class TestLoginNousSkipKeepsCurrent:
 
     def _setup_home_with_openrouter(self, tmp_path, monkeypatch):
         import yaml
-        sparkii_home = tmp_path / "sparkii"
-        sparkii_home.mkdir(parents=True, exist_ok=True)
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        hermes_home = tmp_path / "sparkii"
+        hermes_home.mkdir(parents=True, exist_ok=True)
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
-        config_path = sparkii_home / "config.yaml"
+        config_path = hermes_home / "config.yaml"
         config_path.write_text(yaml.safe_dump({
             "model": {
                 "provider": "openrouter",
@@ -488,13 +488,13 @@ class TestLoginNousSkipKeepsCurrent:
             },
         }, sort_keys=False))
 
-        auth_path = sparkii_home / "auth.json"
+        auth_path = hermes_home / "auth.json"
         auth_path.write_text(json.dumps({
             "version": 1,
             "active_provider": "openrouter",
             "providers": {"openrouter": {"api_key": "sk-or-fake"}},
         }))
-        return sparkii_home, config_path, auth_path
+        return hermes_home, config_path, auth_path
 
     def _patch_login_internals(self, monkeypatch, *, prompt_returns):
         """Patch OAuth + model-list + prompt so _login_nous doesn't hit network."""
@@ -539,7 +539,7 @@ class TestLoginNousSkipKeepsCurrent:
         import yaml
         from sparkii_cli.auth import PROVIDER_REGISTRY, _login_nous
 
-        sparkii_home, config_path, auth_path = self._setup_home_with_openrouter(
+        hermes_home, config_path, auth_path = self._setup_home_with_openrouter(
             tmp_path, monkeypatch,
         )
         self._patch_login_internals(monkeypatch, prompt_returns=None)
@@ -570,7 +570,7 @@ class TestLoginNousSkipKeepsCurrent:
         import yaml
         from sparkii_cli.auth import PROVIDER_REGISTRY, _login_nous
 
-        sparkii_home, config_path, auth_path = self._setup_home_with_openrouter(
+        hermes_home, config_path, auth_path = self._setup_home_with_openrouter(
             tmp_path, monkeypatch,
         )
         free_tier_calls = self._patch_login_internals(
@@ -598,11 +598,11 @@ class TestLoginNousSkipKeepsCurrent:
         import yaml
         from sparkii_cli.auth import PROVIDER_REGISTRY, _login_nous
 
-        sparkii_home = tmp_path / "sparkii"
-        sparkii_home.mkdir(parents=True, exist_ok=True)
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        hermes_home = tmp_path / "sparkii"
+        hermes_home.mkdir(parents=True, exist_ok=True)
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
-        config_path = sparkii_home / "config.yaml"
+        config_path = hermes_home / "config.yaml"
         config_path.write_text(yaml.safe_dump({"model": {}}, sort_keys=False))
 
         # No auth.json yet — simulates first-run before any OAuth
@@ -614,7 +614,7 @@ class TestLoginNousSkipKeepsCurrent:
         )
         _login_nous(args, PROVIDER_REGISTRY["nous"])
 
-        auth_path = sparkii_home / "auth.json"
+        auth_path = hermes_home / "auth.json"
         auth_after = json.loads(auth_path.read_text())
         # active_provider should NOT be set to "nous" after Skip
         assert auth_after.get("active_provider") in {None, ""}
@@ -665,12 +665,12 @@ def test_persist_nous_credentials_writes_both_pool_and_providers(tmp_path, monke
     """
     from sparkii_cli.auth import persist_nous_credentials, NOUS_DEVICE_CODE_SOURCE
 
-    sparkii_home = tmp_path / "sparkii"
-    sparkii_home.mkdir(parents=True, exist_ok=True)
-    (sparkii_home / "auth.json").write_text(json.dumps({
+    hermes_home = tmp_path / "sparkii"
+    hermes_home.mkdir(parents=True, exist_ok=True)
+    (hermes_home / "auth.json").write_text(json.dumps({
         "version": 1, "providers": {},
     }))
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     state = _full_state_fixture()
     entry = persist_nous_credentials(state)
@@ -679,7 +679,7 @@ def test_persist_nous_credentials_writes_both_pool_and_providers(tmp_path, monke
     assert entry.provider == "nous"
     assert entry.source == NOUS_DEVICE_CODE_SOURCE
 
-    payload = json.loads((sparkii_home / "auth.json").read_text())
+    payload = json.loads((hermes_home / "auth.json").read_text())
 
     # providers.nous populated with the full state (new behaviour)
     singleton = payload["providers"]["nous"]
@@ -709,12 +709,12 @@ def test_persist_nous_credentials_idempotent_no_duplicate_pool_entries(tmp_path,
     """
     from sparkii_cli.auth import persist_nous_credentials, NOUS_DEVICE_CODE_SOURCE
 
-    sparkii_home = tmp_path / "sparkii"
-    sparkii_home.mkdir(parents=True, exist_ok=True)
-    (sparkii_home / "auth.json").write_text(json.dumps({
+    hermes_home = tmp_path / "sparkii"
+    hermes_home.mkdir(parents=True, exist_ok=True)
+    (hermes_home / "auth.json").write_text(json.dumps({
         "version": 1, "providers": {},
     }))
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     first = _full_state_fixture()
     persist_nous_credentials(first)
@@ -726,7 +726,7 @@ def test_persist_nous_credentials_idempotent_no_duplicate_pool_entries(tmp_path,
     second["agent_key_expires_at"] = _future_iso(7200)
     persist_nous_credentials(second)
 
-    payload = json.loads((sparkii_home / "auth.json").read_text())
+    payload = json.loads((hermes_home / "auth.json").read_text())
 
     # providers.nous reflects the latest write (singleton semantics)
     assert payload["providers"]["nous"]["access_token"] == second_token
@@ -749,12 +749,12 @@ def test_persist_nous_credentials_no_label_uses_auto_derived(tmp_path, monkeypat
     """
     from sparkii_cli.auth import persist_nous_credentials
 
-    sparkii_home = tmp_path / "sparkii"
-    sparkii_home.mkdir(parents=True, exist_ok=True)
-    (sparkii_home / "auth.json").write_text(json.dumps({
+    hermes_home = tmp_path / "sparkii"
+    hermes_home.mkdir(parents=True, exist_ok=True)
+    (hermes_home / "auth.json").write_text(json.dumps({
         "version": 1, "providers": {},
     }))
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     entry = persist_nous_credentials(_full_state_fixture())
     assert entry is not None
@@ -765,7 +765,7 @@ def test_persist_nous_credentials_no_label_uses_auto_derived(tmp_path, monkeypat
     assert entry.label != "my-personal"
 
     # No "label" key embedded in providers.nous when the caller didn't supply one.
-    payload = json.loads((sparkii_home / "auth.json").read_text())
+    payload = json.loads((hermes_home / "auth.json").read_text())
     assert "label" not in payload["providers"]["nous"]
 
 
@@ -932,17 +932,17 @@ def test_persist_nous_credentials_mirrors_to_shared_store(
         persist_nous_credentials,
     )
 
-    sparkii_home = tmp_path / "sparkii"
-    sparkii_home.mkdir(parents=True, exist_ok=True)
-    (sparkii_home / "auth.json").write_text(
+    hermes_home = tmp_path / "sparkii"
+    hermes_home.mkdir(parents=True, exist_ok=True)
+    (hermes_home / "auth.json").write_text(
         json.dumps({"version": 1, "providers": {}})
     )
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     persist_nous_credentials(_full_state_fixture())
 
     # Per-profile auth.json populated
-    payload = json.loads((sparkii_home / "auth.json").read_text())
+    payload = json.loads((hermes_home / "auth.json").read_text())
     assert "nous" in payload.get("providers", {})
 
     # Shared store populated with the same refresh_token
@@ -1032,16 +1032,16 @@ class TestStalePortalBaseUrlMigration:
         """An allowlisted production host is still unsafe over plain HTTP."""
         from sparkii_cli import auth as auth_mod
 
-        sparkii_home = tmp_path / "sparkii"
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        hermes_home = tmp_path / "sparkii"
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
         _setup_nous_auth(
-            sparkii_home,
+            hermes_home,
             access_token=_invoke_jwt(seconds=-60),
             refresh_token="valid-refresh",
             expires_at=_future_iso(-60),
             expires_in=0,
         )
-        auth_file = sparkii_home / "auth.json"
+        auth_file = hermes_home / "auth.json"
         store = json.loads(auth_file.read_text())
         store["providers"]["nous"]["portal_base_url"] = (
             "http://portal.nousresearch.com"

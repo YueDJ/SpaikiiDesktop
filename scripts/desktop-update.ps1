@@ -238,7 +238,7 @@ function Start-DesktopRelaunch {
     }
 }
 
-function Invoke-StreamedSparkii([string]$Exe, [string[]]$SparkiiArgs, [string]$Tag) {
+function Invoke-StreamedHermes([string]$Exe, [string[]]$SparkiiArgs, [string]$Tag) {
     # Start-Process + output file + poll keeps the WinForms window pumping
     # during long silent stretches (pip installs); a blocking pipeline would
     # freeze the marquee. Returns @{ Code; Output }.
@@ -386,14 +386,14 @@ try {
     }
     $updateArgs = @("update", "--yes", "--gateway", "--force", "--branch", $Branch)
     Write-HandoffLog ("running: sparkii " + ($updateArgs -join " "))
-    $res = Invoke-StreamedSparkii $sparkiiExe $updateArgs "update"
+    $res = Invoke-StreamedHermes $sparkiiExe $updateArgs "update"
     Write-HandoffLog "sparkii update exit code: $($res.Code)"
 
     if ($res.Code -ne 0 -and $res.Code -ne 2) {
         # One retry for the update-boundary class (fresh code on disk, stale
         # code in memory). Exit 2 ("close all Sparkii windows") is not retryable.
         Write-HandoffLog "first attempt failed; retrying once (freshly pulled fix loads on the second run)"
-        $res = Invoke-StreamedSparkii $sparkiiExe $updateArgs "update"
+        $res = Invoke-StreamedHermes $sparkiiExe $updateArgs "update"
         Write-HandoffLog "retry exit code: $($res.Code)"
     }
 
@@ -405,7 +405,7 @@ try {
     $desktopBuildFailed = $false
     if ($res.Code -eq 0 -and $res.Output -match "Desktop build failed") {
         Write-HandoffLog "sparkii update reported a desktop build failure (non-fatal there, fatal here); retrying build"
-        $rebuild = Invoke-StreamedSparkii $sparkiiExe @("desktop", "--force-build", "--build-only") "rebuild"
+        $rebuild = Invoke-StreamedHermes $sparkiiExe @("desktop", "--force-build", "--build-only") "rebuild"
         Write-HandoffLog "desktop rebuild exit code: $($rebuild.Code)"
         if ($rebuild.Code -ne 0) { $desktopBuildFailed = $true }
     }

@@ -33,8 +33,8 @@ def _state_dir() -> Path:
     if override:
         return Path(override)
     # Default: $SPARKII_HOME/watcher-state/, falling back to ~/.sparkii/watcher-state/.
-    sparkii_home = os.environ.get("SPARKII_HOME") or str(Path.home() / ".sparkii")
-    return Path(sparkii_home) / "watcher-state"
+    hermes_home = os.environ.get("SPARKII_HOME") or str(Path.home() / ".sparkii")
+    return Path(hermes_home) / "watcher-state"
 
 
 class Watermark:

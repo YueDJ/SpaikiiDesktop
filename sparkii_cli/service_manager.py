@@ -348,11 +348,11 @@ def _profile_dir_for_gateway_service(name: str) -> Path:
 
     profile = name[len(S6_SERVICE_PREFIX):] if name.startswith(S6_SERVICE_PREFIX) else name
     validate_profile_name(profile)
-    sparkii_home = Path(os.environ.get("SPARKII_HOME", "/opt/data"))
-    if sparkii_home.parent.name == "profiles":
-        root = sparkii_home.parent.parent
+    hermes_home = Path(os.environ.get("SPARKII_HOME", "/opt/data"))
+    if hermes_home.parent.name == "profiles":
+        root = hermes_home.parent.parent
     else:
-        root = sparkii_home
+        root = hermes_home
     return root if profile == "default" else root / "profiles" / profile
 
 

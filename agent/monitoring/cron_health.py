@@ -19,7 +19,7 @@ from cron.jobs import (
     load_jobs,
 )
 from cron.scheduler import get_running_job_ids
-from sparkii_time import now as _sparkii_now
+from sparkii_time import now as _hermes_now
 
 logger = logging.getLogger(__name__)
 _KNOWN_STATUSES = {"claimed", "running", "completed", "failed", "unknown"}
@@ -34,7 +34,7 @@ class CronHealthSnapshot:
 
 
 def _now() -> datetime:
-    return _sparkii_now()
+    return _hermes_now()
 
 
 def _job_key(raw: Any) -> str:

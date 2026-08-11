@@ -236,8 +236,8 @@ class TestSlackNativeSlashes:
         reserved_norm = {_norm(n) for n in _SLACK_RESERVED_COMMANDS}
         # Commands deliberately routed through /sparkii <command> on Slack only
         # (Slack's 50-slash cap) are expected to be absent from native slashes.
-        via_sparkii_norm = {_norm(n) for n in _SLACK_VIA_SPARKII_ONLY}
-        missing = (tg_norm - slack_norm) - reserved_norm - via_sparkii_norm
+        via_hermes_norm = {_norm(n) for n in _SLACK_VIA_SPARKII_ONLY}
+        missing = (tg_norm - slack_norm) - reserved_norm - via_hermes_norm
         assert not missing, (
             f"commands on Telegram but missing from Slack native slashes: {sorted(missing)}"
         )

@@ -413,7 +413,7 @@ function connectDeps(ssh, over: any = {}) {
     forward: async () => {},
     cancelForward: async () => {},
     pickLocalPort: async () => 50001,
-    waitForSparkii: async () => {},
+    waitForHermes: async () => {},
     probeReuseProof: async () => 'authenticated-ok',
     adoptServedToken: async (_baseUrl, spawn) => spawn || 'served-token',
     rememberLog: () => {},
@@ -830,6 +830,12 @@ test('buildSpawnCommand always uses serve, never dashboard', () => {
   assert.doesNotMatch(cmd, /\bdashboard\b/)
   assert.doesNotMatch(cmd, /--skip-build/)
   assert.doesNotMatch(cmd, /--no-open/)
+})
+
+test('buildSpawnCommand raises the SSH child file limit before execing Sparkii', () => {
+  const cmd = buildSpawnCommand('/x/sparkii', '', { logPath: spawnLogPath(OWNERSHIP_ID, SPAWN_NONCE) })
+  assert.match(cmd, /ulimit -n 65536 2>\/dev\/null \|\| true; exec env SPARKII_DESKTOP=1/)
+  assert.ok(cmd.indexOf('ulimit -n 65536') < cmd.indexOf('serve --isolated'))
 })
 
 test('spawnRemoteDashboard removes a token file when upload reporting fails', async () => {

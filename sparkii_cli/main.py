@@ -388,8 +388,8 @@ def _is_container_startup_environment_fast() -> bool:
     return _startup_fast.is_container_startup_environment()
 
 
-def _active_profile_may_override_home_fast(sparkii_root: str) -> bool:
-    return _startup_fast.active_profile_may_override_home(sparkii_root)
+def _active_profile_may_override_home_fast(hermes_root: str) -> bool:
+    return _startup_fast.active_profile_may_override_home(hermes_root)
 
 
 def _container_mode_may_be_active_fast() -> bool:
@@ -632,9 +632,9 @@ def _apply_profile_override() -> None:
     # still read active_profile — the user may have switched profiles via
     # `sparkii profile use` and the gateway should honour that choice.
     # See issue #22502.
-    sparkii_home_env = os.environ.get("SPARKII_HOME", "")
-    if profile_name is None and sparkii_home_env:
-        if Path(sparkii_home_env).parent.name == "profiles":
+    hermes_home_env = os.environ.get("SPARKII_HOME", "")
+    if profile_name is None and hermes_home_env:
+        if Path(hermes_home_env).parent.name == "profiles":
             return
 
     # 2. If no flag, check active_profile in the sparkii root.
@@ -651,9 +651,9 @@ def _apply_profile_override() -> None:
     # the "Docker & Profiles & Dashboard" report.
     if profile_name is None and not os.environ.get("SPARKII_S6_SUPERVISED_CHILD"):
         try:
-            from sparkii_constants import get_default_sparkii_root
+            from sparkii_constants import get_default_hermes_root
 
-            active_path = get_default_sparkii_root() / "active_profile"
+            active_path = get_default_hermes_root() / "active_profile"
             if active_path.exists():
                 name = active_path.read_text(encoding="utf-8").strip()
                 if name and name != "default":
@@ -667,10 +667,10 @@ def _apply_profile_override() -> None:
         try:
             from sparkii_cli.profiles import resolve_profile_env
 
-            sparkii_home = resolve_profile_env(profile_name)
+            hermes_home = resolve_profile_env(profile_name)
         except FileNotFoundError as exc:
-            sparkii_home = _resolve_sudo_user_profile_env(profile_name)
-            if not sparkii_home:
+            hermes_home = _resolve_sudo_user_profile_env(profile_name)
+            if not hermes_home:
                 print(f"Error: {exc}", file=sys.stderr)
                 sys.exit(1)
         except ValueError as exc:
@@ -683,7 +683,7 @@ def _apply_profile_override() -> None:
                 file=sys.stderr,
             )
             return
-        os.environ["SPARKII_HOME"] = sparkii_home
+        os.environ["SPARKII_HOME"] = hermes_home
         # Strip the flag from argv so argparse doesn't choke
         if consume > 0 and profile_index is not None:
             start = profile_index + 1  # +1 because argv is sys.argv[1:]
@@ -695,9 +695,9 @@ _apply_profile_override()
 # Load .env from ~/.sparkii/.env first, then project root as dev fallback.
 # User-managed env files should override stale shell exports on restart.
 from sparkii_cli.config import get_sparkii_home
-from sparkii_cli.env_loader import load_sparkii_dotenv
+from sparkii_cli.env_loader import load_hermes_dotenv
 
-load_sparkii_dotenv(project_env=PROJECT_ROOT / ".env")
+load_hermes_dotenv(project_env=PROJECT_ROOT / ".env")
 
 # Bridge security.redact_secrets from config.yaml → SPARKII_REDACT_SECRETS env
 # var BEFORE sparkii_logging imports agent.redact (which snapshots the flag at
@@ -978,7 +978,7 @@ def _has_any_provider_configured() -> bool:
         _model_name = model_cfg.strip()
     else:
         _model_name = ""
-    _has_sparkii_config = _model_name and _model_name != _DEFAULT_MODEL
+    _has_hermes_config = _model_name and _model_name != _DEFAULT_MODEL
 
     # Check env vars (may be set by .env or shell).
     # OPENAI_BASE_URL alone counts — local models (vLLM, llama.cpp, etc.)
@@ -1060,7 +1060,7 @@ def _has_any_provider_configured() -> bool:
     # Check for Claude Code OAuth credentials (~/.claude/.credentials.json)
     # Only count these if Sparkii has been explicitly configured — Claude Code
     # being installed doesn't mean the user wants Sparkii to use their tokens.
-    if _has_sparkii_config:
+    if _has_hermes_config:
         try:
             from agent.anthropic_adapter import (
                 read_claude_code_credentials,
@@ -1082,8 +1082,6 @@ def _session_browse_picker(sessions: list) -> Optional[str]:
     """Interactive curses-based session browser with live search filtering.
 
     Returns the selected session ID, or None if cancelled.
-    Uses curses (not simple_term_menu) to avoid the ghost-duplication rendering
-    bug in tmux/iTerm when arrow keys are used.
     """
     if not sessions:
         print("No sessions found.")
@@ -1402,14 +1400,14 @@ def _exec_in_container(container_info: dict, cli_args: list):
     On failure, OSError propagates naturally.
 
     Args:
-        container_info: dict with backend, container_name, exec_user, sparkii_bin
+        container_info: dict with backend, container_name, exec_user, hermes_bin
         cli_args: the original CLI arguments (everything after 'sparkii')
     """
 
     backend = container_info["backend"]
     container_name = container_info["container_name"]
     exec_user = container_info["exec_user"]
-    sparkii_bin = container_info["sparkii_bin"]
+    hermes_bin = container_info["hermes_bin"]
 
     runtime = shutil.which(backend)
     if not runtime:
@@ -1479,7 +1477,7 @@ def _exec_in_container(container_info: dict, cli_args: list):
         + tty_flags
         + ["-u", exec_user]
         + env_flags
-        + [container_name, sparkii_bin]
+        + [container_name, hermes_bin]
         + cli_args
     )
 
@@ -1833,7 +1831,7 @@ def _ensure_tui_node() -> None:
 
     from sparkii_constants import get_sparkii_home
 
-    sparkii_home = str(get_sparkii_home())
+    hermes_home = str(get_sparkii_home())
     try:
         # Helper writes logs to stderr; we ask bash to print `command -v node`
         # on stdout once ensure_node succeeds. Subshell PATH edits don't leak
@@ -1844,7 +1842,7 @@ def _ensure_tui_node() -> None:
                 "-c",
                 f'source "{helper}" >&2 && ensure_node >&2 && command -v node',
             ],
-            env={**os.environ, "SPARKII_HOME": sparkii_home},
+            env={**os.environ, "SPARKII_HOME": hermes_home},
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -1861,7 +1859,7 @@ def _ensure_tui_node() -> None:
     if resolved:
         extras.append(Path(resolved).resolve().parent)
 
-    extras.extend([Path(sparkii_home) / "node" / "bin", Path.home() / ".local" / "bin"])
+    extras.extend([Path(hermes_home) / "node" / "bin", Path.home() / ".local" / "bin"])
 
     for extra in extras:
         s = str(extra)
@@ -2053,7 +2051,7 @@ def _make_tui_argv(tui_dir: Path, tui_dev: bool) -> tuple[list[str], Path]:
         ]
 
         def _run_tui_install() -> subprocess.CompletedProcess:
-            from sparkii_constants import with_sparkii_node_path
+            from sparkii_constants import with_hermes_node_path
 
             # Managed tree first on PATH: if the EBADENGINE repair below
             # provisioned a managed Node, npm's shebang/lifecycle scripts must
@@ -2066,7 +2064,7 @@ def _make_tui_argv(tui_dir: Path, tui_dev: bool) -> tuple[list[str], Path]:
                 text=True,
                 encoding="utf-8",
                 errors="replace",
-                env={**with_sparkii_node_path(), "CI": "1"},
+                env={**with_hermes_node_path(), "CI": "1"},
             )
 
         result = _run_tui_install()
@@ -2684,17 +2682,31 @@ def cmd_chat(args):
     # competes for CPU on single-core devices, so keep it opt-in there.
     if _termux_should_prefetch_update_check():
         try:
-            from sparkii_cli.banner import prefetch_update_check
+            from sparkii_cli.banner import prefetch_banner_data, prefetch_update_check
 
             prefetch_update_check()
+            # Warm git banner state + skills index off-thread too — their
+            # subprocess/file-I/O waits overlap the CPU-bound cli import.
+            prefetch_banner_data()
         except Exception:
             pass
 
-    # Sync bundled skills on every CLI launch (fast -- skips unchanged skills)
-    try:
-        _sync_bundled_skills_for_startup()
-    except Exception:
-        pass
+    # Sync bundled skills on every CLI launch. Runs in a background daemon
+    # thread: the sync is idempotent, hash-gated (unchanged skills are
+    # skipped), and nothing on the banner path depends on it, yet the scan
+    # alone costs ~120-170ms of rglob/hashing on the startup path. Skill
+    # loading happens at agent init (first message), by which point the
+    # sync has long finished; a same-instant race would only matter in the
+    # rare launch right after `sparkii update` changed a bundled skill.
+    def _skills_sync_bg() -> None:
+        try:
+            _sync_bundled_skills_for_startup()
+        except Exception:
+            pass
+
+    threading.Thread(
+        target=_skills_sync_bg, name="bundled-skills-sync", daemon=True
+    ).start()
 
     # --yolo: bypass all dangerous command approvals.
     # Also set in main() before _prepare_agent_startup() — that is the
@@ -2800,7 +2812,7 @@ def cmd_whatsapp(args):
     """Set up WhatsApp: choose mode, configure, install bridge, pair via QR."""
     _require_tty("whatsapp")
     from sparkii_cli.config import get_env_value, save_env_value
-    from sparkii_constants import find_node_executable, with_sparkii_node_path
+    from sparkii_constants import find_node_executable, with_hermes_node_path
 
     print()
     print("⚕ WhatsApp Setup")
@@ -2928,7 +2940,7 @@ def cmd_whatsapp(args):
                 text=True,
                 encoding="utf-8",
                 errors="replace",
-                env=with_sparkii_node_path(),
+                env=with_hermes_node_path(),
             )
         except KeyboardInterrupt:
             print("\n  ✗ Install cancelled")
@@ -2993,7 +3005,7 @@ def cmd_whatsapp(args):
                 str(session_dir),
             ],
             cwd=str(bridge_dir),
-            env=with_sparkii_node_path(),
+            env=with_hermes_node_path(),
         )
     except KeyboardInterrupt:
         pass
@@ -3339,7 +3351,7 @@ def select_provider_and_model(args=None):
     # picker hides the same providers the gateway/TUI pickers do. A canonical
     # provider is hidden if its slug OR any of its aliases appears in the
     # exclusion list (case-insensitive), matching list_authenticated_providers'
-    # matching against sparkii_id / alias / canonical slug.
+    # matching against hermes_id / alias / canonical slug.
     _cli_excluded = {
         str(p).strip().lower()
         for p in (config.get("model_catalog", {}) or {}).get("excluded_providers") or []
@@ -5578,9 +5590,9 @@ def _run_npm_install_deterministic(
     # The repaired npm may be a freshly provisioned managed one whose shebang
     # and lifecycle scripts resolve `node` from PATH — put the managed tree
     # first so they find the managed Node, not the mismatched system one.
-    from sparkii_constants import with_sparkii_node_path
+    from sparkii_constants import with_hermes_node_path
 
-    run_env["PATH"] = with_sparkii_node_path(run_env)["PATH"]
+    run_env["PATH"] = with_hermes_node_path(run_env)["PATH"]
     return _attempt(repaired_npm)
 
 
@@ -5722,7 +5734,7 @@ def _do_build_web_ui(web_dir: Path, *, fatal: bool = False) -> bool:
             encoding = getattr(sys.stdout, "encoding", None) or "ascii"
             print(text.encode(encoding, errors="replace").decode(encoding, errors="replace"))
 
-    from sparkii_constants import with_sparkii_node_path
+    from sparkii_constants import with_hermes_node_path
 
     npm = _resolve_node_runtime_npm()
     if not npm:
@@ -5730,7 +5742,7 @@ def _do_build_web_ui(web_dir: Path, *, fatal: bool = False) -> bool:
             _say("Web UI frontend not built and npm is not available.")
             _say("Install Node.js, then run:  cd web && npm install && npm run build")
         return not fatal
-    build_env = with_sparkii_node_path()
+    build_env = with_hermes_node_path()
     _say("→ Building web UI...")
 
     def _relay(result: "subprocess.CompletedProcess") -> None:
@@ -6527,7 +6539,7 @@ def _redownload_electron_dist(
     installer = electron_dir / "install.js"
     if not installer.is_file():
         return False
-    from sparkii_constants import find_node_executable, with_sparkii_node_path
+    from sparkii_constants import find_node_executable, with_hermes_node_path
 
     node = find_node_executable("node")
     if not node:
@@ -6540,7 +6552,7 @@ def _redownload_electron_dist(
     except OSError:
         pass
 
-    dl_env = with_sparkii_node_path(env)
+    dl_env = with_hermes_node_path(env)
     if mirror:
         dl_env["ELECTRON_MIRROR"] = mirror
     try:
@@ -7060,16 +7072,16 @@ def cmd_gui(args: argparse.Namespace):
     except Exception:
         pass
 
-    from sparkii_constants import with_sparkii_node_path
+    from sparkii_constants import with_hermes_node_path
 
-    # with_sparkii_node_path() copies os.environ when called with no arg.
-    env = with_sparkii_node_path()
+    # with_hermes_node_path() copies os.environ when called with no arg.
+    env = with_hermes_node_path()
     if getattr(args, "fake_boot", False):
         env["SPARKII_DESKTOP_BOOT_FAKE"] = "1"
     if getattr(args, "ignore_existing", False):
         env["SPARKII_DESKTOP_IGNORE_EXISTING"] = "1"
-    if getattr(args, "sparkii_root", None):
-        env["SPARKII_DESKTOP_SPARKII_ROOT"] = str(Path(args.sparkii_root).expanduser().resolve())
+    if getattr(args, "hermes_root", None):
+        env["SPARKII_DESKTOP_SPARKII_ROOT"] = str(Path(args.hermes_root).expanduser().resolve())
     if getattr(args, "cwd", None):
         env["SPARKII_DESKTOP_CWD"] = str(Path(args.cwd).expanduser().resolve())
     else:
@@ -7138,7 +7150,7 @@ def cmd_gui(args: argparse.Namespace):
             # sparkii update) loses shell PATH customizations. Wrapping the
             # NixOS build env keeps its PYTHON hint while restoring managed Node
             # ahead of a bare PATH (same idiom as the `sparkii update` path).
-            nixos_env = with_sparkii_node_path(_nixos_build_env())
+            nixos_env = with_hermes_node_path(_nixos_build_env())
             install_result = _run_npm_install_deterministic(npm, PROJECT_ROOT, capture_output=False, env=nixos_env)
             if install_result.returncode != 0:
                 if not _electron_pkg_staged_missing_dist(PROJECT_ROOT):
@@ -7301,7 +7313,7 @@ def cmd_gui(args: argparse.Namespace):
 # (main.py decomposition, mechanical move). Re-exported so callers and test
 # monkeypatches on sparkii_cli.main.<name> keep resolving unchanged.
 from sparkii_cli.dashboard_procs import (  # noqa: F401
-    _detect_concurrent_sparkii_instances,
+    _detect_concurrent_hermes_instances,
     _kill_stale_dashboard_processes,
     _scan_dashboard_processes,
 )
@@ -7902,7 +7914,7 @@ def _recover_core_update_marker_locked() -> None:
     # ancestor. Full editable reinstall uses quarantine so the live shim can
     # still be replaced. Package-only import repair may help as first aid but
     # must NEVER clear this core marker on its own (#58004 review).
-    self_locked = _windows_running_sparkii_launcher_locked()
+    self_locked = _windows_running_hermes_launcher_locked()
     if self_locked:
         install_prefix, install_env = _default_venv_install_target()
         print(
@@ -7968,7 +7980,7 @@ def _recover_core_update_marker_locked() -> None:
             print(f"    {sys.executable} -m pip install -e '.[all]'")
 
 
-def _windows_running_sparkii_launcher_locked() -> bool:
+def _windows_running_hermes_launcher_locked() -> bool:
     """True when a venv ``sparkii*.exe`` shim is this process or an ancestor.
 
     Best-effort: returns False when psutil is unavailable or inspection fails.
@@ -7978,7 +7990,7 @@ def _windows_running_sparkii_launcher_locked() -> bool:
     scripts_dir = _venv_scripts_dir()
     if scripts_dir is None:
         return False
-    shims = _sparkii_exe_shims(scripts_dir)
+    shims = _hermes_exe_shims(scripts_dir)
     if not shims:
         return False
     shim_set: set[str] = set()
@@ -8074,7 +8086,7 @@ def _venv_scripts_dir() -> Path | None:
     return scripts if scripts.is_dir() else None
 
 
-def _sparkii_exe_shims(scripts_dir: Path) -> list[Path]:
+def _hermes_exe_shims(scripts_dir: Path) -> list[Path]:
     """Entry-point shims that uv may try to rewrite during ``pip install -e .``.
 
     On Windows these are .exe launchers generated by setuptools/uv. On POSIX
@@ -8091,7 +8103,7 @@ def _sparkii_exe_shims(scripts_dir: Path) -> list[Path]:
     return [scripts_dir / f"{name}.exe" for name in sorted(names)]
 
 
-def _quarantine_running_sparkii_exe(
+def _quarantine_running_hermes_exe(
     scripts_dir: Path, *, max_attempts: int = 4
 ) -> list[tuple[Path, Path]]:
     """Pre-empt Windows file lock on the running ``sparkii.exe``.
@@ -8139,7 +8151,7 @@ def _quarantine_running_sparkii_exe(
     backoff_ms = [0, 100, 250, 500, 1000]
     attempts = max(1, min(max_attempts, len(backoff_ms)))
 
-    for shim in _sparkii_exe_shims(scripts_dir):
+    for shim in _hermes_exe_shims(scripts_dir):
         if not shim.exists():
             continue
         target = shim.with_suffix(shim.suffix + f".old.{stamp}")
@@ -8230,7 +8242,7 @@ def _schedule_replace_on_reboot(shim: Path, quarantine_target: Path) -> bool:
 
 
 def _restore_quarantined_exes(moved: list[tuple[Path, Path]]) -> None:
-    """Roll back ``_quarantine_running_sparkii_exe`` if uv didn't write replacements."""
+    """Roll back ``_quarantine_running_hermes_exe`` if uv didn't write replacements."""
     for original, quarantined in moved:
         try:
             if not original.exists() and quarantined.exists():
@@ -8262,7 +8274,7 @@ def _run_quarantined_install(
     """
     moved: list[tuple[Path, Path]] = []
     if scripts_dir is not None:
-        moved = _quarantine_running_sparkii_exe(scripts_dir)
+        moved = _quarantine_running_hermes_exe(scripts_dir)
     try:
         _run_install_with_heartbeat(cmd, env=env)
     except BaseException:
@@ -8526,7 +8538,7 @@ def _install_python_dependencies_with_optional_fallback(
     On Windows, pre-renames live ``sparkii.exe`` / ``sparkii-gateway.exe`` shims
     in the venv Scripts dir before each install attempt so uv can write fresh
     copies (Windows blocks REPLACE on a running .exe but allows RENAME). See
-    ``_quarantine_running_sparkii_exe`` for the rationale.
+    ``_quarantine_running_hermes_exe`` for the rationale.
     """
     scripts_dir = _venv_scripts_dir() if _is_windows() else None
 
@@ -9751,7 +9763,7 @@ def cmd_profile(args):
             # Preview: stage the distribution into a scratch dir, show the
             # manifest, then do the real install.  The double-stage avoids
             # any side-effects if the user declines.
-            with tempfile.TemporaryDirectory(prefix="sparkii_dist_preview_") as tmp:
+            with tempfile.TemporaryDirectory(prefix="hermes_dist_preview_") as tmp:
                 plan = plan_install(
                     args.source,
                     Path(tmp),
@@ -9860,8 +9872,8 @@ def cmd_profile(args):
             print(f"Author:       {data['author']}")
         if data.get("license"):
             print(f"License:      {data['license']}")
-        if data.get("sparkii_requires"):
-            print(f"Requires:     Sparkii {data['sparkii_requires']}")
+        if data.get("hermes_requires"):
+            print(f"Requires:     Sparkii {data['hermes_requires']}")
         if data.get("source"):
             print(f"Source:       {data['source']}")
         if data.get("installed_at"):
@@ -9889,8 +9901,8 @@ def _render_distribution_plan(plan) -> None:
         print(f"  {mf.description}")
     if mf.author:
         print(f"  Author:   {mf.author}")
-    if mf.sparkii_requires:
-        print(f"  Requires: Sparkii {mf.sparkii_requires}")
+    if mf.hermes_requires:
+        print(f"  Requires: Sparkii {mf.hermes_requires}")
     print(f"  Source:   {plan.provenance}")
     print(f"  Target:   {plan.target_dir}")
     if plan.existing:
@@ -10377,13 +10389,13 @@ def cmd_dashboard(args):
         # SPARKII_HOME falls back to $HOME/.sparkii = /opt/data/.sparkii — an
         # empty, auto-seeded home where the dashboard sees only the default
         # profile and the install-method stamp is missing (so the Docker
-        # update-button guard also misfires).  get_default_sparkii_root()
+        # update-button guard also misfires).  get_default_hermes_root()
         # returns the root for both layouts: ~/.sparkii for a standard install
         # and /opt/data for Docker (it strips a trailing profiles/<name>).
         # See the support report for the double-mount workaround this avoids.
         try:
-            from sparkii_constants import get_default_sparkii_root
-            env["SPARKII_HOME"] = str(get_default_sparkii_root())
+            from sparkii_constants import get_default_hermes_root
+            env["SPARKII_HOME"] = str(get_default_hermes_root())
         except Exception:
             # Best-effort: if root resolution fails, fall back to the prior
             # behaviour (drop SPARKII_HOME) rather than block the reroute.
@@ -10398,6 +10410,15 @@ def cmd_dashboard(args):
             sys.exit(proc.wait())
         else:
             os.execvpe(sys.executable, reexec_argv, env)
+
+    # Apply the final process/profile policy after dashboard routing, but before
+    # importing the web server or opening dashboard state. Applying it before a
+    # named-profile re-exec could leak that profile's higher limit into the
+    # machine/default dashboard, whose lower policy intentionally cannot undo it.
+    # This also covers Desktop SSH's isolated `serve` child, which does not route.
+    from sparkii_cli.resource_limits import apply_nofile_soft_limit
+
+    apply_nofile_soft_limit()
 
     if _token_file:
         _ssh_session_token = _read_ssh_session_token_file(_token_file)
@@ -10835,9 +10856,16 @@ def _prepare_agent_startup(args) -> None:
 
     _accept_hooks = bool(getattr(args, "accept_hooks", False))
     try:
-        from sparkii_cli.plugins import discover_plugins
+        from sparkii_cli.plugins import start_background_plugin_discovery
 
-        discover_plugins()
+        # Discovery runs in a daemon thread so its ~150ms of manifest
+        # scanning + plugin imports overlaps the rest of startup (cli /
+        # prompt_toolkit imports, worktree git calls). Correctness is
+        # unchanged: every synchronous reader goes through
+        # discover_plugins(), which joins this thread first — including
+        # the discover_plugins() call model_tools makes at import time,
+        # which happens before any tool list is built.
+        start_background_plugin_discovery()
     except Exception:
         logger.warning(
             "plugin discovery failed at CLI startup",
@@ -10919,6 +10947,79 @@ def _set_chat_arg_defaults(args) -> None:
     ]:
         if not hasattr(args, attr):
             setattr(args, attr, default)
+
+
+def _try_fast_chat_launch() -> bool:
+    """Fast path for unambiguous interactive chat launches (all hosts).
+
+    ``sparkii`` / ``sparkii -w -s foo --yolo`` / ``sparkii chat`` don't need the
+    full argparse tree: building all ~40 subcommand parsers costs ~140ms of
+    pure-Python argparse setup plus their module imports, none of which the
+    chat path uses. Parse the lightweight top-level/chat parser instead and
+    dispatch straight to ``cmd_chat``.
+
+    Bails out (returns False) whenever the invocation is not certainly a
+    chat launch — a subcommand positional, ``--help``, unknown flags — so
+    every other path still goes through the full parser unchanged. Mirrors
+    ``_try_termux_fast_cli_launch`` minus the Termux-specific deferred
+    startup; kept separate so phone-tuned behavior doesn't leak to desktops.
+    """
+    if os.environ.get("SPARKII_DISABLE_FAST_CHAT_LAUNCH") == "1":
+        return False
+    argv = sys.argv[1:]
+    if "-h" in argv or "--help" in argv:
+        return False
+    # Container-aware routing must win: when NixOS container mode is
+    # active, EVERY invocation is forwarded into the managed container.
+    try:
+        from sparkii_cli.config import get_container_exec_info
+        if get_container_exec_info():
+            return False
+    except Exception:
+        return False
+    # TUI launches have their own startup path (bounded MCP joins etc.) —
+    # keep them on full dispatch outside Termux.
+    if _wants_tui_early(argv):
+        return False
+    if _first_positional_argv() not in {None, "chat"}:
+        return False
+
+    from sparkii_cli._parser import build_top_level_parser
+
+    parser, _subparsers, chat_parser = build_top_level_parser()
+    chat_parser.set_defaults(func=cmd_chat)
+    try:
+        args, unknown = parser.parse_known_args(_coalesce_session_name_args(argv))
+    except SystemExit:
+        return False
+    if unknown:
+        # Flags the light parser doesn't know — could belong to a plugin
+        # subcommand or a newer full-parser flag. Fall back to full dispatch.
+        return False
+    if getattr(args, "version", False):
+        return False
+    if getattr(args, "command", None) not in {None, "chat"}:
+        return False
+
+    if getattr(args, "yolo", False):
+        os.environ["SPARKII_YOLO_MODE"] = "1"
+    _prepare_agent_startup(args)
+
+    if getattr(args, "oneshot", None):
+        _run_and_exit_oneshot(
+            args.oneshot,
+            model=getattr(args, "model", None),
+            provider=getattr(args, "provider", None),
+            toolsets=getattr(args, "toolsets", None),
+            usage_file=getattr(args, "usage_file", None),
+        )
+
+    if (args.resume or args.continue_last) and args.command is None:
+        args.command = "chat"
+
+    _set_chat_arg_defaults(args)
+    cmd_chat(args)
+    return True
 
 
 def _try_termux_fast_cli_launch() -> bool:
@@ -11231,11 +11332,32 @@ def cmd_claw(args):
     claw_command(args)
 
 
+def _advertise_agent_env() -> None:
+    """Advertise the agent harness to child processes.
+
+    ``AI_AGENT`` is the emerging cross-agent standard (huggingface_hub's agent
+    detection reads it; pi and other agents set it — earendil-works/pi#7493)
+    so generic tooling can attribute subprocesses to the harness that spawned
+    them. The value must be our id in the public agent-harness registry
+    (``sparkii-agent`` in huggingface.js ``agent-harnesses.ts``): standard-var
+    matching is exact, so any other value is counted as "unknown".
+    ``SPARKII_AGENT`` is the Sparkii-specific marker. setdefault: never
+    clobber an outer harness (e.g. Sparkii running inside another agent's
+    terminal).
+    """
+    os.environ.setdefault("AI_AGENT", "sparkii-agent")
+    os.environ.setdefault("SPARKII_AGENT", "true")
+
+
 def main():
     """Main entry point for sparkii CLI."""
     # Cosmetic: make the process show up as 'sparkii' instead of 'python3.11'
     # in ps/top/htop.  Non-fatal — just a nicer UX.
     _set_process_title()
+
+    # Let child processes (and tools like huggingface_hub) detect they run
+    # under an AI agent harness.
+    _advertise_agent_env()
 
     # Force UTF-8 stdio on Windows before anything prints.  No-op elsewhere.
     try:
@@ -11246,7 +11368,7 @@ def main():
 
     # Sweep stale ``sparkii.exe.old.*`` quarantine files left by previous
     # ``sparkii update`` runs on Windows. Silent no-op on non-Windows or when
-    # there's nothing to clean. See ``_quarantine_running_sparkii_exe``.
+    # there's nothing to clean. See ``_quarantine_running_hermes_exe``.
     try:
         _cleanup_quarantined_exes()
     except Exception:
@@ -11277,6 +11399,8 @@ def main():
     if _try_termux_fast_tui_launch():
         return
     if _try_termux_fast_cli_launch():
+        return
+    if _try_fast_chat_launch():
         return
 
     from sparkii_cli._parser import build_top_level_parser

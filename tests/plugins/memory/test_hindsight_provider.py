@@ -111,7 +111,7 @@ def _provider_for_mode(tmp_path, monkeypatch, mode: str):
     )
 
     provider = HindsightMemoryProvider()
-    provider.initialize(session_id="test-session", sparkii_home=str(tmp_path), platform="cli")
+    provider.initialize(session_id="test-session", hermes_home=str(tmp_path), platform="cli")
     return provider
 
 
@@ -180,7 +180,7 @@ def provider(tmp_path, monkeypatch):
     )
 
     p = HindsightMemoryProvider()
-    p.initialize(session_id="test-session", sparkii_home=str(tmp_path), platform="cli")
+    p.initialize(session_id="test-session", hermes_home=str(tmp_path), platform="cli")
     p._client = _make_mock_client()
     return p
 
@@ -207,7 +207,7 @@ def provider_with_config(tmp_path, monkeypatch):
         )
 
         p = HindsightMemoryProvider()
-        p.initialize(session_id="test-session", sparkii_home=str(tmp_path), platform="cli")
+        p.initialize(session_id="test-session", hermes_home=str(tmp_path), platform="cli")
         p._client = _make_mock_client()
         return p
     return _make
@@ -358,11 +358,11 @@ class TestConfig:
 
 class TestPostSetup:
     def test_setup_cancel_at_mode_picker_writes_nothing(self, tmp_path, monkeypatch):
-        sparkii_home = tmp_path / "sparkii-home"
+        hermes_home = tmp_path / "sparkii-home"
         user_home = tmp_path / "user-home"
         user_home.mkdir()
         monkeypatch.setenv("HOME", str(user_home))
-        monkeypatch.setattr("plugins.memory.hindsight.get_sparkii_home", lambda: sparkii_home)
+        monkeypatch.setattr("plugins.memory.hindsight.get_sparkii_home", lambda: hermes_home)
 
         save_config = MagicMock()
         which = MagicMock(return_value="/usr/bin/uv")
@@ -375,18 +375,18 @@ class TestPostSetup:
         monkeypatch.setattr("sparkii_cli.config.save_config", save_config)
 
         provider = HindsightMemoryProvider()
-        provider.post_setup(str(sparkii_home), {"memory": {"provider": "builtin"}})
+        provider.post_setup(str(hermes_home), {"memory": {"provider": "builtin"}})
 
         save_config.assert_not_called()
         which.assert_not_called()
         run.assert_not_called()
-        assert not (sparkii_home / ".env").exists()
-        assert not (sparkii_home / "hindsight" / "config.json").exists()
+        assert not (hermes_home / ".env").exists()
+        assert not (hermes_home / "hindsight" / "config.json").exists()
         assert not (user_home / ".hindsight" / "profiles" / "sparkii.env").exists()
 
 
     def test_local_embedded_setup_materializes_profile_env(self, tmp_path, monkeypatch):
-        sparkii_home = tmp_path / "sparkii-home"
+        hermes_home = tmp_path / "sparkii-home"
         user_home = tmp_path / "user-home"
         user_home.mkdir()
         monkeypatch.setenv("HOME", str(user_home))
@@ -401,10 +401,10 @@ class TestPostSetup:
         monkeypatch.setattr("sparkii_cli.config.save_config", lambda cfg: saved_configs.append(cfg.copy()))
 
         provider = HindsightMemoryProvider()
-        provider.post_setup(str(sparkii_home), {"memory": {}})
+        provider.post_setup(str(hermes_home), {"memory": {}})
 
         assert saved_configs[-1]["memory"]["provider"] == "hindsight"
-        env_text = (sparkii_home / ".env").read_text()
+        env_text = (hermes_home / ".env").read_text()
         assert "HINDSIGHT_LLM_API_KEY=sk-local-test\n" in env_text
         assert "HINDSIGHT_TIMEOUT=120\n" in env_text
         assert "HINDSIGHT_IDLE_TIMEOUT=300\n" in env_text
@@ -776,14 +776,14 @@ class TestSyncTurn:
         monkeypatch.setattr("plugins.memory.hindsight.get_sparkii_home", lambda: tmp_path)
 
         p1 = HindsightMemoryProvider()
-        p1.initialize(session_id="resumed-session", sparkii_home=str(tmp_path), platform="cli")
+        p1.initialize(session_id="resumed-session", hermes_home=str(tmp_path), platform="cli")
 
         # Sleep just enough that the microsecond timestamp differs
         import time
         time.sleep(0.001)
 
         p2 = HindsightMemoryProvider()
-        p2.initialize(session_id="resumed-session", sparkii_home=str(tmp_path), platform="cli")
+        p2.initialize(session_id="resumed-session", hermes_home=str(tmp_path), platform="cli")
 
         # Same session, but each process gets its own document_id
         assert p1._document_id != p2._document_id
@@ -1103,7 +1103,7 @@ class TestBankIdTemplate:
         p = HindsightMemoryProvider()
         p.initialize(
             session_id="s1",
-            sparkii_home=str(tmp_path),
+            hermes_home=str(tmp_path),
             platform="cli",
             agent_identity="coder",
             agent_workspace="sparkii",
@@ -1165,7 +1165,7 @@ class TestAvailability:
         )
 
         p = HindsightMemoryProvider()
-        p.initialize(session_id="test-session", sparkii_home=str(tmp_path), platform="cli")
+        p.initialize(session_id="test-session", hermes_home=str(tmp_path), platform="cli")
         assert p._mode == "disabled"
 
 
@@ -1346,7 +1346,7 @@ class TestClientAutoUpgradeRoutesThroughLazyDeps:
         monkeypatch.setattr(subprocess_mod, "run", _no_subprocess)
 
         provider = HindsightMemoryProvider()
-        provider.initialize(session_id="s", sparkii_home=str(tmp_path), platform="cli")
+        provider.initialize(session_id="s", hermes_home=str(tmp_path), platform="cli")
         return calls
 
     def test_upgrade_uses_install_specs_not_subprocess(self, tmp_path, monkeypatch):

@@ -18,7 +18,7 @@
 9. [结论](#结论)
 
 ## 简介
-本文详细阐述 Hermes Agent 的 Email 平台适配器实现。Email 适配器通过 SMTP/IMAP 协议集成，将 Agent 的对话能力接入电子邮件系统，支持邮件收发、附件处理、HTML 内容渲染和邮件列表管理。
+本文详细阐述 Sparkii Agent 的 Email 平台适配器实现。Email 适配器通过 SMTP/IMAP 协议集成，将 Agent 的对话能力接入电子邮件系统，支持邮件收发、附件处理、HTML 内容渲染和邮件列表管理。
 
 适配器继承自 BasePlatformAdapter，实现了完整的邮件处理流程，包括 SSL/TLS 安全连接、邮件模板系统和批量操作。
 

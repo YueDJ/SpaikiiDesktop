@@ -22,7 +22,7 @@
 10. [附录](#附录)
 
 ## 简介
-本指南面向在Amazon Web Services（AWS）上部署SpaikiiDesktop（Hermes Agent）的运维与平台工程团队，提供从EC2实例到ECS容器化、RDS数据库、S3对象存储、CloudWatch监控告警、IAM权限与安全最佳实践、以及成本优化的端到端方案。文档基于仓库中的容器镜像定义、编排配置、可观测性与网络安全设计进行落地指导，确保在生产环境具备高可用、安全合规与可观测性。
+本指南面向在Amazon Web Services（AWS）上部署SpaikiiDesktop（Sparkii Agent）的运维与平台工程团队，提供从EC2实例到ECS容器化、RDS数据库、S3对象存储、CloudWatch监控告警、IAM权限与安全最佳实践、以及成本优化的端到端方案。文档基于仓库中的容器镜像定义、编排配置、可观测性与网络安全设计进行落地指导，确保在生产环境具备高可用、安全合规与可观测性。
 
 ## 项目结构
 仓库提供了生产就绪的容器镜像构建与运行方式：
@@ -34,7 +34,7 @@
 
 ```mermaid
 graph TB
-A["Dockerfile<br/>构建镜像"] --> B["hermes-agent 镜像"]
+A["Dockerfile<br/>构建镜像"] --> B["sparkii-agent 镜像"]
 B --> C["Gateway 服务<br/>端口/协议/插件"]
 B --> D["Dashboard 服务<br/>本地Web界面"]
 C --> E["外部LLM/平台API<br/>出站流量"]
@@ -103,7 +103,7 @@ ECS --> CW
 - 任务定义（Task Definition）：
   - 镜像：使用仓库构建的hermes-agent镜像。
   - 资源：分配CPU/内存，合理设置健康检查（HTTP /health或自定义探针）。
-  - 环境变量：HERMES_UID/GID、API_SERVER_KEY（如需）、各平台凭据（Teams/Google Chat等）。
+  - 环境变量：SPARKII_UID/GID、API_SERVER_KEY（如需）、各平台凭据（Teams/Google Chat等）。
   - 存储：挂载EFS或EBS至/opt/data，或使用Fargate + EFS。
 - 服务配置（Service）：
   - 使用Application Load Balancer暴露Dashboard或API Server（需鉴权）。
@@ -161,7 +161,7 @@ T-->>U : 响应
 ### CloudWatch监控与日志收集
 - 指标：
   - 启用OTLP导出，将Gateway指标发送至Collector或直接接入CloudWatch（通过适配）。
-  - 关键指标：hermes.gateway.up、hermes.platform.up/degraded、cron心跳与过期计数。
+  - 关键指标：sparkii.gateway.up、sparkii.platform.up/degraded、cron心跳与过期计数。
 - 日志：
   - 将容器stdout/stderr输出至CloudWatch Logs。
   - 使用结构化字段（service.name、instance.id）聚合多实例视图。
@@ -224,7 +224,7 @@ C --> |白名单| D["LLM/平台API"]
 
 ```mermaid
 graph TB
-DF["Dockerfile"] --> IMG["hermes-agent 镜像"]
+DF["Dockerfile"] --> IMG["sparkii-agent 镜像"]
 IMG --> GW["Gateway 进程"]
 IMG --> DB["Dashboard 进程"]
 GW --> EXT["外部API/平台"]
@@ -258,7 +258,7 @@ GW --> MON["OTLP导出"]
   - 数据库连接失败：检查RDS安全组、参数组与连接池。
   - 监控缺失：验证OTLP endpoint与Collector可达性。
 - 诊断工具：
-  - hermes monitoring status查看导出状态。
+  - sparkii monitoring status查看导出状态。
   - 使用scripts/observability下的探测脚本验证链路。
 
 **章节来源**

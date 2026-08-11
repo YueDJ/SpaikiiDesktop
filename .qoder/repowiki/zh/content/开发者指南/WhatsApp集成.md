@@ -19,7 +19,7 @@
 ## 简介
 为Hermes Agent的WhatsApp平台集成创建详细文档。深入介绍WhatsApp Business API的集成实现，包括Meta开发者账户配置、业务账号设置和消息模板管理。详细说明WhatsApp消息处理机制，包括文本消息、媒体文件、位置信息和联系人的处理。解释WhatsApp特有的功能适配，如已读回执、在线状态、语音消息和群聊支持。介绍WhatsApp Cloud API的配置选项，...
 
-本模块是 Sparkii/Hermes Agent 系统的重要组成部分，负责WhatsApp集成的核心功能实现。
+本模块是 Sparkii/Sparkii Agent 系统的重要组成部分，负责WhatsApp集成的核心功能实现。
 
 ## 核心概念
 

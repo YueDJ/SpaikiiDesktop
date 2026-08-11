@@ -1,6 +1,6 @@
 schema_version: 1
 module_path: acp_adapter
-title: ACP Agent 适配器（Hermes ↔ Agent Communication Protocol）
+title: ACP Agent 适配器（Sparkii ↔ Agent Communication Protocol）
 scope:
     - acp_adapter/
 source_files: []

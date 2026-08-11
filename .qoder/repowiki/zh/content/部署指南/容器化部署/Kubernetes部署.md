@@ -73,7 +73,7 @@ G["network-egress-isolation.md<br/>出站隔离"] --> B
 ## 核心组件
 - 镜像与运行时
   - 基于Debian，安装Python、Node、系统工具，启用s6-overlay进行进程监督
-  - 固定SQLite库以修复已知问题；将只读代码置于/opt/hermes，数据写入/opt/data
+  - 固定SQLite库以修复已知问题；将只读代码置于/opt/sparkii，数据写入/opt/data
   - 通过VOLUME声明/opt/data为持久化数据目录
 - 服务划分
   - gateway：核心网关进程，承载消息平台接入、会话处理、调度等

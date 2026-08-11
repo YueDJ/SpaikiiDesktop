@@ -312,12 +312,12 @@ class HonchoMemoryProvider(MemoryProvider):
         except Exception:
             return False
 
-    def save_config(self, values, sparkii_home):
+    def save_config(self, values, hermes_home):
         """Write config to $SPARKII_HOME/honcho.json (Honcho SDK native format)."""
         import json
         import os
         from pathlib import Path
-        config_path = Path(sparkii_home) / "honcho.json"
+        config_path = Path(hermes_home) / "honcho.json"
         existing = {}
         if config_path.exists():
             try:
@@ -334,7 +334,7 @@ class HonchoMemoryProvider(MemoryProvider):
             {"key": "baseUrl", "description": "Honcho base URL (for self-hosted)"},
         ]
 
-    def post_setup(self, sparkii_home: str, config: dict) -> None:
+    def post_setup(self, hermes_home: str, config: dict) -> None:
         """Run the full Honcho setup wizard after provider selection."""
         import types
         from plugins.memory.honcho.cli import cmd_setup

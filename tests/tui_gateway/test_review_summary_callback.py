@@ -24,7 +24,7 @@ def server():
         "sys.modules",
         {
             "sparkii_constants": MagicMock(
-                get_sparkii_home=MagicMock(return_value="/tmp/sparkii_test_review_summary")
+                get_sparkii_home=MagicMock(return_value="/tmp/hermes_test_review_summary")
             ),
             "sparkii_cli.env_loader": MagicMock(),
             "sparkii_cli.banner": MagicMock(),

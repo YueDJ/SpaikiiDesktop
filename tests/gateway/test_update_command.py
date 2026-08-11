@@ -91,15 +91,15 @@ class TestHandleUpdateCommand:
 
 
     @pytest.mark.asyncio
-    async def test_resolve_sparkii_bin_fallback(self):
-        """_resolve_sparkii_bin falls back to sys.executable argv when which fails."""
+    async def test_resolve_hermes_bin_fallback(self):
+        """_resolve_hermes_bin falls back to sys.executable argv when which fails."""
         import sys
-        from gateway.run import _resolve_sparkii_bin
+        from gateway.run import _resolve_hermes_bin
 
         fake_spec = MagicMock()
         with patch("shutil.which", return_value=None), \
              patch("importlib.util.find_spec", return_value=fake_spec):
-            result = _resolve_sparkii_bin()
+            result = _resolve_hermes_bin()
 
         assert result == [sys.executable, "-m", "sparkii_cli.main"]
 
@@ -117,16 +117,16 @@ class TestHandleUpdateCommand:
         (fake_root / "gateway").mkdir()
         (fake_root / "gateway" / "run.py").touch()
         fake_file = str(fake_root / "gateway" / "run.py")
-        sparkii_home = tmp_path / "sparkii"
-        sparkii_home.mkdir()
+        hermes_home = tmp_path / "sparkii"
+        hermes_home.mkdir()
 
-        with patch("gateway.run._sparkii_home", sparkii_home), \
+        with patch("gateway.run._sparkii_home", hermes_home), \
              patch("gateway.run.__file__", fake_file), \
              patch("shutil.which", side_effect=lambda x: "/usr/bin/sparkii" if x == "sparkii" else "/usr/bin/setsid"), \
              patch("subprocess.Popen"):
             result = await runner._handle_update_command(event)
 
-        pending_path = sparkii_home / ".update_pending.json"
+        pending_path = hermes_home / ".update_pending.json"
         assert pending_path.exists()
         data = json.loads(pending_path.read_text())
         assert data["platform"] == "telegram"
@@ -134,7 +134,7 @@ class TestHandleUpdateCommand:
         assert data["chat_type"] == "dm"
         assert data["message_id"] == "m-update"
         assert "timestamp" in data
-        assert not (sparkii_home / ".update_exit_code").exists()
+        assert not (hermes_home / ".update_exit_code").exists()
 
 
     @pytest.mark.asyncio
@@ -149,8 +149,8 @@ class TestHandleUpdateCommand:
         (fake_root / "gateway").mkdir()
         (fake_root / "gateway" / "run.py").touch()
         fake_file = str(fake_root / "gateway" / "run.py")
-        sparkii_home = tmp_path / "sparkii"
-        sparkii_home.mkdir()
+        hermes_home = tmp_path / "sparkii"
+        hermes_home.mkdir()
 
         mock_popen = MagicMock()
 
@@ -161,7 +161,7 @@ class TestHandleUpdateCommand:
                 return None
             return None
 
-        with patch("gateway.run._sparkii_home", sparkii_home), \
+        with patch("gateway.run._sparkii_home", hermes_home), \
              patch("gateway.run.__file__", fake_file), \
              patch("shutil.which", side_effect=which_no_setsid), \
              patch("subprocess.Popen", mock_popen):
@@ -270,19 +270,19 @@ class TestSendUpdateNotification:
     async def test_defers_notification_while_update_still_running(self, tmp_path):
         """Returns False and keeps marker files when the update has not exited yet."""
         runner = _make_runner()
-        sparkii_home = tmp_path / "sparkii"
-        sparkii_home.mkdir()
+        hermes_home = tmp_path / "sparkii"
+        hermes_home.mkdir()
 
-        pending_path = sparkii_home / ".update_pending.json"
+        pending_path = hermes_home / ".update_pending.json"
         pending_path.write_text(json.dumps({
             "platform": "telegram", "chat_id": "67890", "user_id": "12345",
         }))
-        (sparkii_home / ".update_output.txt").write_text("still running")
+        (hermes_home / ".update_output.txt").write_text("still running")
 
         mock_adapter = AsyncMock()
         runner.adapters = {Platform.TELEGRAM: mock_adapter}
 
-        with patch("gateway.run._sparkii_home", sparkii_home):
+        with patch("gateway.run._sparkii_home", hermes_home):
             result = await runner._send_update_notification()
 
         assert result is False
@@ -293,20 +293,20 @@ class TestSendUpdateNotification:
     async def test_recovers_from_claimed_pending_file(self, tmp_path):
         """A claimed pending file from a crashed notifier is still deliverable."""
         runner = _make_runner()
-        sparkii_home = tmp_path / "sparkii"
-        sparkii_home.mkdir()
+        hermes_home = tmp_path / "sparkii"
+        hermes_home.mkdir()
 
-        claimed_path = sparkii_home / ".update_pending.claimed.json"
+        claimed_path = hermes_home / ".update_pending.claimed.json"
         claimed_path.write_text(json.dumps({
             "platform": "telegram", "chat_id": "67890", "user_id": "12345",
         }))
-        (sparkii_home / ".update_output.txt").write_text("done")
-        (sparkii_home / ".update_exit_code").write_text("0")
+        (hermes_home / ".update_output.txt").write_text("done")
+        (hermes_home / ".update_exit_code").write_text("0")
 
         mock_adapter = AsyncMock()
         runner.adapters = {Platform.TELEGRAM: mock_adapter}
 
-        with patch("gateway.run._sparkii_home", sparkii_home):
+        with patch("gateway.run._sparkii_home", hermes_home):
             result = await runner._send_update_notification()
 
         assert result is True
@@ -317,8 +317,8 @@ class TestSendUpdateNotification:
     async def test_sends_notification_with_output(self, tmp_path):
         """Sends update output to the correct platform and chat."""
         runner = _make_runner()
-        sparkii_home = tmp_path / "sparkii"
-        sparkii_home.mkdir()
+        hermes_home = tmp_path / "sparkii"
+        hermes_home.mkdir()
 
         # Write pending marker
         pending = {
@@ -327,18 +327,18 @@ class TestSendUpdateNotification:
             "user_id": "12345",
             "timestamp": "2026-03-04T21:00:00",
         }
-        (sparkii_home / ".update_pending.json").write_text(json.dumps(pending))
-        (sparkii_home / ".update_output.txt").write_text(
+        (hermes_home / ".update_pending.json").write_text(json.dumps(pending))
+        (hermes_home / ".update_output.txt").write_text(
             "→ Found 3 new commit(s)\n✓ Code updated!\n✓ Update complete!"
         )
-        (sparkii_home / ".update_exit_code").write_text("0")
+        (hermes_home / ".update_exit_code").write_text("0")
 
         # Mock the adapter
         mock_adapter = AsyncMock()
         mock_adapter.send = AsyncMock()
         runner.adapters = {Platform.TELEGRAM: mock_adapter}
 
-        with patch("gateway.run._sparkii_home", sparkii_home):
+        with patch("gateway.run._sparkii_home", hermes_home):
             await runner._send_update_notification()
 
         mock_adapter.send.assert_called_once()
@@ -351,12 +351,12 @@ class TestSendUpdateNotification:
     async def test_cleans_up_on_error(self, tmp_path):
         """Files are cleaned up even if notification fails."""
         runner = _make_runner()
-        sparkii_home = tmp_path / "sparkii"
-        sparkii_home.mkdir()
+        hermes_home = tmp_path / "sparkii"
+        hermes_home.mkdir()
 
-        pending_path = sparkii_home / ".update_pending.json"
-        output_path = sparkii_home / ".update_output.txt"
-        exit_code_path = sparkii_home / ".update_exit_code"
+        pending_path = hermes_home / ".update_pending.json"
+        output_path = hermes_home / ".update_output.txt"
+        exit_code_path = hermes_home / ".update_exit_code"
         pending_path.write_text(json.dumps({
             "platform": "telegram", "chat_id": "111", "user_id": "222",
         }))
@@ -368,7 +368,7 @@ class TestSendUpdateNotification:
         mock_adapter.send.side_effect = RuntimeError("network error")
         runner.adapters = {Platform.TELEGRAM: mock_adapter}
 
-        with patch("gateway.run._sparkii_home", sparkii_home):
+        with patch("gateway.run._sparkii_home", hermes_home):
             await runner._send_update_notification()
 
         # Files should still be cleaned up (finally block)
@@ -387,13 +387,13 @@ class TestSendUpdateNotification:
         retry can deliver once the platform is back.
         """
         runner = _make_runner()
-        sparkii_home = tmp_path / "sparkii"
-        sparkii_home.mkdir()
+        hermes_home = tmp_path / "sparkii"
+        hermes_home.mkdir()
 
         pending = {"platform": "discord", "chat_id": "111", "user_id": "222"}
-        pending_path = sparkii_home / ".update_pending.json"
-        output_path = sparkii_home / ".update_output.txt"
-        exit_code_path = sparkii_home / ".update_exit_code"
+        pending_path = hermes_home / ".update_pending.json"
+        output_path = hermes_home / ".update_output.txt"
+        exit_code_path = hermes_home / ".update_exit_code"
         pending_path.write_text(json.dumps(pending))
         output_path.write_text("Done")
         exit_code_path.write_text("0")
@@ -402,7 +402,7 @@ class TestSendUpdateNotification:
         mock_adapter = AsyncMock()
         runner.adapters = {Platform.TELEGRAM: mock_adapter}
 
-        with patch("gateway.run._sparkii_home", sparkii_home):
+        with patch("gateway.run._sparkii_home", hermes_home):
             result = await runner._send_update_notification()
 
         # No send (wrong platform offline) and the result is deferred.
@@ -413,7 +413,7 @@ class TestSendUpdateNotification:
         assert output_path.exists()
         assert exit_code_path.exists()
         # The marker stays in its canonical pending location (claim restored).
-        assert not (sparkii_home / ".update_pending.claimed.json").exists()
+        assert not (hermes_home / ".update_pending.claimed.json").exists()
 
     @pytest.mark.asyncio
     async def test_deferred_notification_delivers_after_reconnect(self, tmp_path):
@@ -425,19 +425,19 @@ class TestSendUpdateNotification:
         cleans up — exactly once.
         """
         runner = _make_runner()
-        sparkii_home = tmp_path / "sparkii"
-        sparkii_home.mkdir()
+        hermes_home = tmp_path / "sparkii"
+        hermes_home.mkdir()
 
         pending = {"platform": "discord", "chat_id": "111", "user_id": "222"}
-        pending_path = sparkii_home / ".update_pending.json"
-        output_path = sparkii_home / ".update_output.txt"
-        exit_code_path = sparkii_home / ".update_exit_code"
+        pending_path = hermes_home / ".update_pending.json"
+        output_path = hermes_home / ".update_output.txt"
+        exit_code_path = hermes_home / ".update_exit_code"
         pending_path.write_text(json.dumps(pending))
         output_path.write_text("✓ Update complete!")
         exit_code_path.write_text("0")
 
         # First pass: target platform (discord) is still offline → defer.
-        with patch("gateway.run._sparkii_home", sparkii_home):
+        with patch("gateway.run._sparkii_home", hermes_home):
             first = await runner._send_update_notification()
 
         assert first is False
@@ -447,7 +447,7 @@ class TestSendUpdateNotification:
         mock_adapter = AsyncMock()
         runner.adapters = {Platform.DISCORD: mock_adapter}
 
-        with patch("gateway.run._sparkii_home", sparkii_home):
+        with patch("gateway.run._sparkii_home", hermes_home):
             second = await runner._send_update_notification()
 
         assert second is True
@@ -458,19 +458,19 @@ class TestSendUpdateNotification:
         assert not pending_path.exists()
         assert not output_path.exists()
         assert not exit_code_path.exists()
-        assert not (sparkii_home / ".update_pending.claimed.json").exists()
+        assert not (hermes_home / ".update_pending.claimed.json").exists()
 
     @pytest.mark.asyncio
     async def test_completion_notification_tolerates_invalid_utf8_output(self, tmp_path):
         """Completion-only update notifications must not crash on bad bytes."""
         runner = _make_runner()
-        sparkii_home = tmp_path / "sparkii"
-        sparkii_home.mkdir()
+        hermes_home = tmp_path / "sparkii"
+        hermes_home.mkdir()
 
         pending = {"platform": "discord", "chat_id": "111", "user_id": "222"}
-        pending_path = sparkii_home / ".update_pending.json"
-        output_path = sparkii_home / ".update_output.txt"
-        exit_code_path = sparkii_home / ".update_exit_code"
+        pending_path = hermes_home / ".update_pending.json"
+        output_path = hermes_home / ".update_output.txt"
+        exit_code_path = hermes_home / ".update_exit_code"
         pending_path.write_text(json.dumps(pending))
         output_path.write_bytes(b"ok before\ninvalid byte: \x96\ncontinued after\n")
         exit_code_path.write_text("0")
@@ -478,7 +478,7 @@ class TestSendUpdateNotification:
         mock_adapter = AsyncMock()
         runner.adapters = {Platform.DISCORD: mock_adapter}
 
-        with patch("gateway.run._sparkii_home", sparkii_home):
+        with patch("gateway.run._sparkii_home", hermes_home):
             delivered = await runner._send_update_notification()
 
         assert delivered is True
@@ -515,27 +515,27 @@ class TestWatchUpdateProgress:
     @pytest.mark.asyncio
     async def test_invalid_utf8_update_output_does_not_crash_watcher(self, tmp_path):
         runner = _make_runner()
-        sparkii_home = tmp_path / "sparkii"
-        sparkii_home.mkdir()
+        hermes_home = tmp_path / "sparkii"
+        hermes_home.mkdir()
 
-        (sparkii_home / ".update_pending.json").write_text(json.dumps({
+        (hermes_home / ".update_pending.json").write_text(json.dumps({
             "platform": "telegram",
             "chat_id": "67890",
             "user_id": "12345",
         }))
-        (sparkii_home / ".update_output.txt").write_bytes(
+        (hermes_home / ".update_output.txt").write_bytes(
             b"ok before\n\xe2\x9c invalid-continuation: \x96\ncontinued after\n"
         )
-        (sparkii_home / ".update_exit_code").write_text("0")
+        (hermes_home / ".update_exit_code").write_text("0")
 
         mock_adapter = AsyncMock()
         runner.adapters = {Platform.TELEGRAM: mock_adapter}
 
-        with patch("gateway.run._sparkii_home", sparkii_home):
+        with patch("gateway.run._sparkii_home", hermes_home):
             await runner._watch_update_progress(poll_interval=0.01, stream_interval=0.01, timeout=1.0)
 
         sent = "\n".join(call.args[1] for call in mock_adapter.send.call_args_list)
         assert "ok before" in sent
         assert "continued after" in sent
         assert "Sparkii update finished" in sent
-        assert not (sparkii_home / ".update_pending.json").exists()
+        assert not (hermes_home / ".update_pending.json").exists()

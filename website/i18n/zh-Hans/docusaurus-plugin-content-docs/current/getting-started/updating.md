@@ -123,7 +123,7 @@ tail -f ~/.sparkii/logs/update.log
 sparkii version
 ```
 
-与 [GitHub releases 页面](https://github.com/YueDJ/SparkiiAgent/releases) 上的最新版本进行比较。
+与 [GitHub releases 页面](https://github.com/NousResearch/sparkii-agent/releases) 上的最新版本进行比较。
 
 ### 从消息平台更新
 

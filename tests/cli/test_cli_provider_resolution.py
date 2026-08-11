@@ -7,7 +7,7 @@ from types import SimpleNamespace
 import pytest
 
 from sparkii_cli.auth import AuthError
-from sparkii_cli import main as sparkii_main
+from sparkii_cli import main as hermes_main
 
 
 # ---------------------------------------------------------------------------
@@ -257,7 +257,7 @@ def test_model_flow_nous_does_not_restore_stale_custom_api_key(tmp_path, monkeyp
         lambda config: None,
     )
 
-    sparkii_main._model_flow_nous(stale_config, current_model="glm-5.2")
+    hermes_main._model_flow_nous(stale_config, current_model="glm-5.2")
 
     config = yaml.safe_load(config_path.read_text()) or {}
     model = config.get("model")
@@ -384,7 +384,7 @@ def test_model_flow_custom_saves_verified_v1_base_url(monkeypatch, capsys):
     monkeypatch.setattr("builtins.input", lambda _prompt="": next(answers))
     monkeypatch.setattr("sparkii_cli.secret_prompt.masked_secret_prompt", lambda _prompt="": next(answers))
 
-    sparkii_main._model_flow_custom({})
+    hermes_main._model_flow_custom({})
     output = capsys.readouterr().out
 
     assert "Saving the working base URL instead" in output
@@ -448,7 +448,7 @@ def test_model_flow_custom_persists_selected_api_mode(monkeypatch):
     monkeypatch.setattr("builtins.input", lambda _prompt="": next(answers))
     monkeypatch.setattr("sparkii_cli.secret_prompt.masked_secret_prompt", lambda _prompt="": "test-key")
 
-    sparkii_main._model_flow_custom({"model": {"provider": "custom"}})
+    hermes_main._model_flow_custom({"model": {"provider": "custom"}})
 
     assert saved_cfg["model"]["provider"] == "custom"
     assert saved_cfg["model"]["base_url"] == "https://codex.example.com/v1"
@@ -462,7 +462,7 @@ def test_model_flow_custom_persists_selected_api_mode(monkeypatch):
 
 
 def test_cmd_model_forwards_nous_login_tls_options(monkeypatch):
-    monkeypatch.setattr(sparkii_main, "_require_tty", lambda *a: None)
+    monkeypatch.setattr(hermes_main, "_require_tty", lambda *a: None)
     monkeypatch.setattr(
         "sparkii_cli.config.load_config",
         lambda: {"model": {"default": "gpt-5", "provider": "nous"}},
@@ -472,7 +472,7 @@ def test_cmd_model_forwards_nous_login_tls_options(monkeypatch):
     monkeypatch.setattr("sparkii_cli.config.save_env_value", lambda key, value: None)
     monkeypatch.setattr("sparkii_cli.auth.resolve_provider", lambda requested, **kwargs: "nous")
     monkeypatch.setattr("sparkii_cli.auth.get_provider_auth_state", lambda provider_id: None)
-    monkeypatch.setattr(sparkii_main, "_prompt_provider_choice", lambda choices, **kwargs: 0)
+    monkeypatch.setattr(hermes_main, "_prompt_provider_choice", lambda choices, **kwargs: 0)
 
     captured = {}
 
@@ -488,7 +488,7 @@ def test_cmd_model_forwards_nous_login_tls_options(monkeypatch):
 
     monkeypatch.setattr("sparkii_cli.auth._login_nous", _fake_login)
 
-    sparkii_main.cmd_model(
+    hermes_main.cmd_model(
         SimpleNamespace(
             portal_url="https://portal.nousresearch.com",
             inference_url="https://inference.nousresearch.com/v1",

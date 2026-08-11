@@ -136,7 +136,7 @@ THREAT_PATTERNS = [
      "docker_dir_access", "high", "exfiltration",
      "references Docker config (may contain registry creds)"),
     (r'\$HOME/\.sparkii/\.env|\~/\.sparkii/\.env',
-     "sparkii_env_access", "critical", "exfiltration",
+     "hermes_env_access", "critical", "exfiltration",
      "directly references Sparkii secrets file"),
     # Match `cat <secrets-file>` (reading credentials) but NOT `cat > <file>`
     # or `cat >> <file>`, which are output redirections that WRITE a file
@@ -462,7 +462,7 @@ THREAT_PATTERNS = [
      "agent_config_mod", "critical", "persistence",
      "references agent config files (could persist malicious instructions across sessions)"),
     (r'\.sparkii/config\.yaml|\.sparkii/SOUL\.md',
-     "sparkii_config_mod", "critical", "persistence",
+     "hermes_config_mod", "critical", "persistence",
      "references Sparkii configuration files directly"),
     (r'\.claude/settings|\.codex/config',
      "other_agent_config", "high", "persistence",

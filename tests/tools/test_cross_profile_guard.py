@@ -19,7 +19,7 @@ import pytest
 
 
 @pytest.fixture
-def fake_sparkii(tmp_path, monkeypatch):
+def fake_hermes(tmp_path, monkeypatch):
     """Build a two-profile Sparkii layout and point SPARKII_HOME at
     the sparkii-security profile (matching the original-incident shape).
     """
@@ -38,11 +38,11 @@ def fake_sparkii(tmp_path, monkeypatch):
     monkeypatch.setenv("SPARKII_HOME", str(sec_home))
 
     import sparkii_constants
-    monkeypatch.setattr(sparkii_constants, "get_default_sparkii_root", lambda: root)
+    monkeypatch.setattr(sparkii_constants, "get_default_hermes_root", lambda: root)
 
     import agent.file_safety as fs
     monkeypatch.setattr(fs, "_sparkii_home_path", lambda: sec_home)
-    monkeypatch.setattr(fs, "_sparkii_root_path", lambda: root)
+    monkeypatch.setattr(fs, "_hermes_root_path", lambda: root)
 
     return {
         "root": root,
@@ -57,9 +57,9 @@ def fake_sparkii(tmp_path, monkeypatch):
 
 
 class TestWriteFileCrossProfileGuard:
-    def test_in_profile_write_allowed(self, fake_sparkii):
+    def test_in_profile_write_allowed(self, fake_hermes):
         from tools.file_tools import write_file_tool
-        target = fake_sparkii["sec_home"] / "skills" / "new-skill" / "SKILL.md"
+        target = fake_hermes["sec_home"] / "skills" / "new-skill" / "SKILL.md"
         target.parent.mkdir(parents=True)
         result_json = write_file_tool(str(target), "in-profile content")
         result = json.loads(result_json)
@@ -67,11 +67,11 @@ class TestWriteFileCrossProfileGuard:
         assert target.exists()
         assert target.read_text() == "in-profile content"
 
-    def test_cross_profile_write_blocked_by_default(self, fake_sparkii):
+    def test_cross_profile_write_blocked_by_default(self, fake_hermes):
         """The May 2026 incident — security-profile session edits default
         profile's skill. Must be blocked."""
         from tools.file_tools import write_file_tool
-        target = fake_sparkii["root"] / "skills" / "shared-skill" / "SKILL.md"
+        target = fake_hermes["root"] / "skills" / "shared-skill" / "SKILL.md"
         original = target.read_text()
         result_json = write_file_tool(str(target), "OVERWRITTEN")
         result = json.loads(result_json)
@@ -83,7 +83,7 @@ class TestWriteFileCrossProfileGuard:
         assert target.read_text() == original
 
 
-    def test_non_sparkii_path_unaffected(self, fake_sparkii, tmp_path):
+    def test_non_hermes_path_unaffected(self, fake_hermes, tmp_path):
         from tools.file_tools import write_file_tool
         target = tmp_path / "outside" / "main.py"
         target.parent.mkdir()
@@ -99,9 +99,9 @@ class TestWriteFileCrossProfileGuard:
 
 
 class TestPatchCrossProfileGuard:
-    def test_cross_profile_patch_blocked(self, fake_sparkii):
+    def test_cross_profile_patch_blocked(self, fake_hermes):
         from tools.file_tools import patch_tool
-        target = fake_sparkii["root"] / "skills" / "shared-skill" / "SKILL.md"
+        target = fake_hermes["root"] / "skills" / "shared-skill" / "SKILL.md"
         original = target.read_text()
         result_json = patch_tool(
             mode="replace",
@@ -114,9 +114,9 @@ class TestPatchCrossProfileGuard:
         assert "cross-profile" in result["error"].lower()
         assert target.read_text() == original
 
-    def test_cross_profile_patch_bypass(self, fake_sparkii):
+    def test_cross_profile_patch_bypass(self, fake_hermes):
         from tools.file_tools import patch_tool
-        target = fake_sparkii["root"] / "skills" / "shared-skill" / "SKILL.md"
+        target = fake_hermes["root"] / "skills" / "shared-skill" / "SKILL.md"
         result_json = patch_tool(
             mode="replace",
             path=str(target),
@@ -128,11 +128,11 @@ class TestPatchCrossProfileGuard:
         assert not result.get("error"), f"cross_profile=True bypass: {result}"
         assert "user-directed update." in target.read_text()
 
-    def test_v4a_patch_extracts_path_for_guard(self, fake_sparkii):
+    def test_v4a_patch_extracts_path_for_guard(self, fake_hermes):
         """V4A patches embed the target paths in the patch body, not in
         a ``path`` kwarg. The guard must still apply."""
         from tools.file_tools import patch_tool
-        target = fake_sparkii["root"] / "skills" / "shared-skill" / "SKILL.md"
+        target = fake_hermes["root"] / "skills" / "shared-skill" / "SKILL.md"
         original = target.read_text()
         v4a = (
             "*** Begin Patch\n"
@@ -163,11 +163,11 @@ class TestSkillManageCrossProfileErrorUX:
         )
 
     def test_error_names_other_profile_when_skill_lives_there(
-        self, fake_sparkii, monkeypatch
+        self, fake_hermes, monkeypatch
     ):
         """The original incident shape — model expects 'foo' in active
         profile, but 'foo' lives in default. Error must point at default."""
-        self._make_skill_in_profile(fake_sparkii["root"], "default-only-skill")
+        self._make_skill_in_profile(fake_hermes["root"], "default-only-skill")
 
         # Re-import the module so SKILLS_DIR picks up SPARKII_HOME (set in
         # the fixture). Skill_manager_tool computes SKILLS_DIR at import.
@@ -183,7 +183,7 @@ class TestSkillManageCrossProfileErrorUX:
 
 
     def test_genuinely_missing_skill_keeps_helpful_hint(
-        self, fake_sparkii, monkeypatch
+        self, fake_hermes, monkeypatch
     ):
         """When no profile has the skill, error falls back to skills_list hint."""
         import importlib
@@ -208,7 +208,7 @@ class TestSystemPromptActiveProfile:
         # Don't set SPARKII_HOME — falls back to default.
         import agent.file_safety as fs
         monkeypatch.setattr(fs, "_sparkii_home_path", lambda: tmp_path / "fake")
-        monkeypatch.setattr(fs, "_sparkii_root_path", lambda: tmp_path / "fake")
+        monkeypatch.setattr(fs, "_hermes_root_path", lambda: tmp_path / "fake")
 
         from agent.file_safety import _resolve_active_profile_name
         assert _resolve_active_profile_name() == "default"
@@ -216,7 +216,7 @@ class TestSystemPromptActiveProfile:
         # is too heavy to instantiate end-to-end in a unit test.
         # See agent/system_prompt.py for the exact wording.
 
-    def test_named_profile_line_in_prompt_text(self, fake_sparkii):
+    def test_named_profile_line_in_prompt_text(self, fake_hermes):
         """When active profile is 'sparkii-security', the prompt warns
         explicitly about NOT modifying default's skills/plugins/cron/memories."""
         # Spot-check by reading the source — the contract is:

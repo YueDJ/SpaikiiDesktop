@@ -23,11 +23,11 @@ def _load_script_module():
     return module
 
 
-def _run_migration(sparkii_home: Path, **env_overrides: str) -> subprocess.CompletedProcess[str]:
+def _run_migration(hermes_home: Path, **env_overrides: str) -> subprocess.CompletedProcess[str]:
     env = os.environ.copy()
     env.update(
         {
-            "SPARKII_HOME": str(sparkii_home),
+            "SPARKII_HOME": str(hermes_home),
             "SPARKII_SKIP_CHMOD": "1",
             "PYTHONPATH": str(REPO_ROOT),
         }

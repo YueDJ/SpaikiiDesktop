@@ -10,35 +10,35 @@ import sparkii_constants
 from sparkii_constants import (
     VALID_REASONING_EFFORTS,
     agent_browser_runnable,
-    find_sparkii_node_executable,
+    find_hermes_node_executable,
     find_node_executable,
     find_node_executable_on_path,
-    get_default_sparkii_root,
-    get_sparkii_dir,
+    get_default_hermes_root,
+    get_hermes_dir,
     get_sparkii_home,
     get_process_sparkii_home,
-    heal_sparkii_managed_node,
-    sparkii_managed_node_tree_present,
-    iter_sparkii_node_dirs,
+    heal_hermes_managed_node,
+    hermes_managed_node_tree_present,
+    iter_hermes_node_dirs,
     is_container,
     node_tool_runnable,
     parse_reasoning_effort,
     reset_sparkii_home_override,
     secure_parent_dir,
     set_sparkii_home_override,
-    with_sparkii_node_path,
+    with_hermes_node_path,
 )
 
 
 class TestGetDefaultSparkiiRoot:
-    """Tests for get_default_sparkii_root() — Docker/custom deployment awareness."""
+    """Tests for get_default_hermes_root() — Docker/custom deployment awareness."""
 
     def test_no_sparkii_home_returns_native(self, tmp_path, monkeypatch):
         """When SPARKII_HOME is not set, returns ~/.sparkii."""
         monkeypatch.delenv("SPARKII_HOME", raising=False)
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
-        assert get_default_sparkii_root() == tmp_path / ".sparkii"
+        assert get_default_hermes_root() == tmp_path / ".sparkii"
 
 
 
@@ -52,7 +52,7 @@ class TestGetDefaultSparkiiRoot:
         profile.mkdir(parents=True)
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
         monkeypatch.setenv("SPARKII_HOME", str(profile))
-        assert get_default_sparkii_root() == docker_root
+        assert get_default_hermes_root() == docker_root
 
     @pytest.mark.windows_only
     def test_no_sparkii_home_returns_localappdata_root_on_windows(self, tmp_path, monkeypatch):
@@ -62,7 +62,7 @@ class TestGetDefaultSparkiiRoot:
         monkeypatch.setenv("LOCALAPPDATA", str(local_appdata))
         monkeypatch.setattr(Path, "home", lambda: tmp_path / "Home")
 
-        assert get_default_sparkii_root() == local_appdata / "sparkii"
+        assert get_default_hermes_root() == local_appdata / "sparkii"
 
 
 
@@ -107,7 +107,7 @@ class TestSparkiiManagedNode:
         bin_dir.mkdir()
         monkeypatch.setenv("SPARKII_HOME", str(home))
 
-        assert iter_sparkii_node_dirs() == [node_dir, bin_dir]
+        assert iter_hermes_node_dirs() == [node_dir, bin_dir]
 
     @pytest.mark.windows_only
     def test_windows_finds_npm_cmd_before_path(self, tmp_path, monkeypatch):
@@ -119,7 +119,7 @@ class TestSparkiiManagedNode:
         monkeypatch.setenv("SPARKII_HOME", str(home))
         monkeypatch.setattr(sparkii_constants, "node_tool_runnable", lambda path: True)
 
-        assert find_sparkii_node_executable("npm") == str(npm_cmd)
+        assert find_hermes_node_executable("npm") == str(npm_cmd)
 
 
 
@@ -136,14 +136,14 @@ class TestSparkiiManagedNode:
         monkeypatch.setenv("SPARKII_HOME", str(home))
         monkeypatch.setenv("PATH", str(bin_dir))
         monkeypatch.setattr(sparkii_constants, "_managed_node_heal_attempted", False)
-        monkeypatch.setattr(sparkii_constants, "heal_sparkii_managed_node", lambda: False)
+        monkeypatch.setattr(sparkii_constants, "heal_hermes_managed_node", lambda: False)
         monkeypatch.setattr(
             sparkii_constants,
             "node_tool_runnable",
             lambda path: False,
         )
 
-        assert sparkii_managed_node_tree_present() is True
+        assert hermes_managed_node_tree_present() is True
         assert find_node_executable("npm") is None
         assert find_node_executable("npm") != str(path_npm)
 
@@ -188,7 +188,7 @@ class TestNodeToolRunnable:
             broken_npm.chmod(0o755)
             return True
 
-        monkeypatch.setattr(sparkii_constants, "heal_sparkii_managed_node", _heal)
+        monkeypatch.setattr(sparkii_constants, "heal_hermes_managed_node", _heal)
 
         resolved = find_node_executable("npm")
         assert heal_called["value"] is True
@@ -209,7 +209,7 @@ class TestNodeToolRunnable:
         monkeypatch.setenv("SPARKII_HOME", str(profile_home))
         monkeypatch.setenv("PATH", str(system_bin))
         monkeypatch.setattr(sparkii_constants, "_managed_node_heal_attempted", False)
-        monkeypatch.setattr(sparkii_constants, "heal_sparkii_managed_node", lambda: False)
+        monkeypatch.setattr(sparkii_constants, "heal_hermes_managed_node", lambda: False)
 
         assert find_node_executable("npm") is None
 
@@ -234,9 +234,9 @@ class TestNodeToolRunnable:
             old_node.chmod(0o755)
             return True
 
-        monkeypatch.setattr(sparkii_constants, "heal_sparkii_managed_node", _heal)
+        monkeypatch.setattr(sparkii_constants, "heal_hermes_managed_node", _heal)
 
-        resolved = sparkii_constants.find_sparkii_node_executable("node")
+        resolved = sparkii_constants.find_hermes_node_executable("node")
         assert heal_called["value"] is True
         assert resolved == str(old_node)
 
@@ -253,9 +253,9 @@ class TestNodeToolRunnable:
         monkeypatch.setenv("SPARKII_HOME", str(profile_home))
         monkeypatch.setenv("PATH", "")
         monkeypatch.setattr(sparkii_constants, "_managed_node_heal_attempted", False)
-        monkeypatch.setattr(sparkii_constants, "heal_sparkii_managed_node", lambda: False)
+        monkeypatch.setattr(sparkii_constants, "heal_hermes_managed_node", lambda: False)
 
-        assert sparkii_constants.find_sparkii_node_executable("node") == str(old_node)
+        assert sparkii_constants.find_hermes_node_executable("node") == str(old_node)
 
     def test_target_major_managed_node_does_not_heal(self, tmp_path, monkeypatch):
         """A tree already at the target major never triggers the heal."""
@@ -274,9 +274,9 @@ class TestNodeToolRunnable:
         def _heal():
             raise AssertionError("heal must not run for an up-to-date tree")
 
-        monkeypatch.setattr(sparkii_constants, "heal_sparkii_managed_node", _heal)
+        monkeypatch.setattr(sparkii_constants, "heal_hermes_managed_node", _heal)
 
-        assert sparkii_constants.find_sparkii_node_executable("node") == str(node)
+        assert sparkii_constants.find_hermes_node_executable("node") == str(node)
 
 
 
@@ -580,7 +580,7 @@ class TestAgentBrowserRunnable:
 
 
 class TestGetSparkiiDir:
-    """Tests for ``get_sparkii_dir(new_subpath, old_name)``.
+    """Tests for ``get_hermes_dir(new_subpath, old_name)``.
 
     Contract: prefer the legacy ``<old_name>/`` location, but only when
     it has content. An empty legacy stub must fall through to the new
@@ -593,7 +593,7 @@ class TestGetSparkiiDir:
 
     def test_neither_exists_returns_new(self, tmp_path, monkeypatch):
         self._set_home(tmp_path, monkeypatch)
-        result = get_sparkii_dir("platforms/pairing", "pairing")
+        result = get_hermes_dir("platforms/pairing", "pairing")
         assert result == tmp_path / "platforms/pairing"
 
 
@@ -609,7 +609,7 @@ class TestGetSparkiiDir:
         self._set_home(tmp_path, monkeypatch)
         legacy = tmp_path / "image_cache"
         legacy.write_bytes(b"sentinel")
-        result = get_sparkii_dir("cache/images", "image_cache")
+        result = get_hermes_dir("cache/images", "image_cache")
         assert result == legacy
 
 
@@ -629,7 +629,7 @@ class TestGetSparkiiDir:
         new = tmp_path / "platforms" / "pairing"
         new.mkdir(parents=True)
         (new / "discord-approved.json").write_text("[]")
-        result = get_sparkii_dir("platforms/pairing", "pairing")
+        result = get_hermes_dir("platforms/pairing", "pairing")
         assert result == new
 
     def test_symlink_to_populated_dir_returns_legacy(self, tmp_path, monkeypatch):
@@ -640,7 +640,7 @@ class TestGetSparkiiDir:
         (real / "cached.png").write_bytes(b"x")
         legacy = tmp_path / "image_cache"
         legacy.symlink_to(real)
-        result = get_sparkii_dir("cache/images", "image_cache")
+        result = get_hermes_dir("cache/images", "image_cache")
         assert result == legacy
 
 

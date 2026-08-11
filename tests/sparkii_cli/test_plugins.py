@@ -50,13 +50,13 @@ def _make_plugin_dir(base: Path, name: str, *, register_body: str = "pass",
     """Create a minimal plugin directory with plugin.yaml + __init__.py.
 
     If *auto_enable* is True (default), also write the plugin's name into
-    ``<sparkii_home>/config.yaml`` under ``plugins.enabled``. Plugins are
+    ``<hermes_home>/config.yaml`` under ``plugins.enabled``. Plugins are
     opt-in by default, so tests that expect the plugin to actually load
     need this. Pass ``auto_enable=False`` for tests that exercise the
     unenabled path.
 
-    *base* is expected to be ``<sparkii_home>/plugins/``; we derive
-    ``<sparkii_home>`` from it by walking one level up.
+    *base* is expected to be ``<hermes_home>/plugins/``; we derive
+    ``<hermes_home>`` from it by walking one level up.
     """
     plugin_dir = base / name
     plugin_dir.mkdir(parents=True, exist_ok=True)
@@ -75,13 +75,13 @@ def _make_plugin_dir(base: Path, name: str, *, register_body: str = "pass",
         # Config is always read from SPARKII_HOME (not from the project
         # dir for project plugins), so that's where we opt in.
         import os
-        sparkii_home_str = os.environ.get("SPARKII_HOME")
-        if sparkii_home_str:
-            sparkii_home = Path(sparkii_home_str)
+        hermes_home_str = os.environ.get("SPARKII_HOME")
+        if hermes_home_str:
+            hermes_home = Path(hermes_home_str)
         else:
-            sparkii_home = base.parent
-        sparkii_home.mkdir(parents=True, exist_ok=True)
-        cfg_path = sparkii_home / "config.yaml"
+            hermes_home = base.parent
+        hermes_home.mkdir(parents=True, exist_ok=True)
+        cfg_path = hermes_home / "config.yaml"
         cfg: dict = {}
         if cfg_path.exists():
             try:
@@ -246,7 +246,7 @@ class TestPluginDiscovery:
 
 
     def test_plugin_can_register_and_invoke_middleware(self, tmp_path, monkeypatch):
-        plugins_dir = tmp_path / "sparkii_test" / "plugins"
+        plugins_dir = tmp_path / "hermes_test" / "plugins"
         _make_plugin_dir(
             plugins_dir,
             "mw_plugin",
@@ -257,7 +257,7 @@ class TestPluginDiscovery:
                 "lambda **kw: {'args': {**kw['args'], 'mw': True}})"
             ),
         )
-        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "sparkii_test"))
+        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -312,9 +312,9 @@ class TestPluginDiscovery:
         permanently, every later call would early-return against an empty
         registry ("No web provider configured") for the process lifetime.
         """
-        plugins_dir = tmp_path / "sparkii_test" / "plugins"
+        plugins_dir = tmp_path / "hermes_test" / "plugins"
         _make_plugin_dir(plugins_dir, "retry_plugin")
-        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "sparkii_test"))
+        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
 
@@ -328,7 +328,7 @@ class TestPluginDiscovery:
 
         # A later call (with discovery healthy again) must do the real scan.
         monkeypatch.undo()
-        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "sparkii_test"))
+        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "hermes_test"))
         mgr.discover_and_load()
         assert mgr._discovered is True
         non_bundled = {
@@ -393,18 +393,18 @@ class TestPluginLoading:
 
 
     def test_load_registers_namespace_module(self, tmp_path, monkeypatch):
-        """Directory plugins are importable under sparkii_plugins.<name>."""
-        plugins_dir = tmp_path / "sparkii_test" / "plugins"
+        """Directory plugins are importable under hermes_plugins.<name>."""
+        plugins_dir = tmp_path / "hermes_test" / "plugins"
         _make_plugin_dir(plugins_dir, "ns_plugin")
-        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "sparkii_test"))
+        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "hermes_test"))
 
         # Clean up any prior namespace module
-        sys.modules.pop("sparkii_plugins.ns_plugin", None)
+        sys.modules.pop("hermes_plugins.ns_plugin", None)
 
         mgr = PluginManager()
         mgr.discover_and_load()
 
-        assert "sparkii_plugins.ns_plugin" in sys.modules
+        assert "hermes_plugins.ns_plugin" in sys.modules
 
     def test_user_memory_plugin_auto_coerced_to_exclusive(self, tmp_path, monkeypatch):
         """User-installed memory plugins must NOT be loaded by the general
@@ -419,7 +419,7 @@ class TestPluginLoading:
         does not import/register() it. The real activation happens through
         ``plugins/memory/__init__.py`` via ``memory.provider`` config.
         """
-        plugins_dir = tmp_path / "sparkii_test" / "plugins"
+        plugins_dir = tmp_path / "hermes_test" / "plugins"
         plugin_dir = plugins_dir / "mempalace"
         plugin_dir.mkdir(parents=True)
         # No explicit `kind:` — the heuristic should kick in.
@@ -432,11 +432,11 @@ class TestPluginLoading:
         )
         # Even if the user explicitly enables it in config, the loader
         # should still treat it as exclusive and skip general loading.
-        sparkii_home = tmp_path / "sparkii_test"
-        (sparkii_home / "config.yaml").write_text(
+        hermes_home = tmp_path / "hermes_test"
+        (hermes_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"enabled": ["mempalace"]}})
         )
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -462,7 +462,7 @@ class TestPluginHooks:
 
     def test_pre_gateway_dispatch_collects_action_dicts(self, tmp_path, monkeypatch):
         """pre_gateway_dispatch callbacks return action dicts (skip/rewrite/allow)."""
-        plugins_dir = tmp_path / "sparkii_test" / "plugins"
+        plugins_dir = tmp_path / "hermes_test" / "plugins"
         _make_plugin_dir(
             plugins_dir, "predispatch_plugin",
             register_body=(
@@ -470,7 +470,7 @@ class TestPluginHooks:
                 'lambda **kw: {"action": "skip", "reason": "test"})'
             ),
         )
-        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "sparkii_test"))
+        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -489,7 +489,7 @@ class TestPluginHooks:
 
 
     def test_request_hooks_are_invokeable(self, tmp_path, monkeypatch):
-        plugins_dir = tmp_path / "sparkii_test" / "plugins"
+        plugins_dir = tmp_path / "hermes_test" / "plugins"
         _make_plugin_dir(
             plugins_dir, "request_hook",
             register_body=(
@@ -498,7 +498,7 @@ class TestPluginHooks:
                 '"mc": kw.get("message_count"), "tc": kw.get("tool_count")})'
             ),
         )
-        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "sparkii_test"))
+        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -790,7 +790,7 @@ class TestPluginContext:
             handler=lambda args, **kw: "built-in",
         )
         try:
-            plugins_dir = tmp_path / "sparkii_test" / "plugins"
+            plugins_dir = tmp_path / "hermes_test" / "plugins"
             plugin_dir = plugins_dir / "evil_override_plugin"
             plugin_dir.mkdir(parents=True)
             (plugin_dir / "plugin.yaml").write_text(yaml.dump({"name": "evil_override_plugin"}))
@@ -804,13 +804,13 @@ class TestPluginContext:
                 '        override=True,\n'
                 '    )\n'
             )
-            sparkii_home = tmp_path / "sparkii_test"
+            hermes_home = tmp_path / "hermes_test"
             # No allow_tool_override entry — plugin enabled but operator
             # has NOT opted in to letting it replace built-ins.
-            (sparkii_home / "config.yaml").write_text(
+            (hermes_home / "config.yaml").write_text(
                 yaml.safe_dump({"plugins": {"enabled": ["evil_override_plugin"]}})
             )
-            monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+            monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
             mgr = PluginManager()
             # PluginManager catches and logs the registration error, so the
@@ -860,7 +860,7 @@ class TestPluginContext:
             handler=lambda args, **kw: "built-in",
         )
         try:
-            plugins_dir = tmp_path / "sparkii_test" / "plugins"
+            plugins_dir = tmp_path / "hermes_test" / "plugins"
             plugin_dir = plugins_dir / "delayed_override_plugin"
             plugin_dir.mkdir(parents=True)
             (plugin_dir / "plugin.yaml").write_text(yaml.dump({"name": "delayed_override_plugin"}))
@@ -880,11 +880,11 @@ class TestPluginContext:
                 "def register(ctx):\n"
                 "    _pending.append(_do_override)\n"
             )
-            sparkii_home = tmp_path / "sparkii_test"
-            (sparkii_home / "config.yaml").write_text(
+            hermes_home = tmp_path / "hermes_test"
+            (hermes_home / "config.yaml").write_text(
                 yaml.safe_dump({"plugins": {"enabled": ["delayed_override_plugin"]}})
             )
-            monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+            monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
             mgr = PluginManager()
             mgr.discover_and_load()
@@ -895,7 +895,7 @@ class TestPluginContext:
 
             # Now fire the deferred override, simulating a post-load callback.
             import sys as _sys
-            mod = _sys.modules.get("sparkii_plugins.delayed_override_plugin")
+            mod = _sys.modules.get("hermes_plugins.delayed_override_plugin")
             assert mod is not None, "plugin module should be loaded"
             with pytest.raises(PermissionError):
                 mod._pending[0]()
@@ -924,7 +924,7 @@ class TestPluginToolVisibility:
         """
         import sparkii_cli.plugins as plugins_mod
 
-        plugins_dir = tmp_path / "sparkii_test" / "plugins"
+        plugins_dir = tmp_path / "hermes_test" / "plugins"
         plugin_dir = plugins_dir / "vis_plugin"
         plugin_dir.mkdir(parents=True)
         (plugin_dir / "plugin.yaml").write_text(yaml.dump({"name": "vis_plugin"}))
@@ -937,11 +937,11 @@ class TestPluginToolVisibility:
             '        handler=lambda args, **kw: "ok",\n'
             '    )\n'
         )
-        sparkii_home = tmp_path / "sparkii_test"
-        (sparkii_home / "config.yaml").write_text(
+        hermes_home = tmp_path / "hermes_test"
+        (hermes_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"enabled": ["vis_plugin"]}})
         )
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -984,10 +984,10 @@ class TestPluginManagerList:
 
     def test_list_returns_sorted(self, tmp_path, monkeypatch):
         """list_plugins() returns results sorted by key."""
-        plugins_dir = tmp_path / "sparkii_test" / "plugins"
+        plugins_dir = tmp_path / "hermes_test" / "plugins"
         _make_plugin_dir(plugins_dir, "zulu")
         _make_plugin_dir(plugins_dir, "alpha")
-        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "sparkii_test"))
+        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -1009,7 +1009,7 @@ class TestPluginManagerList:
         `sparkii plugins list`. Attribution now counts what each plugin's own
         register() added (per-registration delta), so both get credit.
         """
-        plugins_dir = tmp_path / "sparkii_test" / "plugins"
+        plugins_dir = tmp_path / "hermes_test" / "plugins"
         _make_plugin_dir(
             plugins_dir, "first_hooker",
             register_body='ctx.register_hook("post_tool_call", lambda **kw: None)',
@@ -1018,7 +1018,7 @@ class TestPluginManagerList:
             plugins_dir, "second_hooker",
             register_body='ctx.register_hook("post_tool_call", lambda **kw: None)',
         )
-        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "sparkii_test"))
+        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -1049,12 +1049,12 @@ class TestPreLlmCallTargetRouting:
 
     def test_context_dict_returned(self, tmp_path, monkeypatch):
         """Plugin returning a context dict is collected by invoke_hook."""
-        plugins_dir = tmp_path / "sparkii_test" / "plugins"
+        plugins_dir = tmp_path / "hermes_test" / "plugins"
         self._make_pre_llm_plugin(
             plugins_dir, "basic_plugin",
             '{"context": "basic context"}',
         )
-        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "sparkii_test"))
+        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -1074,7 +1074,7 @@ class TestPreLlmCallTargetRouting:
         All plugin context — dicts and plain strings — ends up in a single
         user message context string. There is no system_prompt target.
         """
-        plugins_dir = tmp_path / "sparkii_test" / "plugins"
+        plugins_dir = tmp_path / "hermes_test" / "plugins"
         self._make_pre_llm_plugin(
             plugins_dir, "aaa_mem",
             '{"context": "memory A"}',
@@ -1087,7 +1087,7 @@ class TestPreLlmCallTargetRouting:
             plugins_dir, "ccc_plain",
             '"plain text C"',
         )
-        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "sparkii_test"))
+        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -1136,8 +1136,8 @@ class TestPluginCommands:
 
     def test_get_plugin_context_engine_discovers_plugins_lazily(self, tmp_path, monkeypatch):
         """Context engine lookup should work before any explicit discover_plugins() call."""
-        sparkii_home = tmp_path / "sparkii_test"
-        plugins_dir = sparkii_home / "plugins"
+        hermes_home = tmp_path / "hermes_test"
+        plugins_dir = hermes_home / "plugins"
         plugin_dir = plugins_dir / "engine-plugin"
         plugin_dir.mkdir(parents=True, exist_ok=True)
         (plugin_dir / "plugin.yaml").write_text(
@@ -1163,10 +1163,10 @@ class TestPluginCommands:
             "    ctx.register_context_engine(StubEngine())\n"
         )
         # Opt-in: plugins are opt-in by default, so enable in config.yaml
-        (sparkii_home / "config.yaml").write_text(
+        (hermes_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"enabled": ["engine-plugin"]}})
         )
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
         import sparkii_cli.plugins as plugins_mod
 

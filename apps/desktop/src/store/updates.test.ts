@@ -37,7 +37,7 @@ const getActionStatusSpy = vi.fn()
 
 vi.mock('@/sparkii', () => ({
   checkSparkiiUpdate: (...args: unknown[]) => checkSparkiiUpdateSpy(...args),
-  updateSparkii: (...args: unknown[]) => updateSparkiiSpy(...args),
+  updateHermes: (...args: unknown[]) => updateSparkiiSpy(...args),
   getActionStatus: (...args: unknown[]) => getActionStatusSpy(...args)
 }))
 
@@ -134,7 +134,7 @@ describe('reportBackendContract', () => {
   })
 
   it('dismisses the toast when the backend meets the contract', () => {
-    reportBackendContract(5)
+    reportBackendContract(6)
     expect(dismissSpy).toHaveBeenCalledWith('backend-contract-skew')
     expect(notifySpy).not.toHaveBeenCalled()
   })
@@ -174,8 +174,8 @@ describe('reportBackendContract', () => {
     lastToast().onDismiss()
     notifySpy.mockClear()
 
-    reportBackendContract(5) // backend updated → satisfied, snooze cleared
-    reportBackendContract(4) // a later regression must warn immediately
+    reportBackendContract(6) // backend updated → satisfied, snooze cleared
+    reportBackendContract(5) // a later regression must warn immediately
     expect(notifySpy).toHaveBeenCalledTimes(1)
   })
 })

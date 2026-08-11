@@ -158,7 +158,7 @@ def test_toolset_has_keys_for_vision_accepts_codex_auth(tmp_path, monkeypatch):
 def test_save_platform_tools_preserves_mcp_server_names():
     """Ensure MCP server names are preserved when saving platform tools.
 
-    Regression test for https://github.com/YueDJ/SparkiiAgent/issues/1247
+    Regression test for https://github.com/NousResearch/sparkii-agent/issues/1247
     """
     config = {
         "platform_toolsets": {
@@ -315,7 +315,7 @@ def test_numeric_mcp_server_name_does_not_crash_sorted():
     _get_platform_tools must normalise them to str so that sorted()
     on the returned set never raises TypeError on mixed int/str.
 
-    Regression test for https://github.com/YueDJ/SparkiiAgent/issues/6901
+    Regression test for https://github.com/NousResearch/sparkii-agent/issues/6901
     """
     config = {
         "platform_toolsets": {"cli": ["web", 12306]},
@@ -430,7 +430,7 @@ class TestImagegenModelPicker:
 
 
 def test_get_effective_configurable_toolsets_dedupes_bundled_plugins():
-    """Bundled plugins share their toolset key with the
+    """Bundled plugins (plugins/spotify) share their toolset key with the
     built-in CONFIGURABLE_TOOLSETS entry. The effective list must not list
     them twice — otherwise `sparkii tools` → "reconfigure existing" shows
     the same toolset two rows in a row.
@@ -443,6 +443,11 @@ def test_get_effective_configurable_toolsets_dedupes_bundled_plugins():
         f"duplicate toolset keys in effective list: "
         f"{[k for k in keys if keys.count(k) > 1]}"
     )
+    # Spotify specifically — the bug that motivated the dedupe.
+    spotify_rows = [t for t in all_ts if t[0] == "spotify"]
+    assert len(spotify_rows) == 1, spotify_rows
+    # Built-in label wins over the plugin label.
+    assert spotify_rows[0][1] == "🎵 Spotify"
 
 
 

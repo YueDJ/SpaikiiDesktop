@@ -100,7 +100,7 @@ def _discord_request(
         headers={
             "Authorization": f"Bot {token}",
             "Content-Type": "application/json",
-            "User-Agent": "Sparkii-Agent (https://github.com/YueDJ/SparkiiAgent)",
+            "User-Agent": "Sparkii-Agent (https://github.com/NousResearch/sparkii-agent)",
         },
     )
 

@@ -462,6 +462,9 @@ export interface SidebarSessionSlice {
   /** Per-profile "the window came back full, more rows exist on disk" flags —
    *  what pagination needs, without a COUNT(*) per profile DB per refresh. */
   profiles_truncated?: Record<string, boolean>
+  /** Per-profile tokens and spend over every session, not just this window.
+   *  Absent from the legacy per-slice endpoint, which has no aggregate. */
+  profiles_usage?: Record<string, { cost_usd: number; tokens: number }>
 }
 
 /** Which profiles filled their per-profile window in a returned page. The
@@ -909,12 +912,14 @@ export function validateProviderCredential(
 
 export function getCustomEndpoints(): Promise<CustomEndpointsResponse> {
   return window.sparkiiDesktop.api<CustomEndpointsResponse>({
+    ...profileScoped(),
     path: '/api/providers/custom-endpoints'
   })
 }
 
 export function saveCustomEndpoint(endpoint: CustomEndpointUpdate): Promise<CustomEndpointsResponse> {
   return window.sparkiiDesktop.api<CustomEndpointsResponse>({
+    ...profileScoped(),
     path: '/api/providers/custom-endpoints',
     method: 'POST',
     body: endpoint
@@ -931,6 +936,7 @@ export function validateCustomEndpoint(endpoint: CustomEndpointUpdate): Promise<
 
 export function activateCustomEndpoint(id: string): Promise<{ ok: boolean; provider: string; model: string }> {
   return window.sparkiiDesktop.api<{ ok: boolean; provider: string; model: string }>({
+    ...profileScoped(),
     path: `/api/providers/custom-endpoints/${encodeURIComponent(id)}/activate`,
     method: 'POST'
   })
@@ -938,6 +944,7 @@ export function activateCustomEndpoint(id: string): Promise<{ ok: boolean; provi
 
 export function deleteCustomEndpoint(id: string): Promise<CustomEndpointsResponse> {
   return window.sparkiiDesktop.api<CustomEndpointsResponse>({
+    ...profileScoped(),
     path: `/api/providers/custom-endpoints/${encodeURIComponent(id)}`,
     method: 'DELETE'
   })
@@ -1676,7 +1683,7 @@ export function restartGateway(): Promise<ActionResponse> {
   })
 }
 
-export function updateSparkii(): Promise<ActionResponse> {
+export function updateHermes(): Promise<ActionResponse> {
   return window.sparkiiDesktop.api<ActionResponse>({
     ...profileScoped(),
     path: '/api/sparkii/update',

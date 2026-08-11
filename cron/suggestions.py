@@ -37,7 +37,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from sparkii_constants import get_sparkii_home
-from sparkii_time import now as _sparkii_now
+from sparkii_time import now as _hermes_now
 from utils import atomic_replace
 
 logger = logging.getLogger(__name__)
@@ -96,7 +96,7 @@ def _save_raw(suggestions: List[Dict[str, Any]]) -> None:
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             json.dump(
-                {"suggestions": suggestions, "updated_at": _sparkii_now().isoformat()},
+                {"suggestions": suggestions, "updated_at": _hermes_now().isoformat()},
                 f,
                 indent=2,
             )
@@ -170,7 +170,7 @@ def add_suggestion(
             "job_spec": job_spec,
             "dedup_key": dedup_key.strip(),
             "status": _STATUS_PENDING,
-            "created_at": _sparkii_now().isoformat(),
+            "created_at": _hermes_now().isoformat(),
         }
         suggestions.append(record)
         _save_raw(suggestions)
@@ -204,7 +204,7 @@ def _set_status(suggestion_id: str, status: str) -> bool:
         for s in suggestions:
             if s.get("id") == suggestion_id:
                 s["status"] = status
-                s["resolved_at"] = _sparkii_now().isoformat()
+                s["resolved_at"] = _hermes_now().isoformat()
                 changed = True
                 break
         if changed:

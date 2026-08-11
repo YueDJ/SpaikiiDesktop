@@ -54,6 +54,7 @@ contextBridge.exposeInMainWorld('sparkiiDesktop', {
     close: () => ipcRenderer.invoke('sparkii:hud:close'),
     setIgnoreMouse: ignore => ipcRenderer.send('sparkii:hud:ignore-mouse', ignore),
     moveBy: delta => ipcRenderer.send('sparkii:hud:move-by', delta),
+    setBounds: bounds => ipcRenderer.send('sparkii:hud:set-bounds', bounds),
     setVibrancy: on => ipcRenderer.invoke('sparkii:hud:vibrancy', on),
     // The HUD tells main which session it is on; main hands that back to the
     // app window when the HUD closes, so the app can re-home onto it.
@@ -198,6 +199,9 @@ contextBridge.exposeInMainWorld('sparkiiDesktop', {
   },
   revealLogs: () => ipcRenderer.invoke('sparkii:logs:reveal'),
   getRecentLogs: () => ipcRenderer.invoke('sparkii:logs:recent'),
+  // Fire-and-forget: persists a renderer error-boundary catch (with component
+  // stack) to desktop.log so crashes survive the window (#79428).
+  reportRendererError: report => ipcRenderer.send('sparkii:logs:renderer-error', report),
   readDir: dirPath => ipcRenderer.invoke('sparkii:fs:readDir', dirPath),
   gitRoot: startPath => ipcRenderer.invoke('sparkii:fs:gitRoot', startPath),
   revealPath: targetPath => ipcRenderer.invoke('sparkii:fs:reveal', targetPath),

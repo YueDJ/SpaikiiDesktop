@@ -1063,7 +1063,7 @@ def _is_local_openviking_url(value: str) -> bool:
     return scheme == "http" and (parsed.hostname or "").lower() in _LOCAL_OPENVIKING_HOSTS
 
 
-def _load_sparkii_openviking_config() -> dict:
+def _load_hermes_openviking_config() -> dict:
     try:
         from sparkii_cli.config import load_config_readonly
 
@@ -1957,7 +1957,7 @@ def _link_ovcli_profile(
         os.environ.pop(key, None)
 
 
-def _save_sparkii_only_config(
+def _save_hermes_only_config(
     *,
     config: dict,
     provider_config: dict,
@@ -2142,7 +2142,7 @@ def _run_create_profile_setup(
         _print_openviking_ready("Created and linked OpenViking profile.", ovcli_path)
         return True
 
-    _save_sparkii_only_config(
+    _save_hermes_only_config(
         config=config,
         provider_config=provider_config,
         env_path=env_path,
@@ -2239,7 +2239,7 @@ class OpenVikingMemoryProvider(MemoryProvider):
         """Check if OpenViking endpoint is configured. No network calls."""
         if os.environ.get("OPENVIKING_ENDPOINT"):
             return True
-        provider_config = _load_sparkii_openviking_config()
+        provider_config = _load_hermes_openviking_config()
         # A non-secret endpoint saved to config.yaml (e.g. via the Dashboard)
         # counts as configured even without an env var or ovcli config.
         if _clean_config_value(provider_config.get("endpoint")):
@@ -2371,7 +2371,7 @@ class OpenVikingMemoryProvider(MemoryProvider):
             },
         ]
 
-    def save_config(self, values: Dict[str, Any], sparkii_home: str) -> None:
+    def save_config(self, values: Dict[str, Any], hermes_home: str) -> None:
         """Validate and persist Dashboard configuration for the active profile."""
         normalized = dict(values or {})
         normalized.pop("api_key", None)
@@ -2428,13 +2428,13 @@ class OpenVikingMemoryProvider(MemoryProvider):
                 display[key] = "(set)"
         return display
 
-    def post_setup(self, sparkii_home: str, config: dict) -> None:
+    def post_setup(self, hermes_home: str, config: dict) -> None:
         """Custom setup that can reuse OpenViking's shared CLI config."""
         from sparkii_cli.config import save_config
         from sparkii_cli.memory_setup import _CANCELLED, _curses_select, _print_cancelled_setup, _prompt
 
-        sparkii_home_path = Path(sparkii_home)
-        env_path = sparkii_home_path / ".env"
+        hermes_home_path = Path(hermes_home)
+        env_path = hermes_home_path / ".env"
         if not isinstance(config.get("memory"), dict):
             config["memory"] = {}
         provider_config = config["memory"].get("openviking", {})
@@ -2669,7 +2669,7 @@ class OpenVikingMemoryProvider(MemoryProvider):
         )
         connection_error = ""
         try:
-            settings = _resolve_connection_settings(_load_sparkii_openviking_config())
+            settings = _resolve_connection_settings(_load_hermes_openviking_config())
         except _OpenVikingEndpointError as exc:
             connection_error = str(exc)
             settings = {
@@ -2691,14 +2691,14 @@ class OpenVikingMemoryProvider(MemoryProvider):
         self._env_refresh_enabled = True
         self._session_id = session_id
         self._turn_count = 0
-        sparkii_home = str(kwargs.get("sparkii_home") or "").strip()
-        if not sparkii_home:
+        hermes_home = str(kwargs.get("hermes_home") or "").strip()
+        if not hermes_home:
             try:
                 from sparkii_constants import get_sparkii_home
-                sparkii_home = str(get_sparkii_home())
+                hermes_home = str(get_sparkii_home())
             except Exception:
-                sparkii_home = str(Path.home() / ".sparkii")
-        self._sparkii_home = sparkii_home
+                hermes_home = str(Path.home() / ".sparkii")
+        self._sparkii_home = hermes_home
         self._acquire_run_lock()
         self._profile_prefetched_sessions.clear()
 
@@ -2777,7 +2777,7 @@ class OpenVikingMemoryProvider(MemoryProvider):
             return None
 
         try:
-            settings = _resolve_connection_settings(_load_sparkii_openviking_config())
+            settings = _resolve_connection_settings(_load_hermes_openviking_config())
         except _OpenVikingEndpointError as exc:
             failed_key = ("invalid-endpoint", str(exc))
             failed = self._failed_refresh
@@ -3657,7 +3657,7 @@ class OpenVikingMemoryProvider(MemoryProvider):
     def _recall_config(self) -> Dict[str, Any]:
         # Read from config.yaml → memory.openviking as primary source, env vars
         # as override. Behavioural settings belong in config.yaml (AGENTS.md).
-        provider_config = _load_sparkii_openviking_config()
+        provider_config = _load_hermes_openviking_config()
         cfg = provider_config
 
         return {
@@ -3710,7 +3710,7 @@ class OpenVikingMemoryProvider(MemoryProvider):
         }
 
     def _profile_token_budget(self) -> int:
-        cfg = _load_sparkii_openviking_config()
+        cfg = _load_hermes_openviking_config()
         return self._setting_int(
             "OPENVIKING_PROFILE_TOKEN_BUDGET",
             cfg.get("profile_token_budget", _DEFAULT_PROFILE_TOKEN_BUDGET),

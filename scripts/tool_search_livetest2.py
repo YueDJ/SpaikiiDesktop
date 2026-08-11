@@ -59,8 +59,8 @@ SCENARIOS: List[Dict[str, Any]] = base.SCENARIOS + [
 def run_one(scenario: Dict[str, Any], mode: str, rep: int, out_dir: Path) -> Dict[str, Any]:
     """mode: 'enabled' (bare bridge) | 'listing' (bridge + catalog listing) | 'disabled' (eager)."""
     enabled = mode in ("enabled", "listing")
-    sparkii_home = base.setup_isolated_home(enabled, listing=("auto" if mode == "listing" else "off"))
-    os.environ["SPARKII_HOME"] = str(sparkii_home)
+    hermes_home = base.setup_isolated_home(enabled, listing=("auto" if mode == "listing" else "off"))
+    os.environ["SPARKII_HOME"] = str(hermes_home)
     base.reset_module_state()
     n_registered = base.register_fake_tools()
 

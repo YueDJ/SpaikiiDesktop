@@ -21,7 +21,7 @@
 10. [附录](#附录)
 
 ## 简介
-本指南面向在Microsoft Azure上部署SpaikiiDesktop（Hermes Agent）的工程团队，提供从容器镜像构建到在Azure Kubernetes Service（AKS）或Azure Container Instances（ACI）运行的完整步骤。内容涵盖：
+本指南面向在Microsoft Azure上部署SpaikiiDesktop（Sparkii Agent）的工程团队，提供从容器镜像构建到在Azure Kubernetes Service（AKS）或Azure Container Instances（ACI）运行的完整步骤。内容涵盖：
 - AKS集群、资源组、网络策略与Ingress配置
 - ACI轻量级部署选项
 - 与Azure Database for PostgreSQL集成
@@ -42,7 +42,7 @@ graph TB
 A["开发者"] --> B["GitHub Actions<br/>构建/测试/发布"]
 B --> C["Docker Hub / ACR<br/>镜像制品"]
 C --> D["AKS 或 ACI"]
-D --> E["Hermes Gateway<br/>Dashboard"]
+D --> E["Sparkii Gateway<br/>Dashboard"]
 E --> F["外部服务<br/>PostgreSQL / Blob / App Insights / Entra ID"]
 ```
 
@@ -91,7 +91,7 @@ LA["Log Analytics 工作区"]
 OIDC["Entra ID (OIDC/Managed Identity)"]
 end
 subgraph "应用"
-GW["Hermes Gateway"]
+GW["Sparkii Gateway"]
 UI["Dashboard"]
 end
 RG --> VNET

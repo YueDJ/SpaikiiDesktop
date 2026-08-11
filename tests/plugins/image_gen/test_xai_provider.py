@@ -394,11 +394,11 @@ class TestXAIImageFieldReadGuard:
     def test_xai_image_field_blocks_credential_store(self, tmp_path, monkeypatch):
         from plugins.image_gen.xai import _xai_image_field
 
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        auth_json = sparkii_home / "auth.json"
+        hermes_home = tmp_path / ".sparkii"
+        hermes_home.mkdir()
+        auth_json = hermes_home / "auth.json"
         auth_json.write_text('{"api_key":"sk-secret"}', encoding="utf-8")
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
         with pytest.raises(ValueError, match="credential store"):
             _xai_image_field(str(auth_json))

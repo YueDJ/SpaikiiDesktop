@@ -652,25 +652,25 @@ _SENSITIVE_PATH_PREFIXES = (
 )
 _SENSITIVE_EXACT_PATHS = {"/var/run/docker.sock", "/run/docker.sock"}
 
-_sparkii_config_resolved: str | None = None
-_sparkii_config_resolved_loaded = False
+_hermes_config_resolved: str | None = None
+_hermes_config_resolved_loaded = False
 
 
-def _get_sparkii_config_resolved() -> str | None:
+def _get_hermes_config_resolved() -> str | None:
     """Return the resolved absolute path of the Sparkii config file (cached)."""
-    global _sparkii_config_resolved, _sparkii_config_resolved_loaded
-    if _sparkii_config_resolved_loaded:
-        return _sparkii_config_resolved
-    _sparkii_config_resolved_loaded = True
+    global _hermes_config_resolved, _hermes_config_resolved_loaded
+    if _hermes_config_resolved_loaded:
+        return _hermes_config_resolved
+    _hermes_config_resolved_loaded = True
     try:
         from sparkii_cli.config import get_config_path
-        _sparkii_config_resolved = str(get_config_path().resolve())
+        _hermes_config_resolved = str(get_config_path().resolve())
     except Exception:
         try:
-            _sparkii_config_resolved = str(Path(_expand_tilde("~/.sparkii/config.yaml")).resolve())
+            _hermes_config_resolved = str(Path(_expand_tilde("~/.sparkii/config.yaml")).resolve())
         except Exception:
-            _sparkii_config_resolved = None
-    return _sparkii_config_resolved
+            _hermes_config_resolved = None
+    return _hermes_config_resolved
 
 
 def _check_sensitive_path(filepath: str, task_id: str = "default") -> str | None:
@@ -693,8 +693,8 @@ def _check_sensitive_path(filepath: str, task_id: str = "default") -> str | None
     # approvals.mode and other security settings live here; a malicious or
     # prompt-injected agent could silently disable exec approval by writing to
     # this file.
-    sparkii_config = _get_sparkii_config_resolved()
-    if sparkii_config and (resolved == sparkii_config or normalized == sparkii_config):
+    hermes_config = _get_hermes_config_resolved()
+    if hermes_config and (resolved == hermes_config or normalized == hermes_config):
         return (
             f"Refusing to write to Sparkii config file: {filepath}\n"
             "Agent cannot modify security-sensitive configuration. "
@@ -1515,6 +1515,38 @@ def clear_file_ops_cache(task_id: str = None):
             _file_ops_cache.clear()
 
 
+def _special_file_kind(path) -> str | None:
+    """Return a human name for non-regular file types that block reads.
+
+    Stat-based sibling of the name-based ``_is_blocked_device`` guard: a
+    FIFO at ``logs/live.pipe`` or a socket in a workspace hangs ``read_file``
+    just as hard as ``/dev/zero``, but carries no recognizable name. Only
+    called for host-visible filesystems (see ``_file_ops_uses_host_paths``);
+    remote backends cannot be statted from here.
+
+    Returns None for regular files, missing paths, and anything unstattable
+    (those flow to the normal read path and its own error handling).
+    """
+    import stat as _stat
+
+    try:
+        st = os.stat(os.fspath(path))  # follows symlinks, matching a real read
+    except OSError:
+        return None
+    mode = st.st_mode
+    if _stat.S_ISREG(mode) or _stat.S_ISDIR(mode):
+        return None
+    if _stat.S_ISFIFO(mode):
+        return "a FIFO (named pipe)"
+    if _stat.S_ISSOCK(mode):
+        return "a socket"
+    if _stat.S_ISCHR(mode):
+        return "a character device"
+    if _stat.S_ISBLK(mode):
+        return "a block device"
+    return "a special (non-regular) file"
+
+
 def read_file_tool(path: str, offset: int = 1, limit: int = 2000, task_id: str = "default") -> str:
     """Read a file with pagination and line numbers."""
     try:
@@ -1531,6 +1563,23 @@ def read_file_tool(path: str, offset: int = 1, limit: int = 2000, task_id: str =
             )
 
         _resolved = _resolve_path_for_task(path, task_id)
+
+        # ── Special-file type guard (stat-based) ──────────────────────
+        # The name blocklist above catches /dev/* and /proc/* aliases; this
+        # catches the class — any FIFO/socket/device wherever it lives. A
+        # read on a FIFO blocks until the exec timeout: a self-shipped DoS.
+        if _file_ops_uses_host_paths(_get_file_ops(task_id)):
+            kind = _special_file_kind(_resolved)
+            if kind is not None:
+                return json.dumps({
+                    "success": False,
+                    "note": (
+                        f"'{path}' is {kind}, not a regular file — reading "
+                        "it would block indefinitely, so no read was "
+                        "attempted. Use terminal utilities if you need to "
+                        "interact with it."
+                    ),
+                })
 
         # ── Structured-document extraction ────────────────────────────
         # Try before the binary-extension guard so .docx/.xlsx can render as text.
@@ -1632,7 +1681,10 @@ def read_file_tool(path: str, offset: int = 1, limit: int = 2000, task_id: str =
                 return json.dumps(result_dict, ensure_ascii=False)
 
         # ── Binary file guard ─────────────────────────────────────────
-        # Block binary files by extension (no I/O).
+        # Block binary files by extension (no I/O). Name what we know:
+        # the extension is a claim, so keep this branch's message to the
+        # extension itself — the content-sniffing path below names the
+        # actual magic-byte type for extension-less/lying files.
         if has_binary_extension(str(_resolved)):
             _ext = _resolved.suffix.lower()
             return tool_error(

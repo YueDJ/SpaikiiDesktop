@@ -20,16 +20,16 @@ infrastructure, the guarantee no longer holds).
 Design summary
 --------------
 
-* The ``iron-proxy`` binary is auto-installed into ``<sparkii_home>/bin/iron-proxy``
+* The ``iron-proxy`` binary is auto-installed into ``<hermes_home>/bin/iron-proxy``
   on first use.  Sparkii pins one upstream version (``_IRON_PROXY_VERSION``)
   and downloads the matching tar.gz from the official GitHub Releases page,
   verifying the SHA-256 against the release's ``checksums.txt``.
 
-* A long-lived CA at ``<sparkii_home>/proxy/ca.{crt,key}`` is generated on
+* A long-lived CA at ``<hermes_home>/proxy/ca.{crt,key}`` is generated on
   first ``sparkii egress setup``.  Sandboxes trust this CA so iron-proxy can
   terminate TLS and rewrite headers.
 
-* The proxy config lives at ``<sparkii_home>/proxy/proxy.yaml``.  It enumerates
+* The proxy config lives at ``<hermes_home>/proxy/proxy.yaml``.  It enumerates
   the per-provider allowlists and the ``secrets`` transform that does the
   Authorization-header swap.
 
@@ -40,8 +40,8 @@ Design summary
   at proxy startup instead.
 
 * The proxy runs as a managed subprocess (``sparkii egress start``), pidfile
-  at ``<sparkii_home>/proxy/iron-proxy.pid``.  Daemon output (including
-  per-request records on v0.39) goes to ``<sparkii_home>/proxy/iron-proxy.log``;
+  at ``<hermes_home>/proxy/iron-proxy.pid``.  Daemon output (including
+  per-request records on v0.39) goes to ``<hermes_home>/proxy/iron-proxy.log``;
   ``audit.log`` is pre-created but reserved for a future pin that supports
   ``log.audit_path``.
 
@@ -114,7 +114,7 @@ _STARTUP_GRACE_SECONDS = 5
 # client.
 #
 # The key is minted at setup time, stored at
-# ``<sparkii_home>/proxy/management.token`` (0600), and injected into the
+# ``<hermes_home>/proxy/management.token`` (0600), and injected into the
 # daemon's env under this name at start.  v0.39 validates at startup that
 # the named env var is non-empty when management.listen is set.
 _MGMT_API_KEY_ENV = "SPARKII_IRON_PROXY_MGMT_KEY"
@@ -356,7 +356,7 @@ class TokenMapping:
 # ---------------------------------------------------------------------------
 
 
-def _sparkii_bin_dir() -> Path:
+def _hermes_bin_dir() -> Path:
     from sparkii_constants import get_sparkii_home
 
     return get_sparkii_home() / "bin"
@@ -437,14 +437,14 @@ def find_iron_proxy(*, install_if_missing: bool = False) -> Optional[Path]:
     """Return a path to a usable ``iron-proxy`` binary, or None.
 
     Resolution order:
-      1. ``<sparkii_home>/bin/iron-proxy``  (our managed copy — preferred)
+      1. ``<hermes_home>/bin/iron-proxy``  (our managed copy — preferred)
       2. ``shutil.which("iron-proxy")``    (system PATH)
 
     When ``install_if_missing`` is True and neither resolves, calls
     :func:`install_iron_proxy` to download and verify the pinned version.
     """
 
-    managed = _sparkii_bin_dir() / _platform_binary_name()
+    managed = _hermes_bin_dir() / _platform_binary_name()
     if managed.exists() and os.access(managed, os.X_OK):
         return managed
 
@@ -470,7 +470,7 @@ def install_iron_proxy(*, force: bool = False) -> Path:
     propagate so the wizard can show a clear error.
     """
 
-    bin_dir = _sparkii_bin_dir()
+    bin_dir = _hermes_bin_dir()
     bin_dir.mkdir(parents=True, exist_ok=True)
     target = bin_dir / _platform_binary_name()
 
@@ -845,7 +845,7 @@ def _management_token_path() -> Path:
 def ensure_management_token(*, force: bool = False) -> str:
     """Return the management-API bearer key, minting it on first call.
 
-    Stored at ``<sparkii_home>/proxy/management.token`` with 0600 perms.
+    Stored at ``<hermes_home>/proxy/management.token`` with 0600 perms.
     The daemon receives it via the ``SPARKII_IRON_PROXY_MGMT_KEY`` env var
     (named in the generated config's ``management.api_key_env``);
     ``sparkii egress reload`` reads the same file to authenticate.
@@ -1357,7 +1357,7 @@ def ensure_audit_log(audit_path: Path) -> None:
 
 
 def write_proxy_config(config: Dict) -> Path:
-    """Serialize the config dict to ``<sparkii_home>/proxy/proxy.yaml``.
+    """Serialize the config dict to ``<hermes_home>/proxy/proxy.yaml``.
 
     Uses ``yaml.safe_dump`` so we never emit Python tags.
     """

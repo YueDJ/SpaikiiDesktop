@@ -6,7 +6,7 @@ from sparkii_cli.main import cmd_update
 from tools.skills_hub import OptionalSkillSource
 
 
-def test_recommended_update_command_defaults_to_sparkii_update(monkeypatch):
+def test_recommended_update_command_defaults_to_hermes_update(monkeypatch):
     monkeypatch.delenv("SPARKII_MANAGED", raising=False)
 
     # Also short-circuit the .managed marker path — CI runners may have an

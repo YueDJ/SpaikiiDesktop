@@ -1,6 +1,6 @@
 schema_version: 1
 module_path: gateway
-title: Hermes Gateway 多平台消息网关
+title: Sparkii Gateway 多平台消息网关
 scope:
     - gateway/
 source_files: []

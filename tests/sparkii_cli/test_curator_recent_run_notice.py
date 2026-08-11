@@ -31,12 +31,12 @@ def curator_env(tmp_path, monkeypatch, capsys):
     importlib.reload(sparkii_constants)
     from agent import curator
     importlib.reload(curator)
-    from sparkii_cli import main as sparkii_main
-    importlib.reload(sparkii_main)
+    from sparkii_cli import main as hermes_main
+    importlib.reload(hermes_main)
 
     yield {
         "curator": curator,
-        "main": sparkii_main,
+        "main": hermes_main,
         "capsys": capsys,
     }
 

@@ -32,16 +32,16 @@ def test_output_path_rejects_bare_dotdot():
     assert "traversal" in result["error"].lower()
 
 
-def test_output_path_rejects_sparkii_oauth_store(tmp_path, monkeypatch):
+def test_output_path_rejects_hermes_oauth_store(tmp_path, monkeypatch):
     """TTS output_path must not bypass the shared protected-file write guard."""
     import agent.file_safety as file_safety
 
-    sparkii_home = tmp_path / "sparkii-home"
-    sparkii_home.mkdir()
-    monkeypatch.setattr(file_safety, "_sparkii_home_path", lambda: sparkii_home)
-    monkeypatch.setattr(file_safety, "_sparkii_root_path", lambda: sparkii_home)
+    hermes_home = tmp_path / "sparkii-home"
+    hermes_home.mkdir()
+    monkeypatch.setattr(file_safety, "_sparkii_home_path", lambda: hermes_home)
+    monkeypatch.setattr(file_safety, "_hermes_root_path", lambda: hermes_home)
 
-    target = sparkii_home / ".anthropic_oauth.json"
+    target = hermes_home / ".anthropic_oauth.json"
     result = json.loads(text_to_speech_tool(
         text="hello",
         output_path=str(target),
@@ -56,11 +56,11 @@ def test_output_path_rejects_mcp_token_directory(tmp_path, monkeypatch):
     """TTS output_path must not write synthesized audio over MCP token files."""
     import agent.file_safety as file_safety
 
-    sparkii_home = tmp_path / "sparkii-home"
-    token_dir = sparkii_home / "mcp-tokens"
+    hermes_home = tmp_path / "sparkii-home"
+    token_dir = hermes_home / "mcp-tokens"
     token_dir.mkdir(parents=True)
-    monkeypatch.setattr(file_safety, "_sparkii_home_path", lambda: sparkii_home)
-    monkeypatch.setattr(file_safety, "_sparkii_root_path", lambda: sparkii_home)
+    monkeypatch.setattr(file_safety, "_sparkii_home_path", lambda: hermes_home)
+    monkeypatch.setattr(file_safety, "_hermes_root_path", lambda: hermes_home)
 
     target = token_dir / "server.mp3"
     result = json.loads(text_to_speech_tool(

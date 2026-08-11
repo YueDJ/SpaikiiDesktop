@@ -83,10 +83,10 @@ def _write_cmd(path: Path, text: str) -> None:
 def test_venv_sweep_stops_managed_runtime_children_but_not_unrelated_processes(
     tmp_path: Path,
 ) -> None:
-    sparkii_home = tmp_path / "sparkii-home"
-    install_dir = sparkii_home / "sparkii-agent"
+    hermes_home = tmp_path / "sparkii-home"
+    install_dir = hermes_home / "sparkii-agent"
     venv_scripts = install_dir / "venv" / "Scripts"
-    runtime_dir = sparkii_home / ".sparkii-runtime" / "python" / "generation-test"
+    runtime_dir = hermes_home / ".sparkii-runtime" / "python" / "generation-test"
     unrelated_dir = tmp_path / "unrelated"
     fake_bin = tmp_path / "fake-bin"
     for directory in (venv_scripts, runtime_dir, unrelated_dir, fake_bin):
@@ -164,7 +164,7 @@ def test_venv_sweep_stops_managed_runtime_children_but_not_unrelated_processes(
                 "-InstallDir",
                 str(install_dir),
                 "-SparkiiHome",
-                str(sparkii_home),
+                str(hermes_home),
             ],
             cwd=tmp_path,
             env=env,

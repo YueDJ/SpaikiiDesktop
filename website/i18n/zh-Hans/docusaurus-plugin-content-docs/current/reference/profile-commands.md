@@ -377,7 +377,7 @@ sparkii profile install https://github.com/your-org/internal-assistant.git
 name: telemetry
 version: 0.1.0
 description: "Compliance monitoring harness"
-sparkii_requires: ">=0.12.0"
+hermes_requires: ">=0.12.0"
 author: "Your Name"
 license: "MIT"
 env_requires:
@@ -395,7 +395,7 @@ distribution_owned:   # optional; defaults to SOUL.md, config.yaml,
   - cron/
 ```
 
-`sparkii_requires` 支持 `>=`、`<=`、`==`、`!=`、`>`、`<`，或裸版本号（视为 `>=`）。若当前 Sparkii 版本不满足规格，安装将失败并给出明确错误。
+`hermes_requires` 支持 `>=`、`<=`、`==`、`!=`、`>`、`<`，或裸版本号（视为 `>=`）。若当前 Sparkii 版本不满足规格，安装将失败并给出明确错误。
 
 `distribution_owned` 为可选项。若设置，更新时仅替换这些路径；profile 中的其他内容保持用户所有。若省略，则应用上述默认值。
 

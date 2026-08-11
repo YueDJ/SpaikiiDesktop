@@ -242,10 +242,10 @@ def classic_env(tmp_path, monkeypatch):
     fake_home = tmp_path / "home"
     fake_home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: fake_home)
-    sparkii_home = tmp_path / "classic"
-    sparkii_home.mkdir()
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
-    return sparkii_home
+    hermes_home = tmp_path / "classic"
+    hermes_home.mkdir()
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    return hermes_home
 
 
 def _pool_entry(**overrides) -> dict:

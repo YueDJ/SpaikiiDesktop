@@ -23,7 +23,7 @@
 - 请求体包含 messages、model、stream 等参数
 - 非流式与流式（SSE）两种响应模式
 - 推理配置与服务层级设置
-- 与 Hermes 会话系统的集成（X-Hermes-Session-Id、X-Hermes-Session-Key）
+- 与 Sparkii 会话系统的集成（X-Sparkii-Session-Id、X-Sparkii-Session-Key）
 - 认证方式与错误处理机制
 - 客户端集成示例与最佳实践
 
@@ -57,8 +57,8 @@ SSEWriter --> Client
   - 提取 system/user/assistant 消息，system 内容会被合并为临时系统提示；user/assistant 内容会进行多模态规范化。
   - 若最后一条 user 消息为空或无可见负载，返回 400 错误。
 - 会话与长期记忆作用域
-  - X-Hermes-Session-Id：可选，用于继续已有会话并加载历史消息；需要启用 API 密钥认证才允许。
-  - X-Hermes-Session-Key：可选，用于跨会话的长期记忆作用域隔离。
+  - X-Sparkii-Session-Id：可选，用于继续已有会话并加载历史消息；需要启用 API 密钥认证才允许。
+  - X-Sparkii-Session-Key：可选，用于跨会话的长期记忆作用域隔离。
 - 模型与路由选择
   - model 字段决定虚拟模型或具体模型；支持 provider/model_options 覆盖。
   - 服务层级 service_tier 可通过 model_options 指定，或 fast=true 映射为 priority。
@@ -88,7 +88,7 @@ participant Q as "ThreadSafeAsyncQueue"
 participant S as "_write_sse_chat_completion"
 C->>A : POST /v1/chat/completions
 A->>H : 解析请求体/校验/messages
-H->>H : 读取 X-Hermes-Session-Id/X-Hermes-Session-Key
+H->>H : 读取 X-Sparkii-Session-Id/X-Sparkii-Session-Key
 H->>H : 解析 model/provider/model_options
 alt 流式 stream=true
 H->>R : 启动后台任务(带回调)
@@ -138,14 +138,14 @@ end
 - [gateway/platforms/api_server.py:4265-4284](file://gateway/platforms/api_server.py#L4265-L4284)
 
 ### 头部与会话集成
-- X-Hermes-Session-Id：可选，用于继续已有会话并加载历史消息。
+- X-Sparkii-Session-Id：可选，用于继续已有会话并加载历史消息。
   - 需要 API 密钥认证；否则返回 403。
   - 会对 session ID 做安全检查（禁止控制字符、路径穿越等）。
-- X-Hermes-Session-Key：可选，用于长期记忆作用域隔离；独立于会话 ID。
+- X-Sparkii-Session-Key：可选，用于长期记忆作用域隔离；独立于会话 ID。
 - 响应头：
-  - X-Hermes-Session-Id：本次运行使用的会话 ID。
-  - X-Hermes-Session-Key：回显当前作用域键。
-  - X-Hermes-Completed/X-Hermes-Partial/X-Hermes-Error：非成功或截断时的扩展信息。
+  - X-Sparkii-Session-Id：本次运行使用的会话 ID。
+  - X-Sparkii-Session-Key：回显当前作用域键。
+  - X-Sparkii-Completed/X-Sparkii-Partial/X-Sparkii-Error：非成功或截断时的扩展信息。
 
 章节来源
 - [gateway/platforms/api_server.py:4078-4144](file://gateway/platforms/api_server.py#L4078-L4144)
@@ -234,10 +234,10 @@ Done --> End(["结束"])
 
 ### 认证方式
 - API 密钥：
-  - 当启用 API_SERVER_KEY 后，X-Hermes-Session-Id 续会话功能才被允许。
+  - 当启用 API_SERVER_KEY 后，X-Sparkii-Session-Id 续会话功能才被允许。
   - 其他通用认证策略由网关层统一处理（例如鉴权中间件）。
 - 会话作用域：
-  - X-Hermes-Session-Key 用于长期记忆作用域隔离，与会话 ID 解耦。
+  - X-Sparkii-Session-Key 用于长期记忆作用域隔离，与会话 ID 解耦。
 
 章节来源
 - [gateway/platforms/api_server.py:4078-4144](file://gateway/platforms/api_server.py#L4078-L4144)
@@ -251,8 +251,8 @@ Done --> End(["结束"])
 - 流式请求：
   - 主体添加 stream:true；客户端需按 SSE 协议消费事件，直到收到 [DONE]。
 - 会话延续：
-  - 首次请求可省略 X-Hermes-Session-Id；后续请求携带该头以继续同一会话。
-  - 如需跨会话共享长期记忆，设置 X-Hermes-Session-Key。
+  - 首次请求可省略 X-Sparkii-Session-Id；后续请求携带该头以继续同一会话。
+  - 如需跨会话共享长期记忆，设置 X-Sparkii-Session-Key。
 - 模型与推理：
   - 通过 model 指定模型；通过 model_options.reasoning 或 reasoning_effort 控制推理。
   - 通过 model_options.service_tier 或 fast=true 调整服务层级。
@@ -320,7 +320,7 @@ Queue --> SSE["_write_sse_chat_completion"]
 - 诊断要点：
   - 检查 finish_reason 与 sparkii 扩展字段，定位截断或失败原因。
   - 流式模式下确认是否收到 [DONE]；若未收到，检查客户端断开与代理中断日志。
-  - 核对 X-Hermes-Session-Id 与 X-Hermes-Session-Key 是否正确传递。
+  - 核对 X-Sparkii-Session-Id 与 X-Sparkii-Session-Key 是否正确传递。
 - 恢复建议：
   - 重试带 Idempotency-Key 的请求以获得幂等结果。
   - 对于截断，适当增加 max_tokens 或调整推理配置。

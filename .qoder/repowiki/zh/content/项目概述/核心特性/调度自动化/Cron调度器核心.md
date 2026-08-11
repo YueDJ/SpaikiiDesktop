@@ -186,7 +186,7 @@ OnceRel --> Done
 - 中断恢复：
   - 启动时扫描claimed/running且所有者进程已消失的记录，标记为unknown
 - 输出与审计：
-  - 输出保存在~/.hermes/cron/output/{job_id}/{timestamp}.md
+  - 输出保存在~/.sparkii/cron/output/{job_id}/{timestamp}.md
   - 执行审计保存在executions.db，支持分页查询与最新记录聚合
 
 ```mermaid
@@ -385,7 +385,7 @@ Executions --> SQLite["SQLite"]
 - [cron/monitor.py:147-213](file://cron/monitor.py#L147-L213)
 
 ## 结论
-Hermes Agent的Cron调度器提供了健壮的任务调度能力，涵盖多种时间表达式、严格的并发控制、跨进程锁机制、完整的执行审计与监控。通过合理的配置与调优，可在生产环境中稳定运行。建议在生产环境启用并行度限制、定期审查执行历史、并配置合适的监控源以提升可观测性。
+Sparkii Agent的Cron调度器提供了健壮的任务调度能力，涵盖多种时间表达式、严格的并发控制、跨进程锁机制、完整的执行审计与监控。通过合理的配置与调优，可在生产环境中稳定运行。建议在生产环境启用并行度限制、定期审查执行历史、并配置合适的监控源以提升可观测性。
 
 ## 附录
 
@@ -406,12 +406,12 @@ Hermes Agent的Cron调度器提供了健壮的任务调度能力，涵盖多种�
 
 ### 执行监控方法
 - 查看心跳：
-  - ~/.hermes/cron/ticker_heartbeat（最近心跳）
-  - ~/.hermes/cron/ticker_last_success（最近成功tick）
+  - ~/.sparkii/cron/ticker_heartbeat（最近心跳）
+  - ~/.sparkii/cron/ticker_last_success（最近成功tick）
 - 查询执行历史：
   - 使用list_executions或latest_executions API
 - 查看输出：
-  - ~/.hermes/cron/output/{job_id}/{timestamp}.md
+  - ~/.sparkii/cron/output/{job_id}/{timestamp}.md
 
 章节来源
 - [cron/jobs.py:86-116](file://cron/jobs.py#L86-L116)

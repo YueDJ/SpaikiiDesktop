@@ -748,13 +748,13 @@ def _find_skill_in_other_profiles(name: str) -> List[Tuple[str, Path]]:
     """
     matches: List[Tuple[str, Path]] = []
     try:
-        from sparkii_constants import get_default_sparkii_root
+        from sparkii_constants import get_default_hermes_root
         from agent.skill_utils import is_excluded_skill_path
     except Exception:
         return matches
 
     try:
-        root = get_default_sparkii_root()
+        root = get_default_hermes_root()
     except Exception:
         return matches
 

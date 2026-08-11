@@ -155,7 +155,7 @@ end
 - 注册：idempotent注册到插件管理器，支持safe mode跳过
 - 回调：对pre/post_tool_call支持matcher过滤
 - 负载：JSON，包含事件名、工具名、输入、会话ID、工作目录、extra、delivery_id、timestamp
-- 头部：Content-Type、User-Agent、X-Hermes-Event、X-Hermes-Delivery、X-Hermes-Signature-256（当配置secret时）
+- 头部：Content-Type、User-Agent、X-Sparkii-Event、X-Sparkii-Delivery、X-Sparkii-Signature-256（当配置secret时）
 - 传输：进程内队列+单daemon worker线程，超时、重试（连接错误/5xx）、拒绝3xx重定向
 - 安全：HMAC-SHA256签名，支持secret_env优先于inline secret
 
@@ -229,7 +229,7 @@ CLI["sparkii webhook"] --> FS["文件系统(atomic_replace)"]
   - 安全开关：INSECURE_NO_AUTH仅允许loopback绑定，否则启动失败
 - 出站签名：
   - HMAC-SHA256，secret_env优先于inline secret
-  - 头：X-Hermes-Signature-256 = sha256=<hex>
+  - 头：X-Sparkii-Signature-256 = sha256=<hex>
 - 其他防护：
   - 请求体大小限制（默认1MB）
   - 禁止跟随3xx重定向（出站）

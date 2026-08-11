@@ -5,9 +5,9 @@ import type * as SparkiiModule from '@/sparkii'
 
 import { discoverRuntimePlugins, watchRuntimePlugins } from './runtime-loader'
 
-// getStatus would supply the connected backend's sparkii_home — a REMOTE path in
+// getStatus would supply the connected backend's hermes_home — a REMOTE path in
 // remote mode. The disk scanner must NOT derive the plugin root from it (#66899).
-const getStatus = vi.fn(async () => ({ sparkii_home: '/remote/box/.sparkii' }))
+const getStatus = vi.fn(async () => ({ hermes_home: '/remote/box/.sparkii' }))
 
 vi.mock('@/sparkii', async importActual => ({
   ...(await importActual<typeof SparkiiModule>()),
@@ -38,7 +38,7 @@ afterEach(() => {
 })
 
 describe('scanDiskPlugins (#66899)', () => {
-  it('scans the Electron-resolved local root, never the backend sparkii_home', async () => {
+  it('scans the Electron-resolved local root, never the backend hermes_home', async () => {
     desktopPluginsRoot.mockResolvedValue('/local/.sparkii/desktop-plugins')
     readDir.mockResolvedValue({ entries: [] })
 
@@ -46,7 +46,7 @@ describe('scanDiskPlugins (#66899)', () => {
 
     expect(desktopPluginsRoot).toHaveBeenCalled()
     expect(readDir).toHaveBeenCalledWith('/local/.sparkii/desktop-plugins')
-    // The remote backend's sparkii_home must never feed the local plugin scan.
+    // The remote backend's hermes_home must never feed the local plugin scan.
     expect(getStatus).not.toHaveBeenCalled()
     expect(readDir).not.toHaveBeenCalledWith('/remote/box/.sparkii/desktop-plugins')
   })
@@ -61,7 +61,7 @@ describe('scanDiskPlugins (#66899)', () => {
 })
 
 describe('watchRuntimePlugins dir watch (#66899)', () => {
-  it('watches the Electron-resolved local root, never the backend sparkii_home', async () => {
+  it('watches the Electron-resolved local root, never the backend hermes_home', async () => {
     desktopPluginsRoot.mockResolvedValue('/local/.sparkii/desktop-plugins')
     readDir.mockResolvedValue({ entries: [] })
     watchDirectory.mockResolvedValue({ id: 'watch-1' })

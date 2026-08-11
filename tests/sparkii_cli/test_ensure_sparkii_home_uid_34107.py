@@ -7,7 +7,7 @@ for profile namespaces under ``profiles/<name>/`` spawned by kanban
 workers — were landing as ``root:root`` and blocking subsequent
 uid-mapped worker invocations with ``PermissionError [Errno 13]``.
 
-The fix is a ``_chown_to_sparkii_uid`` helper that reads the env vars and
+The fix is a ``_chown_to_hermes_uid`` helper that reads the env vars and
 applies chown after ``mkdir``, invoked from ``_secure_dir`` (which already
 runs after every directory creation in the home-init path).
 """
@@ -22,7 +22,7 @@ import pytest
 
 
 # ---------------------------------------------------------------------------
-# _resolve_sparkii_uid_gid
+# _resolve_hermes_uid_gid
 # ---------------------------------------------------------------------------
 
 
@@ -30,8 +30,8 @@ class TestResolveSparkiiUidGid:
     def test_returns_parsed_values_when_both_set(self, monkeypatch):
         monkeypatch.setenv("SPARKII_UID", "1000")
         monkeypatch.setenv("SPARKII_GID", "911")
-        from sparkii_cli.config import _resolve_sparkii_uid_gid
-        uid, gid = _resolve_sparkii_uid_gid()
+        from sparkii_cli.config import _resolve_hermes_uid_gid
+        uid, gid = _resolve_hermes_uid_gid()
         assert uid == 1000
         assert gid == 911
 
@@ -44,14 +44,14 @@ class TestResolveSparkiiUidGid:
     def test_windows_returns_none_none(self, monkeypatch):
         monkeypatch.setenv("SPARKII_UID", "1000")
         monkeypatch.setenv("SPARKII_GID", "911")
-        from sparkii_cli.config import _resolve_sparkii_uid_gid
-        uid, gid = _resolve_sparkii_uid_gid()
+        from sparkii_cli.config import _resolve_hermes_uid_gid
+        uid, gid = _resolve_hermes_uid_gid()
         assert uid is None
         assert gid is None
 
 
 # ---------------------------------------------------------------------------
-# _chown_to_sparkii_uid
+# _chown_to_hermes_uid
 # ---------------------------------------------------------------------------
 
 
@@ -65,7 +65,7 @@ class TestChownToSparkiiUid:
         d.mkdir()
 
         with patch.object(cfg.os, "chown") as mock_chown:
-            cfg._chown_to_sparkii_uid(d)
+            cfg._chown_to_hermes_uid(d)
         mock_chown.assert_called_once_with(d, 1000, 911)
 
 
@@ -86,7 +86,7 @@ class TestChownToSparkiiUid:
 
         with patch.object(cfg.os, "chown", side_effect=_raises_eperm):
             # Must not raise — the catch is non-fatal.
-            cfg._chown_to_sparkii_uid(d)
+            cfg._chown_to_hermes_uid(d)
 
     def test_attributeerror_swallowed_for_windows_compat(self, tmp_path, monkeypatch):
         """os.chown doesn't exist on Windows. Catching AttributeError keeps
@@ -99,7 +99,7 @@ class TestChownToSparkiiUid:
         d.mkdir()
 
         with patch.object(cfg.os, "chown", side_effect=AttributeError("no chown on this platform")):
-            cfg._chown_to_sparkii_uid(d)  # must not raise
+            cfg._chown_to_hermes_uid(d)  # must not raise
 
 
 # ---------------------------------------------------------------------------

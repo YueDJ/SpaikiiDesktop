@@ -198,7 +198,7 @@ class TestCronTimezone:
     def test_ensure_aware_naive_preserves_absolute_time(self):
         """_ensure_aware must preserve the absolute instant for naive datetimes.
 
-        Regression: the old code used replace(tzinfo=sparkii_tz) which shifted
+        Regression: the old code used replace(tzinfo=hermes_tz) which shifted
         absolute time when system-local tz != Sparkii tz.  The fix interprets
         naive values as system-local wall time, then converts.
         """
@@ -235,7 +235,7 @@ class TestCronTimezone:
         monkeypatch.setattr(jobs_module, "OUTPUT_DIR", tmp_path / "cron" / "output")
 
         # Use a Sparkii timezone far behind UTC so that the numeric wall time
-        # of the naive timestamp exceeds _sparkii_now's wall time — this would
+        # of the naive timestamp exceeds _hermes_now's wall time — this would
         # have caused a false "not due" with the old replace(tzinfo=...) approach.
         os.environ["SPARKII_TIMEZONE"] = "Pacific/Midway"  # UTC-11
         _reset_sparkii_time_cache()

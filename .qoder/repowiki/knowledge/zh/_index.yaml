@@ -7,7 +7,7 @@ exported_at: "2026-08-09T13:48:47Z"
 modules:
     "":
         dir_name: Sparkii_Hermes Agent 多进程运行时与网关平台
-        title: Sparkii/Hermes Agent 多进程运行时与网关平台
+        title: Sparkii/Sparkii Agent 多进程运行时与网关平台
         scope:
             - README.md
             - CONTRIBUTING.md
@@ -44,15 +44,15 @@ modules:
             - docker-compose.yml
             - eslint.config.shared.mjs
             - flake.lock
-            - hermes
-            - hermes-already-has-routines.md
+            - sparkii
+            - sparkii-already-has-routines.md
             - log.txt
             - mcp_serve.py
             - mini_swe_runner.py
             - model_tools.py
             - package-lock.json
             - run_agent.py
-            - setup-hermes.sh
+            - setup-sparkii.sh
             - sparkii_bootstrap.py
             - sparkii_constants.py
             - sparkii_logging.py
@@ -87,8 +87,8 @@ modules:
         depends_on: []
         related_to: []
     acp_adapter:
-        dir_name: ACP Agent 适配器（Hermes ↔ Agent Communication Protocol）
-        title: ACP Agent 适配器（Hermes ↔ Agent Communication Protocol）
+        dir_name: ACP Agent 适配器（Sparkii ↔ Agent Communication Protocol）
+        title: ACP Agent 适配器（Sparkii ↔ Agent Communication Protocol）
         scope:
             - acp_adapter/
         source_files: []
@@ -97,8 +97,8 @@ modules:
         related_to:
             - path: agent
     agent:
-        dir_name: Hermes Agent 运行时与插件子系统
-        title: Hermes Agent 运行时与插件子系统
+        dir_name: Sparkii Agent 运行时与插件子系统
+        title: Sparkii Agent 运行时与插件子系统
         scope:
             - agent/
         source_files: []
@@ -121,8 +121,8 @@ modules:
             - path: sparkii_cli
             - path: tui_gateway
     cron:
-        dir_name: Hermes Agent Cron 定时任务调度系统
-        title: Hermes Agent Cron 定时任务调度系统
+        dir_name: Sparkii Agent Cron 定时任务调度系统
+        title: Sparkii Agent Cron 定时任务调度系统
         scope:
             - cron/
         source_files: []
@@ -131,8 +131,8 @@ modules:
         related_to:
             - path: gateway
     gateway:
-        dir_name: Hermes Gateway 多平台消息网关
-        title: Hermes Gateway 多平台消息网关
+        dir_name: Sparkii Gateway 多平台消息网关
+        title: Sparkii Gateway 多平台消息网关
         scope:
             - gateway/
         source_files: []
@@ -144,8 +144,8 @@ modules:
             - path: sparkii_cli/cli_core/cli_core_runtime
             - path: tests
     gateway/core_runtime:
-        dir_name: Hermes Gateway 多平台消息网关核心运行时
-        title: Hermes Gateway 多平台消息网关核心运行时
+        dir_name: Sparkii Gateway 多平台消息网关核心运行时
+        title: Sparkii Gateway 多平台消息网关核心运行时
         scope:
             - gateway/
         source_files: []
@@ -154,8 +154,8 @@ modules:
         related_to:
             - path: agent
     optional_skills:
-        dir_name: Hermes Agent 可选技能集（Optional Skills）
-        title: Hermes Agent 可选技能集（Optional Skills）
+        dir_name: Sparkii Agent 可选技能集（Optional Skills）
+        title: Sparkii Agent 可选技能集（Optional Skills）
         scope:
             - optional-skills/
         source_files: []
@@ -165,7 +165,7 @@ modules:
             - path: plugins
     plugins:
         dir_name: Hermes_Sparkii 插件集合（模型、平台、搜索、记忆等扩展）
-        title: Hermes/Sparkii 插件集合（模型、平台、搜索、记忆等扩展）
+        title: Sparkii/Sparkii 插件集合（模型、平台、搜索、记忆等扩展）
         scope:
             - plugins/
         source_files: []
@@ -308,8 +308,8 @@ modules:
             - path: tools
             - path: tui_gateway
     tools:
-        dir_name: Hermes Agent 工具集（tools）
-        title: Hermes Agent 工具集（tools）
+        dir_name: Sparkii Agent 工具集（tools）
+        title: Sparkii Agent 工具集（tools）
         scope:
             - tools/
         source_files: []
@@ -535,8 +535,8 @@ modules:
         related_to:
             - path: tui_gateway
     website_docs:
-        dir_name: Hermes Agent 文档站点（Docusaurus 多语言文档）
-        title: Hermes Agent 文档站点（Docusaurus 多语言文档）
+        dir_name: Sparkii Agent 文档站点（Docusaurus 多语言文档）
+        title: Sparkii Agent 文档站点（Docusaurus 多语言文档）
         scope:
             - website/
             - docs/

@@ -75,7 +75,7 @@ def test_cli_picker_hides_excluded_provider(config_home):
 def test_cli_picker_hides_excluded_provider_by_alias(config_home):
     """Exclusion by an alias (not the canonical slug) must also hide the
     provider, matching ``list_authenticated_providers``' matching against
-    sparkii_id / alias names."""
+    hermes_id / alias names."""
     # 'openai' is an alias-style sparkii id; ensure excluding it hides the
     # canonical openai provider row if present. Use the canonical slug's
     # alias from _PROVIDER_ALIASES to stay robust to renames.

@@ -69,22 +69,22 @@ def _fake_warning():
 def _setup_isolated_home(tmp_path, monkeypatch, *, warn):
     import gateway.run as gateway_run
 
-    sparkii_home = tmp_path / ".sparkii"
-    sparkii_home.mkdir()
-    cfg_path = sparkii_home / "config.yaml"
+    hermes_home = tmp_path / ".sparkii"
+    hermes_home.mkdir()
+    cfg_path = hermes_home / "config.yaml"
     cfg_path.write_text(
         yaml.safe_dump({"model": {"default": "old-model", "provider": "openrouter"}, "providers": {}}),
         encoding="utf-8",
     )
 
-    monkeypatch.setattr(gateway_run, "_sparkii_home", sparkii_home)
+    monkeypatch.setattr(gateway_run, "_sparkii_home", hermes_home)
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
     monkeypatch.setattr(
         "sparkii_cli.model_switch.switch_model",
         lambda **kw: _fake_switch_result(),
     )
-    monkeypatch.setattr("sparkii_constants.get_sparkii_home", lambda: sparkii_home)
-    monkeypatch.setattr("sparkii_cli.config.get_sparkii_home", lambda: sparkii_home)
+    monkeypatch.setattr("sparkii_constants.get_sparkii_home", lambda: hermes_home)
+    monkeypatch.setattr("sparkii_cli.config.get_sparkii_home", lambda: hermes_home)
     monkeypatch.setattr(
         "sparkii_cli.model_cost_guard.expensive_model_warning",
         (lambda *a, **kw: _fake_warning()) if warn else (lambda *a, **kw: None),

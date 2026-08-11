@@ -453,7 +453,7 @@ class TestRunJobSessionPersistence:
 
         with patch("cron.scheduler._sparkii_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
+             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
              patch("sparkii_state.SessionDB", return_value=fake_db), \
              patch(
@@ -511,7 +511,7 @@ class TestRunJobSessionPersistence:
         base = [
             patch("cron.scheduler._sparkii_home", tmp_path),
             patch("cron.scheduler._resolve_origin", return_value=None),
-            patch("sparkii_cli.env_loader.load_sparkii_dotenv"),
+            patch("sparkii_cli.env_loader.load_hermes_dotenv"),
             patch("sparkii_cli.env_loader.reset_secret_source_cache"),
             patch("sparkii_state.SessionDB", return_value=fake_db),
             patch(
@@ -617,7 +617,7 @@ class TestRunJobConfigLogging:
         # (>30s wall clock) under load. See PR #33661 follow-up.
         with patch("cron.scheduler._sparkii_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
+             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
              patch("sparkii_cli.runtime_provider.resolve_runtime_provider",
                    return_value={"provider": "openrouter", "api_key": "x",
@@ -656,7 +656,7 @@ class TestRunJobConfigEnvVarExpansion:
 
         with patch("cron.scheduler._sparkii_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
+             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
              patch("sparkii_state.SessionDB", return_value=fake_db), \
              patch("sparkii_cli.runtime_provider.resolve_runtime_provider",
@@ -712,7 +712,7 @@ class TestRunJobConfigEnvVarExpansion:
 
         with patch("cron.scheduler._sparkii_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
+             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
              patch("sparkii_state.SessionDB", return_value=fake_db), \
              patch("sparkii_cli.runtime_provider.resolve_runtime_provider",
@@ -742,7 +742,7 @@ class TestRunJobConfigEnvVarExpansion:
 
         with patch("cron.scheduler._sparkii_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
+             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
              patch("sparkii_state.SessionDB", return_value=fake_db), \
              patch("sparkii_cli.runtime_provider.resolve_runtime_provider",
@@ -787,7 +787,7 @@ class TestRunJobModelResolution:
 
         with patch("cron.scheduler._sparkii_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
+             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
              patch("sparkii_state.SessionDB", return_value=fake_db), \
              patch("sparkii_cli.runtime_provider.resolve_runtime_provider",
@@ -813,7 +813,7 @@ class TestRunJobModelResolution:
 
         with patch("cron.scheduler._sparkii_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
+             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
              patch("sparkii_state.SessionDB", return_value=fake_db), \
              patch("sparkii_cli.runtime_provider.resolve_runtime_provider",
@@ -845,7 +845,7 @@ class TestRunJobModelResolution:
 
         with patch("cron.scheduler._sparkii_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
+             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
              patch("sparkii_state.SessionDB", return_value=fake_db), \
              patch("sparkii_cli.runtime_provider.resolve_runtime_provider",
@@ -870,7 +870,7 @@ class TestRunJobModelResolution:
 
         with patch("cron.scheduler._sparkii_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
+             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
              patch("sparkii_state.SessionDB", return_value=fake_db), \
              patch("sparkii_cli.runtime_provider.resolve_runtime_provider",
@@ -913,7 +913,7 @@ class TestRunJobSkillBacked:
 
         with patch("cron.scheduler._sparkii_home", tmp_path), \
              patch("cron.scheduler._resolve_origin", return_value=None), \
-             patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
+             patch("sparkii_cli.env_loader.load_hermes_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
              patch("sparkii_state.SessionDB", return_value=fake_db), \
              patch(

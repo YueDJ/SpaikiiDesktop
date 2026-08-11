@@ -62,7 +62,7 @@ class TestVerifyConsoleScriptsInstalled:
         import sparkii_cli.main as main_mod
 
         with patch("sparkii_cli.main._is_windows", return_value=True):
-            names = {path.name for path in main_mod._sparkii_exe_shims(fake_scripts_dir)}
+            names = {path.name for path in main_mod._hermes_exe_shims(fake_scripts_dir)}
 
         assert {"sparkii.exe", "sparkii-agent.exe", "sparkii-acp.exe"} <= names
         assert "sparkii-gateway.exe" in names
