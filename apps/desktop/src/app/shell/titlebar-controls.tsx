@@ -183,20 +183,6 @@ export function TitlebarControls({ leftTools = [], tools = [], onOpenSettings }:
       title: t.titlebar.layoutEditorTitle
     },
     {
-      // No `title`: TitlebarToolButton passes `title` to TipKeybindLabel as a
-      // text OVERRIDE, so a long sentence there replaces the short label and
-      // crowds the ⌘⇧H hint off the tooltip. Label only — the hint is appended
-      // from the action registry, same as every other tool here.
-      actionId: 'view.toggleHud',
-      icon: <Codicon name="comment-discussion" />,
-      id: 'hud',
-      label: t.titlebar.enterHud,
-      onSelect: () => {
-        triggerHaptic('open')
-        toggleHud(hudTargetSessionId())
-      }
-    },
-    {
       active: hapticsMuted,
       icon: <Codicon name={hapticsMuted ? 'mute' : 'unmute'} />,
       id: 'haptics',

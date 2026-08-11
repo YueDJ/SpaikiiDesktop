@@ -117,7 +117,6 @@ import { $archivedSessions, loadArchivedSessions, sessionCostUsd } from '@/store
 import {
   type AppView,
   ARTIFACTS_ROUTE,
-  MESSAGING_ROUTE,
   SIDEBAR_NAV_AREA,
   type SidebarNavContribution,
   SKILLS_ROUTE
@@ -179,13 +178,6 @@ const SIDEBAR_NAV: SidebarNavItem[] = [
     icon: props => <Codicon name="symbol-misc" {...props} />,
     route: SKILLS_ROUTE,
     keybindActionId: 'nav.skills'
-  },
-  {
-    id: 'messaging',
-    label: '',
-    icon: props => <Codicon name="comment" {...props} />,
-    route: MESSAGING_ROUTE,
-    keybindActionId: 'nav.messaging'
   },
   {
     id: 'artifacts',
@@ -1390,7 +1382,6 @@ export function ChatSidebar({
 
                 const active =
                   (item.id === 'skills' && currentView === 'skills') ||
-                  (item.id === 'messaging' && currentView === 'messaging') ||
                   (item.id === 'artifacts' && currentView === 'artifacts') ||
                   // Contributed rows light up at their own route.
                   (Boolean(item.route) && pathname === item.route)

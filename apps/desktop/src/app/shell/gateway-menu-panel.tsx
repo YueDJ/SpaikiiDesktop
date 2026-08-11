@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 
-import { StatusDot, type StatusTone } from '@/components/status-dot'
+import { StatusDot } from '@/components/status-dot'
 import { Button } from '@/components/ui/button'
 import { LogView } from '@/components/ui/log-view'
 import { Tip } from '@/components/ui/tooltip'
@@ -70,15 +70,6 @@ function useGatewayLogTail(): string[] {
   return lines
 }
 
-const PLATFORM_TONE: Record<string, StatusTone> = {
-  connected: 'good',
-  connecting: 'warn',
-  retrying: 'warn',
-  pending_restart: 'warn',
-  startup_failed: 'bad',
-  fatal: 'bad'
-}
-
 const prettyState = (state: string) => state.replace(/_/g, ' ').replace(/^./, c => c.toUpperCase())
 
 // Strip leading "YYYY-MM-DD HH:MM:SS,mmm " and "[runtime_id] " prefixes from
@@ -129,7 +120,6 @@ export function GatewayMenuPanel({
         : copy.checkingInference
     : copy.disconnected
 
-  const platforms = Object.entries(statusSnapshot?.gateway_platforms || {}).sort(([l], [r]) => l.localeCompare(r))
   const recentLogs = useGatewayLogTail()
 
   // Keep the tail pinned to the latest line as it streams.
@@ -205,23 +195,6 @@ export function GatewayMenuPanel({
           <LogView className="mt-1.5 max-h-40 border-0 px-0" ref={logScrollRef}>
             {recentLogs.map(trimLogLine).join('\n')}
           </LogView>
-        </Section>
-      )}
-
-      {platforms.length > 0 && (
-        <Section>
-          <SectionLabel>{copy.messagingPlatforms}</SectionLabel>
-          <ul className="mt-1.5 space-y-1">
-            {platforms.map(([name, platform]) => (
-              <li className="flex items-center justify-between gap-2 text-xs" key={name}>
-                <span className="truncate capitalize">{name}</span>
-                <span className="flex items-center gap-1.5 text-[0.66rem] text-muted-foreground">
-                  <StatusDot tone={PLATFORM_TONE[platform.state] || 'muted'} />
-                  {prettyState(platform.state)}
-                </span>
-              </li>
-            ))}
-          </ul>
         </Section>
       )}
     </div>

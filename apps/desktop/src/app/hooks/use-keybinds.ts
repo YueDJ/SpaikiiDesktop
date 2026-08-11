@@ -68,7 +68,6 @@ import {
   AGENTS_ROUTE,
   ARTIFACTS_ROUTE,
   CRON_ROUTE,
-  MESSAGING_ROUTE,
   navigateToWorkspacePage,
   NEW_CHAT_ROUTE,
   PROFILES_ROUTE,
@@ -190,7 +189,6 @@ export function useKeybinds(deps: KeybindRuntimeDeps): void {
     'nav.settings': () => navigate(SETTINGS_ROUTE),
     'nav.profiles': () => navigate(PROFILES_ROUTE),
     'nav.skills': () => navigateToWorkspacePage(navigate, SKILLS_ROUTE),
-    'nav.messaging': () => navigateToWorkspacePage(navigate, MESSAGING_ROUTE),
     'nav.artifacts': () => navigateToWorkspacePage(navigate, ARTIFACTS_ROUTE),
     'nav.cron': () => navigate(CRON_ROUTE),
     'nav.agents': () => navigate(AGENTS_ROUTE),
@@ -229,7 +227,7 @@ export function useKeybinds(deps: KeybindRuntimeDeps): void {
     'view.toggleReview': toggleReview,
     'view.toggleStatusbar': toggleStatusbarVisible,
     'view.showFiles': showFiles,
-    'view.toggleHud': () => toggleHud(hudTargetSessionId()),
+    'view.toggleHud': () => {},
     'view.showTerminal': () => togglePaneVisible('terminal'),
     // Create first so the pane's open-effect ensure sees a non-empty set and
     // doesn't also spawn one — net effect is exactly one fresh terminal.
