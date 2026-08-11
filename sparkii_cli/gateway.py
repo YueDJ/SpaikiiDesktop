@@ -6363,32 +6363,7 @@ def _builtin_setup_fn(key: str):
     from sparkii_cli import setup as _s
 
     return {
-        # telegram moved into the plugin: setup_fn registered by
-        # plugins/platforms/telegram/adapter.py::register(). #41112.
-        # discord moved into the plugin: setup_fn is registered by
-        # plugins/platforms/discord/adapter.py::register() and dispatched
-        # via the plugin path in _configure_platform().
-        # slack moved into the plugin: setup_fn is registered by
-        # plugins/platforms/slack/adapter.py::register() and dispatched
-        # via the plugin path in _configure_platform(). #41112.
-        # matrix moved into the plugin: setup_fn registered by
-        # plugins/platforms/matrix/adapter.py::register() and dispatched via
-        # the plugin path in _configure_platform(). #41112.
-        # mattermost moved into the plugin: setup_fn is registered by
-        # plugins/platforms/mattermost/adapter.py::register() and dispatched
-        # via the plugin path in _configure_platform().
-        "bluebubbles": _s._setup_bluebubbles,
         "webhooks": _s._setup_webhooks,
-        "signal": _setup_signal,
-        # whatsapp + dingtalk moved into plugins: setup_fn registered by
-        # plugins/platforms/{whatsapp,dingtalk}/adapter.py::register() and
-        # dispatched via the plugin path in _configure_platform(). #41112.
-        "weixin": _setup_weixin,
-        # feishu moved into the plugin: setup_fn registered by
-        # plugins/platforms/feishu/adapter.py::register(). #41112.
-        # wecom moved into the plugin: setup_fn registered by
-        # plugins/platforms/wecom/adapter.py::register(). #41112.
-        "qqbot": _setup_qqbot,
     }.get(key)
 
 

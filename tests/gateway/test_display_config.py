@@ -122,51 +122,21 @@ class TestYAMLNormalisation:
 class TestPlatformDefaults:
     """Built-in defaults reflect platform capability tiers."""
 
-    def test_high_tier_platforms(self):
-        """Discord defaults to 'all'; Telegram defaults quiet for mobile."""
+    def test_core_platform_defaults(self):
+        """Core platforms (webhook, api_server) have correct defaults."""
         from gateway.display_config import resolve_display_setting
 
-        # Telegram: tier_high transport, but quiet mobile default.
-        assert resolve_display_setting({}, "telegram", "tool_progress") == "off"
-        # Discord: pure tier_high.
-        assert resolve_display_setting({}, "discord", "tool_progress") == "all"
+        # Webhook: minimal tier
+        assert resolve_display_setting({}, "webhook", "tool_progress") == "off"
+        # API server: high tier but no tool preview
+        assert resolve_display_setting({}, "api_server", "tool_preview_length") == 0
 
-
-    def test_low_tier_platforms(self):
-        """Signal, BlueBubbles, etc. default to 'off' tool progress."""
+    def test_global_defaults_apply_to_unknown_platforms(self):
+        """Unknown platforms fall through to global defaults."""
         from gateway.display_config import resolve_display_setting
 
-        for plat in ("signal", "bluebubbles", "weixin", "wecom", "dingtalk", "whatsapp_cloud"):
-            assert resolve_display_setting({}, plat, "tool_progress") == "off", plat
-
-
-    def test_telegram_mobile_chatter_defaults(self):
-        """Telegram keeps real mid-turn signal (interim commentary + heartbeats)
-        but skips the verbose busy-ack iteration counter by default."""
-        from gateway.display_config import resolve_display_setting
-
-        # Real model voice — keep on. Without this, Telegram users see
-        # "typing..." for the entire turn duration with no feedback.
-        assert resolve_display_setting({}, "telegram", "interim_assistant_messages") is True
-        # Periodic "Working — N min" heartbeat — keep on. Otherwise long
-        # turns appear completely silent.
-        assert resolve_display_setting({}, "telegram", "long_running_notifications") is True
-        # Verbose iteration counter in busy-ack and heartbeat — off by
-        # default on Telegram (mobile chat is cramped enough without
-        # "iteration 21/60" debug detail).
-        assert resolve_display_setting({}, "telegram", "busy_ack_detail") is False
-        # Discord keeps all of these on (desktop-first, more vertical space).
-        assert resolve_display_setting({}, "discord", "interim_assistant_messages") is True
-        assert resolve_display_setting({}, "discord", "long_running_notifications") is True
-        assert resolve_display_setting({}, "discord", "busy_ack_detail") is True
-
-    def test_slack_workspace_chatter_defaults(self):
-        """Slack should not leave permanent heartbeat/debug breadcrumbs in channels."""
-        from gateway.display_config import resolve_display_setting
-
-        assert resolve_display_setting({}, "slack", "tool_progress") == "off"
-        assert resolve_display_setting({}, "slack", "long_running_notifications") is False
-        assert resolve_display_setting({}, "slack", "busy_ack_detail") is False
+        # Global default for tool_progress is "all"
+        assert resolve_display_setting({}, "unknown_platform", "tool_progress") == "all"
 
 
 # ---------------------------------------------------------------------------
@@ -279,15 +249,11 @@ class TestToolProgressGrouping:
 class TestReasoningStyle:
     """Per-platform reasoning render style (code | blockquote | subtext)."""
 
-    def test_discord_defaults_to_subtext(self):
+    def test_global_default_reasoning_style_is_code(self):
         from gateway.display_config import resolve_display_setting
 
-        assert resolve_display_setting({}, "discord", "reasoning_style") == "subtext"
-
-    def test_other_platforms_default_to_code(self):
-        from gateway.display_config import resolve_display_setting
-
-        for plat in ("telegram", "slack", "matrix", "api_server"):
+        # All platforms default to "code" reasoning style
+        for plat in ("api_server", "webhook", "unknown"):
             assert (
                 resolve_display_setting({}, plat, "reasoning_style") == "code"
             ), plat

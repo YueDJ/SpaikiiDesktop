@@ -581,12 +581,6 @@ class ChannelOverride:
 # other way (session files, port-bound webhooks, api_key-only) and must never
 # be skipped for a missing token.
 PLATFORM_TOKEN_ENV_NAMES: dict["Platform", str] = {
-    Platform.TELEGRAM: "TELEGRAM_BOT_TOKEN",
-    Platform.DISCORD: "DISCORD_BOT_TOKEN",
-    Platform.SLACK: "SLACK_BOT_TOKEN",
-    Platform.MATTERMOST: "MATTERMOST_TOKEN",
-    Platform.MATRIX: "MATRIX_ACCESS_TOKEN",
-    Platform.WEIXIN: "WEIXIN_TOKEN",
 }
 
 
@@ -836,29 +830,10 @@ def _has_usable_api_server_key(key: object) -> bool:
 
 
 _PLATFORM_CONNECTED_CHECKERS: dict[Platform, Callable[[PlatformConfig], bool]] = {
-    Platform.WEIXIN: lambda cfg: bool(
-        cfg.extra.get("account_id") and (cfg.token or cfg.extra.get("token"))
-    ),
-    Platform.WHATSAPP_CLOUD: lambda cfg: bool(
-        cfg.extra.get("phone_number_id") and cfg.extra.get("access_token")
-    ),
-    Platform.SIGNAL: lambda cfg: bool(cfg.extra.get("http_url")),
     Platform.API_SERVER: lambda cfg: _has_usable_api_server_key(
         cfg.extra.get("key") if cfg else None
     ),
     Platform.WEBHOOK: lambda cfg: True,
-    Platform.MSGRAPH_WEBHOOK: lambda cfg: bool(
-        str(cfg.extra.get("client_state") or "").strip()
-    ),
-    Platform.BLUEBUBBLES: lambda cfg: bool(
-        cfg.extra.get("server_url") and cfg.extra.get("password")
-    ),
-    Platform.QQBOT: lambda cfg: bool(
-        cfg.extra.get("app_id") and cfg.extra.get("client_secret")
-    ),
-    Platform.YUANBAO: lambda cfg: bool(
-        cfg.extra.get("app_id") and cfg.extra.get("app_secret")
-    ),
     # Relay dials OUT to a connector; it is "connected" once an endpoint URL is
     # configured (extra["relay_url"] or extra["url"]). The capability descriptor
     # is negotiated at handshake time, so the URL is the only config-level
