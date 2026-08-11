@@ -21,7 +21,6 @@ SKIP_DIR_NAMES = {
     "venv",
     "__pycache__",
     ".uv-cache",
-    "dist",
     "build",
     ".tox",
     ".mypy_cache",
@@ -106,6 +105,9 @@ CONTENT_REPLACEMENTS: list[tuple[str, str]] = [
     (r"Hermes CLI", "Sparkii CLI"),
     (r"Hermes Gateway", "Sparkii Gateway"),
     (r"Hermes HUD", "Sparkii HUD"),
+    # CamelCase / PascalCase compounds (word-boundary alone misses these)
+    (r"Hermes(?=[A-Z])", "Sparkii"),
+    (r"hermes(?=[A-Z])", "sparkii"),
     (r"\bHermes\b", "Sparkii"),
     (r"\bhermes\b", "sparkii"),
 ]
