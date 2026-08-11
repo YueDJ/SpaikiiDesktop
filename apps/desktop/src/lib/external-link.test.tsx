@@ -13,7 +13,7 @@ import {
 } from './external-link'
 
 const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
-const initialHermesDesktop = desktopWindow.hermesDesktop
+const initialSparkiiDesktop = desktopWindow.hermesDesktop
 
 function installDesktopBridge(partial: Partial<Window['hermesDesktop']> = {}) {
   desktopWindow.hermesDesktop = {
@@ -38,8 +38,8 @@ afterEach(() => {
   vi.restoreAllMocks()
   cleanup()
 
-  if (initialHermesDesktop) {
-    desktopWindow.hermesDesktop = initialHermesDesktop
+  if (initialSparkiiDesktop) {
+    desktopWindow.hermesDesktop = initialSparkiiDesktop
   } else {
     delete desktopWindow.hermesDesktop
   }
@@ -252,7 +252,7 @@ describe('external link helpers', () => {
   it('prefixes a pretty link to a known host with its brand glyph', () => {
     installDesktopBridge()
 
-    const url = 'https://github.com/NousResearch/hermes-agent/pull/123'
+    const url = 'https://github.com/NousResearch/sparkii-agent/pull/123'
 
     render(<PrettyLink fallbackLabel="#123" href={url} />)
 

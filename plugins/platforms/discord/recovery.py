@@ -11,7 +11,7 @@ from contextlib import suppress
 from pathlib import Path
 from typing import Any, Callable
 
-from hermes_constants import get_hermes_home
+from sparkii_constants import get_sparkii_home
 
 logger = logging.getLogger(__name__)
 
@@ -25,10 +25,10 @@ class DiscordRecoveryStore:
     def __init__(self, hermes_home: Path | None = None) -> None:
         self._lock = threading.Lock()
         self._initialized = False
-        self._hermes_home = Path(hermes_home or get_hermes_home())
+        self._sparkii_home = Path(hermes_home or get_sparkii_home())
 
     def path(self) -> Path:
-        directory = self._hermes_home / "gateway"
+        directory = self._sparkii_home / "gateway"
         directory.mkdir(parents=True, exist_ok=True)
         return directory / _DB_FILENAME
 
@@ -53,7 +53,7 @@ class DiscordRecoveryStore:
             return default
 
     def _initialize(self, conn: sqlite3.Connection) -> None:
-        from hermes_state import apply_wal_with_fallback
+        from sparkii_state import apply_wal_with_fallback
 
         apply_wal_with_fallback(conn, db_label="discord_recovery.db")
         conn.execute("""

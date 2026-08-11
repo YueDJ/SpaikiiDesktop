@@ -58,7 +58,7 @@ def _base_subprocess_env() -> dict:
 def _read_browser_cfg() -> dict:
     """Return the ``browser:`` config section, or {} on any failure."""
     try:
-        from hermes_cli.config import cfg_get, read_raw_config
+        from sparkii_cli.config import cfg_get, read_raw_config
 
         cfg = cfg_get(read_raw_config(), "browser", default={})
         return cfg if isinstance(cfg, dict) else {}
@@ -157,10 +157,10 @@ def _workspace_dir(task_id: Optional[str]) -> Optional[str]:
     try:
         from pathlib import Path
 
-        from hermes_constants import get_hermes_home
+        from sparkii_constants import get_sparkii_home
 
         safe = _TASK_ID_SAFE_RE.sub("_", str(task_id or "default"))[:80] or "default"
-        path = Path(get_hermes_home()) / "cache" / "browser-use" / "workspace" / safe
+        path = Path(get_sparkii_home()) / "cache" / "browser-use" / "workspace" / safe
         path.mkdir(parents=True, exist_ok=True)
         return str(path)
     except Exception as e:
@@ -283,7 +283,7 @@ def _resolve_backend_cdp(env: dict, task_id: Optional[str]) -> Optional[str]:
         return (
             f"Cloud browser provider {type(provider).__name__} failed to "
             f"provide a session: {e}. Fix the provider configuration or "
-            "switch backends via `hermes tools` → Browser Automation."
+            "switch backends via `sparkii tools` → Browser Automation."
         )
     cdp = str((session_info or {}).get("cdp_url") or "")
     if not cdp:
@@ -355,7 +355,7 @@ def browser_exec(
     popen_extra: dict = {}
     if os.name == "nt":
         try:
-            from hermes_cli._subprocess_compat import windows_hide_flags
+            from sparkii_cli._subprocess_compat import windows_hide_flags
 
             popen_extra["creationflags"] = windows_hide_flags()
             _si = subprocess.STARTUPINFO()

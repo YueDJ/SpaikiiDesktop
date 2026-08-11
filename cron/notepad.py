@@ -13,7 +13,7 @@ Size caps (documented contract):
   untouched — the notepad is prompt-injected each run, so unbounded growth
   would bloat every wake-up's prompt.
 
-Write path is the CLI (``hermes cron notepad <job_id> set <key> <value>``),
+Write path is the CLI (``sparkii cron notepad <job_id> set <key> <value>``),
 which the running agent invokes via its terminal tool; no model tool is
 added.
 
@@ -28,10 +28,10 @@ import threading
 from contextlib import contextmanager
 from typing import Any, Dict, Iterator, List, Optional
 
-from hermes_constants import get_hermes_home
-from hermes_time import now as _hermes_now
+from sparkii_constants import get_sparkii_home
+from sparkii_time import now as _hermes_now
 
-NOTEPAD_FILE = get_hermes_home().resolve() / "cron" / "notepad.db"
+NOTEPAD_FILE = get_sparkii_home().resolve() / "cron" / "notepad.db"
 MAX_VALUE_BYTES = 16 * 1024
 MAX_KEY_CHARS = 128
 MAX_JOB_TOTAL_BYTES = 64 * 1024
@@ -44,7 +44,7 @@ def _connect() -> sqlite3.Connection:
 
 
 def _initialize_schema(conn: sqlite3.Connection) -> None:
-    from hermes_state import apply_wal_with_fallback
+    from sparkii_state import apply_wal_with_fallback
 
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA busy_timeout=5000")
@@ -181,7 +181,7 @@ def render_notepad_section(job_id: str) -> str:
         "## Job notepad (persistent across runs)\n"
         "This durable scratchpad survives between scheduled runs of this "
         "job. Update it via the CLI, e.g.:\n"
-        f"`hermes cron notepad {job_id} set <key> <value>` "
-        f"(also: get/delete/list; `hermes cron notepad {job_id} delete "
+        f"`sparkii cron notepad {job_id} set <key> <value>` "
+        f"(also: get/delete/list; `sparkii cron notepad {job_id} delete "
         "<key>` removes an entry).\n\n" + "\n".join(lines) + "\n\n"
     )

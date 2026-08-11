@@ -1,6 +1,6 @@
 """Tests for /update live streaming, prompt forwarding, and gateway IPC.
 
-Tests the new --gateway mode for hermes update, including:
+Tests the new --gateway mode for sparkii update, including:
 - _gateway_prompt() file-based IPC
 - _watch_update_progress() output streaming and prompt detection
 - Message interception for update prompt responses
@@ -66,7 +66,7 @@ class TestGatewayPrompt:
     def test_writes_prompt_file_and_reads_response(self, tmp_path):
         """Writes .update_prompt.json, reads .update_response, returns answer."""
         import threading
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".sparkii"
         hermes_home.mkdir()
 
         # Simulate the response arriving after a short delay
@@ -77,8 +77,8 @@ class TestGatewayPrompt:
         thread = threading.Thread(target=write_response)
         thread.start()
 
-        with patch.dict(os.environ, {"HERMES_HOME": str(hermes_home)}):
-            from hermes_cli.main import _gateway_prompt
+        with patch.dict(os.environ, {"SPARKII_HOME": str(hermes_home)}):
+            from sparkii_cli.main import _gateway_prompt
             result = _gateway_prompt("Restore? [Y/n]", "y", timeout=5.0)
 
         thread.join()
@@ -98,7 +98,7 @@ class TestRestoreStashWithInputFn:
 
     def test_uses_input_fn_when_provided(self, tmp_path):
         """When input_fn is provided, it's called instead of input()."""
-        from hermes_cli.main import _restore_stashed_changes
+        from sparkii_cli.main import _restore_stashed_changes
 
         captured_args = []
 
@@ -127,7 +127,7 @@ class TestRestoreStashWithInputFn:
 
 
 class TestUpdateCommandGatewayFlag:
-    """Verify the gateway spawns hermes update --gateway."""
+    """Verify the gateway spawns sparkii update --gateway."""
 
     @pytest.mark.asyncio
     async def test_spawns_with_gateway_flag(self, tmp_path):
@@ -141,11 +141,11 @@ class TestUpdateCommandGatewayFlag:
         (fake_root / "gateway").mkdir()
         (fake_root / "gateway" / "run.py").touch()
         fake_file = str(fake_root / "gateway" / "run.py")
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "sparkii"
         hermes_home.mkdir()
 
         mock_popen = MagicMock()
-        with patch("gateway.run._hermes_home", hermes_home), \
+        with patch("gateway.run._sparkii_home", hermes_home), \
              patch("gateway.run.__file__", fake_file), \
              patch("shutil.which", side_effect=lambda x: f"/usr/bin/{x}"), \
              patch("subprocess.Popen", mock_popen):
@@ -173,7 +173,7 @@ class TestWatchUpdateProgress:
     async def test_streams_output_to_adapter(self, tmp_path):
         """New output is sent to the adapter periodically."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "sparkii"
         hermes_home.mkdir()
 
         pending = {"platform": "telegram", "chat_id": "111", "user_id": "222",
@@ -193,7 +193,7 @@ class TestWatchUpdateProgress:
             , encoding="utf-8")
             (hermes_home / ".update_exit_code").write_text("0")
 
-        with patch("gateway.run._hermes_home", hermes_home):
+        with patch("gateway.run._sparkii_home", hermes_home):
             task = asyncio.create_task(write_exit_code())
             await runner._watch_update_progress(
                 poll_interval=0.1,
@@ -211,7 +211,7 @@ class TestWatchUpdateProgress:
     async def test_detects_and_forwards_prompt(self, tmp_path):
         """Detects .update_prompt.json and sends it to the user."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "sparkii"
         hermes_home.mkdir()
 
         pending = {"platform": "telegram", "chat_id": "111", "user_id": "222",
@@ -234,7 +234,7 @@ class TestWatchUpdateProgress:
             await asyncio.sleep(0.2)
             (hermes_home / ".update_exit_code").write_text("0")
 
-        with patch("gateway.run._hermes_home", hermes_home):
+        with patch("gateway.run._sparkii_home", hermes_home):
             task = asyncio.create_task(simulate_prompt_cycle())
             await runner._watch_update_progress(
                 poll_interval=0.1,
@@ -254,7 +254,7 @@ class TestWatchUpdateProgress:
     @pytest.mark.asyncio
     async def test_prompt_is_recovered_after_watcher_restart(self, tmp_path):
         """A forwarded prompt stays on disk until answered so a new watcher can recover it."""
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "sparkii"
         hermes_home.mkdir()
 
         pending = {
@@ -276,7 +276,7 @@ class TestWatchUpdateProgress:
         adapter1 = AsyncMock()
         runner1.adapters = {Platform.TELEGRAM: adapter1}
 
-        with patch("gateway.run._hermes_home", hermes_home):
+        with patch("gateway.run._sparkii_home", hermes_home):
             watch1 = asyncio.create_task(
                 runner1._watch_update_progress(
                     poll_interval=0.05,
@@ -340,7 +340,7 @@ class TestUpdatePromptInterception:
         empty) before falling through to normal command dispatch.
         """
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "sparkii"
         hermes_home.mkdir()
 
         event = _make_event(text="/new", chat_id="67890")
@@ -351,7 +351,7 @@ class TestUpdatePromptInterception:
         runner._handle_reset_command = AsyncMock(return_value="reset ok")
         (hermes_home / ".update_prompt.json").write_text(json.dumps({"prompt": "test"}))
 
-        with patch("gateway.run._hermes_home", hermes_home):
+        with patch("gateway.run._sparkii_home", hermes_home):
             result = await runner._handle_message(event)
 
         assert result == "reset ok"
@@ -378,7 +378,7 @@ class TestCmdUpdateGatewayMode:
 
     def test_gateway_flag_enables_gateway_prompt_for_stash(self, tmp_path):
         """With --gateway, stash restore uses _gateway_prompt instead of input()."""
-        from hermes_cli.main import _restore_stashed_changes
+        from sparkii_cli.main import _restore_stashed_changes
 
         # Use input_fn to verify the gateway path is taken
         calls = []

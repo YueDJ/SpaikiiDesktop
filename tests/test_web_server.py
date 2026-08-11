@@ -10,7 +10,7 @@ import contextlib
 import pytest
 import uvicorn
 
-from hermes_cli import web_server
+from sparkii_cli import web_server
 
 
 def _stub_uvicorn(monkeypatch):

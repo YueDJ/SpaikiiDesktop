@@ -17,7 +17,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from hermes_cli import kanban_db as kb
+from sparkii_cli import kanban_db as kb
 
 
 # ---------------------------------------------------------------------------
@@ -27,9 +27,9 @@ from hermes_cli import kanban_db as kb
 
 @pytest.fixture
 def kanban_home(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".sparkii"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("SPARKII_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     kb.init_db()
     return home
@@ -118,7 +118,7 @@ def test_migration_adds_provider_override_column(conn):
 
 
 def _spawn_and_capture(monkeypatch, tmp_path, task):
-    monkeypatch.setattr(kb, "_resolve_hermes_argv", lambda: ["hermes"])
+    monkeypatch.setattr(kb, "_resolve_hermes_argv", lambda: ["sparkii"])
     captured = {}
 
     class FakeProc:
@@ -270,7 +270,7 @@ def test_spawn_omits_reasoning_when_unset(monkeypatch, tmp_path, conn):
 def test_worker_cli_accepts_the_reasoning_flag():
     """The dispatcher's --reasoning must be a real flag on the worker's CLI —
     a spawn arg no parser accepts fails every dispatch."""
-    from hermes_cli._parser import build_top_level_parser
+    from sparkii_cli._parser import build_top_level_parser
 
     parser = build_top_level_parser()[0]
     args = parser.parse_args(["--cli", "chat", "-q", "hi", "--reasoning", "high"])

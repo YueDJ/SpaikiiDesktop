@@ -1,9 +1,9 @@
 """Tests for resolve_whatsapp_bridge_dir() — read-only install tree handling.
 
 Regression coverage for #49561: in the Docker image the install tree
-(/opt/hermes/scripts/whatsapp-bridge) is read-only, so `npm install` fails
+(/opt/sparkii/scripts/whatsapp-bridge) is read-only, so `npm install` fails
 with EACCES. The resolver must detect the read-only install dir and mirror the
-bridge source into a writable HERMES_HOME location instead.
+bridge source into a writable SPARKII_HOME location instead.
 """
 import importlib
 from pathlib import Path
@@ -20,8 +20,8 @@ def _seed_install_tree(install_bridge: Path) -> None:
     (install_bridge / "package.json").write_text('{"name": "whatsapp-bridge"}\n')
 
 
-def test_readonly_install_mirrors_to_hermes_home(tmp_path, monkeypatch):
-    """A read-only install tree is mirrored into a writable HERMES_HOME."""
+def test_readonly_install_mirrors_to_sparkii_home(tmp_path, monkeypatch):
+    """A read-only install tree is mirrored into a writable SPARKII_HOME."""
     install_root = tmp_path / "install"
     install_bridge = install_root / "scripts" / "whatsapp-bridge"
     _seed_install_tree(install_bridge)
@@ -34,7 +34,7 @@ def test_readonly_install_mirrors_to_hermes_home(tmp_path, monkeypatch):
         str(install_root / "gateway" / "platforms" / "whatsapp_common.py"),
     )
     monkeypatch.setattr(
-        "hermes_constants.get_hermes_home", lambda: hermes_home
+        "sparkii_constants.get_sparkii_home", lambda: hermes_home
     )
 
     # Simulate a read-only install tree. chmod(0o555) is unreliable under

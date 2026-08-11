@@ -99,9 +99,9 @@ class TestBashSafePath:
 
     def test_quote_bash_path_quotes_mixed_windows_path(self):
         quoted = _quote_bash_path(
-            r"C:\Users\Alexander\AppData\Local\Temp\hermes-snap-abc.sh"
+            r"C:\Users\Alexander\AppData\Local\Temp\sparkii-snap-abc.sh"
         )
-        assert "/c/Users/Alexander/AppData/Local/Temp/hermes-snap-abc.sh" in quoted
+        assert "/c/Users/Alexander/AppData/Local/Temp/sparkii-snap-abc.sh" in quoted
         assert "\\" not in quoted
 
 
@@ -228,7 +228,7 @@ class TestWindowsMsysPathconvDefaults:
         env = _sanitize_subprocess_env({})
         assert env.get("MSYS_NO_PATHCONV") == "1"
 
-    def test_hermes_subprocess_env_sets_msys_no_pathconv_on_windows(self):
+    def test_sparkii_subprocess_env_sets_msys_no_pathconv_on_windows(self):
         env = hermes_subprocess_env()
         assert env.get("MSYS_NO_PATHCONV") == "1"
 
@@ -317,7 +317,7 @@ class TestWrapCommandWindowsNativeCwd:
 
         monkeypatch.setattr(LocalEnvironment, "_run_bash", fake_run_bash)
 
-        snap = r"C:\Users\Alexander\AppData\Local\Temp\hermes-snap-deadbeef.sh"
+        snap = r"C:\Users\Alexander\AppData\Local\Temp\sparkii-snap-deadbeef.sh"
         with patch.object(LocalEnvironment, "__init__", lambda self, **kw: None):
             env = LocalEnvironment.__new__(LocalEnvironment)
             BaseEnvironment.__init__(
@@ -330,5 +330,5 @@ class TestWrapCommandWindowsNativeCwd:
             env.init_session()
 
         script = captured["script"]
-        assert "/c/Users/Alexander/AppData/Local/Temp/hermes-snap-deadbeef.sh" in script
+        assert "/c/Users/Alexander/AppData/Local/Temp/sparkii-snap-deadbeef.sh" in script
         assert r"C:\Users\Alexander\AppData" not in script

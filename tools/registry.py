@@ -1,4 +1,4 @@
-"""Central registry for all hermes-agent tools.
+"""Central registry for all sparkii-agent tools.
 
 Each tool file calls ``registry.register()`` at module level to declare its
 schema, handler, toolset membership, and availability check.  ``model_tools.py``
@@ -163,10 +163,10 @@ def _discovery_cache_path() -> Optional[Path]:
     """Path of the tool-discovery verdict cache, or None if unresolvable."""
     try:
         # Deferred import keeps tools/registry.py a no-deps leaf at module
-        # import time (hermes_constants itself is stdlib-only, so no cycle).
-        from hermes_constants import get_hermes_home
+        # import time (sparkii_constants itself is stdlib-only, so no cycle).
+        from sparkii_constants import get_sparkii_home
 
-        return Path(get_hermes_home()) / "cache" / "tool_discovery_cache.json"
+        return Path(get_sparkii_home()) / "cache" / "tool_discovery_cache.json"
     except Exception:
         return None
 
@@ -237,7 +237,7 @@ class ToolEntry:
 # probe external state (Docker daemon, Modal SDK install, playwright binary
 # availability). For a long-lived CLI or gateway process, calling them on
 # every get_definitions() is pure waste — external state changes on human
-# timescales. Cache results for ~30 s so env-var flips via ``hermes tools``
+# timescales. Cache results for ~30 s so env-var flips via ``sparkii tools``
 # or live credential file changes propagate within a turn or two without
 # requiring any explicit invalidation.
 #
@@ -288,7 +288,7 @@ def check_fn_cache_scope() -> Optional[str]:
     """Return the active profile key when availability is profile-scoped.
 
     Single-profile processes intentionally keep the historical process-wide
-    cache. A multiplex gateway installs a Hermes-home override for every
+    cache. A multiplex gateway installs a Sparkii-home override for every
     profile turn, so the canonical profile key is the stable isolation
     boundary across repeated turns for that profile.
     """
@@ -297,9 +297,9 @@ def check_fn_cache_scope() -> Optional[str]:
 
         if not is_multiplex_active():
             return None
-        from hermes_constants import get_hermes_home_override
+        from sparkii_constants import get_sparkii_home_override
 
-        override = get_hermes_home_override()
+        override = get_sparkii_home_override()
         if not override:
             return CHECK_FN_CACHE_BYPASS
         return str(Path(override).expanduser().resolve())
@@ -381,7 +381,7 @@ def _check_fn_cached(fn: Callable) -> bool:
 
 def invalidate_check_fn_cache() -> None:
     """Drop all cached ``check_fn`` results. Call after config changes that
-    affect tool availability (e.g. ``hermes tools enable``)."""
+    affect tool availability (e.g. ``sparkii tools enable``)."""
     with _check_fn_cache_lock:
         _check_fn_cache.clear()
         _check_fn_last_good.clear()
@@ -721,7 +721,7 @@ class ToolRegistry:
         are included. ``check_fn()`` results are cached for ~30 s via
         :func:`_check_fn_cached` to amortize repeat probes (check_terminal_
         requirements probes modal/docker, browser checks probe playwright,
-        etc.); TTL chosen so env-var changes (``hermes tools enable foo``)
+        etc.); TTL chosen so env-var changes (``sparkii tools enable foo``)
         still take effect in near-real-time without forcing a full cache
         flush on every call.
         """

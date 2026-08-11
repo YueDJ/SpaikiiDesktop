@@ -2,7 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "paths": {
-      "@hermes/ink": ["src/types/hermes-ink.d.ts"]
+      "@sparkii/ink": ["src/types/sparkii-ink.d.ts"]
     }
   }
 }

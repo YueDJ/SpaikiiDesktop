@@ -16,18 +16,18 @@ import pytest
 
 @pytest.fixture
 def hermes_env(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".sparkii"
     home.mkdir()
     (home / "scripts").mkdir()
     (home / "cron").mkdir()
     (home / "scripts" / "watch.sh").write_text("#!/bin/bash\necho alert\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("SPARKII_HOME", str(home))
 
     import importlib
-    import hermes_constants
+    import sparkii_constants
     import cron.jobs
 
-    importlib.reload(hermes_constants)
+    importlib.reload(sparkii_constants)
     importlib.reload(cron.jobs)
     return home
 

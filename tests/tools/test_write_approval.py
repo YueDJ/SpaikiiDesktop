@@ -1,5 +1,5 @@
 """Tests for the memory/skill write-approval gate (tools/write_approval.py)
-and the shared slash-command handlers (hermes_cli/write_approval_commands.py).
+and the shared slash-command handlers (sparkii_cli/write_approval_commands.py).
 
 Covers the boolean write_approval gate (off by default = write freely; on =
 require approval) for both subsystems, the foreground-vs-background staging
@@ -18,15 +18,15 @@ import pytest
 @pytest.fixture
 def hermes_home(monkeypatch):
     d = tempfile.mkdtemp(prefix="hermes_wa_test_")
-    home = os.path.join(d, ".hermes")
+    home = os.path.join(d, ".sparkii")
     os.makedirs(home)
-    monkeypatch.setenv("HERMES_HOME", home)
+    monkeypatch.setenv("SPARKII_HOME", home)
     yield home
     shutil.rmtree(d, ignore_errors=True)
 
 
 def _set_approval(subsystem, enabled):
-    import hermes_cli.config as cfg
+    import sparkii_cli.config as cfg
     c = cfg.load_config()
     c.setdefault(subsystem, {})["write_approval"] = enabled
     cfg.save_config(c)
@@ -86,7 +86,7 @@ def test_cli_memory_approve_without_live_agent_uses_fresh_store(hermes_home, cap
     import json
     from tools.memory_tool import memory_tool, MemoryStore
     from tools import write_approval as wa
-    from hermes_cli.cli_commands_mixin import CLICommandsMixin
+    from sparkii_cli.cli_commands_mixin import CLICommandsMixin
 
     _set_approval("memory", True)
     staging = MemoryStore(); staging.load_from_disk()
@@ -118,7 +118,7 @@ def test_load_on_disk_store_honors_configured_char_limits(hermes_home, monkeypat
 
     # Config override path: helper picks up the configured limits.
     monkeypatch.setattr(
-        "hermes_cli.config.load_config",
+        "sparkii_cli.config.load_config",
         lambda: {"memory": {"memory_char_limit": 999, "user_char_limit": 444}},
     )
     store = load_on_disk_store()
@@ -129,7 +129,7 @@ def test_load_on_disk_store_honors_configured_char_limits(hermes_home, monkeypat
     def _boom():
         raise RuntimeError("no config")
 
-    monkeypatch.setattr("hermes_cli.config.load_config", _boom)
+    monkeypatch.setattr("sparkii_cli.config.load_config", _boom)
     fallback = load_on_disk_store()
     assert fallback.memory_char_limit == 2200
     assert fallback.user_char_limit == 1375
@@ -156,7 +156,7 @@ _SKILL = (
 
 
 def test_handle_approve_all(hermes_home):
-    from hermes_cli.write_approval_commands import handle_pending_subcommand
+    from sparkii_cli.write_approval_commands import handle_pending_subcommand
     from tools.memory_tool import MemoryStore
     from tools import write_approval as wa
     store = MemoryStore(); store.load_from_disk()
@@ -171,7 +171,7 @@ def test_handle_approve_all(hermes_home):
 
 
 def test_handle_approval_on(hermes_home):
-    from hermes_cli.write_approval_commands import handle_pending_subcommand
+    from sparkii_cli.write_approval_commands import handle_pending_subcommand
     from tools import write_approval as wa
     captured = {}
     out = handle_pending_subcommand(
@@ -183,7 +183,7 @@ def test_handle_approval_on(hermes_home):
 
 
 def test_handle_approval_off(hermes_home):
-    from hermes_cli.write_approval_commands import handle_pending_subcommand
+    from sparkii_cli.write_approval_commands import handle_pending_subcommand
     from tools import write_approval as wa
     captured = {}
     out = handle_pending_subcommand(

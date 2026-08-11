@@ -43,28 +43,28 @@ def test_scrub_on_forwards_extra_like_sanitize_extra_env(monkeypatch):
 
 
 def test_no_scrub_inherit_profile_home_bridges_context_override(tmp_path):
-    from hermes_constants import set_hermes_home_override, reset_hermes_home_override
+    from sparkii_constants import set_sparkii_home_override, reset_sparkii_home_override
 
-    token = set_hermes_home_override(str(tmp_path))
+    token = set_sparkii_home_override(str(tmp_path))
     try:
         env = build_subprocess_env(
             {"PATH": "/bin"}, scrub_secrets=False, inherit_profile_home=True
         )
     finally:
-        reset_hermes_home_override(token)
-    assert env["HERMES_HOME"] == str(tmp_path)
+        reset_sparkii_home_override(token)
+    assert env["SPARKII_HOME"] == str(tmp_path)
 
 
 # ---------------------------------------------------------------------------
 # E2E: real subprocess sees the factory's contract
 # ---------------------------------------------------------------------------
 
-def test_e2e_child_sees_hermes_home_and_no_planted_secret(tmp_path, monkeypatch):
-    """A real child spawned with a factory-built env must see HERMES_HOME
+def test_e2e_child_sees_sparkii_home_and_no_planted_secret(tmp_path, monkeypatch):
+    """A real child spawned with a factory-built env must see SPARKII_HOME
     propagated and (with scrub on) a planted provider-style key absent."""
-    hermes_home = tmp_path / "hermes-home"
+    hermes_home = tmp_path / "sparkii-home"
     hermes_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-FAKE-planted")
     monkeypatch.setenv("AUXILIARY_FAKE_API_KEY", "sk-FAKE-aux")
 
@@ -72,7 +72,7 @@ def test_e2e_child_sees_hermes_home_and_no_planted_secret(tmp_path, monkeypatch)
 
     code = (
         "import os, json; "
-        "print(json.dumps({'home': os.environ.get('HERMES_HOME'), "
+        "print(json.dumps({'home': os.environ.get('SPARKII_HOME'), "
         "'k1': 'ANTHROPIC_API_KEY' in os.environ, "
         "'k2': 'AUXILIARY_FAKE_API_KEY' in os.environ}))"
     )

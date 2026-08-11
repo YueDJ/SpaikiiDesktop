@@ -9,7 +9,7 @@ import {
 } from './data-url-read-max'
 
 const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
-const initialHermesDesktop = desktopWindow.hermesDesktop
+const initialSparkiiDesktop = desktopWindow.hermesDesktop
 
 const get = vi.fn(async () => ({ defaultMaxMb: 16, maxBytes: 16 * 1024 * 1024, maxMb: 16 }))
 
@@ -27,7 +27,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  desktopWindow.hermesDesktop = initialHermesDesktop
+  desktopWindow.hermesDesktop = initialSparkiiDesktop
 })
 
 describe('clampDataUrlReadMaxMb', () => {

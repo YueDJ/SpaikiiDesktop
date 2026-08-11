@@ -19,7 +19,7 @@ import pytest
 
 from acp_adapter.server import HermesACPAgent
 from acp_adapter.session import SessionManager, SessionState
-from hermes_cli import mcp_startup
+from sparkii_cli import mcp_startup
 
 
 # ---------------------------------------------------------------------------
@@ -33,7 +33,7 @@ class FakeAgent:
     def __init__(self):
         self.model = "fake-model"
         self.provider = "fake-provider"
-        self.enabled_toolsets = ["hermes-acp"]
+        self.enabled_toolsets = ["sparkii-acp"]
         self.disabled_toolsets = []
         self.tools = []
         self.valid_tool_names = set()
@@ -88,9 +88,9 @@ def test_acp_background_discovery_does_not_block_startup(monkeypatch):
 
     monkeypatch.setitem(
         sys.modules,
-        "hermes_cli.config",
+        "sparkii_cli.config",
         _mod(
-            "hermes_cli.config",
+            "sparkii_cli.config",
             read_raw_config=lambda: {"mcp_servers": {"slow": {"url": "https://mcp.example.test"}}},
         ),
     )
@@ -136,9 +136,9 @@ def test_acp_late_refresh_adds_tools_when_discovery_lands_after_build(monkeypatc
 
     monkeypatch.setitem(
         sys.modules,
-        "hermes_cli.config",
+        "sparkii_cli.config",
         _mod(
-            "hermes_cli.config",
+            "sparkii_cli.config",
             read_raw_config=lambda: {"mcp_servers": {"slow": {"url": "https://mcp.example.test"}}},
         ),
     )
@@ -213,9 +213,9 @@ def test_acp_late_refresh_skips_after_first_turn(monkeypatch):
 
     monkeypatch.setitem(
         sys.modules,
-        "hermes_cli.config",
+        "sparkii_cli.config",
         _mod(
-            "hermes_cli.config",
+            "sparkii_cli.config",
             read_raw_config=lambda: {"mcp_servers": {"slow": {"url": "https://mcp.example.test"}}},
         ),
     )
@@ -280,9 +280,9 @@ def test_acp_late_refresh_skips_while_turn_running(monkeypatch):
 
     monkeypatch.setitem(
         sys.modules,
-        "hermes_cli.config",
+        "sparkii_cli.config",
         _mod(
-            "hermes_cli.config",
+            "sparkii_cli.config",
             read_raw_config=lambda: {"mcp_servers": {"slow": {"url": "https://mcp.example.test"}}},
         ),
     )

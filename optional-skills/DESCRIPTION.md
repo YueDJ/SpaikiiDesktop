@@ -2,14 +2,14 @@
 
 Official skills maintained by Nous Research that are **not activated by default**.
 
-These skills ship with the hermes-agent repository but are not copied to
-`~/.hermes/skills/` during setup. They are discoverable via the Skills Hub:
+These skills ship with the sparkii-agent repository but are not copied to
+`~/.sparkii/skills/` during setup. They are discoverable via the Skills Hub:
 
 ```bash
-hermes skills browse               # browse all skills, official shown first
-hermes skills browse --source official  # browse only official optional skills
-hermes skills search <query>       # finds optional skills labeled "official"
-hermes skills install <identifier> # copies to ~/.hermes/skills/ and activates
+sparkii skills browse               # browse all skills, official shown first
+sparkii skills browse --source official  # browse only official optional skills
+sparkii skills search <query>       # finds optional skills labeled "official"
+sparkii skills install <identifier> # copies to ~/.sparkii/skills/ and activates
 ```
 
 ## Why optional?

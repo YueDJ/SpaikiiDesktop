@@ -205,7 +205,7 @@ def test_aiagent_reuses_existing_errors_log_handler():
     """Repeated AIAgent init should not accumulate duplicate errors.log handlers."""
     root_logger = logging.getLogger()
     original_handlers = list(root_logger.handlers)
-    error_log_path = (run_agent._hermes_home / "logs" / "errors.log").resolve()
+    error_log_path = (run_agent._sparkii_home / "logs" / "errors.log").resolve()
 
     try:
         for handler in list(root_logger.handlers):
@@ -510,7 +510,7 @@ class TestSessionJsonSnapshotOptIn:
 
     def test_traversal_session_id_cannot_escape_logs_dir(self, agent, tmp_path):
         # Security regression (#5958): a traversal-shaped session ID (which can
-        # originate from the untrusted X-Hermes-Session-Id API header) must not
+        # originate from the untrusted X-Sparkii-Session-Id API header) must not
         # redirect the session snapshot outside the sessions directory.
         agent._session_json_enabled = True
         agent.logs_dir = tmp_path
@@ -542,11 +542,11 @@ class TestSaveSessionLogRedactsSecrets:
 
     @pytest.fixture(autouse=True)
     def _ensure_redaction_enabled(self, monkeypatch):
-        """Force redaction on regardless of host HERMES_REDACT_SECRETS state.
+        """Force redaction on regardless of host SPARKII_REDACT_SECRETS state.
         The hermetic conftest blanks the env var; the module-level
         ``_REDACT_ENABLED`` constant is captured at import time, so we
         flip it directly for the duration of these tests."""
-        monkeypatch.delenv("HERMES_REDACT_SECRETS", raising=False)
+        monkeypatch.delenv("SPARKII_REDACT_SECRETS", raising=False)
         monkeypatch.setattr("agent.redact._REDACT_ENABLED", True)
 
     def test_redacts_api_key_in_tool_content(self, agent, tmp_path):
@@ -734,7 +734,7 @@ class TestInit:
             patch("run_agent.get_tool_definitions", return_value=[]),
             patch("run_agent.check_toolset_requirements", return_value={}),
             patch("run_agent.OpenAI"),
-            patch("hermes_cli.config.load_config", return_value={}), patch("hermes_cli.config.load_config_readonly", return_value={}),
+            patch("sparkii_cli.config.load_config", return_value={}), patch("sparkii_cli.config.load_config_readonly", return_value={}),
         ):
             a = AIAgent(
                 api_key="test-k...7890",
@@ -756,11 +756,11 @@ class TestInit:
             patch("run_agent.check_toolset_requirements", return_value={}),
             patch("run_agent.OpenAI"),
             patch(
-                "hermes_cli.config.load_config",
+                "sparkii_cli.config.load_config",
                 return_value={"prompt_caching": {"cache_ttl": falsy_value}},
             ),
             patch(
-                "hermes_cli.config.load_config_readonly",
+                "sparkii_cli.config.load_config_readonly",
                 return_value={"prompt_caching": {"cache_ttl": falsy_value}},
             ),
         ):
@@ -784,11 +784,11 @@ class TestInit:
             patch("run_agent.check_toolset_requirements", return_value={}),
             patch("run_agent.OpenAI"),
             patch(
-                "hermes_cli.config.load_config",
+                "sparkii_cli.config.load_config",
                 return_value={"prompt_caching": {"cache_ttl": False}},
             ),
             patch(
-                "hermes_cli.config.load_config_readonly",
+                "sparkii_cli.config.load_config_readonly",
                 return_value={"prompt_caching": {"cache_ttl": False}},
             ),
         ):
@@ -815,10 +815,10 @@ class TestInit:
             patch("run_agent.check_toolset_requirements", return_value={}),
             patch("run_agent.OpenAI"),
             patch(
-                "hermes_cli.config.load_config",
+                "sparkii_cli.config.load_config",
                 return_value={"model": {"max_tokens": 4096}},
             ), patch(
-                "hermes_cli.config.load_config_readonly",
+                "sparkii_cli.config.load_config_readonly",
                 return_value={"model": {"max_tokens": 4096}},
             ),
         ):
@@ -989,10 +989,10 @@ class TestToolUseEnforcementConfig:
             patch("run_agent.check_toolset_requirements", return_value={}),
             patch("run_agent.OpenAI"),
             patch(
-                "hermes_cli.config.load_config",
+                "sparkii_cli.config.load_config",
                 return_value={"agent": {"tool_use_enforcement": tool_use_enforcement}},
             ), patch(
-                "hermes_cli.config.load_config_readonly",
+                "sparkii_cli.config.load_config_readonly",
                 return_value={"agent": {"tool_use_enforcement": tool_use_enforcement}},
             ),
         ):
@@ -1037,10 +1037,10 @@ class TestToolUseEnforcementConfig:
             patch("run_agent.check_toolset_requirements", return_value={}),
             patch("run_agent.OpenAI"),
             patch(
-                "hermes_cli.config.load_config",
+                "sparkii_cli.config.load_config",
                 return_value={"agent": {"tool_use_enforcement": True}},
             ), patch(
-                "hermes_cli.config.load_config_readonly",
+                "sparkii_cli.config.load_config_readonly",
                 return_value={"agent": {"tool_use_enforcement": True}},
             ),
         ):
@@ -1077,10 +1077,10 @@ class TestTaskCompletionGuidance:
             patch("run_agent.check_toolset_requirements", return_value={}),
             patch("run_agent.OpenAI"),
             patch(
-                "hermes_cli.config.load_config",
+                "sparkii_cli.config.load_config",
                 return_value={"agent": agent_cfg},
             ), patch(
-                "hermes_cli.config.load_config_readonly",
+                "sparkii_cli.config.load_config_readonly",
                 return_value={"agent": agent_cfg},
             ),
         ):
@@ -1116,10 +1116,10 @@ class TestTaskCompletionGuidance:
             patch("run_agent.check_toolset_requirements", return_value={}),
             patch("run_agent.OpenAI"),
             patch(
-                "hermes_cli.config.load_config",
+                "sparkii_cli.config.load_config",
                 return_value={"agent": {"task_completion_guidance": True}},
             ), patch(
-                "hermes_cli.config.load_config_readonly",
+                "sparkii_cli.config.load_config_readonly",
                 return_value={"agent": {"task_completion_guidance": True}},
             ),
         ):
@@ -1151,10 +1151,10 @@ class TestEnvironmentProbeIntegration:
             patch("run_agent.check_toolset_requirements", return_value={}),
             patch("run_agent.OpenAI"),
             patch(
-                "hermes_cli.config.load_config",
+                "sparkii_cli.config.load_config",
                 return_value={"agent": {"environment_probe": environment_probe}},
             ), patch(
-                "hermes_cli.config.load_config_readonly",
+                "sparkii_cli.config.load_config_readonly",
                 return_value={"agent": {"environment_probe": environment_probe}},
             ),
         ):
@@ -1359,7 +1359,7 @@ class TestBuildApiKwargs:
     def test_core_responses_preserves_supported_xhigh(self, agent, monkeypatch):
         """The core GitHub Responses path must preserve a supported xhigh."""
         monkeypatch.setattr(
-            "hermes_cli.models.github_model_reasoning_efforts",
+            "sparkii_cli.models.github_model_reasoning_efforts",
             lambda _model: ["none", "low", "medium", "high", "xhigh"],
         )
         agent.model = "gpt-5.5"
@@ -1559,8 +1559,8 @@ class TestExecuteToolCalls:
             hook_calls.append((hook_name, kwargs))
             return []
 
-        monkeypatch.setattr("hermes_cli.lifecycle.invoke_hook", _capture_hook)
-        monkeypatch.setattr("hermes_cli.lifecycle.has_hook", lambda name: True)
+        monkeypatch.setattr("sparkii_cli.lifecycle.invoke_hook", _capture_hook)
+        monkeypatch.setattr("sparkii_cli.lifecycle.has_hook", lambda name: True)
 
         with (
             patch("run_agent.handle_function_call", side_effect=KeyboardInterrupt),
@@ -1587,9 +1587,9 @@ class TestExecuteToolCalls:
         messages = []
         hook_calls = []
 
-        monkeypatch.setattr("hermes_cli.lifecycle.has_hook", lambda name: True)
+        monkeypatch.setattr("sparkii_cli.lifecycle.has_hook", lambda name: True)
         monkeypatch.setattr(
-            "hermes_cli.lifecycle.invoke_hook",
+            "sparkii_cli.lifecycle.invoke_hook",
             lambda hook_name, **kwargs: hook_calls.append((hook_name, kwargs)) or [],
         )
 
@@ -1614,9 +1614,9 @@ class TestExecuteToolCalls:
         mock_msg = _mock_assistant_msg(content="", tool_calls=[tc])
         messages = []
         hook_calls = []
-        monkeypatch.setattr("hermes_cli.lifecycle.has_hook", lambda name: True)
+        monkeypatch.setattr("sparkii_cli.lifecycle.has_hook", lambda name: True)
         monkeypatch.setattr(
-            "hermes_cli.lifecycle.invoke_hook",
+            "sparkii_cli.lifecycle.invoke_hook",
             lambda hook_name, **kwargs: hook_calls.append((hook_name, kwargs)) or [],
         )
         with patch("run_agent.handle_function_call", return_value="ok") as mock_hfc:
@@ -1641,9 +1641,9 @@ class TestExecuteToolCalls:
         mock_msg = _mock_assistant_msg(content="", tool_calls=[tc])
         messages = []
         hook_calls = []
-        monkeypatch.setattr("hermes_cli.lifecycle.has_hook", lambda name: True)
+        monkeypatch.setattr("sparkii_cli.lifecycle.has_hook", lambda name: True)
         monkeypatch.setattr(
-            "hermes_cli.lifecycle.invoke_hook",
+            "sparkii_cli.lifecycle.invoke_hook",
             lambda hook_name, **kwargs: hook_calls.append((hook_name, kwargs)) or [],
         )
 
@@ -1675,8 +1675,8 @@ class TestExecuteToolCalls:
         assert "tool was not executed" in messages[0]["content"].lower()
 
     def test_result_truncation_over_100k(self, agent, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
-        (tmp_path / ".hermes").mkdir()
+        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / ".sparkii"))
+        (tmp_path / ".sparkii").mkdir()
         tc = _mock_tool_call(name="web_search", arguments="{}", call_id="c1")
         mock_msg = _mock_assistant_msg(content="", tool_calls=[tc])
         messages = []
@@ -1969,7 +1969,7 @@ class TestConcurrentToolExecution:
         monkeypatch,
         quiet_mode,
     ):
-        from hermes_cli.middleware import RequestMiddlewareResult
+        from sparkii_cli.middleware import RequestMiddlewareResult
 
         trace = [{"source": "test-middleware"}]
         observed = []
@@ -1981,7 +1981,7 @@ class TestConcurrentToolExecution:
         )
         mock_msg = _mock_assistant_msg(content="", tool_calls=[tool_call])
         monkeypatch.setattr(
-            "hermes_cli.middleware.apply_tool_request_middleware",
+            "sparkii_cli.middleware.apply_tool_request_middleware",
             lambda _name, args, **_kwargs: RequestMiddlewareResult(
                 payload=args,
                 original_payload=args,
@@ -1990,11 +1990,11 @@ class TestConcurrentToolExecution:
             ),
         )
         monkeypatch.setattr(
-            "hermes_cli.middleware.run_tool_execution_middleware",
+            "sparkii_cli.middleware.run_tool_execution_middleware",
             lambda _name, args, callback, **_kwargs: callback(args),
         )
         monkeypatch.setattr(
-            "hermes_cli.plugins.resolve_pre_tool_block",
+            "sparkii_cli.plugins.resolve_pre_tool_block",
             lambda *_args, **_kwargs: None,
         )
         monkeypatch.setattr(
@@ -2056,7 +2056,7 @@ class TestConcurrentToolExecution:
         messages = []
 
         monkeypatch.setattr(
-            "hermes_cli.plugins.resolve_pre_tool_block",
+            "sparkii_cli.plugins.resolve_pre_tool_block",
             lambda *args, **kwargs: "Blocked by policy",
         )
         agent._checkpoint_mgr.enabled = True
@@ -2103,12 +2103,12 @@ class TestConcurrentToolExecution:
             "tool_request": [],
             "tool_execution": [execution_middleware],
         })
-        monkeypatch.setattr("hermes_cli.plugins.get_plugin_manager", lambda: manager)
+        monkeypatch.setattr("sparkii_cli.plugins.get_plugin_manager", lambda: manager)
         monkeypatch.setattr(
-            "hermes_cli.lifecycle.invoke_hook",
+            "sparkii_cli.lifecycle.invoke_hook",
             lambda hook_name, **kwargs: hook_calls.append((hook_name, kwargs)) or [],
         )
-        monkeypatch.setattr("hermes_cli.lifecycle.has_hook", lambda name: True)
+        monkeypatch.setattr("sparkii_cli.lifecycle.has_hook", lambda name: True)
 
         with patch(
             "run_agent.handle_function_call",
@@ -2146,7 +2146,7 @@ class TestConcurrentToolExecution:
         """Blocked memory tool should not reset the nudge counter."""
         agent._turns_since_memory = 5
         monkeypatch.setattr(
-            "hermes_cli.plugins.resolve_pre_tool_block",
+            "sparkii_cli.plugins.resolve_pre_tool_block",
             lambda *args, **kwargs: "Blocked",
         )
         with patch("tools.memory_tool.memory_tool", side_effect=AssertionError("should not run")):
@@ -2169,18 +2169,18 @@ class TestConcurrentToolExecution:
         dispatched = []
         duplicate_errors = []
         monkeypatch.setattr(
-            "hermes_cli.middleware.apply_tool_request_middleware",
+            "sparkii_cli.middleware.apply_tool_request_middleware",
             lambda _name, args, **_kwargs: SimpleNamespace(
                 payload=args,
                 trace=[],
             ),
         )
         monkeypatch.setattr(
-            "hermes_cli.middleware.run_tool_execution_middleware",
+            "sparkii_cli.middleware.run_tool_execution_middleware",
             lambda _name, args, callback, **_kwargs: callback(args),
         )
         monkeypatch.setattr(
-            "hermes_cli.plugins.resolve_pre_tool_block",
+            "sparkii_cli.plugins.resolve_pre_tool_block",
             lambda *_args, **_kwargs: None,
         )
         monkeypatch.setattr(tool_executor, "_begin_tool_execution", lambda *_a, **_k: None)
@@ -2208,7 +2208,7 @@ class TestConcurrentToolExecution:
         assert outcome.result == "ok"
         assert dispatched == [{"command": "true"}]
         assert duplicate_errors == [
-            "Hermes tool execution callback invoked more than once"
+            "Sparkii tool execution callback invoked more than once"
         ]
         assert outcome.blocked is False
 
@@ -2224,18 +2224,18 @@ class TestConcurrentToolExecution:
         errors = []
         barrier = threading.Barrier(2)
         monkeypatch.setattr(
-            "hermes_cli.middleware.apply_tool_request_middleware",
+            "sparkii_cli.middleware.apply_tool_request_middleware",
             lambda _name, args, **_kwargs: SimpleNamespace(
                 payload=args,
                 trace=[],
             ),
         )
         monkeypatch.setattr(
-            "hermes_cli.middleware.run_tool_execution_middleware",
+            "sparkii_cli.middleware.run_tool_execution_middleware",
             lambda _name, args, callback, **_kwargs: callback(args),
         )
         monkeypatch.setattr(
-            "hermes_cli.plugins.resolve_pre_tool_block",
+            "sparkii_cli.plugins.resolve_pre_tool_block",
             lambda *_args, **_kwargs: None,
         )
         monkeypatch.setattr(tool_executor, "_begin_tool_execution", lambda *_a, **_k: None)
@@ -2270,7 +2270,7 @@ class TestConcurrentToolExecution:
 
         assert outcome.result == "ok"
         assert dispatched == [{"command": "true"}]
-        assert errors == ["Hermes tool execution callback invoked more than once"]
+        assert errors == ["Sparkii tool execution callback invoked more than once"]
         assert outcome.blocked is False
 
 
@@ -2300,14 +2300,14 @@ class TestAgentRuntimePostHookOwnershipSync:
 
         hook_calls = []
         monkeypatch.setattr(
-            "hermes_cli.plugins.resolve_pre_tool_block",
+            "sparkii_cli.plugins.resolve_pre_tool_block",
             lambda *args, **kwargs: None,
         )
         monkeypatch.setattr(
-            "hermes_cli.lifecycle.invoke_hook",
+            "sparkii_cli.lifecycle.invoke_hook",
             lambda hook_name, **kwargs: hook_calls.append((hook_name, kwargs)) or [],
         )
-        monkeypatch.setattr("hermes_cli.lifecycle.has_hook", lambda name: True)
+        monkeypatch.setattr("sparkii_cli.lifecycle.has_hook", lambda name: True)
         monkeypatch.setattr(
             "tools.todo_tool.todo_tool",
             lambda **kwargs: '{"ok":true}',
@@ -2675,7 +2675,7 @@ class TestHandleMaxIterations:
         output ...'. The sanitizer renames the blank name to a non-empty
         sentinel so the call and its result stay PAIRED (no orphaned output,
         no 400) while the result content is preserved — it must NOT drop the
-        call, because hermes' dispatch loop keeps empty-name calls paired with
+        call, because sparkii' dispatch loop keeps empty-name calls paired with
         an anti-priming result for self-correction (#47967). (#12807)"""
         messages = [
             {
@@ -2744,11 +2744,11 @@ class TestRunConversation:
                 return_value="/profile",
             ),
             patch(
-                "hermes_cli.observability.relay_shared_metrics.start_task_run",
+                "sparkii_cli.observability.relay_shared_metrics.start_task_run",
                 side_effect=start_error,
             ),
             patch(
-                "hermes_cli.observability.relay_shared_metrics.finish_task_run"
+                "sparkii_cli.observability.relay_shared_metrics.finish_task_run"
             ) as finish_task_run,
             patch("agent.conversation_loop.run_conversation") as run_conversation,
         ):
@@ -2909,7 +2909,7 @@ class TestRunConversation:
         assert "Ollama loaded `qwen3.5:9b` with only 4,096 tokens" in result["final_response"]
         assert "model.ollama_num_ctx: 65536" in result["final_response"]
         assert not agent.client.chat.completions.create.called
-        assert "Ollama runtime context too small for Hermes tool use" in caplog.text
+        assert "Ollama runtime context too small for Sparkii tool use" in caplog.text
         assert "runtime_context=4096" in caplog.text
 
     def test_tool_calls_then_stop(self, agent):
@@ -2947,10 +2947,10 @@ class TestRunConversation:
         with (
             patch("run_agent.handle_function_call", return_value="search result"),
             patch(
-                "hermes_cli.lifecycle.has_hook",
+                "sparkii_cli.lifecycle.has_hook",
                 side_effect=lambda name: name in {"pre_api_request", "post_api_request"},
             ),
-            patch("hermes_cli.lifecycle.invoke_hook", side_effect=_record_hook),
+            patch("sparkii_cli.lifecycle.invoke_hook", side_effect=_record_hook),
             patch.object(agent, "_persist_session"),
             patch.object(agent, "_save_trajectory"),
             patch.object(agent, "_cleanup_task_resources"),
@@ -2994,10 +2994,10 @@ class TestRunConversation:
                 return_value=failed_result,
             ),
             patch(
-                "hermes_cli.observability.relay_shared_metrics.start_task_run",
+                "sparkii_cli.observability.relay_shared_metrics.start_task_run",
             ),
             patch(
-                "hermes_cli.observability.relay_shared_metrics.finish_task_run",
+                "sparkii_cli.observability.relay_shared_metrics.finish_task_run",
                 side_effect=lambda **_kwargs: order.append("metrics"),
             ),
             patch.object(
@@ -3025,8 +3025,8 @@ class TestRunConversation:
             hook_called = True
             return []
 
-        monkeypatch.setattr("hermes_cli.lifecycle.has_hook", lambda name: False)
-        monkeypatch.setattr("hermes_cli.lifecycle.invoke_hook", _invoke_hook)
+        monkeypatch.setattr("sparkii_cli.lifecycle.has_hook", lambda name: False)
+        monkeypatch.setattr("sparkii_cli.lifecycle.invoke_hook", _invoke_hook)
         monkeypatch.setattr(agent, "_api_request_payload_for_hook", _payload_for_hook)
 
         agent._invoke_api_request_error_hook(
@@ -3065,12 +3065,12 @@ class TestRunConversation:
             payload_counts["response"] += 1
             return {}
 
-        monkeypatch.setattr("hermes_cli.lifecycle.has_hook", _has_hook)
+        monkeypatch.setattr("sparkii_cli.lifecycle.has_hook", _has_hook)
         monkeypatch.setattr(agent, "_api_request_payload_for_hook", _request_payload)
         monkeypatch.setattr(agent, "_api_response_payload_for_hook", _response_payload)
 
         with (
-            patch("hermes_cli.lifecycle.invoke_hook", return_value=[]),
+            patch("sparkii_cli.lifecycle.invoke_hook", return_value=[]),
             patch.object(agent, "_persist_session"),
             patch.object(agent, "_save_trajectory"),
             patch.object(agent, "_cleanup_task_resources"),
@@ -3780,7 +3780,7 @@ class TestRunConversation:
 
         Regression test for #20316: when running below the threshold_tokens
         cutoff, run_conversation must still consult the engine's
-        should_compress_preflight() hook so engines like hermes-lcm can
+        should_compress_preflight() hook so engines like sparkii-lcm can
         perform incremental maintenance (e.g. leaf-chunk compaction)
         without waiting for the 75% context fill threshold.
         """
@@ -4063,7 +4063,7 @@ class TestRunConversation:
         retry up to 3 times rather than hard-failing after one — and recover
         if a retry produces a complete tool call. Regression for the false
         'model hit max output tokens' on Opus when the stream simply dropped."""
-        from hermes_constants import PARTIAL_STREAM_STUB_ID
+        from sparkii_constants import PARTIAL_STREAM_STUB_ID
 
         self._setup_agent(agent)
         agent.valid_tool_names.add("write_file")
@@ -4108,7 +4108,7 @@ class TestRunConversation:
         carries a tool_calls list). Confirms the zero-byte trigger is wired
         end-to-end through the retry loop, not just detected at the
         chat_completion_helpers unit level."""
-        from hermes_constants import PARTIAL_STREAM_STUB_ID
+        from sparkii_constants import PARTIAL_STREAM_STUB_ID
 
         self._setup_agent(agent)
         agent.valid_tool_names.add("write_file")
@@ -4195,7 +4195,7 @@ class TestRunConversation:
         self._setup_agent(agent)
         agent.max_iterations = 2
 
-        monkeypatch.setenv("HERMES_KANBAN_TASK", "t_test_task_123")
+        monkeypatch.setenv("SPARKII_KANBAN_TASK", "t_test_task_123")
 
         # Return a tool call for every iteration to exhaust the budget.
         tc = _mock_tool_call(name="web_search", arguments="{}", call_id="c1")
@@ -4215,9 +4215,9 @@ class TestRunConversation:
 
         with (
             patch("run_agent.handle_function_call", return_value="ok"),
-            patch("hermes_cli.kanban_db._record_task_failure",
+            patch("sparkii_cli.kanban_db._record_task_failure",
                   mock_record_failure),
-            patch("hermes_cli.kanban_db.connect", mock_connect),
+            patch("sparkii_cli.kanban_db.connect", mock_connect),
             patch.object(agent, "_persist_session"),
             patch.object(agent, "_save_trajectory"),
             patch.object(agent, "_cleanup_task_resources"),
@@ -4243,12 +4243,12 @@ class TestRunConversation:
         assert "Iteration budget exhausted" in call.kwargs.get("error", "")
 
     def test_no_kanban_block_when_not_in_kanban_mode(self, agent, monkeypatch):
-        """The exhaustion bridge must NOT fire when HERMES_KANBAN_TASK
+        """The exhaustion bridge must NOT fire when SPARKII_KANBAN_TASK
         is unset (non-kanban runs are unaffected by #29747 gap 2)."""
         self._setup_agent(agent)
         agent.max_iterations = 2
 
-        monkeypatch.delenv("HERMES_KANBAN_TASK", raising=False)
+        monkeypatch.delenv("SPARKII_KANBAN_TASK", raising=False)
 
         tc = _mock_tool_call(name="web_search", arguments="{}", call_id="c1")
         tool_resp = _mock_response(
@@ -4265,7 +4265,7 @@ class TestRunConversation:
 
         with (
             patch("run_agent.handle_function_call", return_value="ok"),
-            patch("hermes_cli.kanban_db._record_task_failure",
+            patch("sparkii_cli.kanban_db._record_task_failure",
                   mock_record_failure),
             patch.object(agent, "_persist_session"),
             patch.object(agent, "_save_trajectory"),
@@ -4783,7 +4783,7 @@ class TestNousCredentialRefresh:
             return _RebuiltClient()
 
         monkeypatch.setattr(
-            "hermes_cli.auth.resolve_nous_runtime_credentials", _fake_resolve
+            "sparkii_cli.auth.resolve_nous_runtime_credentials", _fake_resolve
         )
 
         existing = _ExistingClient()
@@ -4854,7 +4854,7 @@ class TestNousCredentialRefresh:
             agent._anthropic_client = _RebuiltAnthropic()
 
         monkeypatch.setattr(
-            "hermes_cli.auth.resolve_nous_runtime_credentials", _fake_resolve
+            "sparkii_cli.auth.resolve_nous_runtime_credentials", _fake_resolve
         )
         monkeypatch.setattr(agent, "_rebuild_anthropic_client", _fake_rebuild)
         monkeypatch.setattr(
@@ -5142,7 +5142,7 @@ class TestSystemPromptStability:
         # Should have built fresh, not queried the DB
         mock_db.get_session.assert_not_called()
         assert agent._cached_system_prompt is not None
-        assert "Hermes Agent" in agent._cached_system_prompt
+        assert "Sparkii Agent" in agent._cached_system_prompt
 
 
 class TestBudgetPressure:
@@ -5614,7 +5614,7 @@ class TestStreamingApiCall:
         # (id=PARTIAL_STREAM_STUB_ID, tool_calls=None so it can't execute,
         # finish_reason=length so the loop's continuation machinery fires with
         # chunking guidance) rather than stamping a normal 'length' truncation.
-        from hermes_constants import PARTIAL_STREAM_STUB_ID
+        from sparkii_constants import PARTIAL_STREAM_STUB_ID
         chunks = [
             _make_chunk(tool_calls=[_make_tc_delta(0, "call_1", "write_file", '{"path":"x.txt","content":"hel')]),
         ]

@@ -30,18 +30,18 @@ import pytest
 
 @pytest.fixture
 def hermes_env(tmp_path, monkeypatch):
-    """Isolate HERMES_HOME for each test so jobs/scripts/snapshots don't leak."""
-    home = tmp_path / ".hermes"
+    """Isolate SPARKII_HOME for each test so jobs/scripts/snapshots don't leak."""
+    home = tmp_path / ".sparkii"
     home.mkdir()
     (home / "scripts").mkdir()
     (home / "cron").mkdir()
 
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("SPARKII_HOME", str(home))
 
-    # Reload modules that cache get_hermes_home() at import time.
+    # Reload modules that cache get_sparkii_home() at import time.
     import importlib
-    import hermes_constants
-    importlib.reload(hermes_constants)
+    import sparkii_constants
+    importlib.reload(sparkii_constants)
     import cron.jobs
     importlib.reload(cron.jobs)
     import cron.monitor
@@ -85,7 +85,7 @@ def _install_agent_stubs(monkeypatch, observed: dict):
     fake_mod.AIAgent = FakeAgent
     monkeypatch.setitem(sys.modules, "run_agent", fake_mod)
 
-    from hermes_cli import runtime_provider as _rtp
+    from sparkii_cli import runtime_provider as _rtp
     monkeypatch.setattr(
         _rtp,
         "resolve_runtime_provider",
@@ -100,7 +100,7 @@ def _install_agent_stubs(monkeypatch, observed: dict):
     monkeypatch.setattr(sched, "_resolve_origin", lambda job: None)
     monkeypatch.setattr(sched, "_resolve_delivery_target", lambda job: None)
     monkeypatch.setattr(sched, "_resolve_cron_enabled_toolsets", lambda job, cfg: None)
-    monkeypatch.setenv("HERMES_CRON_TIMEOUT", "0")
+    monkeypatch.setenv("SPARKII_CRON_TIMEOUT", "0")
 
     import dotenv
     monkeypatch.setattr(dotenv, "load_dotenv", lambda *_a, **_kw: True)

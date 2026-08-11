@@ -10,7 +10,7 @@ import time
 import pytest
 
 from acp_adapter.provenance import build_session_provenance, session_provenance_meta
-from hermes_state import SessionDB
+from sparkii_state import SessionDB
 
 
 @pytest.fixture()
@@ -75,6 +75,6 @@ def test_non_compression_parent_is_root_not_continuation(db):
 def test_meta_wrapper_shape(db):
     _mk(db, "root1")
     meta = session_provenance_meta(db, "acp-1", "root1")
-    assert set(meta.keys()) == {"hermes"}
-    assert "sessionProvenance" in meta["hermes"]
-    assert meta["hermes"]["sessionProvenance"]["currentHermesSessionId"] == "root1"
+    assert set(meta.keys()) == {"sparkii"}
+    assert "sessionProvenance" in meta["sparkii"]
+    assert meta["sparkii"]["sessionProvenance"]["currentHermesSessionId"] == "root1"

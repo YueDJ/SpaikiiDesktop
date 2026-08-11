@@ -33,7 +33,7 @@ import pytest
 from agent.tool_dispatch_helpers import make_tool_result_message
 from agent.agent_runtime_helpers import sanitize_api_messages
 from agent.tool_executor import execute_tool_calls_segmented
-from hermes_state import SessionDB
+from sparkii_state import SessionDB
 from run_agent import AIAgent
 
 
@@ -52,7 +52,7 @@ def _make_tool_defs(*names: str) -> list:
 
 
 def _make_agent():
-    hermes_home = Path(tempfile.mkdtemp(prefix="hermes-test-home-"))
+    hermes_home = Path(tempfile.mkdtemp(prefix="sparkii-test-home-"))
     (hermes_home / "logs").mkdir(parents=True, exist_ok=True)
     with (
         patch(
@@ -61,7 +61,7 @@ def _make_agent():
         ),
         patch("run_agent.check_toolset_requirements", return_value={}),
         patch("run_agent.OpenAI"),
-        patch("run_agent._hermes_home", hermes_home),
+        patch("run_agent._sparkii_home", hermes_home),
         patch("agent.model_metadata.fetch_model_metadata", return_value={}),
     ):
         agent = AIAgent(

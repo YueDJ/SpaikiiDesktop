@@ -10,7 +10,7 @@ This module provides a fail-closed, context-local secret scope:
 
 - ``set_secret_scope(mapping)`` installs the active profile's secrets for the
   current task (a contextvar, so it propagates into the agent's worker thread
-  via ``copy_context()`` exactly like the HERMES_HOME override).
+  via ``copy_context()`` exactly like the SPARKII_HOME override).
 - ``get_secret(name)`` reads from that scope. When multiplexing is **active**
   and no scope is set, it RAISES rather than silently falling back to
   ``os.environ`` — an un-migrated or newly-added call site fails loud at that
@@ -96,16 +96,16 @@ def current_secret_scope() -> Optional[Mapping[str, str]]:
 # Membership test is by exact name OR prefix (see _is_global_env). Keep this
 # list tight: when in doubt a value is a profile secret, not a global.
 _GLOBAL_ENV_EXACT = frozenset({
-    # Hermes runtime / deployment
-    "HERMES_HOME", "HERMES_PROFILE", "HERMES_GATEWAY_LOCK_DIR",
-    "HERMES_MAX_ITERATIONS", "HERMES_MAX_TOKENS", "HERMES_API_TIMEOUT",
-    "HERMES_REDACT_SECRETS", "HERMES_NOUS_TIMEOUT_SECONDS",
-    "_HERMES_GATEWAY",
+    # Sparkii runtime / deployment
+    "SPARKII_HOME", "SPARKII_PROFILE", "SPARKII_GATEWAY_LOCK_DIR",
+    "SPARKII_MAX_ITERATIONS", "SPARKII_MAX_TOKENS", "SPARKII_API_TIMEOUT",
+    "SPARKII_REDACT_SECRETS", "SPARKII_NOUS_TIMEOUT_SECONDS",
+    "_SPARKII_GATEWAY",
     # OS / interpreter
     "PATH", "HOME", "USER", "LANG", "LC_ALL", "TZ", "PWD", "SHELL", "TMPDIR",
     "VIRTUAL_ENV", "PYTHONPATH", "SSL_CERT_FILE",
     # Kanban paths (per-board, not per-profile-secret)
-    "HERMES_KANBAN_DB", "HERMES_KANBAN_WORKSPACES_ROOT", "HERMES_KANBAN_BOARD",
+    "SPARKII_KANBAN_DB", "SPARKII_KANBAN_WORKSPACES_ROOT", "SPARKII_KANBAN_BOARD",
     # API-server LISTENER settings — deployment config (Docker compose
     # ``environment:`` block, systemd ``Environment=``), not profile secrets.
     # The scoped runner reload (#64674) must keep seeing them or container
@@ -116,8 +116,8 @@ _GLOBAL_ENV_EXACT = frozenset({
     "API_SERVER_CORS_ORIGINS",
 })
 _GLOBAL_ENV_PREFIXES = (
-    "HERMES_KANBAN_",
-    "HERMES_TELEGRAM_",   # tuning knobs (batch delays, fallback toggles) — NOT the token
+    "SPARKII_KANBAN_",
+    "SPARKII_TELEGRAM_",   # tuning knobs (batch delays, fallback toggles) — NOT the token
     "TERMINAL_",          # terminal/sandbox backend settings
 )
 
@@ -227,11 +227,11 @@ def load_env_file(env_path: Path) -> Dict[str, str]:
     """Parse a ``.env`` file into a plain dict WITHOUT touching ``os.environ``.
 
     Used to load a profile's secrets into an isolated mapping for
-    ``set_secret_scope``. Parses the small KEY=VALUE subset Hermes writes
+    ``set_secret_scope``. Parses the small KEY=VALUE subset Sparkii writes
     itself (``export`` prefix, ``#`` comments — full-line and
     dotenv-compatible inline, matching quotes with the
     writer's ``\\"``/``\\\\`` escapes reversed — the same semantics as
-    ``hermes_cli.config._parse_env_value``) but never mutates the process
+    ``sparkii_cli.config._parse_env_value``) but never mutates the process
     environment — that isolation is the whole point.
 
     Encoding is ``utf-8-sig`` so a leading UTF-8 BOM (Windows Notepad /
@@ -244,13 +244,13 @@ def load_env_file(env_path: Path) -> Dict[str, str]:
     except (FileNotFoundError, OSError, UnicodeDecodeError):
         return secrets
 
-    # Parse values with the canonical Hermes parser: save_env_value
+    # Parse values with the canonical Sparkii parser: save_env_value
     # escapes " and \ inside double quotes, and every other reader
     # (load_env, python-dotenv) reverses those escapes. Stripping only
     # the outer quotes here would corrupt credentials containing "
     # or \ — they work interactively but fail in scoped (cron /
     # multiplex) resolution.
-    from hermes_cli.config import _parse_env_value
+    from sparkii_cli.config import _parse_env_value
 
     for raw in text.splitlines():
         line = raw.strip()
@@ -280,7 +280,7 @@ def build_profile_secret_scope(hermes_home: Path) -> Dict[str, str]:
     secrets = load_env_file(home / ".env")
 
     try:
-        from hermes_cli.env_loader import get_secret_source_values
+        from sparkii_cli.env_loader import get_secret_source_values
         external_secrets = get_secret_source_values(home)
     except Exception:
         external_secrets = {}

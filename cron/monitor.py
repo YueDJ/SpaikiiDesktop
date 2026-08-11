@@ -115,7 +115,7 @@ def _fetch_monitor_url(url: str) -> tuple[bool, str]:
     if not str(url).lower().startswith(("http://", "https://")):
         return False, f"monitor_url must be http(s): {url!r}"
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "hermes-cron-monitor"})
+        req = urllib.request.Request(url, headers={"User-Agent": "sparkii-cron-monitor"})
         with urllib.request.urlopen(req, timeout=URL_TIMEOUT_SECONDS) as resp:  # nosec B310 — scheme checked above
             body = resp.read(MAX_URL_BYTES + 1)
         if len(body) > MAX_URL_BYTES:

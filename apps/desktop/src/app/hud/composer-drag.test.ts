@@ -7,7 +7,7 @@ import { useHudComposerDrag } from './composer-drag'
 const LONG_PRESS_MS = 140
 
 const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
-const initialHermesDesktop = desktopWindow.hermesDesktop
+const initialSparkiiDesktop = desktopWindow.hermesDesktop
 
 const moveBy = vi.fn()
 
@@ -38,8 +38,8 @@ afterEach(() => {
   vi.useRealTimers()
   document.body.innerHTML = ''
 
-  if (initialHermesDesktop) {
-    desktopWindow.hermesDesktop = initialHermesDesktop
+  if (initialSparkiiDesktop) {
+    desktopWindow.hermesDesktop = initialSparkiiDesktop
   } else {
     delete desktopWindow.hermesDesktop
   }

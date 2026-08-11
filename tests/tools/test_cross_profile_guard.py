@@ -20,28 +20,28 @@ import pytest
 
 @pytest.fixture
 def fake_hermes(tmp_path, monkeypatch):
-    """Build a two-profile Hermes layout and point HERMES_HOME at
-    the hermes-security profile (matching the original-incident shape).
+    """Build a two-profile Sparkii layout and point SPARKII_HOME at
+    the sparkii-security profile (matching the original-incident shape).
     """
-    root = tmp_path / "fake-hermes"
+    root = tmp_path / "fake-sparkii"
     (root / "skills" / "shared-skill").mkdir(parents=True)
     (root / "skills" / "shared-skill" / "SKILL.md").write_text(
         "---\nname: shared-skill\ndescription: default copy.\n---\n"
     )
 
-    sec_home = root / "profiles" / "hermes-security"
+    sec_home = root / "profiles" / "sparkii-security"
     (sec_home / "skills").mkdir(parents=True)
 
     coder_home = root / "profiles" / "coder"
     (coder_home / "skills").mkdir(parents=True)
 
-    monkeypatch.setenv("HERMES_HOME", str(sec_home))
+    monkeypatch.setenv("SPARKII_HOME", str(sec_home))
 
-    import hermes_constants
-    monkeypatch.setattr(hermes_constants, "get_default_hermes_root", lambda: root)
+    import sparkii_constants
+    monkeypatch.setattr(sparkii_constants, "get_default_hermes_root", lambda: root)
 
     import agent.file_safety as fs
-    monkeypatch.setattr(fs, "_hermes_home_path", lambda: sec_home)
+    monkeypatch.setattr(fs, "_sparkii_home_path", lambda: sec_home)
     monkeypatch.setattr(fs, "_hermes_root_path", lambda: root)
 
     return {
@@ -78,7 +78,7 @@ class TestWriteFileCrossProfileGuard:
         assert result.get("error"), "Cross-profile write should be refused"
         assert "cross-profile" in result["error"].lower()
         assert "default" in result["error"]
-        assert "hermes-security" in result["error"]
+        assert "sparkii-security" in result["error"]
         # File untouched.
         assert target.read_text() == original
 
@@ -169,7 +169,7 @@ class TestSkillManageCrossProfileErrorUX:
         profile, but 'foo' lives in default. Error must point at default."""
         self._make_skill_in_profile(fake_hermes["root"], "default-only-skill")
 
-        # Re-import the module so SKILLS_DIR picks up HERMES_HOME (set in
+        # Re-import the module so SKILLS_DIR picks up SPARKII_HOME (set in
         # the fixture). Skill_manager_tool computes SKILLS_DIR at import.
         import importlib
         import tools.skill_manager_tool
@@ -177,7 +177,7 @@ class TestSkillManageCrossProfileErrorUX:
         from tools.skill_manager_tool import _skill_not_found_error
 
         err = _skill_not_found_error("default-only-skill")
-        assert "not found in active profile 'hermes-security'" in err
+        assert "not found in active profile 'sparkii-security'" in err
         assert "default" in err
         assert "cross_profile=True" in err
 
@@ -192,7 +192,7 @@ class TestSkillManageCrossProfileErrorUX:
         from tools.skill_manager_tool import _skill_not_found_error
 
         err = _skill_not_found_error("totally-imaginary-skill")
-        assert "not found in active profile 'hermes-security'" in err
+        assert "not found in active profile 'sparkii-security'" in err
         assert "skills_list" in err
 
 
@@ -204,10 +204,10 @@ class TestSkillManageCrossProfileErrorUX:
 class TestSystemPromptActiveProfile:
     def test_default_profile_line_in_prompt(self, tmp_path, monkeypatch):
         """When active profile is 'default', the prompt names it and warns
-        about ~/.hermes/profiles/<name>/."""
-        # Don't set HERMES_HOME — falls back to default.
+        about ~/.sparkii/profiles/<name>/."""
+        # Don't set SPARKII_HOME — falls back to default.
         import agent.file_safety as fs
-        monkeypatch.setattr(fs, "_hermes_home_path", lambda: tmp_path / "fake")
+        monkeypatch.setattr(fs, "_sparkii_home_path", lambda: tmp_path / "fake")
         monkeypatch.setattr(fs, "_hermes_root_path", lambda: tmp_path / "fake")
 
         from agent.file_safety import _resolve_active_profile_name
@@ -217,7 +217,7 @@ class TestSystemPromptActiveProfile:
         # See agent/system_prompt.py for the exact wording.
 
     def test_named_profile_line_in_prompt_text(self, fake_hermes):
-        """When active profile is 'hermes-security', the prompt warns
+        """When active profile is 'sparkii-security', the prompt warns
         explicitly about NOT modifying default's skills/plugins/cron/memories."""
         # Spot-check by reading the source — the contract is:
         # (1) names the active profile, (2) names the default-profile
@@ -225,9 +225,9 @@ class TestSystemPromptActiveProfile:
         # explicit user direction.
         from pathlib import Path
         src = Path("agent/system_prompt.py").read_text()
-        assert "Active Hermes profile" in src
+        assert "Active Sparkii profile" in src
         assert "cross_profile=True" in src
-        assert "~/.hermes/profiles/" in src
+        assert "~/.sparkii/profiles/" in src
         # Both branches present (default and named profile).
-        assert "Active Hermes profile: default" in src
-        assert "Active Hermes profile: {active_profile}" in src
+        assert "Active Sparkii profile: default" in src
+        assert "Active Sparkii profile: {active_profile}" in src
