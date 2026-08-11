@@ -41,17 +41,17 @@ No clone needed. Nix fetches, builds, and runs everything:
 
 ```bash
 # Run the desktop app
-nix run github:YueDJ/SpaikiiDesktop#desktop
+nix run github:YueDJ/SparkiiAgent#desktop
 
 # Or install persistently
-nix profile install github:YueDJ/SpaikiiDesktop#desktop
+nix profile install github:YueDJ/SparkiiAgent#desktop
 
 # run the tui
-nix run github:YueDJ/SpaikiiDesktop -- setup
-nix run github:YueDJ/SpaikiiDesktop -- --tui
+nix run github:YueDJ/SparkiiAgent -- setup
+nix run github:YueDJ/SparkiiAgent -- --tui
 
 # or install it in your profile
-nix profile install github:YueDJ/SpaikiiDesktop
+nix profile install github:YueDJ/SparkiiAgent
 sparkii setup
 sparkii --tui
 ```
@@ -69,7 +69,7 @@ The `default` package adds ~700 MB to the closure. If you only need messaging pl
 <summary><strong>Running from a local clone</strong></summary>
 
 ```bash
-git clone https://github.com/YueDJ/SpaikiiDesktop.git
+git clone https://github.com/YueDJ/SparkiiAgent.git
 cd sparkii-agent
 nix develop
 sparkii setup
@@ -94,7 +94,7 @@ This module requires NixOS. For non-NixOS systems (macOS, other Linux distros), 
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    sparkii-agent.url = "github:YueDJ/SpaikiiDesktop";
+    sparkii-agent.url = "github:YueDJ/SparkiiAgent";
   };
 
   outputs = { nixpkgs, sparkii-agent, ... }: {
@@ -733,7 +733,7 @@ External flakes can override the package directly:
 
 ```nix
 {
-  inputs.sparkii-agent.url = "github:YueDJ/SpaikiiDesktop";
+  inputs.sparkii-agent.url = "github:YueDJ/SparkiiAgent";
   outputs = { sparkii-agent, nixpkgs, ... }: {
     nixpkgs.overlays = [ sparkii-agent.overlays.default ];
     # Then:

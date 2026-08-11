@@ -752,7 +752,7 @@ def _update_via_zip(args):
         )
         _m().sys.exit(1)
     zip_url = (
-        f"https://github.com/YueDJ/SpaikiiDesktop/archive/refs/heads/{branch}.zip"
+        f"https://github.com/YueDJ/SparkiiAgent/archive/refs/heads/{branch}.zip"
     )
 
     print("→ Downloading latest version...")
@@ -1416,13 +1416,13 @@ def _discard_stashed_changes(
     return True
 
 OFFICIAL_REPO_URLS = {
-    "https://github.com/YueDJ/SpaikiiDesktop.git",
-    "git@github.com:YueDJ/SpaikiiDesktop.git",
-    "https://github.com/YueDJ/SpaikiiDesktop",
-    "git@github.com:YueDJ/SpaikiiDesktop",
+    "https://github.com/YueDJ/SparkiiAgent.git",
+    "git@github.com:YueDJ/SparkiiAgent.git",
+    "https://github.com/YueDJ/SparkiiAgent",
+    "git@github.com:YueDJ/SparkiiAgent",
 }
 
-OFFICIAL_REPO_URL = "https://github.com/YueDJ/SpaikiiDesktop.git"
+OFFICIAL_REPO_URL = "https://github.com/YueDJ/SparkiiAgent.git"
 
 SKIP_UPSTREAM_PROMPT_FILE = ".skip_upstream_prompt"
 
@@ -1548,7 +1548,7 @@ def _sync_with_upstream_if_needed(git_cmd: list[str], cwd: Path) -> None:
         # Ask user if they want to add upstream
         print()
         print("ℹ Your fork is not tracking the official Sparkii repository.")
-        print("  This means you may miss updates from YueDJ/SpaikiiDesktop.")
+        print("  This means you may miss updates from YueDJ/SparkiiAgent.")
         print()
         try:
             response = (
@@ -1562,7 +1562,7 @@ def _sync_with_upstream_if_needed(git_cmd: list[str], cwd: Path) -> None:
             print("→ Adding upstream remote...")
             if _add_upstream_remote(git_cmd, cwd):
                 print(
-                    "  ✓ Added upstream: https://github.com/YueDJ/SpaikiiDesktop.git"
+                    "  ✓ Added upstream: https://github.com/YueDJ/SparkiiAgent.git"
                 )
                 has_upstream = True
             else:
@@ -1570,7 +1570,7 @@ def _sync_with_upstream_if_needed(git_cmd: list[str], cwd: Path) -> None:
                 return
         else:
             print(
-                "  Skipped. Run 'git remote add upstream https://github.com/YueDJ/SpaikiiDesktop.git' to add later."
+                "  Skipped. Run 'git remote add upstream https://github.com/YueDJ/SparkiiAgent.git' to add later."
             )
             _mark_skip_upstream_prompt()
             return

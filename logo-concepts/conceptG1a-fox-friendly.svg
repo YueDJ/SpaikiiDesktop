@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bgG1a" cx="50%" cy="42%" r="75%">
+      <stop offset="0%" style="stop-color:#1c1917"/>
+      <stop offset="100%" style="stop-color:#0c0a09"/>
+    </radialGradient>
+    <filter id="softG1a">
+      <feGaussianBlur stdDeviation="2.5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bgG1a)" rx="24"/>
+
+  <!-- halo ring -->
+  <circle cx="256" cy="195" r="152" fill="none" stroke="#FFD700" stroke-width="1" opacity="0.12"/>
+
+  <!-- ===== Faceted fox head: friendly edition ===== -->
+  <g filter="url(#softG1a)">
+    <!-- ears (slightly larger, rounder stance) -->
+    <polygon points="148,62 158,132 220,110" fill="#D97706"/>
+    <polygon points="364,62 354,132 292,110" fill="#B45309"/>
+    <!-- inner ears -->
+    <polygon points="165,84 172,122 206,106" fill="#FFE8C7"/>
+    <polygon points="347,84 340,122 306,106" fill="#F5D9B0"/>
+
+    <!-- forehead -->
+    <polygon points="220,110 256,98 256,192 204,177" fill="#FBBF24"/>
+    <polygon points="292,110 256,98 256,192 308,177" fill="#F59E0B"/>
+
+    <!-- upper cheeks -->
+    <polygon points="158,132 220,110 204,177 164,208" fill="#F97316"/>
+    <polygon points="354,132 292,110 308,177 348,208" fill="#EA580C"/>
+
+    <!-- lower jaws (rounder/chubbier) -->
+    <polygon points="164,208 204,177 256,192 256,242 206,266" fill="#FB923C"/>
+    <polygon points="348,208 308,177 256,192 256,242 306,266" fill="#F4720B"/>
+
+    <!-- muzzle -->
+    <polygon points="206,266 256,242 256,300" fill="#FFF1DC"/>
+    <polygon points="256,242 306,266 256,300" fill="#FFE3C2"/>
+
+    <!-- nose (small rounded triangle) -->
+    <polygon points="245,282 267,282 256,297" fill="#1C1917"/>
+
+    <!-- friendly smile -->
+    <path d="M 256 297 Q 246 306 236 299 M 256 297 Q 266 306 276 299"
+          stroke="#7C2D12" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+    <!-- big round friendly eyes -->
+    <circle cx="216" cy="192" r="17" fill="#2D1A0E"/>
+    <circle cx="296" cy="192" r="17" fill="#2D1A0E"/>
+    <!-- eye highlights (kawaii sparkle) -->
+    <circle cx="222" cy="186" r="6" fill="#FFFFFF"/>
+    <circle cx="302" cy="186" r="6" fill="#FFFFFF"/>
+    <circle cx="211" cy="198" r="3" fill="#FFE8C7" opacity="0.8"/>
+    <circle cx="291" cy="198" r="3" fill="#FFE8C7" opacity="0.8"/>
+
+    <!-- blush patches -->
+    <polygon points="186,222 206,216 210,228 190,232" fill="#FDA4AF" opacity="0.55"/>
+    <polygon points="326,222 306,216 302,228 322,232" fill="#FDA4AF" opacity="0.55"/>
+  </g>
+
+  <!-- forehead spark mark -->
+  <polygon points="258,114 249,142 257,139 249,166 265,138 257,141 263,114" fill="#FFF7D6" opacity="0.95"/>
+
+  <!-- text -->
+  <text x="256" y="412" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="44" font-weight="300" letter-spacing="22" fill="#E7E5E4">SPARKII</text>
+  <line x1="166" y1="432" x2="346" y2="432" stroke="#FFD700" stroke-width="1" opacity="0.35"/>
+  <text x="256" y="460" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="13" font-weight="400" letter-spacing="10" fill="#D97706" opacity="0.9">AGENT</text>
+</svg>

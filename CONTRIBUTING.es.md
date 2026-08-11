@@ -81,7 +81,7 @@ Esto no es una barra de calidad — es una decisión de acoplamiento y mantenimi
 ### Clonar e instalar
 
 ```bash
-git clone https://github.com/YueDJ/SpaikiiDesktop.git
+git clone https://github.com/YueDJ/SparkiiAgent.git
 cd sparkii-agent
 
 # Crear venv con Python 3.11
@@ -581,7 +581,7 @@ test(tools): añadir tests unitarios para file_operations
 
 ## Reportar Issues
 
-- Usa [GitHub Issues](https://github.com/YueDJ/SpaikiiDesktop/issues)
+- Usa [GitHub Issues](https://github.com/YueDJ/SparkiiAgent/issues)
 - Incluye: SO, versión de Python, versión de Sparkii (`sparkii version`), traza de error completa
 - Incluye pasos para reproducir
 - Verifica los issues existentes antes de crear duplicados

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { margin: 0; padding: 40px; background: #0a0a0a; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+.logo-container { text-align: center; }
+svg { filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.3)); }
+</style>
+</head>
+<body>
+<div class="logo-container">
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sparkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700"/>
+      <stop offset="50%" style="stop-color:#FFA500"/>
+      <stop offset="100%" style="stop-color:#FF6B00"/>
+    </linearGradient>
+    <linearGradient id="circuitGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7C3AED"/>
+      <stop offset="100%" style="stop-color:#4F46E5"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="glowStrong">
+      <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="200" cy="170" r="130" fill="none" stroke="url(#circuitGrad)" stroke-width="1.5" opacity="0.3"/>
+  <circle cx="200" cy="170" r="120" fill="none" stroke="url(#circuitGrad)" stroke-width="0.5" opacity="0.2" stroke-dasharray="4,8"/>
+  
+  <!-- Circuit paths (brain-like connections) -->
+  <g stroke="url(#circuitGrad)" stroke-width="2" fill="none" opacity="0.6" filter="url(#glow)">
+    <!-- Left hemisphere -->
+    <path d="M 140 120 L 120 140 L 120 180 L 140 200"/>
+    <path d="M 140 120 L 160 110 L 180 110"/>
+    <path d="M 120 180 L 100 200 L 100 220"/>
+    <circle cx="140" cy="120" r="4" fill="#7C3AED"/>
+    <circle cx="120" cy="180" r="4" fill="#7C3AED"/>
+    <circle cx="100" cy="220" r="4" fill="#7C3AED"/>
+    
+    <!-- Right hemisphere -->
+    <path d="M 260 120 L 280 140 L 280 180 L 260 200"/>
+    <path d="M 260 120 L 240 110 L 220 110"/>
+    <path d="M 280 180 L 300 200 L 300 220"/>
+    <circle cx="260" cy="120" r="4" fill="#7C3AED"/>
+    <circle cx="280" cy="180" r="4" fill="#7C3AED"/>
+    <circle cx="300" cy="220" r="4" fill="#7C3AED"/>
+    
+    <!-- Cross connections -->
+    <path d="M 160 110 L 200 90 L 240 110"/>
+    <path d="M 140 200 L 170 230 L 200 240 L 230 230 L 260 200"/>
+    <circle cx="200" cy="90" r="4" fill="#7C3AED"/>
+    <circle cx="200" cy="240" r="4" fill="#7C3AED"/>
+  </g>
+  
+  <!-- Central spark/lightning bolt -->
+  <g filter="url(#glowStrong)">
+    <polygon points="200,80 185,160 210,155 190,240 225,145 195,150 215,80" 
+             fill="url(#sparkGrad)" opacity="0.95"/>
+  </g>
+  
+  <!-- Spark particles -->
+  <g fill="#FFD700" filter="url(#glow)">
+    <circle cx="175" cy="95" r="2.5" opacity="0.8"/>
+    <circle cx="230" cy="100" r="2" opacity="0.7"/>
+    <circle cx="160" cy="130" r="1.5" opacity="0.6"/>
+    <circle cx="245" cy="140" r="2" opacity="0.7"/>
+    <circle cx="170" cy="200" r="1.5" opacity="0.5"/>
+    <circle cx="235" cy="210" r="2" opacity="0.6"/>
+    <circle cx="155" cy="170" r="1" opacity="0.4"/>
+    <circle cx="250" cy="175" r="1.5" opacity="0.5"/>
+  </g>
+  
+  <!-- Text: SPARKII -->
+  <text x="200" y="310" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="52" font-weight="700" letter-spacing="8" fill="url(#sparkGrad)" filter="url(#glow)">SPARKII</text>
+  
+  <!-- Subtext: AGENT -->
+  <text x="200" y="345" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="18" font-weight="300" letter-spacing="12" fill="#7C3AED" opacity="0.8">AGENT</text>
+  
+  <!-- Decorative line -->
+  <line x1="120" y1="355" x2="280" y2="355" stroke="url(#circuitGrad)" stroke-width="1" opacity="0.4"/>
+  <circle cx="120" cy="355" r="2" fill="#7C3AED" opacity="0.6"/>
+  <circle cx="280" cy="355" r="2" fill="#7C3AED" opacity="0.6"/>
+</svg>
+</div>
+</body>
+</html>

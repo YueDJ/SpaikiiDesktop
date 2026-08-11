@@ -15,7 +15,7 @@ Sparkii isn't just a CLI tool. You can import `AIAgent` directly and use it prog
 Clone Sparkii and create its supported editable development environment:
 
 ```bash
-git clone https://github.com/YueDJ/SpaikiiDesktop.git
+git clone https://github.com/YueDJ/SparkiiAgent.git
 cd sparkii-agent
 uv sync
 ```

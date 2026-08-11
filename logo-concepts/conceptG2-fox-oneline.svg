@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bgG2" cx="50%" cy="45%" r="75%">
+      <stop offset="0%" style="stop-color:#171a21"/>
+      <stop offset="100%" style="stop-color:#0b0d12"/>
+    </radialGradient>
+    <linearGradient id="lineGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFE8A3"/>
+      <stop offset="100%" style="stop-color:#F59E0B"/>
+    </linearGradient>
+    <filter id="glowG2">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bgG2)" rx="24"/>
+
+  <!-- one-line fox profile facing right, with lightning tail -->
+  <g fill="none" stroke="url(#lineGold)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#glowG2)">
+    <!-- head profile: ear -> crown -> forehead -> snout -> nose -> jaw -> neck -->
+    <path d="M 218 236
+             C 206 210 200 180 204 150
+             L 196 96
+             C 214 112 232 122 252 126
+             C 282 132 308 146 326 168
+             L 352 200
+             C 358 207 358 214 352 218
+             L 330 226
+             C 320 240 306 250 290 254
+             C 268 260 244 256 218 236 Z"/>
+    <!-- inner ear -->
+    <path d="M 208 150 L 204 112 C 216 124 228 132 240 136"/>
+    <!-- eye: calm almond -->
+    <path d="M 268 176 C 276 170 286 170 292 176 C 286 182 276 182 268 176 Z"/>
+    <!-- nose detail -->
+    <path d="M 346 202 C 350 206 350 212 346 215"/>
+    <!-- lightning tail sweeping left -->
+    <path d="M 220 240
+             L 172 236 L 188 222
+             L 148 218 L 168 204
+             L 128 198"/>
+  </g>
+
+  <!-- eye fill accent -->
+  <circle cx="281" cy="176" r="3" fill="#FFE8A3"/>
+
+  <!-- spark at tail tip -->
+  <g transform="translate(122,196)" filter="url(#glowG2)">
+    <polygon points="0,-10 2.5,-2.5 10,-2.5 4,2 6.5,10 0,5 -6.5,10 -4,2 -10,-2.5 -2.5,-2.5" fill="#FFE8A3"/>
+  </g>
+  <g fill="#FFE8A3" opacity="0.7">
+    <circle cx="106" cy="186" r="1.8"/>
+    <circle cx="112" cy="210" r="1.5"/>
+    <circle cx="96" cy="200" r="1.5"/>
+  </g>
+
+  <!-- text -->
+  <text x="256" y="392" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="46" font-weight="200" letter-spacing="26" fill="#E5E7EB">SPARKII</text>
+  <text x="256" y="430" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="13" font-weight="300" letter-spacing="12" fill="#F59E0B" opacity="0.9">AGENT</text>
+  <line x1="186" y1="448" x2="326" y2="448" stroke="url(#lineGold)" stroke-width="1" opacity="0.4"/>
+</svg>

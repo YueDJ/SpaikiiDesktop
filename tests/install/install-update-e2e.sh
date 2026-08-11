@@ -75,7 +75,7 @@ FAKE_REMOTE="/work/repos/sparkii-agent.git"
 # Only used to fetch an old install.sh for the flag probe below; the sandbox does
 # its own fetching. Same override dev-sandbox.sh honours, so a fork can retarget
 # both together.
-UPSTREAM_URL="${SPARKII_DEV_SANDBOX_UPSTREAM:-https://github.com/YueDJ/SpaikiiDesktop.git}"
+UPSTREAM_URL="${SPARKII_DEV_SANDBOX_UPSTREAM:-https://github.com/YueDJ/SparkiiAgent.git}"
 
 # Installer transcripts live outside the sandbox root: the sandbox is recreated
 # and (unless --keep) deleted, and these logs are the most useful artifact when

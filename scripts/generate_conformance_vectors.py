@@ -231,7 +231,7 @@ def generate(out_dir: Path) -> Dict[str, Any]:
                 "native renderers are the oracle (executable spec)."
             ),
             "oracle": {
-                "repo": "YueDJ/SpaikiiDesktop",
+                "repo": "YueDJ/SparkiiAgent",
                 "commit": commit,
                 "generator": "scripts/generate_conformance_vectors.py",
                 "generator_version": GENERATOR_VERSION,

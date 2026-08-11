@@ -75,7 +75,7 @@ An ordinal without `confirm_truncate` is refused with code `4029` and nothing is
 
 ### Pi-style RPC mapping
 
-Every command in the Pi-mono RPC spec ([issue #360](https://github.com/YueDJ/SpaikiiDesktop/issues/360)) has a TUI-gateway equivalent:
+Every command in the Pi-mono RPC spec ([issue #360](https://github.com/YueDJ/SparkiiAgent/issues/360)) has a TUI-gateway equivalent:
 
 | Pi command | Sparkii equivalent |
 |------------|-------------------|

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="boltV2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFE566"/>
+      <stop offset="55%" style="stop-color:#FFD700"/>
+      <stop offset="100%" style="stop-color:#FF8C00"/>
+    </linearGradient>
+    <linearGradient id="ringV2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700"/>
+      <stop offset="100%" style="stop-color:#B45309"/>
+    </linearGradient>
+    <filter id="glowV2">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" fill="#0c0a09" rx="96"/>
+
+  <!-- ring -->
+  <circle cx="256" cy="256" r="168" fill="none" stroke="url(#ringV2)" stroke-width="10" opacity="0.9"/>
+  <!-- gap in ring, top right (energy breaking through) -->
+  <circle cx="256" cy="256" r="168" fill="none" stroke="#0c0a09" stroke-width="16"
+          stroke-dasharray="60 1000" stroke-dashoffset="-120" stroke-linecap="round"/>
+
+  <!-- bolt -->
+  <g filter="url(#glowV2)">
+    <path d="M 286 118
+             L 190 288
+             L 248 281
+             L 228 396
+             L 322 226
+             L 264 233
+             L 286 118 Z"
+          fill="url(#boltV2)"/>
+  </g>
+</svg>

@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   check-freshness:
-    if: github.repository == 'YueDJ/SpaikiiDesktop'
+    if: github.repository == 'YueDJ/SparkiiAgent'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: trusted-automation

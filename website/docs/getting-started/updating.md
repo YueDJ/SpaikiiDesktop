@@ -159,7 +159,7 @@ You no longer need to wrap `sparkii update` in `screen` or `tmux` to survive a t
 sparkii version
 ```
 
-Compare against the latest release at the [GitHub releases page](https://github.com/YueDJ/SpaikiiDesktop/releases).
+Compare against the latest release at the [GitHub releases page](https://github.com/YueDJ/SparkiiAgent/releases).
 
 ### Updating from Messaging Platforms
 

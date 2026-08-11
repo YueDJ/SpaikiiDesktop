@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sparkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700"/>
+      <stop offset="50%" style="stop-color:#FFA500"/>
+      <stop offset="100%" style="stop-color:#FF6B00"/>
+    </linearGradient>
+    <linearGradient id="circuitGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7C3AED"/>
+      <stop offset="100%" style="stop-color:#4F46E5"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="glowStrong">
+      <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" fill="#0a0a0a" rx="24"/>
+
+  <!-- Background circle -->
+  <circle cx="256" cy="210" r="140" fill="none" stroke="url(#circuitGrad)" stroke-width="1.5" opacity="0.3"/>
+  <circle cx="256" cy="210" r="130" fill="none" stroke="url(#circuitGrad)" stroke-width="0.5" opacity="0.2" stroke-dasharray="4,8"/>
+
+  <!-- Circuit paths -->
+  <g stroke="url(#circuitGrad)" stroke-width="2" fill="none" opacity="0.6" filter="url(#glow)">
+    <path d="M 190 155 L 170 175 L 170 215 L 190 235"/>
+    <path d="M 190 155 L 215 145 L 240 145"/>
+    <path d="M 170 215 L 150 235 L 150 255"/>
+    <circle cx="190" cy="155" r="5" fill="#7C3AED"/>
+    <circle cx="170" cy="215" r="5" fill="#7C3AED"/>
+    <circle cx="150" cy="255" r="5" fill="#7C3AED"/>
+
+    <path d="M 322 155 L 342 175 L 342 215 L 322 235"/>
+    <path d="M 322 155 L 297 145 L 272 145"/>
+    <path d="M 342 215 L 362 235 L 362 255"/>
+    <circle cx="322" cy="155" r="5" fill="#7C3AED"/>
+    <circle cx="342" cy="215" r="5" fill="#7C3AED"/>
+    <circle cx="362" cy="255" r="5" fill="#7C3AED"/>
+
+    <path d="M 215 145 L 256 125 L 297 145"/>
+    <path d="M 190 235 L 225 265 L 256 275 L 287 265 L 322 235"/>
+    <circle cx="256" cy="125" r="5" fill="#7C3AED"/>
+    <circle cx="256" cy="275" r="5" fill="#7C3AED"/>
+  </g>
+
+  <!-- Central spark/lightning bolt -->
+  <g filter="url(#glowStrong)">
+    <polygon points="256,110 238,200 268,194 244,290 285,188 250,194 275,110"
+             fill="url(#sparkGrad)" opacity="0.95"/>
+  </g>
+
+  <!-- Spark particles -->
+  <g fill="#FFD700" filter="url(#glow)">
+    <circle cx="225" cy="130" r="3" opacity="0.8"/>
+    <circle cx="290" cy="135" r="2.5" opacity="0.7"/>
+    <circle cx="210" cy="170" r="2" opacity="0.6"/>
+    <circle cx="305" cy="180" r="2.5" opacity="0.7"/>
+    <circle cx="220" cy="240" r="2" opacity="0.5"/>
+    <circle cx="295" cy="250" r="2.5" opacity="0.6"/>
+    <circle cx="205" cy="205" r="1.5" opacity="0.4"/>
+    <circle cx="310" cy="210" r="2" opacity="0.5"/>
+  </g>
+
+  <!-- Text: SPARKII -->
+  <text x="256" y="385" text-anchor="middle" font-family="'Segoe UI', Arial, Helvetica, sans-serif" font-size="60" font-weight="700" letter-spacing="10" fill="url(#sparkGrad)" filter="url(#glow)">SPARKII</text>
+
+  <!-- Subtext: AGENT -->
+  <text x="256" y="425" text-anchor="middle" font-family="'Segoe UI', Arial, Helvetica, sans-serif" font-size="22" font-weight="300" letter-spacing="14" fill="#7C3AED" opacity="0.8">AGENT</text>
+
+  <!-- Decorative line -->
+  <line x1="160" y1="440" x2="352" y2="440" stroke="url(#circuitGrad)" stroke-width="1" opacity="0.4"/>
+  <circle cx="160" cy="440" r="3" fill="#7C3AED" opacity="0.6"/>
+  <circle cx="352" cy="440" r="3" fill="#7C3AED" opacity="0.6"/>
+</svg>

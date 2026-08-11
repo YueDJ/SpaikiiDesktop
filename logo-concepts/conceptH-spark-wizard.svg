@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgH" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#160f2a"/>
+      <stop offset="100%" style="stop-color:#241540"/>
+    </linearGradient>
+    <linearGradient id="robeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6"/>
+      <stop offset="100%" style="stop-color:#4C1D95"/>
+    </linearGradient>
+    <linearGradient id="hatGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#A78BFA"/>
+      <stop offset="100%" style="stop-color:#6D28D9"/>
+    </linearGradient>
+    <filter id="glowH">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="tinyH">
+      <feGaussianBlur stdDeviation="1.5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bgH)" rx="24"/>
+
+  <!-- ground shadow -->
+  <ellipse cx="250" cy="352" rx="100" ry="13" fill="#000000" opacity="0.35"/>
+
+  <!-- robe body -->
+  <path d="M 250 210 C 200 226 186 290 178 348 L 322 348 C 314 290 300 226 250 210 Z" fill="url(#robeGrad)"/>
+  <!-- robe stars -->
+  <g fill="#FFE566" opacity="0.9">
+    <polygon points="220,300 222,306 228,306 223,310 225,316 220,312 215,316 217,310 212,306 218,306"/>
+    <polygon points="280,320 282,326 288,326 283,330 285,336 280,332 275,336 277,330 272,326 278,326"/>
+    <polygon points="252,270 254,276 260,276 255,280 257,286 252,282 247,286 249,280 244,276 250,276"/>
+  </g>
+  <!-- belt -->
+  <rect x="192" y="316" width="116" height="14" rx="7" fill="#3B1173"/>
+  <rect x="238" y="314" width="24" height="18" rx="4" fill="#FFD700"/>
+
+  <!-- face -->
+  <circle cx="250" cy="196" r="40" fill="#FFE8D6"/>
+  <!-- eyes -->
+  <circle cx="236" cy="196" r="5" fill="#2b2b3d"/>
+  <circle cx="264" cy="196" r="5" fill="#2b2b3d"/>
+  <circle cx="238" cy="194" r="1.8" fill="#FFFFFF"/>
+  <circle cx="266" cy="194" r="1.8" fill="#FFFFFF"/>
+  <!-- smile -->
+  <path d="M 240 212 Q 250 219 260 212" stroke="#B4543C" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- blush -->
+  <ellipse cx="226" cy="208" rx="7" ry="4.5" fill="#FF9EBB" opacity="0.5"/>
+  <ellipse cx="274" cy="208" rx="7" ry="4.5" fill="#FF9EBB" opacity="0.5"/>
+
+  <!-- wizard hat -->
+  <path d="M 250 156 C 232 120 240 88 268 60 C 262 84 274 96 292 88 C 276 110 268 132 268 156 Z" fill="url(#hatGrad)"/>
+  <!-- hat cone fix: main cone -->
+  <path d="M 186 166 C 210 120 232 92 262 66 C 256 92 262 110 282 104 C 296 100 306 96 312 100 C 300 122 296 142 300 166 Z" fill="url(#hatGrad)"/>
+  <!-- hat band -->
+  <path d="M 196 152 Q 250 138 304 152 L 302 166 Q 250 152 198 166 Z" fill="#3B1173"/>
+  <!-- brim -->
+  <ellipse cx="250" cy="168" rx="84" ry="18" fill="url(#hatGrad)"/>
+  <ellipse cx="250" cy="164" rx="84" ry="16" fill="#A78BFA" opacity="0.35"/>
+  <!-- gold star on hat -->
+  <polygon points="250,96 254,108 266,108 257,116 260,128 250,121 240,128 243,116 234,108 246,108" fill="#FFD700" filter="url(#tinyH)"/>
+
+  <!-- wand in hand -->
+  <line x1="318" y1="300" x2="368" y2="228" stroke="#8B6B3D" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="318" cy="300" r="10" fill="#FFE8D6"/>
+  <!-- wand tip star with spark -->
+  <g transform="translate(372,220)" filter="url(#glowH)">
+    <polygon points="0,-16 4,-4 16,-4 6,3 10,15 0,8 -10,15 -6,3 -16,-4 -4,-4" fill="#FFD700"/>
+  </g>
+  <g fill="#FFE566" filter="url(#tinyH)">
+    <circle cx="390" cy="200" r="2.5" opacity="0.8"/>
+    <circle cx="352" cy="196" r="2" opacity="0.6"/>
+    <circle cx="384" cy="240" r="2" opacity="0.6"/>
+  </g>
+
+  <!-- ambient sparkles -->
+  <g fill="#C4B5FD" filter="url(#tinyH)">
+    <circle cx="150" cy="130" r="2.5" opacity="0.7"/>
+    <circle cx="370" cy="120" r="2" opacity="0.6"/>
+    <circle cx="140" cy="260" r="2" opacity="0.5"/>
+    <circle cx="180" cy="90" r="2" opacity="0.6"/>
+    <circle cx="330" cy="80" r="2.5" opacity="0.7"/>
+  </g>
+
+  <!-- text -->
+  <text x="256" y="418" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="54" font-weight="700" letter-spacing="8" fill="#C4B5FD" filter="url(#tinyH)">SPARKII</text>
+  <text x="256" y="455" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="16" font-weight="400" letter-spacing="8" fill="#FFD700" opacity="0.85">THE SPARK WIZARD</text>
+</svg>

@@ -1,6 +1,6 @@
 """Tests for SPARKII_HOME credential-file read blocking in file_safety.
 
-Regression for https://github.com/YueDJ/SpaikiiDesktop/issues/17656 —
+Regression for https://github.com/YueDJ/SparkiiAgent/issues/17656 —
 ``read_file`` was previously only sandboxed against ``SPARKII_HOME`` itself,
 which left ``auth.json`` and ``.anthropic_oauth.json`` (plaintext provider
 keys + OAuth tokens) readable by the agent. A prompt-injection reaching

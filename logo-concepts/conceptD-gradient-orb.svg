@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="orbGrad" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" style="stop-color:#FFF7D6"/>
+      <stop offset="25%" style="stop-color:#FFD700"/>
+      <stop offset="60%" style="stop-color:#FF8C00"/>
+      <stop offset="100%" style="stop-color:#7C3AED"/>
+    </radialGradient>
+    <radialGradient id="haloGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#FFD700" stop-opacity="0.5"/>
+      <stop offset="60%" style="stop-color:#FF8C00" stop-opacity="0.15"/>
+      <stop offset="100%" style="stop-color:#7C3AED" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00D4FF"/>
+      <stop offset="100%" style="stop-color:#7C3AED"/>
+    </linearGradient>
+    <filter id="orbGlow">
+      <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="tinyGlow">
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" fill="#080810" rx="24"/>
+
+  <!-- Halo -->
+  <circle cx="256" cy="200" r="150" fill="url(#haloGrad)"/>
+
+  <!-- Orbit rings -->
+  <g transform="translate(256,200) rotate(-20)" fill="none">
+    <ellipse cx="0" cy="0" rx="135" ry="45" stroke="url(#ringGrad)" stroke-width="2" opacity="0.5"/>
+    <ellipse cx="0" cy="0" rx="135" ry="45" stroke="url(#ringGrad)" stroke-width="6" opacity="0.1"/>
+  </g>
+  <g transform="translate(256,200) rotate(25)" fill="none">
+    <ellipse cx="0" cy="0" rx="150" ry="52" stroke="#7C3AED" stroke-width="1" opacity="0.25" stroke-dasharray="3,6"/>
+  </g>
+
+  <!-- Orbiting satellite sparks -->
+  <g filter="url(#tinyGlow)">
+    <circle cx="380" cy="152" r="5" fill="#00D4FF"/>
+    <circle cx="138" cy="252" r="4" fill="#EC4899"/>
+    <circle cx="330" cy="290" r="3" fill="#7C3AED"/>
+  </g>
+
+  <!-- Core orb -->
+  <circle cx="256" cy="200" r="72" fill="url(#orbGrad)" filter="url(#orbGlow)"/>
+
+  <!-- Lightning crack inside orb -->
+  <path d="M 256 140 L 246 185 L 264 180 L 244 245 L 276 178 L 258 182 L 270 140 Z"
+        fill="#FFFFFF" opacity="0.85" filter="url(#tinyGlow)"/>
+
+  <!-- Orb highlight -->
+  <ellipse cx="232" cy="172" rx="22" ry="14" fill="#FFFFFF" opacity="0.55" transform="rotate(-25 232 172)"/>
+
+  <!-- Spark dust -->
+  <g fill="#FFD700" filter="url(#tinyGlow)">
+    <circle cx="185" cy="120" r="2" opacity="0.8"/>
+    <circle cx="330" cy="115" r="2.5" opacity="0.7"/>
+    <circle cx="170" cy="200" r="1.5" opacity="0.5"/>
+    <circle cx="345" cy="205" r="2" opacity="0.6"/>
+    <circle cx="200" cy="285" r="1.5" opacity="0.5"/>
+    <circle cx="315" cy="275" r="2" opacity="0.6"/>
+    <circle cx="256" cy="95" r="1.5" opacity="0.6"/>
+  </g>
+
+  <!-- Text: SPARKII -->
+  <text x="256" y="395" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="58" font-weight="600" letter-spacing="12" fill="#F5F3FF">SPARKII</text>
+
+  <!-- Gradient underline for text -->
+  <rect x="136" y="410" width="240" height="3" rx="1.5" fill="url(#ringGrad)" opacity="0.6"/>
+
+  <!-- Subtext -->
+  <text x="256" y="445" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="15" font-weight="300" letter-spacing="10" fill="#A78BFA" opacity="0.8">A I &#160; A G E N T</text>
+</svg>

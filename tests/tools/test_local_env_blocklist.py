@@ -4,8 +4,8 @@ Verifies that Sparkii-managed provider, tool, and gateway env vars are
 stripped from subprocess environments so external CLIs are not silently
 misrouted or handed Sparkii secrets.
 
-See: https://github.com/YueDJ/SpaikiiDesktop/issues/1002
-See: https://github.com/YueDJ/SpaikiiDesktop/issues/1264
+See: https://github.com/YueDJ/SparkiiAgent/issues/1002
+See: https://github.com/YueDJ/SparkiiAgent/issues/1264
 """
 
 import os

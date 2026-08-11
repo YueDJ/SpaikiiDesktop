@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="pixelGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700"/>
+      <stop offset="100%" style="stop-color:#B8860B"/>
+    </linearGradient>
+    <linearGradient id="pixelShadow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B6914"/>
+      <stop offset="100%" style="stop-color:#5C4A0D"/>
+    </linearGradient>
+    <filter id="pixelGlow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" fill="#000000" rx="24"/>
+
+  <!-- Pixel grid background -->
+  <g fill="#FFD700" opacity="0.06">
+    <rect x="60" y="60" width="8" height="8"/><rect x="80" y="80" width="8" height="8"/>
+    <rect x="100" y="60" width="8" height="8"/><rect x="120" y="80" width="8" height="8"/>
+    <rect x="380" y="60" width="8" height="8"/><rect x="400" y="80" width="8" height="8"/>
+    <rect x="420" y="60" width="8" height="8"/><rect x="440" y="80" width="8" height="8"/>
+    <rect x="60" y="440" width="8" height="8"/><rect x="80" y="420" width="8" height="8"/>
+    <rect x="440" y="440" width="8" height="8"/><rect x="420" y="420" width="8" height="8"/>
+  </g>
+
+  <!-- Pixel Spark Character -->
+  <g transform="translate(256, 180)">
+    <!-- Pixel star/spark shape made of squares -->
+    <!-- Layer 1: shadow -->
+    <g fill="#5C4A0D">
+      <rect x="-24" y="-72" width="16" height="16"/>
+      <rect x="-8" y="-56" width="16" height="16"/>
+      <rect x="-40" y="-40" width="16" height="16"/>
+      <rect x="8" y="-40" width="16" height="16"/>
+      <rect x="-56" y="-24" width="16" height="16"/>
+      <rect x="24" y="-24" width="16" height="16"/>
+      <rect x="-72" y="-8" width="16" height="16"/>
+      <rect x="40" y="-8" width="16" height="16"/>
+      <rect x="-56" y="8" width="16" height="16"/>
+      <rect x="24" y="8" width="16" height="16"/>
+      <rect x="-40" y="24" width="16" height="16"/>
+      <rect x="8" y="24" width="16" height="16"/>
+      <rect x="-24" y="40" width="16" height="16"/>
+      <rect x="-8" y="56" width="16" height="16"/>
+    </g>
+    
+    <!-- Layer 2: main gold -->
+    <g fill="#FFD700" filter="url(#pixelGlow)">
+      <rect x="-28" y="-76" width="16" height="16"/>
+      <rect x="-12" y="-60" width="16" height="16"/>
+      <rect x="-44" y="-44" width="16" height="16"/>
+      <rect x="4" y="-44" width="16" height="16"/>
+      <rect x="-60" y="-28" width="16" height="16"/>
+      <rect x="20" y="-28" width="16" height="16"/>
+      <rect x="-76" y="-12" width="16" height="16"/>
+      <rect x="36" y="-12" width="16" height="16"/>
+      <rect x="-60" y="4" width="16" height="16"/>
+      <rect x="20" y="4" width="16" height="16"/>
+      <rect x="-44" y="20" width="16" height="16"/>
+      <rect x="4" y="20" width="16" height="16"/>
+      <rect x="-28" y="36" width="16" height="16"/>
+      <rect x="-12" y="52" width="16" height="16"/>
+    </g>
+    
+    <!-- Layer 3: bright highlight -->
+    <g fill="#FFEE88">
+      <rect x="-28" y="-76" width="8" height="8"/>
+      <rect x="-12" y="-60" width="8" height="8"/>
+      <rect x="-44" y="-44" width="8" height="8"/>
+      <rect x="4" y="-44" width="8" height="8"/>
+      <rect x="-60" y="-28" width="8" height="8"/>
+      <rect x="20" y="-28" width="8" height="8"/>
+    </g>
+    
+    <!-- Center core -->
+    <rect x="-12" y="-28" width="24" height="24" fill="#FFFFFF" filter="url(#pixelGlow)"/>
+  </g>
+
+  <!-- Floating pixels -->
+  <g fill="#FFD700" filter="url(#pixelGlow)">
+    <rect x="170" y="120" width="6" height="6" opacity="0.7"/>
+    <rect x="340" y="110" width="6" height="6" opacity="0.6"/>
+    <rect x="155" y="180" width="4" height="4" opacity="0.5"/>
+    <rect x="355" y="190" width="5" height="5" opacity="0.6"/>
+    <rect x="180" y="250" width="4" height="4" opacity="0.4"/>
+    <rect x="330" y="260" width="5" height="5" opacity="0.5"/>
+  </g>
+
+  <!-- Pixel text SPARKII -->
+  <g transform="translate(256, 340)" fill="#FFD700" filter="url(#pixelGlow)">
+    <!-- S -->
+    <rect x="-140" y="0" width="8" height="8"/><rect x="-132" y="0" width="8" height="8"/><rect x="-124" y="0" width="8" height="8"/>
+    <rect x="-140" y="8" width="8" height="8"/>
+    <rect x="-140" y="16" width="8" height="8"/><rect x="-132" y="16" width="8" height="8"/><rect x="-124" y="16" width="8" height="8"/>
+    <rect x="-124" y="24" width="8" height="8"/>
+    <rect x="-140" y="32" width="8" height="8"/><rect x="-132" y="32" width="8" height="8"/><rect x="-124" y="32" width="8" height="8"/>
+    
+    <!-- P -->
+    <rect x="-100" y="0" width="8" height="8"/><rect x="-92" y="0" width="8" height="8"/><rect x="-84" y="0" width="8" height="8"/>
+    <rect x="-100" y="8" width="8" height="8"/><rect x="-84" y="8" width="8" height="8"/>
+    <rect x="-100" y="16" width="8" height="8"/><rect x="-92" y="16" width="8" height="8"/><rect x="-84" y="16" width="8" height="8"/>
+    <rect x="-100" y="24" width="8" height="8"/>
+    <rect x="-100" y="32" width="8" height="8"/>
+    
+    <!-- A -->
+    <rect x="-60" y="0" width="8" height="8"/><rect x="-52" y="0" width="8" height="8"/>
+    <rect x="-68" y="8" width="8" height="8"/><rect x="-44" y="8" width="8" height="8"/>
+    <rect x="-68" y="16" width="8" height="8"/><rect x="-44" y="16" width="8" height="8"/>
+    <rect x="-68" y="24" width="8" height="8"/><rect x="-60" y="24" width="8" height="8"/><rect x="-52" y="24" width="8" height="8"/><rect x="-44" y="24" width="8" height="8"/>
+    <rect x="-68" y="32" width="8" height="8"/><rect x="-44" y="32" width="8" height="8"/>
+    
+    <!-- R -->
+    <rect x="-20" y="0" width="8" height="8"/><rect x="-12" y="0" width="8" height="8"/><rect x="-4" y="0" width="8" height="8"/>
+    <rect x="-20" y="8" width="8" height="8"/><rect x="-4" y="8" width="8" height="8"/>
+    <rect x="-20" y="16" width="8" height="8"/><rect x="-12" y="16" width="8" height="8"/><rect x="-4" y="16" width="8" height="8"/>
+    <rect x="-20" y="24" width="8" height="8"/><rect x="-4" y="24" width="8" height="8"/>
+    <rect x="-20" y="32" width="8" height="8"/><rect x="-4" y="32" width="8" height="8"/>
+    
+    <!-- K -->
+    <rect x="20" y="0" width="8" height="8"/><rect x="36" y="0" width="8" height="8"/>
+    <rect x="20" y="8" width="8" height="8"/><rect x="28" y="8" width="8" height="8"/>
+    <rect x="20" y="16" width="8" height="8"/><rect x="28" y="16" width="8" height="8"/><rect x="36" y="16" width="8" height="8"/>
+    <rect x="20" y="24" width="8" height="8"/><rect x="28" y="24" width="8" height="8"/>
+    <rect x="20" y="32" width="8" height="8"/><rect x="36" y="32" width="8" height="8"/>
+    
+    <!-- I -->
+    <rect x="60" y="0" width="8" height="8"/>
+    <rect x="60" y="8" width="8" height="8"/>
+    <rect x="60" y="16" width="8" height="8"/>
+    <rect x="60" y="24" width="8" height="8"/>
+    <rect x="60" y="32" width="8" height="8"/>
+    
+    <!-- I -->
+    <rect x="84" y="0" width="8" height="8"/>
+    <rect x="84" y="8" width="8" height="8"/>
+    <rect x="84" y="16" width="8" height="8"/>
+    <rect x="84" y="24" width="8" height="8"/>
+    <rect x="84" y="32" width="8" height="8"/>
+  </g>
+
+  <!-- Subtext -->
+  <text x="256" y="420" text-anchor="middle" font-family="'Courier New', monospace" font-size="14" font-weight="400" letter-spacing="6" fill="#8B6914" opacity="0.7">[ AGENT ]</text>
+
+  <!-- Scanline effect -->
+  <g fill="#000000" opacity="0.15">
+    <rect x="0" y="100" width="512" height="2"/>
+    <rect x="0" y="180" width="512" height="2"/>
+    <rect x="0" y="260" width="512" height="2"/>
+    <rect x="0" y="340" width="512" height="2"/>
+    <rect x="0" y="420" width="512" height="2"/>
+  </g>
+</svg>

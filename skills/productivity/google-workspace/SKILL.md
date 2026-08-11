@@ -13,7 +13,7 @@ required_credential_files:
 metadata:
   sparkii:
     tags: [Google, Gmail, Calendar, Drive, Sheets, Docs, Contacts, Email, OAuth]
-    homepage: https://github.com/YueDJ/SpaikiiDesktop
+    homepage: https://github.com/YueDJ/SparkiiAgent
     related_skills: [himalaya]
 ---
 

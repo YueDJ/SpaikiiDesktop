@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="monoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366F1"/>
+      <stop offset="50%" style="stop-color:#8B5CF6"/>
+      <stop offset="100%" style="stop-color:#EC4899"/>
+    </linearGradient>
+    <linearGradient id="sparkGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FFD700"/>
+      <stop offset="100%" style="stop-color:#FF6B00"/>
+    </linearGradient>
+    <filter id="monoGlow">
+      <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" fill="#0a0a0f" rx="24"/>
+
+  <!-- Abstract S made of flowing curves -->
+  <g transform="translate(256, 200)" filter="url(#monoGlow)">
+    <!-- Main S curve - bold stroke style -->
+    <path d="M 50,-80 C 50,-80 20,-100 -20,-85 C -60,-70 -70,-30 -50,0 C -30,30 30,25 50,50 C 70,75 60,110 20,115 C -20,120 -55,95 -55,95" 
+          fill="none" stroke="url(#monoGrad)" stroke-width="28" stroke-linecap="round"/>
+    
+    <!-- Inner S highlight -->
+    <path d="M 50,-80 C 50,-80 20,-100 -20,-85 C -60,-70 -70,-30 -50,0 C -30,30 30,25 50,50 C 70,75 60,110 20,115 C -20,120 -55,95 -55,95" 
+          fill="none" stroke="#C7D2FE" stroke-width="8" stroke-linecap="round" opacity="0.3"/>
+  </g>
+
+  <!-- Spark accent - top right of S -->
+  <g transform="translate(310, 120)">
+    <polygon points="0,-25 -5,-5 0,-8 5,5 0,2 -5,20 0,25 5,15 15,10 5,5 0,-5" 
+             fill="url(#sparkGrad2)" filter="url(#monoGlow)"/>
+    <circle cx="0" cy="0" r="6" fill="#FFD700" filter="url(#monoGlow)"/>
+    <circle cx="-15" cy="-20" r="2" fill="#FFD700" opacity="0.7"/>
+    <circle cx="18" cy="-15" r="2" fill="#FF6B00" opacity="0.6"/>
+    <circle cx="12" cy="18" r="1.5" fill="#FFD700" opacity="0.5"/>
+  </g>
+
+  <!-- Dot grid background -->
+  <g fill="#6366F1" opacity="0.08">
+    <circle cx="100" cy="100" r="2"/><circle cx="140" cy="100" r="2"/><circle cx="180" cy="100" r="2"/>
+    <circle cx="100" cy="140" r="2"/><circle cx="140" cy="140" r="2"/><circle cx="180" cy="140" r="2"/>
+    <circle cx="100" cy="180" r="2"/><circle cx="140" cy="180" r="2"/><circle cx="180" cy="180" r="2"/>
+    <circle cx="332" cy="332" r="2"/><circle cx="372" cy="332" r="2"/><circle cx="412" cy="332" r="2"/>
+    <circle cx="332" cy="372" r="2"/><circle cx="372" cy="372" r="2"/><circle cx="412" cy="372" r="2"/>
+    <circle cx="332" cy="412" r="2"/><circle cx="372" cy="412" r="2"/><circle cx="412" cy="412" r="2"/>
+  </g>
+
+  <!-- Text: SPARKII -->
+  <text x="256" y="400" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="56" font-weight="200" letter-spacing="20" fill="url(#monoGrad)" filter="url(#monoGlow)">SPARKII</text>
+
+  <!-- Subtext -->
+  <text x="256" y="440" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="14" font-weight="300" letter-spacing="10" fill="#8B5CF6" opacity="0.6">MONOGRAM</text>
+</svg>

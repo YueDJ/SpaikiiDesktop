@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgF" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#131222"/>
+      <stop offset="100%" style="stop-color:#201c33"/>
+    </linearGradient>
+    <linearGradient id="hairGold" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFE566"/>
+      <stop offset="60%" style="stop-color:#FFC93C"/>
+      <stop offset="100%" style="stop-color:#FF9E3D"/>
+    </linearGradient>
+    <linearGradient id="hoodieGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#7C3AED"/>
+      <stop offset="100%" style="stop-color:#5B21B6"/>
+    </linearGradient>
+    <radialGradient id="irisGrad" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" style="stop-color:#A5B4FC"/>
+      <stop offset="100%" style="stop-color:#4F46E5"/>
+    </radialGradient>
+    <filter id="glowF">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bgF)" rx="24"/>
+
+  <!-- shoulders / hoodie -->
+  <path d="M 166 380 C 166 320 200 288 256 288 C 312 288 346 320 346 380 L 346 400 L 166 400 Z" fill="url(#hoodieGrad)"/>
+  <!-- hoodie collar -->
+  <path d="M 216 296 Q 256 322 296 296 L 286 282 Q 256 302 226 282 Z" fill="#4C1D95"/>
+  <!-- drawstrings -->
+  <line x1="240" y1="310" x2="240" y2="346" stroke="#FFD700" stroke-width="4" stroke-linecap="round"/>
+  <line x1="272" y1="310" x2="272" y2="346" stroke="#FFD700" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="240" cy="350" r="4" fill="#FFD700"/>
+  <circle cx="272" cy="350" r="4" fill="#FFD700"/>
+  <!-- S emblem on chest -->
+  <text x="256" y="392" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="30" font-weight="700" fill="#FFD700" opacity="0.9">S</text>
+
+  <!-- back hair mass -->
+  <path d="M 178 200 C 168 120 206 66 256 66 C 306 66 344 120 334 200 L 326 268 L 308 268 L 316 200 C 318 160 300 130 256 130 C 212 130 194 160 196 200 L 204 268 L 186 268 Z" fill="url(#hairGold)"/>
+
+  <!-- face -->
+  <ellipse cx="256" cy="196" rx="60" ry="64" fill="#FFE8D6"/>
+
+  <!-- side hair locks -->
+  <path d="M 196 170 C 188 210 190 250 200 276 C 210 258 212 220 210 186 Z" fill="url(#hairGold)"/>
+  <path d="M 316 170 C 324 210 322 250 312 276 C 302 258 300 220 302 186 Z" fill="url(#hairGold)"/>
+
+  <!-- bangs: jagged across forehead -->
+  <path d="M 196 172
+           L 208 140 L 220 168 L 234 136 L 248 164 L 262 136 L 276 164 L 290 138 L 302 168 L 316 142
+           L 318 120 C 300 92 276 80 256 80 C 236 80 212 92 194 120 Z" fill="url(#hairGold)"/>
+
+  <!-- lightning ahoge on top -->
+  <polygon points="258,78 244,46 256,50 248,20 268,48 258,46 266,78" fill="#FFD700" filter="url(#glowF)"/>
+
+  <!-- headphones -->
+  <path d="M 186 176 C 186 110 326 110 326 176" fill="none" stroke="#8B5CF6" stroke-width="12" stroke-linecap="round"/>
+  <rect x="172" y="168" width="26" height="48" rx="12" fill="#8B5CF6"/>
+  <rect x="314" y="168" width="26" height="48" rx="12" fill="#8B5CF6"/>
+  <rect x="178" y="176" width="14" height="32" rx="7" fill="#C4B5FD"/>
+  <rect x="320" y="176" width="14" height="32" rx="7" fill="#C4B5FD"/>
+
+  <!-- eyes -->
+  <ellipse cx="232" cy="208" rx="13" ry="17" fill="#FFFFFF"/>
+  <ellipse cx="280" cy="208" rx="13" ry="17" fill="#FFFFFF"/>
+  <circle cx="232" cy="211" r="9" fill="url(#irisGrad)"/>
+  <circle cx="280" cy="211" r="9" fill="url(#irisGrad)"/>
+  <circle cx="232" cy="211" r="4" fill="#1e1b4b"/>
+  <circle cx="280" cy="211" r="4" fill="#1e1b4b"/>
+  <circle cx="236" cy="206" r="3" fill="#FFFFFF"/>
+  <circle cx="284" cy="206" r="3" fill="#FFFFFF"/>
+  <!-- upper lash line -->
+  <path d="M 219 200 Q 232 191 245 200" stroke="#3d3d55" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <path d="M 267 200 Q 280 191 293 200" stroke="#3d3d55" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <!-- eyebrows -->
+  <path d="M 222 182 Q 232 178 242 182" stroke="#C98A2D" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M 270 182 Q 280 178 290 182" stroke="#C98A2D" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+  <!-- mouth & blush -->
+  <path d="M 246 240 Q 256 248 266 240" stroke="#B4543C" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <ellipse cx="218" cy="232" rx="10" ry="6" fill="#FF9EBB" opacity="0.45"/>
+  <ellipse cx="294" cy="232" rx="10" ry="6" fill="#FF9EBB" opacity="0.45"/>
+
+  <!-- sparkles -->
+  <g fill="#FFE566" filter="url(#glowF)">
+    <circle cx="150" cy="120" r="3" opacity="0.8"/>
+    <circle cx="362" cy="110" r="2.5" opacity="0.7"/>
+    <circle cx="140" cy="230" r="2" opacity="0.6"/>
+    <circle cx="372" cy="240" r="2" opacity="0.6"/>
+  </g>
+
+  <!-- text -->
+  <text x="256" y="452" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="48" font-weight="700" letter-spacing="8" fill="#FFD700" filter="url(#glowF)">SPARKII</text>
+  <text x="256" y="484" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="15" font-weight="400" letter-spacing="7" fill="#A78BFA" opacity="0.85">SPARKII-CHAN</text>
+</svg>

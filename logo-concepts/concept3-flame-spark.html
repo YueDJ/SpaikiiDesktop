@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { margin: 0; padding: 40px; background: #0a0a0a; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+.logo-container { text-align: center; }
+</style>
+</head>
+<body>
+<div class="logo-container">
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="fireGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FF6B00"/>
+      <stop offset="40%" style="stop-color:#FFD700"/>
+      <stop offset="100%" style="stop-color:#FFEE00"/>
+    </linearGradient>
+    <linearGradient id="fireGrad2" x1="0%" y1="100%" x2="50%" y2="0%">
+      <stop offset="0%" style="stop-color:#FF4500"/>
+      <stop offset="100%" style="stop-color:#FFD700"/>
+    </linearGradient>
+    <filter id="fireGlow">
+      <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="innerGlow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Outer ring -->
+  <circle cx="200" cy="165" r="120" fill="none" stroke="#FFD700" stroke-width="1" opacity="0.15"/>
+  
+  <!-- Stylized S as flame/spark -->
+  <g filter="url(#fireGlow)" transform="translate(200,165)">
+    <!-- Main S shape - abstract flame -->
+    <path d="M -30,-60 C -30,-60 -50,-30 -35,0 C -20,30 30,20 30,50 C 30,80 -10,90 -30,70 C -50,50 -20,30 0,10 C 20,-10 -30,-20 -30,-60 Z" 
+          fill="url(#fireGrad)" opacity="0.9"/>
+    
+    <!-- Inner flame highlight -->
+    <path d="M -15,-40 C -15,-40 -30,-15 -20,5 C -10,25 20,15 20,35 C 20,55 0,60 -10,50 C -20,40 -5,25 5,10 C 15,-5 -10,-10 -15,-40 Z" 
+          fill="url(#fireGrad2)" opacity="0.6"/>
+    
+    <!-- Bright core -->
+    <ellipse cx="-5" cy="-5" rx="12" ry="25" fill="#FFEE00" opacity="0.5" transform="rotate(-15)"/>
+  </g>
+  
+  <!-- Spark particles around the flame -->
+  <g fill="#FFD700" filter="url(#innerGlow)">
+    <circle cx="160" cy="100" r="2" opacity="0.8"/>
+    <circle cx="240" cy="110" r="2.5" opacity="0.7"/>
+    <circle cx="150" cy="140" r="1.5" opacity="0.5"/>
+    <circle cx="255" cy="160" r="2" opacity="0.6"/>
+    <circle cx="165" cy="210" r="1.5" opacity="0.4"/>
+    <circle cx="240" cy="220" r="2" opacity="0.5"/>
+    <circle cx="180" cy="90" r="1" opacity="0.4"/>
+    <circle cx="220" cy="240" r="1.5" opacity="0.3"/>
+    
+    <!-- Moving spark lines -->
+    <line x1="155" y1="95" x2="148" y2="85" stroke="#FFD700" stroke-width="1" opacity="0.4"/>
+    <line x1="245" y1="105" x2="252" y2="95" stroke="#FFD700" stroke-width="1" opacity="0.4"/>
+    <line x1="250" y1="225" x2="258" y2="232" stroke="#FFD700" stroke-width="1" opacity="0.3"/>
+  </g>
+  
+  <!-- Minimal circuit accent -->
+  <g stroke="#FF6B00" stroke-width="1" fill="none" opacity="0.2">
+    <path d="M 100 280 L 100 290 L 120 290"/>
+    <path d="M 300 280 L 300 290 L 280 290"/>
+    <circle cx="100" cy="280" r="2" fill="#FF6B00" opacity="0.3"/>
+    <circle cx="300" cy="280" r="2" fill="#FF6B00" opacity="0.3"/>
+  </g>
+  
+  <!-- Text: SPARKII -->
+  <text x="200" y="310" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="56" font-weight="700" letter-spacing="6" fill="url(#fireGrad)" filter="url(#innerGlow)">SPARKII</text>
+  
+  <!-- Subtext: AGENT -->
+  <text x="200" y="345" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="16" font-weight="300" letter-spacing="10" fill="#FF6B00" opacity="0.7">A G E N T</text>
+  
+  <!-- Underline accent -->
+  <line x1="140" y1="358" x2="260" y2="358" stroke="url(#fireGrad)" stroke-width="2" opacity="0.3"/>
+</svg>
+</div>
+</body>
+</html>

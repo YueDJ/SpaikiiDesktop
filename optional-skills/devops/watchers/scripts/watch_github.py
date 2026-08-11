@@ -6,7 +6,7 @@ Usage (via cron with --no-agent):
     sparkii cron create sparkii-issues \\
       --schedule "*/5 * * * *" --no-agent \\
       --script "$SPARKII_HOME/skills/devops/watchers/scripts/watch_github.py" \\
-      --script-args "--name sparkii-issues --repo YueDJ/SpaikiiDesktop --scope issues"
+      --script-args "--name sparkii-issues --repo YueDJ/SparkiiAgent --scope issues"
 
 Set GITHUB_TOKEN (or GH_TOKEN) in the Sparkii .env file
 (``${SPARKII_HOME:-~/.sparkii}/.env``) to avoid the 60 req/hr

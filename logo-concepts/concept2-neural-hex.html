@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { margin: 0; padding: 40px; background: #0a0a0a; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+.logo-container { text-align: center; }
+</style>
+</head>
+<body>
+<div class="logo-container">
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="neonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00D4FF"/>
+      <stop offset="50%" style="stop-color:#7C3AED"/>
+      <stop offset="100%" style="stop-color:#FF0080"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FFD700"/>
+      <stop offset="100%" style="stop-color:#FFA000"/>
+    </linearGradient>
+    <filter id="neonGlow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Hexagon frame -->
+  <polygon points="200,50 320,110 320,230 200,290 80,230 80,110" 
+           fill="none" stroke="url(#neonGrad)" stroke-width="2" opacity="0.4" filter="url(#softGlow)"/>
+  <polygon points="200,65 305,118 305,222 200,275 95,222 95,118" 
+           fill="none" stroke="url(#neonGrad)" stroke-width="1" opacity="0.2"/>
+  
+  <!-- Neural network nodes and connections -->
+  <g stroke="#7C3AED" stroke-width="1" opacity="0.3">
+    <!-- Layer 1 -->
+    <line x1="140" y1="110" x2="180" y2="150"/>
+    <line x1="140" y1="110" x2="200" y2="140"/>
+    <line x1="140" y1="170" x2="180" y2="150"/>
+    <line x1="140" y1="170" x2="200" y2="160"/>
+    <line x1="140" y1="230" x2="200" y2="200"/>
+    <line x1="140" y1="230" x2="180" y2="210"/>
+    
+    <!-- Layer 2 -->
+    <line x1="200" y1="140" x2="260" y2="150"/>
+    <line x1="200" y1="160" x2="260" y2="150"/>
+    <line x1="200" y1="160" x2="260" y2="190"/>
+    <line x1="200" y1="200" x2="260" y2="190"/>
+    <line x1="180" y1="150" x2="260" y2="150"/>
+    <line x1="180" y1="210" x2="260" y2="190"/>
+    <line x1="200" y1="140" x2="260" y2="130"/>
+  </g>
+  
+  <!-- Neural network nodes -->
+  <g filter="url(#softGlow)">
+    <!-- Input layer -->
+    <circle cx="140" cy="110" r="6" fill="#00D4FF" opacity="0.7"/>
+    <circle cx="140" cy="170" r="6" fill="#00D4FF" opacity="0.7"/>
+    <circle cx="140" cy="230" r="6" fill="#00D4FF" opacity="0.7"/>
+    
+    <!-- Hidden layer -->
+    <circle cx="180" cy="150" r="5" fill="#7C3AED" opacity="0.8"/>
+    <circle cx="200" cy="140" r="5" fill="#7C3AED" opacity="0.8"/>
+    <circle cx="200" cy="160" r="5" fill="#7C3AED" opacity="0.8"/>
+    <circle cx="200" cy="200" r="5" fill="#7C3AED" opacity="0.8"/>
+    <circle cx="180" cy="210" r="5" fill="#7C3AED" opacity="0.8"/>
+    
+    <!-- Output layer -->
+    <circle cx="260" cy="130" r="6" fill="#FF0080" opacity="0.7"/>
+    <circle cx="260" cy="150" r="6" fill="#FF0080" opacity="0.7"/>
+    <circle cx="260" cy="190" r="6" fill="#FF0080" opacity="0.7"/>
+  </g>
+  
+  <!-- Central spark element -->
+  <g filter="url(#neonGlow)">
+    <path d="M 200 100 L 190 155 L 210 150 L 195 210 L 220 145 L 200 148 L 215 100 Z" 
+          fill="url(#goldGrad)" opacity="0.9"/>
+  </g>
+  
+  <!-- Sparkle effects -->
+  <g fill="#FFD700" filter="url(#softGlow)">
+    <circle cx="200" cy="100" r="3" opacity="0.9"/>
+    <circle cx="195" cy="210" r="2.5" opacity="0.8"/>
+    <circle cx="170" cy="120" r="1.5" opacity="0.5"/>
+    <circle cx="235" cy="125" r="1.5" opacity="0.5"/>
+  </g>
+  
+  <!-- Text: SPARKII -->
+  <text x="200" y="335" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="48" font-weight="200" letter-spacing="14" fill="url(#neonGrad)" filter="url(#softGlow)">SPARKII</text>
+  
+  <!-- Subtext -->
+  <text x="200" y="365" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="14" font-weight="400" letter-spacing="6" fill="#7C3AED" opacity="0.6">NEURAL AGENT</text>
+</svg>
+</div>
+</body>
+</html>

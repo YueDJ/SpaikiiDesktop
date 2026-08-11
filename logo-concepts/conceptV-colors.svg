@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="768" height="512" viewBox="0 0 768 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFE566"/><stop offset="55%" style="stop-color:#FFD700"/><stop offset="100%" style="stop-color:#FF8C00"/>
+    </linearGradient>
+    <linearGradient id="gCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#A5F3FC"/><stop offset="55%" style="stop-color:#22D3EE"/><stop offset="100%" style="stop-color:#0284C7"/>
+    </linearGradient>
+    <linearGradient id="gViolet" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#DDD6FE"/><stop offset="55%" style="stop-color:#8B5CF6"/><stop offset="100%" style="stop-color:#6D28D9"/>
+    </linearGradient>
+    <linearGradient id="gMint" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#A7F3D0"/><stop offset="55%" style="stop-color:#34D399"/><stop offset="100%" style="stop-color:#059669"/>
+    </linearGradient>
+    <linearGradient id="gPink" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FBCFE8"/><stop offset="55%" style="stop-color:#EC4899"/><stop offset="100%" style="stop-color:#BE185D"/>
+    </linearGradient>
+    <linearGradient id="gSilver" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF"/><stop offset="55%" style="stop-color:#CBD5E1"/><stop offset="100%" style="stop-color:#64748B"/>
+    </linearGradient>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="768" height="512" fill="#0c0a09"/>
+
+  <!-- bolt shape template reused via groups: centered in each 256px cell -->
+  <!-- Cell layout: 3 cols x 2 rows, each cell 256x256 -->
+
+  <!-- 1 Gold -->
+  <g transform="translate(0,0)">
+    <g filter="url(#softGlow)">
+      <path d="M 148 52 L 84 172 L 134 167 L 118 236 L 192 116 L 142 121 L 148 52 Z" fill="url(#gGold)"/>
+    </g>
+    <text x="128" y="250" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="13" letter-spacing="3" fill="#A8A29E">GOLD</text>
+  </g>
+
+  <!-- 2 Cyan -->
+  <g transform="translate(256,0)">
+    <g filter="url(#softGlow)">
+      <path d="M 148 52 L 84 172 L 134 167 L 118 236 L 192 116 L 142 121 L 148 52 Z" fill="url(#gCyan)"/>
+    </g>
+    <text x="128" y="250" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="13" letter-spacing="3" fill="#A8A29E">CYAN</text>
+  </g>
+
+  <!-- 3 Violet -->
+  <g transform="translate(512,0)">
+    <g filter="url(#softGlow)">
+      <path d="M 148 52 L 84 172 L 134 167 L 118 236 L 192 116 L 142 121 L 148 52 Z" fill="url(#gViolet)"/>
+    </g>
+    <text x="128" y="250" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="13" letter-spacing="3" fill="#A8A29E">VIOLET</text>
+  </g>
+
+  <!-- 4 Mint -->
+  <g transform="translate(0,256)">
+    <g filter="url(#softGlow)">
+      <path d="M 148 52 L 84 172 L 134 167 L 118 236 L 192 116 L 142 121 L 148 52 Z" fill="url(#gMint)"/>
+    </g>
+    <text x="128" y="250" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="13" letter-spacing="3" fill="#A8A29E">MINT</text>
+  </g>
+
+  <!-- 5 Pink -->
+  <g transform="translate(256,256)">
+    <g filter="url(#softGlow)">
+      <path d="M 148 52 L 84 172 L 134 167 L 118 236 L 192 116 L 142 121 L 148 52 Z" fill="url(#gPink)"/>
+    </g>
+    <text x="128" y="250" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="13" letter-spacing="3" fill="#A8A29E">MAGENTA</text>
+  </g>
+
+  <!-- 6 Silver -->
+  <g transform="translate(512,256)">
+    <g filter="url(#softGlow)">
+      <path d="M 148 52 L 84 172 L 134 167 L 118 236 L 192 116 L 142 121 L 148 52 Z" fill="url(#gSilver)"/>
+    </g>
+    <text x="128" y="250" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="13" letter-spacing="3" fill="#A8A29E">SILVER</text>
+  </g>
+
+  <!-- grid dividers -->
+  <line x1="256" y1="0" x2="256" y2="512" stroke="#292524" stroke-width="1"/>
+  <line x1="512" y1="0" x2="512" y2="512" stroke="#292524" stroke-width="1"/>
+  <line x1="0" y1="256" x2="768" y2="256" stroke="#292524" stroke-width="1"/>
+</svg>

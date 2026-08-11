@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgE" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#12101f"/>
+      <stop offset="100%" style="stop-color:#1e1a30"/>
+    </linearGradient>
+    <linearGradient id="flameBody" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#FF8C00"/>
+      <stop offset="55%" style="stop-color:#FFB800"/>
+      <stop offset="100%" style="stop-color:#FFE566"/>
+    </linearGradient>
+    <linearGradient id="flameInner" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#FFD700"/>
+      <stop offset="100%" style="stop-color:#FFF3B0"/>
+    </linearGradient>
+    <filter id="glowE">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="tinyE">
+      <feGaussianBlur stdDeviation="1.5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bgE)" rx="24"/>
+
+  <!-- ground shadow -->
+  <ellipse cx="256" cy="330" rx="90" ry="14" fill="#000000" opacity="0.35"/>
+
+  <!-- arms (behind body) -->
+  <ellipse cx="182" cy="245" rx="16" ry="10" fill="#FFB800" transform="rotate(-30 182 245)"/>
+  <ellipse cx="330" cy="225" rx="16" ry="10" fill="#FFB800" transform="rotate(40 330 225)"/>
+
+  <!-- flame body -->
+  <g filter="url(#glowE)">
+    <path d="M 256 92
+             C 268 122 282 138 296 160
+             C 316 190 326 214 326 244
+             C 326 296 296 324 256 324
+             C 216 324 186 296 186 244
+             C 186 216 196 192 212 172
+             C 218 186 228 194 238 192
+             C 230 168 240 122 256 92 Z"
+          fill="url(#flameBody)"/>
+    <!-- inner flame -->
+    <path d="M 256 160
+             C 266 182 278 196 278 232
+             C 278 268 268 288 256 288
+             C 244 288 234 268 234 232
+             C 234 196 246 182 256 160 Z"
+          fill="url(#flameInner)" opacity="0.9"/>
+  </g>
+
+  <!-- face -->
+  <ellipse cx="234" cy="238" rx="13" ry="16" fill="#FFFFFF"/>
+  <ellipse cx="278" cy="238" rx="13" ry="16" fill="#FFFFFF"/>
+  <circle cx="236" cy="241" r="7" fill="#2b2b3d"/>
+  <circle cx="280" cy="241" r="7" fill="#2b2b3d"/>
+  <circle cx="239" cy="237" r="2.5" fill="#FFFFFF"/>
+  <circle cx="283" cy="237" r="2.5" fill="#FFFFFF"/>
+  <path d="M 243 272 Q 256 282 269 272" stroke="#2b2b3d" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <ellipse cx="216" cy="258" rx="9" ry="6" fill="#FF7B9C" opacity="0.5"/>
+  <ellipse cx="296" cy="258" rx="9" ry="6" fill="#FF7B9C" opacity="0.5"/>
+
+  <!-- little star held up -->
+  <g transform="translate(348,196)" filter="url(#tinyE)">
+    <polygon points="0,-12 3,-3 12,-3 5,3 8,12 0,6 -8,12 -5,3 -12,-3 -3,-3" fill="#FFE566"/>
+  </g>
+
+  <!-- sparkles -->
+  <g fill="#FFE566" filter="url(#tinyE)">
+    <circle cx="176" cy="150" r="3" opacity="0.8"/>
+    <circle cx="340" cy="130" r="2.5" opacity="0.7"/>
+    <circle cx="160" cy="230" r="2" opacity="0.6"/>
+    <circle cx="356" cy="260" r="2" opacity="0.6"/>
+    <circle cx="200" cy="100" r="2" opacity="0.5"/>
+    <circle cx="315" cy="90" r="2.5" opacity="0.6"/>
+  </g>
+
+  <!-- text -->
+  <text x="256" y="412" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="54" font-weight="700" letter-spacing="8" fill="#FFD700" filter="url(#tinyE)">SPARKII</text>
+  <text x="256" y="450" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="16" font-weight="400" letter-spacing="8" fill="#B8A6E8" opacity="0.85">THE FLAME SPIRIT</text>
+</svg>

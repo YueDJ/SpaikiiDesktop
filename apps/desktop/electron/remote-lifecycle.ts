@@ -135,7 +135,7 @@ async function locateSparkii(ssh, remoteSparkiiPath) {
     //   - version checking: `<python> --version` printed "Python x.y.z" instead of
     //     the Sparkii version, and
     //   - capability probing: `<python> serve --help` failed entirely.
-    // See https://github.com/YueDJ/SpaikiiDesktop/issues/74411
+    // See https://github.com/YueDJ/SparkiiAgent/issues/74411
     return candidate
   }
 

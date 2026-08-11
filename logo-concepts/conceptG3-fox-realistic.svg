@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bgG3" cx="50%" cy="40%" r="75%">
+      <stop offset="0%" style="stop-color:#292524"/>
+      <stop offset="100%" style="stop-color:#0c0a09"/>
+    </radialGradient>
+    <linearGradient id="furMain" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FDBA55"/>
+      <stop offset="100%" style="stop-color:#EA580C"/>
+    </linearGradient>
+    <linearGradient id="furDark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#C2410C"/>
+      <stop offset="100%" style="stop-color:#7C2D12"/>
+    </linearGradient>
+    <linearGradient id="furCream" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFF7E6"/>
+      <stop offset="100%" style="stop-color:#FFE0B2"/>
+    </linearGradient>
+    <radialGradient id="eyeAmber" cx="45%" cy="40%" r="60%">
+      <stop offset="0%" style="stop-color:#FDE68A"/>
+      <stop offset="70%" style="stop-color:#F59E0B"/>
+      <stop offset="100%" style="stop-color:#92400E"/>
+    </radialGradient>
+    <filter id="softG3">
+      <feGaussianBlur stdDeviation="2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bgG3)" rx="24"/>
+
+  <!-- spotlight -->
+  <ellipse cx="256" cy="185" rx="170" ry="140" fill="#FFD700" opacity="0.05"/>
+
+  <!-- ===== Majestic fox head ===== -->
+  <g filter="url(#softG3)">
+    <!-- ear outer -->
+    <path d="M 168 140 L 148 52 C 182 74 208 92 226 112 Z" fill="url(#furDark)"/>
+    <path d="M 344 140 L 364 52 C 330 74 304 92 286 112 Z" fill="url(#furDark)"/>
+    <!-- ear inner fur -->
+    <path d="M 176 124 L 164 72 C 186 88 202 100 214 114 Z" fill="url(#furCream)"/>
+    <path d="M 336 124 L 348 72 C 326 88 310 100 298 114 Z" fill="url(#furCream)"/>
+
+    <!-- main face -->
+    <path d="M 168 140
+             C 190 108 222 92 256 92
+             C 290 92 322 108 344 140
+             C 352 172 348 206 332 232
+             C 316 258 296 274 276 284
+             L 256 306 L 236 284
+             C 216 274 196 258 180 232
+             C 164 206 160 172 168 140 Z"
+          fill="url(#furMain)"/>
+
+    <!-- cheek fur tufts (darker under-layer spikes) -->
+    <path d="M 176 196 L 154 210 L 172 216 L 158 232 L 180 234 L 172 250 L 196 244 C 184 230 178 214 176 196 Z" fill="url(#furDark)" opacity="0.85"/>
+    <path d="M 336 196 L 358 210 L 340 216 L 354 232 L 332 234 L 340 250 L 316 244 C 328 230 334 214 336 196 Z" fill="url(#furDark)" opacity="0.85"/>
+
+    <!-- forehead blaze (cream) -->
+    <path d="M 256 96 C 246 130 244 158 250 184 L 256 200 L 262 184 C 268 158 266 130 256 96 Z" fill="url(#furCream)" opacity="0.9"/>
+
+    <!-- brow shading above eyes -->
+    <path d="M 196 168 Q 222 156 246 168" stroke="#7C2D12" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.55"/>
+    <path d="M 266 168 Q 290 156 316 168" stroke="#7C2D12" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.55"/>
+
+    <!-- eyes: realistic amber -->
+    <path d="M 200 184 Q 223 172 246 184 Q 223 196 200 184 Z" fill="url(#eyeAmber)"/>
+    <path d="M 266 184 Q 289 172 312 184 Q 289 196 266 184 Z" fill="url(#eyeAmber)"/>
+    <ellipse cx="226" cy="184" rx="5" ry="6.5" fill="#1C0A00"/>
+    <ellipse cx="286" cy="184" rx="5" ry="6.5" fill="#1C0A00"/>
+    <circle cx="228" cy="181" r="2" fill="#FFFFFF" opacity="0.9"/>
+    <circle cx="288" cy="181" r="2" fill="#FFFFFF" opacity="0.9"/>
+
+    <!-- muzzle -->
+    <path d="M 236 236 C 224 254 224 274 236 284 L 256 300 L 276 284 C 288 274 288 254 276 236 C 268 228 244 228 236 236 Z" fill="url(#furCream)"/>
+    <!-- nose -->
+    <path d="M 242 238 C 242 232 270 232 270 238 C 270 248 262 254 256 254 C 250 254 242 248 242 238 Z" fill="#292524"/>
+    <ellipse cx="250" cy="239" rx="4" ry="2.5" fill="#57534E" opacity="0.8"/>
+    <!-- mouth line -->
+    <path d="M 256 254 L 256 264 M 256 264 Q 246 272 238 266 M 256 264 Q 266 272 274 266" stroke="#44403C" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- forehead spark: subtle gold bolt -->
+  <polygon points="257,116 250,140 257,137 250,160 264,134 257,137 262,116" fill="#FFD700" opacity="0.85"/>
+
+  <!-- text -->
+  <text x="256" y="400" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="46" font-weight="300" letter-spacing="20" fill="#F5F5F4">SPARKII</text>
+  <line x1="176" y1="420" x2="336" y2="420" stroke="#F59E0B" stroke-width="1" opacity="0.4"/>
+  <text x="256" y="448" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="13" font-weight="400" letter-spacing="10" fill="#FBBF24" opacity="0.85">AGENT</text>
+</svg>

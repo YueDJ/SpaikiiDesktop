@@ -127,7 +127,7 @@ def get_sparkii_home() -> Path:
     callers that import this at load time.  Subprocess spawners are
     expected to propagate ``SPARKII_HOME`` explicitly (see the systemd
     template in ``sparkii_cli/gateway.py`` and the kanban dispatcher in
-    ``sparkii_cli/kanban_db.py``).  See https://github.com/YueDJ/SpaikiiDesktop/issues/18594.
+    ``sparkii_cli/kanban_db.py``).  See https://github.com/YueDJ/SparkiiAgent/issues/18594.
     """
     override = get_sparkii_home_override()
     if override:
@@ -804,7 +804,7 @@ def secure_parent_dir(path: Path) -> None:
     prevent catastrophic host bricking when ``SPARKII_HOME`` or other path
     env vars resolve to an unexpected location.
 
-    See https://github.com/YueDJ/SpaikiiDesktop/issues/25821.
+    See https://github.com/YueDJ/SparkiiAgent/issues/25821.
     """
     parent = path.parent.resolve()
     # Refuse root and its direct children (/usr, /home, /var, /tmp, …).
@@ -1248,7 +1248,7 @@ def is_container() -> bool:
 
     Result is cached for the process lifetime.  Import-safe — no heavy deps.
 
-    See: YueDJ/SpaikiiDesktop#47111
+    See: YueDJ/SparkiiAgent#47111
     """
     global _container_detected
     if _container_detected is not None:

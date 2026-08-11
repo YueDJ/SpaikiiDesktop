@@ -8,7 +8,7 @@ platforms: [linux, macos, windows]
 metadata:
   sparkii:
     tags: [sparkii, setup, configuration, multi-agent, spawning, cli, gateway, themes, skins, desktop-plugins, tui-widgets, petdex, development]
-    homepage: https://github.com/YueDJ/SpaikiiDesktop
+    homepage: https://github.com/YueDJ/SparkiiAgent
     related_skills: [claude-code, codex, opencode]
 ---
 
@@ -38,7 +38,7 @@ Good verification targets:
 
 - CLI commands: `sparkii --help`, `sparkii <command> --help`, and `sparkii_cli/main.py`
 - User documentation: https://sparkii-agent.nousresearch.com/docs/
-- Source tree: https://github.com/YueDJ/SpaikiiDesktop
+- Source tree: https://github.com/YueDJ/SparkiiAgent
 
 ## Quick Start
 

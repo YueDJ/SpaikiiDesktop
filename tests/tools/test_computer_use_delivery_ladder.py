@@ -1,6 +1,6 @@
 """Regression tests for the cua-driver verify → escalate ladder.
 
-Covers YueDJ/SpaikiiDesktop#67052:
+Covers YueDJ/SparkiiAgent#67052:
   - Phase A: cua-driver structured verdicts (verified/effect/escalation/code/
     degraded/path) are preserved through ActionResult and surfaced in the
     model-facing response, additively (old drivers omit them cleanly).

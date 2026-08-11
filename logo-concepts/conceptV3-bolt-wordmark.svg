@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="boltV3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFE566"/>
+      <stop offset="55%" style="stop-color:#FFD700"/>
+      <stop offset="100%" style="stop-color:#FF8C00"/>
+    </linearGradient>
+    <filter id="glowV3">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" fill="#0c0a09" rx="96"/>
+
+  <!-- bolt -->
+  <g filter="url(#glowV3)">
+    <path d="M 282 84
+             L 196 252
+             L 252 246
+             L 232 344
+             L 318 176
+             L 262 182
+             L 282 84 Z"
+          fill="url(#boltV3)"/>
+  </g>
+
+  <!-- wordmark -->
+  <text x="256" y="424" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="52" font-weight="300" letter-spacing="20" fill="#F5F5F4">SPARKII</text>
+  <line x1="156" y1="446" x2="356" y2="446" stroke="url(#boltV3)" stroke-width="2" opacity="0.5"/>
+</svg>
