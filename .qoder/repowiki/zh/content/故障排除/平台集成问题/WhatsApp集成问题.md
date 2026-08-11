@@ -50,7 +50,7 @@
 ```mermaid
 graph TB
 A["用户/客户"] --> B["Meta WhatsApp Cloud API"]
-B --> C["Hermes Gateway<br/>whatsapp_cloud.py"]
+B --> C["Sparkii Gateway<br/>whatsapp_cloud.py"]
 C --> D["Graph API 出站"]
 C --> E["aiohttp Webhook 入站"]
 C --> F["WhatsAppBehaviorMixin<br/>whatsapp_common.py"]
@@ -107,7 +107,7 @@ I --> J["Python适配器 adapter.py"]
 ```mermaid
 sequenceDiagram
 participant Meta as "Meta WhatsApp"
-participant GW as "Hermes Gateway"
+participant GW as "Sparkii Gateway"
 participant WA as "WhatsAppCloudAdapter"
 participant Graph as "Graph API"
 participant Mixin as "WhatsAppBehaviorMixin"

@@ -282,7 +282,7 @@ def test_manifest_fields():
 
 
 def test_nemo_relay_plugin_is_discoverable_as_bundled_plugin(tmp_path, monkeypatch):
-    monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "sparkii_test"))
+    monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "hermes_test"))
 
     manager = PluginManager()
     manager.discover_and_load()
@@ -300,8 +300,8 @@ def test_shared_metrics_and_rich_plugin_share_one_core_session(
     from agent import relay_llm
 
     fake = _FakeNemoRelay()
-    sparkii_home = tmp_path / "sparkii-home"
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    hermes_home = tmp_path / "sparkii-home"
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
     monkeypatch.setenv("SPARKII_NEMO_RELAY_ATIF_ENABLED", "1")
     monkeypatch.setenv(
         "SPARKII_NEMO_RELAY_ATIF_OUTPUT_DIRECTORY", str(tmp_path / "atif")
@@ -388,7 +388,7 @@ def test_shared_metrics_and_rich_plugin_share_one_core_session(
     assert not plugin_runtime.sessions
     assert relay_runtime.get_session_handle("s1") is None
     packages = list(
-        (sparkii_home / "telemetry" / "shared_metrics" / "outbox").glob("*.json")
+        (hermes_home / "telemetry" / "shared_metrics" / "outbox").glob("*.json")
     )
     assert len(packages) == 1
     package = json.loads(packages[0].read_text(encoding="utf-8"))
@@ -460,7 +460,7 @@ def test_real_binding_shares_plugin_configuration_across_two_profiles(
         original_clear()
 
 
-def test_relay_tool_request_rewrite_precedes_sparkii_authorization_boundary(
+def test_relay_tool_request_rewrite_precedes_hermes_authorization_boundary(
     tmp_path,
     monkeypatch,
 ):

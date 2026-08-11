@@ -148,7 +148,7 @@ def _node_symlink_candidate_dirs() -> "list[Path]":
     return dirs
 
 
-def remove_node_symlinks(sparkii_home: Path) -> list:
+def remove_node_symlinks(hermes_home: Path) -> list:
     """Remove the node/npm/npx symlinks the installer placed on PATH.
 
     The POSIX installer (``scripts/install.sh`` / ``scripts/lib/node-bootstrap.sh``)
@@ -165,7 +165,7 @@ def remove_node_symlinks(sparkii_home: Path) -> list:
     directory are removed — links the user has repointed elsewhere (nvm, fnm,
     etc.) are left untouched.
     """
-    node_dir = (sparkii_home / "node").resolve()
+    node_dir = (hermes_home / "node").resolve()
     removed = []
 
     for name in ("node", "npm", "npx"):
@@ -336,20 +336,20 @@ def uninstall_gateway_service():
 # or open a new terminal anyway).
 
 
-def _sparkii_path_markers(sparkii_home: Path) -> list[str]:
+def _hermes_path_markers(hermes_home: Path) -> list[str]:
     """Path-entry substrings that identify Sparkii-owned User-PATH entries."""
-    root = str(sparkii_home).rstrip("\\/")
+    root = str(hermes_home).rstrip("\\/")
     # Match on prefix so sub-entries (git\cmd, git\bin, git\usr\bin, node, etc.)
     # all get swept.  Also match the bare sparkii-agent install dir.
     markers = [root + "\\sparkii-agent", root + "\\git", root + "\\node", root + "\\venv"]
     # Also match if SPARKII_HOME was customised to somewhere else — find-and-nuke
     # any entry whose path component contains "sparkii".  We don't want to catch
-    # unrelated entries like "csparkii-foo" or "ephermeral", so we look for
+    # unrelated entries like "chermes-foo" or "ephermeral", so we look for
     # backslash-sparkii as a word-ish boundary.
     return markers
 
 
-def remove_path_from_windows_registry(sparkii_home: Path) -> list[str]:
+def remove_path_from_windows_registry(hermes_home: Path) -> list[str]:
     """Strip Sparkii-owned entries from User-scope PATH in the registry.
 
     Returns the list of removed path entries.  Operates on HKCU\\Environment,
@@ -371,7 +371,7 @@ def remove_path_from_windows_registry(sparkii_home: Path) -> list[str]:
                 return []
             # Preserve REG_EXPAND_SZ vs REG_SZ so unexpanded %VARS% survive.
             entries = [e for e in path_value.split(";") if e]
-            markers = _sparkii_path_markers(sparkii_home)
+            markers = _hermes_path_markers(hermes_home)
             kept: list[str] = []
             for entry in entries:
                 entry_norm = entry.rstrip("\\/")
@@ -388,7 +388,7 @@ def remove_path_from_windows_registry(sparkii_home: Path) -> list[str]:
     return removed
 
 
-def remove_sparkii_env_vars_windows() -> list[str]:
+def remove_hermes_env_vars_windows() -> list[str]:
     """Delete SPARKII_HOME and SPARKII_GIT_BASH_PATH from User-scope env vars."""
     try:
         import winreg
@@ -414,13 +414,13 @@ def remove_sparkii_env_vars_windows() -> list[str]:
     return removed
 
 
-def remove_portable_tooling_windows(sparkii_home: Path) -> list[Path]:
+def remove_portable_tooling_windows(hermes_home: Path) -> list[Path]:
     """Delete PortableGit and Node installs the Windows installer created under
     ``%LOCALAPPDATA%\\sparkii\\``.  Only called on full uninstall; they're
     isolated from any system Git / Node so they cannot break other tools."""
     removed: list[Path] = []
     for sub in ("git", "node", "gateway-service"):
-        target = sparkii_home / sub
+        target = hermes_home / sub
         if target.exists():
             try:
                 shutil.rmtree(target, ignore_errors=False)
@@ -435,11 +435,11 @@ def _is_windows() -> bool:
     return sys.platform == "win32"
 
 
-def _is_default_sparkii_home(sparkii_home: Path) -> bool:
-    """Return True when ``sparkii_home`` points at the default (non-profile) root."""
+def _is_default_sparkii_home(hermes_home: Path) -> bool:
+    """Return True when ``hermes_home`` points at the default (non-profile) root."""
     try:
-        from sparkii_constants import get_default_sparkii_root
-        return sparkii_home.resolve() == get_default_sparkii_root().resolve()
+        from sparkii_constants import get_default_hermes_root
+        return hermes_home.resolve() == get_default_hermes_root().resolve()
     except Exception:
         return False
 
@@ -476,11 +476,11 @@ def _uninstall_profile(profile) -> None:
     # 1. Stop and remove this profile's gateway service.
     #    Use `python -m sparkii_cli.main` so we don't depend on a `sparkii`
     #    wrapper that may be half-removed mid-uninstall.
-    sparkii_invocation = [_sys.executable, "-m", "sparkii_cli.main", "--profile", name]
+    hermes_invocation = [_sys.executable, "-m", "sparkii_cli.main", "--profile", name]
     for subcmd in ("stop", "uninstall"):
         try:
             subprocess.run(
-                sparkii_invocation + ["gateway", subcmd],
+                hermes_invocation + ["gateway", subcmd],
                 capture_output=True,
                 text=True, encoding='utf-8', errors='replace',
                 timeout=60,
@@ -523,8 +523,8 @@ def run_gui_uninstall(args):
         uninstall_gui,
     )
 
-    sparkii_home = get_sparkii_home()
-    summary = gui_install_summary(sparkii_home)
+    hermes_home = get_sparkii_home()
+    summary = gui_install_summary(hermes_home)
     skip_confirm = bool(getattr(args, "yes", False))
 
     print()
@@ -535,7 +535,7 @@ def run_gui_uninstall(args):
 
     if not summary["gui_installed"]:
         print("No Sparkii Chat GUI installation was found.")
-        print(f"  Checked: {sparkii_home}, and the standard app locations for this OS.")
+        print(f"  Checked: {hermes_home}, and the standard app locations for this OS.")
         return
 
     print(color("This removes the Chat GUI only. The Sparkii agent stays installed.", Colors.CYAN))
@@ -548,10 +548,10 @@ def run_gui_uninstall(args):
     if summary["userdata_exists"]:
         print(f"  • {summary['userdata_dir']}  (desktop app data)")
     print()
-    if agent_is_installed(sparkii_home):
+    if agent_is_installed(hermes_home):
         print(color("Kept intact:", Colors.GREEN, Colors.BOLD))
-        print(f"  • The Sparkii agent at {sparkii_home / 'sparkii-agent'}")
-        print(f"  • Your config, sessions, and secrets under {sparkii_home}")
+        print(f"  • The Sparkii agent at {hermes_home / 'sparkii-agent'}")
+        print(f"  • Your config, sessions, and secrets under {hermes_home}")
         print()
 
     if not skip_confirm:
@@ -569,7 +569,7 @@ def run_gui_uninstall(args):
     print()
     print(color("Uninstalling Chat GUI...", Colors.CYAN, Colors.BOLD))
     print()
-    uninstall_gui(sparkii_home)
+    uninstall_gui(hermes_home)
 
     print()
     print(color("┌─────────────────────────────────────────────────────────┐", Colors.GREEN, Colors.BOLD))
@@ -590,12 +590,12 @@ def run_uninstall(args):
     - Keep data: removes code but keeps ~/.sparkii/ for future reinstall
     """
     project_root = get_project_root()
-    sparkii_home = get_sparkii_home()
+    hermes_home = get_sparkii_home()
 
     if bool(getattr(args, "dry_run", False)):
         _print_uninstall_dry_run(
             project_root=project_root,
-            sparkii_home=sparkii_home,
+            hermes_home=hermes_home,
             full_uninstall=bool(getattr(args, "full", False)),
         )
         return
@@ -603,7 +603,7 @@ def run_uninstall(args):
     # Detect named profiles when uninstalling from the default root —
     # offer to clean them up too instead of leaving zombie SPARKII_HOMEs
     # and systemd units behind.
-    is_default_profile = _is_default_sparkii_home(sparkii_home)
+    is_default_profile = _is_default_sparkii_home(hermes_home)
     named_profiles = _discover_named_profiles() if is_default_profile else []
 
     # Non-interactive fast path (``--yes``): no prompts. ``--full`` selects a
@@ -617,7 +617,7 @@ def run_uninstall(args):
         full_uninstall = bool(getattr(args, "full", False))
         _perform_uninstall(
             project_root=project_root,
-            sparkii_home=sparkii_home,
+            hermes_home=hermes_home,
             full_uninstall=full_uninstall,
             remove_profiles=False,
             named_profiles=named_profiles,
@@ -633,9 +633,9 @@ def run_uninstall(args):
     # Show what will be affected
     print(color("Current Installation:", Colors.CYAN, Colors.BOLD))
     print(f"  Code:    {project_root}")
-    print(f"  Config:  {sparkii_home / 'config.yaml'}")
-    print(f"  Secrets: {sparkii_home / '.env'}")
-    print(f"  Data:    {sparkii_home / 'cron/'}, {sparkii_home / 'sessions/'}, {sparkii_home / 'logs/'}")
+    print(f"  Config:  {hermes_home / 'config.yaml'}")
+    print(f"  Secrets: {hermes_home / '.env'}")
+    print(f"  Data:    {hermes_home / 'cron/'}, {hermes_home / 'sessions/'}, {hermes_home / 'logs/'}")
     print()
 
     if named_profiles:
@@ -722,14 +722,14 @@ def run_uninstall(args):
 
     _perform_uninstall(
         project_root=project_root,
-        sparkii_home=sparkii_home,
+        hermes_home=hermes_home,
         full_uninstall=full_uninstall,
         remove_profiles=remove_profiles,
         named_profiles=named_profiles,
     )
 
 
-def _print_uninstall_dry_run(*, project_root: Path, sparkii_home: Path, full_uninstall: bool) -> None:
+def _print_uninstall_dry_run(*, project_root: Path, hermes_home: Path, full_uninstall: bool) -> None:
     """Print the uninstall plan without stopping services or deleting files."""
     print()
     print(color("Dry run: no files, services, or environment entries will be changed.", Colors.CYAN, Colors.BOLD))
@@ -741,22 +741,22 @@ def _print_uninstall_dry_run(*, project_root: Path, sparkii_home: Path, full_uni
     print("  • Desktop Chat GUI artifacts")
     print(f"  • Code checkout: {project_root}")
     if full_uninstall:
-        print(f"  • Sparkii config/data: {sparkii_home}")
-        if _is_default_sparkii_home(sparkii_home):
+        print(f"  • Sparkii config/data: {hermes_home}")
+        if _is_default_sparkii_home(hermes_home):
             profiles = _discover_named_profiles()
             if profiles:
                 print("  • Named profiles (interactive uninstall asks before removing):")
                 for prof in profiles:
                     print(f"    - {prof.name}: {prof.path}")
     else:
-        print(f"  • Keep Sparkii config/data: {sparkii_home}")
+        print(f"  • Keep Sparkii config/data: {hermes_home}")
     print()
 
 
 def _perform_uninstall(
     *,
     project_root: Path,
-    sparkii_home: Path,
+    hermes_home: Path,
     full_uninstall: bool,
     remove_profiles: bool,
     named_profiles: list,
@@ -791,10 +791,10 @@ def _perform_uninstall(
 
     if _is_windows():
         log_info("Removing PATH entries from Windows User environment...")
-        # Expand %LOCALAPPDATA% etc. in sparkii_home so the marker matching is
+        # Expand %LOCALAPPDATA% etc. in hermes_home so the marker matching is
         # against fully resolved paths — installer writes literal strings
         # like C:\Users\<u>\AppData\Local\sparkii\git\cmd, not %LOCALAPPDATA%.
-        removed_path_entries = remove_path_from_windows_registry(Path(os.path.expandvars(str(sparkii_home))))
+        removed_path_entries = remove_path_from_windows_registry(Path(os.path.expandvars(str(hermes_home))))
         if removed_path_entries:
             for entry in removed_path_entries:
                 log_success(f"Removed from User PATH: {entry}")
@@ -802,7 +802,7 @@ def _perform_uninstall(
             log_info("No Sparkii-owned PATH entries in User environment")
 
         log_info("Removing SPARKII_HOME / SPARKII_GIT_BASH_PATH User env vars...")
-        removed_env = remove_sparkii_env_vars_windows()
+        removed_env = remove_hermes_env_vars_windows()
         if removed_env:
             for name in removed_env:
                 log_success(f"Removed User env var: {name}")
@@ -822,7 +822,7 @@ def _perform_uninstall(
     #     (only when they still point into this Sparkii home's node dir, so we
     #     never clobber an existing nvm / user-managed Node).
     log_info("Removing Sparkii-managed node/npm/npx symlinks...")
-    removed_node_links = remove_node_symlinks(sparkii_home)
+    removed_node_links = remove_node_symlinks(hermes_home)
     if removed_node_links:
         for link in removed_node_links:
             log_success(f"Removed {link}")
@@ -835,13 +835,13 @@ def _perform_uninstall(
     #     code, so the GUI — which is just another consumer of the same
     #     checkout — should go with it. uninstall_gui() never touches config /
     #     sessions / .env, so it's safe in keep-data mode; on full uninstall the
-    #     step-5 rmtree(sparkii_home) would sweep the in-tree artifacts anyway,
+    #     step-5 rmtree(hermes_home) would sweep the in-tree artifacts anyway,
     #     but the packaged app + Electron userData live OUTSIDE SPARKII_HOME and
     #     must be cleaned explicitly here.
     log_info("Removing desktop Chat GUI artifacts...")
     try:
         from sparkii_cli.gui_uninstall import uninstall_gui
-        gui_removed = uninstall_gui(sparkii_home)
+        gui_removed = uninstall_gui(hermes_home)
         if not gui_removed:
             log_info("No desktop GUI artifacts found")
     except Exception as e:
@@ -855,7 +855,7 @@ def _perform_uninstall(
     try:
         if project_root.exists():
             # If the install is inside ~/.sparkii/, just remove the sparkii-agent subdir
-            if sparkii_home in project_root.parents or project_root.parent == sparkii_home:
+            if hermes_home in project_root.parents or project_root.parent == hermes_home:
                 shutil.rmtree(project_root)
                 log_success(f"Removed {project_root}")
             else:
@@ -870,11 +870,11 @@ def _perform_uninstall(
     #     PortableGit, bundled Node, gateway-service dir.  Installer put them
     #     under SPARKII_HOME but they're install tooling, not config — safe to
     #     remove even in "keep data" mode.  If we're doing a full uninstall
-    #     the step-5 rmtree(sparkii_home) would sweep them anyway; calling
+    #     the step-5 rmtree(hermes_home) would sweep them anyway; calling
     #     this helper there is a no-op since they'll already be gone.
     if _is_windows():
         log_info("Removing Windows installer artifacts (PortableGit, Node, gateway-service)...")
-        removed_artifacts = remove_portable_tooling_windows(sparkii_home)
+        removed_artifacts = remove_portable_tooling_windows(hermes_home)
         if removed_artifacts:
             for path in removed_artifacts:
                 log_success(f"Removed {path}")
@@ -894,14 +894,14 @@ def _perform_uninstall(
 
         log_info("Removing configuration and data...")
         try:
-            if sparkii_home.exists():
-                shutil.rmtree(sparkii_home)
-                log_success(f"Removed {sparkii_home}")
+            if hermes_home.exists():
+                shutil.rmtree(hermes_home)
+                log_success(f"Removed {hermes_home}")
         except Exception as e:
-            log_warn(f"Could not fully remove {sparkii_home}: {e}")
+            log_warn(f"Could not fully remove {hermes_home}: {e}")
             log_info("You may need to manually remove it")
     else:
-        log_info(f"Keeping configuration and data in {sparkii_home}")
+        log_info(f"Keeping configuration and data in {hermes_home}")
     
     # Done
     print()
@@ -912,7 +912,7 @@ def _perform_uninstall(
     
     if not full_uninstall:
         print(color("Your configuration and data have been preserved:", Colors.CYAN))
-        print(f"  {sparkii_home}/")
+        print(f"  {hermes_home}/")
         print()
         print("To reinstall later with your existing settings:")
         if _is_windows():

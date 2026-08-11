@@ -233,11 +233,11 @@ class Mem0MemoryProvider(MemoryProvider):
         # when the server runs with AUTH_DISABLED).
         return bool(cfg.get("api_key") or cfg.get("host"))
 
-    def save_config(self, values, sparkii_home):
+    def save_config(self, values, hermes_home):
         """Write config to $SPARKII_HOME/mem0.json."""
         import json
         from pathlib import Path
-        config_path = Path(sparkii_home) / "mem0.json"
+        config_path = Path(hermes_home) / "mem0.json"
         existing = {}
         if config_path.exists():
             try:
@@ -260,9 +260,9 @@ class Mem0MemoryProvider(MemoryProvider):
             {"key": "rerank", "description": "Enable reranking for recall", "default": "false", "choices": ["true", "false"]},
         ]
 
-    def post_setup(self, sparkii_home: str, config: dict) -> None:
+    def post_setup(self, hermes_home: str, config: dict) -> None:
         from ._setup import post_setup
-        post_setup(sparkii_home, config)
+        post_setup(hermes_home, config)
 
     def _create_backend(self):
         # Lazy-install the mem0 SDK on demand before either backend imports

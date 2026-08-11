@@ -164,14 +164,14 @@ def _parse_pyproject_pins(text: str) -> list[tuple[str, str]]:
     return pins
 
 
-def _discover_plugins(sparkii_home: Path) -> list[Component]:
+def _discover_plugins(hermes_home: Path) -> list[Component]:
     """Python deps declared by plugins under ``~/.sparkii/plugins``.
 
     Plugins typically don't install into the venv (they're directory-based
     with relative imports), so their stated requirements are useful audit
     surface even when the venv scan misses them.
     """
-    plugins_dir = sparkii_home / "plugins"
+    plugins_dir = hermes_home / "plugins"
     if not plugins_dir.is_dir():
         return []
 
@@ -416,10 +416,10 @@ def _discover_components(
     skip_venv: bool = False,
     skip_plugins: bool = False,
     skip_mcp: bool = False,
-    sparkii_home: Optional[Path] = None,
+    hermes_home: Optional[Path] = None,
 ) -> list[Component]:
     """Discover all scannable components across the enabled sources."""
-    home = sparkii_home or Path(get_sparkii_home())
+    home = hermes_home or Path(get_sparkii_home())
     components: list[Component] = []
     if not skip_venv:
         components.extend(_discover_venv())
@@ -435,7 +435,7 @@ def run_audit(
     skip_venv: bool = False,
     skip_plugins: bool = False,
     skip_mcp: bool = False,
-    sparkii_home: Optional[Path] = None,
+    hermes_home: Optional[Path] = None,
     components: Optional[list[Component]] = None,
 ) -> list[Finding]:
     """Query OSV for the given (or freshly discovered) components.
@@ -449,7 +449,7 @@ def run_audit(
             skip_venv=skip_venv,
             skip_plugins=skip_plugins,
             skip_mcp=skip_mcp,
-            sparkii_home=sparkii_home,
+            hermes_home=hermes_home,
         )
 
     if not components:
@@ -553,7 +553,7 @@ def cmd_security_audit(args: argparse.Namespace) -> int:
         return 2
 
     components = _discover_components(
-        skip_venv=skip_venv, skip_plugins=skip_plugins, skip_mcp=skip_mcp, sparkii_home=home
+        skip_venv=skip_venv, skip_plugins=skip_plugins, skip_mcp=skip_mcp, hermes_home=home
     )
     total = len(components)
     if total == 0:
@@ -569,7 +569,7 @@ def cmd_security_audit(args: argparse.Namespace) -> int:
             skip_venv=skip_venv,
             skip_plugins=skip_plugins,
             skip_mcp=skip_mcp,
-            sparkii_home=home,
+            hermes_home=home,
             components=components,
         )
     except RuntimeError as exc:

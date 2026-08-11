@@ -39,7 +39,7 @@
 - sparkii_cli/web_routers/sessions.py：会话管理路由（列表、搜索、详情、消息、导入导出、批量删除、清理等）
 - sparkii_cli/web_routers/tools.py：工具集与终端后端路由（启用/禁用工具集、选择模型/提供商、保存环境变量、后置安装、计算机使用权限等）
 - sparkii_cli/web_routers/profiles.py：资料库路由（创建/重命名/删除资料库、设置活跃资料库、导出/导入、自动描述等）
-- acp_adapter/server.py：ACP（Agent Client Protocol）服务器，将 Hermes Agent 以 ACP 协议暴露给编辑器/IDE 客户端
+- acp_adapter/server.py：ACP（Agent Client Protocol）服务器，将 Sparkii Agent 以 ACP 协议暴露给编辑器/IDE 客户端
 
 ```mermaid
 graph TB
@@ -100,13 +100,13 @@ OpenAI 兼容网关基于 aiohttp，提供稳定的 /v1/* 契约，便于对接�
 sequenceDiagram
 participant Client as "客户端"
 participant Gateway as "OpenAI 兼容网关"
-participant Agent as "Hermes Agent"
+participant Agent as "Sparkii Agent"
 participant Store as "会话存储"
 Client->>Gateway : POST /v1/chat/completions
 Gateway->>Agent : 执行对话回合
 Agent-->>Gateway : 增量事件/结果
 Gateway-->>Client : SSE 流式响应
-Note over Gateway,Store : 会话上下文可通过 X-Hermes-Session-Id/X-Hermes-Session-Key 关联
+Note over Gateway,Store : 会话上下文可通过 X-Sparkii-Session-Id/X-Sparkii-Session-Key 关联
 ```
 
 图表来源
@@ -325,13 +325,13 @@ Note over Gateway,Store : 会话上下文可通过 X-Hermes-Session-Id/X-Hermes-
 ### OpenAI 兼容网关 API（/v1/* 与 /api/sessions*）
 - POST /v1/chat/completions
   - 作用：聊天补全（支持 SSE 流式）
-  - 请求头：X-Hermes-Session-Id（可选，会话连续性）、X-Hermes-Session-Key（可选，长期记忆范围）
+  - 请求头：X-Sparkii-Session-Id（可选，会话连续性）、X-Sparkii-Session-Key（可选，长期记忆范围）
   - 请求体：OpenAI Chat Completions 格式（支持多模态内容、模型选项、推理努力等）
   - 响应：JSON 或 SSE 流式事件
   - 常见错误：400（内容/图片 URL 非法）、401（未认证）、429（限流）、500（内部错误）
 - POST /v1/responses
   - 作用：Responses API（状态化，previous_response_id 支持）
-  - 请求头：X-Hermes-Session-Key（可选）
+  - 请求头：X-Sparkii-Session-Key（可选）
   - 请求体：OpenAI Responses 格式
   - 响应：JSON 或 SSE 流式事件
 - GET /v1/responses/{response_id}
@@ -390,13 +390,13 @@ Note over Gateway,Store : 会话上下文可通过 X-Hermes-Session-Id/X-Hermes-
 - [acp_adapter/server.py:566-800](file://acp_adapter/server.py#L566-L800)
 
 ## 依赖关系分析
-- OpenAI 兼容网关依赖 aiohttp，提供 /v1/* 与 /api/sessions* 路由，内部调用 Hermes Agent 执行对话与工具调用
+- OpenAI 兼容网关依赖 aiohttp，提供 /v1/* 与 /api/sessions* 路由，内部调用 Sparkii Agent 执行对话与工具调用
 - Web 仪表盘后端依赖 FastAPI，提供 /api/* 路由，访问配置、会话数据库、工具集与资料库
-- ACP 服务器依赖 acp 协议库，封装 Hermes Agent 能力，适配编辑器客户端
+- ACP 服务器依赖 acp 协议库，封装 Sparkii Agent 能力，适配编辑器客户端
 
 ```mermaid
 graph LR
-A["OpenAI 兼容网关<br/>/v1/*, /api/sessions*"] --> B["Hermes Agent"]
+A["OpenAI 兼容网关<br/>/v1/*, /api/sessions*"] --> B["Sparkii Agent"]
 C["Web 仪表盘后端<br/>/api/*"] --> D["配置/会话DB/工具集/资料库"]
 E["ACP 服务器"] --> B
 ```
@@ -426,7 +426,7 @@ E["ACP 服务器"] --> B
 
 ## 故障排查指南
 - 401 Unauthorized
-  - Web 仪表盘：缺少有效会话令牌（X-Hermes-Session-Token 或 Authorization: Bearer <token>）
+  - Web 仪表盘：缺少有效会话令牌（X-Sparkii-Session-Token 或 Authorization: Bearer <token>）
   - OpenAI 兼容网关：未携带 API_SERVER_KEY 或未通过认证
 - 400 Bad Request
   - 参数非法（如 order/archived/limit 超出范围）
@@ -454,13 +454,13 @@ E["ACP 服务器"] --> B
 
 ### 认证与权限控制
 - Web 仪表盘（/api/*）
-  - 会话令牌：X-Hermes-Session-Token 或 Authorization: Bearer <token>
+  - 会话令牌：X-Sparkii-Session-Token 或 Authorization: Bearer <token>
   - Host 头校验：拒绝非绑定接口的 Host 头，防 DNS 重绑定攻击
   - 公共路径白名单：部分只读端点无需令牌
 - OpenAI 兼容网关（/v1/*）
   - 认证：API_SERVER_KEY（通过请求头或配置）
-  - 会话连续性：X-Hermes-Session-Id（可选）
-  - 长期记忆范围：X-Hermes-Session-Key（可选）
+  - 会话连续性：X-Sparkii-Session-Id（可选）
+  - 长期记忆范围：X-Sparkii-Session-Key（可选）
 - ACP 服务器
   - 通过 ACP 协议进行身份与会话管理，适配编辑器客户端
 
@@ -483,11 +483,11 @@ E["ACP 服务器"] --> B
 - OpenAI 兼容前端
   - 基础 URL：http://localhost:8642/v1
   - 认证：API_SERVER_KEY
-  - 会话连续性：X-Hermes-Session-Id
+  - 会话连续性：X-Sparkii-Session-Id
   - 流式响应：SSE 客户端解析 data: 事件
 - Web 仪表盘
   - 基础 URL：http://localhost:9219/api
-  - 认证：X-Hermes-Session-Token 或 Authorization: Bearer <token>
+  - 认证：X-Sparkii-Session-Token 或 Authorization: Bearer <token>
   - 安全：仅 localhost/CORS 限制，避免公网暴露
 - ACP 编辑器
   - 使用 ACP 协议连接，利用模型选择、工具与资源能力

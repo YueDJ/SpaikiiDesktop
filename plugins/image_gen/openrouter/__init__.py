@@ -337,7 +337,7 @@ class OpenRouterCompatImageProvider(ImageGenProvider):
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
             # OpenRouter attribution headers (harmless against Nous Portal).
-            "HTTP-Referer": "https://github.com/YueDJ/SparkiiAgent",
+            "HTTP-Referer": "https://github.com/NousResearch/sparkii-agent",
             "X-Title": "Sparkii Agent",
         }
         last_error: Optional[Dict[str, Any]] = None

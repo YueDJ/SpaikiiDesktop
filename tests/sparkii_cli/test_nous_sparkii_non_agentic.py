@@ -15,7 +15,7 @@ import pytest
 
 from sparkii_cli.model_switch import (
     _SPARKII_MODEL_WARNING,
-    _check_sparkii_model_warning,
+    _check_hermes_model_warning,
     is_nous_sparkii_non_agentic,
 )
 
@@ -29,10 +29,10 @@ from sparkii_cli.model_switch import (
         "Sparkii-3",
         "sparkii-4",
         "sparkii-4-405b",
-        "sparkii_4_70b",
-        "openrouter/sparkii3:70b",
+        "hermes_4_70b",
+        "openrouter/hermes3:70b",
         "openrouter/nousresearch/sparkii-4-405b",
-        "NousResearch/Sparkii3",
+        "NousResearch/Hermes3",
         "sparkii-3.1",
     ],
 )
@@ -40,6 +40,6 @@ def test_matches_real_nous_sparkii_chat_models(model_name: str) -> None:
     assert is_nous_sparkii_non_agentic(model_name), (
         f"expected {model_name!r} to be flagged as Nous Sparkii 3/4"
     )
-    assert _check_sparkii_model_warning(model_name) == _SPARKII_MODEL_WARNING
+    assert _check_hermes_model_warning(model_name) == _SPARKII_MODEL_WARNING
 
 

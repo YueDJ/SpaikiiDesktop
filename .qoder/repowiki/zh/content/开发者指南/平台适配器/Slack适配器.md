@@ -19,7 +19,7 @@
 9. [结论](#结论)
 
 ## 简介
-本文详细阐述 Hermes Agent 的 Slack 平台适配器实现。Slack 适配器基于 Slack Bolt 框架集成，将 Agent 的对话能力无缝接入 Slack 工作空间，支持 Block Kit 界面构建、消息格式化、交互事件处理和 Slash 命令。
+本文详细阐述 Sparkii Agent 的 Slack 平台适配器实现。Slack 适配器基于 Slack Bolt 框架集成，将 Agent 的对话能力无缝接入 Slack 工作空间，支持 Block Kit 界面构建、消息格式化、交互事件处理和 Slash 命令。
 
 适配器继承自 BasePlatformAdapter 基类，实现了消息收发、会话管理、权限控制等标准接口，同时提供 Slack 特有的功能如频道管理、线程回复和富媒体内容。
 
@@ -99,5 +99,5 @@ sequenceDiagram
 - **OAuth 认证失败**：检查 Client ID/Secret 和重定向 URL 配置。
 
 ## 结论
-Slack 适配器通过标准化的平台接口将 Hermes Agent 的能力无缝接入 Slack 工作空间。开发者可以基于 BasePlatformAdapter 快速理解适配器架构，并参考 Slack 实现来开发其他平台适配器。
+Slack 适配器通过标准化的平台接口将 Sparkii Agent 的能力无缝接入 Slack 工作空间。开发者可以基于 BasePlatformAdapter 快速理解适配器架构，并参考 Slack 实现来开发其他平台适配器。
 

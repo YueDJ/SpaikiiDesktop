@@ -15,7 +15,7 @@ import pytest
 
 
 @pytest.fixture
-def sparkii_home(monkeypatch, tmp_path):
+def hermes_home(monkeypatch, tmp_path):
     """Isolate SPARKII_HOME and clear module-level caches afterward so the
     real shell-out side effects from _handle_patch don't leak into
     subsequent tests (see test_line_ending_preservation.py for details)."""
@@ -52,7 +52,7 @@ def fresh_tracker():
 
 
 class TestPatchFailureEscalation:
-    def test_first_two_failures_use_normal_hint(self, sparkii_home, tmp_path, fresh_tracker):
+    def test_first_two_failures_use_normal_hint(self, hermes_home, tmp_path, fresh_tracker):
         from tools.file_tools import _handle_patch
 
         target = tmp_path / "f.py"
@@ -76,7 +76,7 @@ class TestPatchFailureEscalation:
 
 
     def test_different_tasks_have_independent_counters(
-        self, sparkii_home, tmp_path, fresh_tracker
+        self, hermes_home, tmp_path, fresh_tracker
     ):
         from tools.file_tools import _handle_patch
 

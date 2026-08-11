@@ -196,8 +196,8 @@ def _check_metadata_block(frontmatter: Dict[str, Any]) -> List[LintFinding]:
                 )
             )
     meta = frontmatter.get("metadata")
-    sparkii_meta = meta.get("sparkii") if isinstance(meta, dict) else None
-    if not isinstance(sparkii_meta, dict):
+    hermes_meta = meta.get("sparkii") if isinstance(meta, dict) else None
+    if not isinstance(hermes_meta, dict):
         findings.append(
             LintFinding(
                 WARNING,
@@ -206,7 +206,7 @@ def _check_metadata_block(frontmatter: Dict[str, Any]) -> List[LintFinding]:
             )
         )
     else:
-        if "tags" not in sparkii_meta:
+        if "tags" not in hermes_meta:
             findings.append(
                 LintFinding(
                     WARNING, "missing-metadata", "metadata.sparkii.tags is missing."

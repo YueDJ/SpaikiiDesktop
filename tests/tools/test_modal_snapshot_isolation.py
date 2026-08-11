@@ -62,10 +62,10 @@ def _install_modal_test_modules(
     sparkii_cli = types.ModuleType("sparkii_cli")
     sparkii_cli.__path__ = []  # type: ignore[attr-defined]
     sys.modules["sparkii_cli"] = sparkii_cli
-    sparkii_home = tmp_path / "sparkii-home"
-    os.environ["SPARKII_HOME"] = str(sparkii_home)
+    hermes_home = tmp_path / "sparkii-home"
+    os.environ["SPARKII_HOME"] = str(hermes_home)
     sys.modules["sparkii_cli.config"] = types.SimpleNamespace(
-        get_sparkii_home=lambda: sparkii_home,
+        get_sparkii_home=lambda: hermes_home,
     )
 
     tools_package = types.ModuleType("tools")
@@ -190,7 +190,7 @@ def _install_modal_test_modules(
     )
 
     return {
-        "snapshot_store": sparkii_home / "modal_snapshots.json",
+        "snapshot_store": hermes_home / "modal_snapshots.json",
         "create_calls": create_calls,
         "from_id_calls": from_id_calls,
         "registry_calls": registry_calls,

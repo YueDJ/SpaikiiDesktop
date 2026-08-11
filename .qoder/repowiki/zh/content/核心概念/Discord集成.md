@@ -18,7 +18,7 @@
 ## 简介
 为Hermes Agent的Discord平台集成创建详细文档。深入介绍Discord Bot API的集成实现，包括应用注册、OAuth2配置和服务器权限设置。详细说明消息处理机制，包括文本消息、嵌入消息、附件处理和线程消息。解释Discord特有的功能适配，如角色权限系统、频道类型管理、语音通道支持和Slash命令实现。介绍Discord服务器的配置管理，包括多服务器支持、权限矩阵和消息过滤规...
 
-本模块是 Sparkii/Hermes Agent 系统的重要组成部分，负责Discord集成的核心功能实现。
+本模块是 Sparkii/Sparkii Agent 系统的重要组成部分，负责Discord集成的核心功能实现。
 
 ## 核心概念
 

@@ -22,7 +22,7 @@ from agent import estop
 
 
 @pytest.fixture
-def sparkii_home(tmp_path, monkeypatch):
+def hermes_home(tmp_path, monkeypatch):
     """Point SPARKII_HOME at a temp dir and reset estop module log state."""
     monkeypatch.setenv("SPARKII_HOME", str(tmp_path))
     estop._reset_log_state_for_tests()
@@ -32,40 +32,40 @@ def sparkii_home(tmp_path, monkeypatch):
 # ── sentinel create / remove ────────────────────────────────────────────────
 
 
-def test_engage_creates_sentinel_and_is_engaged(sparkii_home):
+def test_engage_creates_sentinel_and_is_engaged(hermes_home):
     assert estop.is_engaged() is False
     estop.engage()
-    assert (sparkii_home / "ESTOP").exists()
+    assert (hermes_home / "ESTOP").exists()
     assert estop.is_engaged() is True
 
 
-def test_disengage_removes_sentinel(sparkii_home):
+def test_disengage_removes_sentinel(hermes_home):
     estop.engage()
     assert estop.disengage() is True
-    assert not (sparkii_home / "ESTOP").exists()
+    assert not (hermes_home / "ESTOP").exists()
     assert estop.is_engaged() is False
     # Disengaging when not engaged is a no-op that reports False.
     assert estop.disengage() is False
 
 
-def test_reason_and_timestamp_stored(sparkii_home):
+def test_reason_and_timestamp_stored(hermes_home):
     estop.engage(reason="runaway cron fan-out")
     state = estop.get_state()
     assert state is not None
     assert state["reason"] == "runaway cron fan-out"
     assert state["engaged_at"]  # ISO timestamp string
 
-    raw = json.loads((sparkii_home / "ESTOP").read_text(encoding="utf-8"))
+    raw = json.loads((hermes_home / "ESTOP").read_text(encoding="utf-8"))
     assert raw["reason"] == "runaway cron fan-out"
 
 
-def test_get_state_none_when_disengaged(sparkii_home):
+def test_get_state_none_when_disengaged(hermes_home):
     assert estop.get_state() is None
 
 
-def test_corrupt_sentinel_still_engages(sparkii_home):
+def test_corrupt_sentinel_still_engages(hermes_home):
     """A hand-touched/corrupt ESTOP file must still pause (fail safe)."""
-    (sparkii_home / "ESTOP").write_text("not json", encoding="utf-8")
+    (hermes_home / "ESTOP").write_text("not json", encoding="utf-8")
     assert estop.is_engaged() is True
     state = estop.get_state()
     assert state is not None
@@ -75,11 +75,11 @@ def test_corrupt_sentinel_still_engages(sparkii_home):
 # ── paused notice for new gateway turns ─────────────────────────────────────
 
 
-def test_paused_reply_none_when_disengaged(sparkii_home):
+def test_paused_reply_none_when_disengaged(hermes_home):
     assert estop.paused_reply() is None
 
 
-def test_paused_reply_surfaces_reason_and_resume_hint(sparkii_home):
+def test_paused_reply_surfaces_reason_and_resume_hint(hermes_home):
     estop.engage(reason="deploy window")
     notice = estop.paused_reply()
     assert notice is not None
@@ -88,7 +88,7 @@ def test_paused_reply_surfaces_reason_and_resume_hint(sparkii_home):
     assert "sparkii resume" in notice
 
 
-def test_paused_reply_without_reason(sparkii_home):
+def test_paused_reply_without_reason(hermes_home):
     estop.engage()
     notice = estop.paused_reply()
     assert notice is not None
@@ -99,7 +99,7 @@ def test_paused_reply_without_reason(sparkii_home):
 # ── check_paused: cheap gate + log-once ─────────────────────────────────────
 
 
-def test_check_paused_logs_once_per_engagement(sparkii_home, caplog):
+def test_check_paused_logs_once_per_engagement(hermes_home, caplog):
     logger = logging.getLogger("test.estop.component")
     estop.engage()
     with caplog.at_level(logging.INFO, logger=logger.name):
@@ -124,7 +124,7 @@ def test_check_paused_logs_once_per_engagement(sparkii_home, caplog):
 # ── cron scheduler integration ──────────────────────────────────────────────
 
 
-def test_cron_tick_skips_dispatch_when_engaged(sparkii_home, monkeypatch):
+def test_cron_tick_skips_dispatch_when_engaged(hermes_home, monkeypatch):
     from cron import scheduler
 
     calls = []
@@ -140,7 +140,7 @@ def test_cron_tick_skips_dispatch_when_engaged(sparkii_home, monkeypatch):
     assert calls == [], "engaged ESTOP must skip the due-job scan entirely"
 
 
-def test_cron_tick_resumes_after_disengage(sparkii_home, monkeypatch):
+def test_cron_tick_resumes_after_disengage(hermes_home, monkeypatch):
     from cron import scheduler
 
     calls = []
@@ -163,7 +163,7 @@ def test_cron_tick_resumes_after_disengage(sparkii_home, monkeypatch):
 # ── kanban dispatcher integration ───────────────────────────────────────────
 
 
-def test_kanban_dispatch_blocked_when_engaged(sparkii_home):
+def test_kanban_dispatch_blocked_when_engaged(hermes_home):
     from gateway.kanban_watchers import _kanban_dispatch_allowed
 
     assert _kanban_dispatch_allowed() is True
@@ -194,7 +194,7 @@ class _FakeEvent:
 
 
 @pytest.mark.asyncio
-async def test_gateway_new_turn_gets_paused_reply(sparkii_home):
+async def test_gateway_new_turn_gets_paused_reply(hermes_home):
     from gateway.run import GatewayRunner
 
     runner = object.__new__(GatewayRunner)
@@ -207,7 +207,7 @@ async def test_gateway_new_turn_gets_paused_reply(sparkii_home):
 
 
 @pytest.mark.asyncio
-async def test_gateway_internal_events_bypass_estop(sparkii_home):
+async def test_gateway_internal_events_bypass_estop(hermes_home):
     """Internal events (in-flight work completions) must NOT be paused."""
     from gateway.run import GatewayRunner
 
@@ -228,7 +228,7 @@ async def test_gateway_internal_events_bypass_estop(sparkii_home):
 # ── CLI: sparkii pause / sparkii resume ───────────────────────────────────────
 
 
-def test_cli_pause_engages_with_reason(sparkii_home, capsys):
+def test_cli_pause_engages_with_reason(hermes_home, capsys):
     from sparkii_cli.subcommands.pause import cmd_pause
 
     rc = cmd_pause(argparse.Namespace(reason="ops incident"))
@@ -238,7 +238,7 @@ def test_cli_pause_engages_with_reason(sparkii_home, capsys):
     assert "paused" in capsys.readouterr().out.lower()
 
 
-def test_cli_pause_idempotent(sparkii_home, capsys):
+def test_cli_pause_idempotent(hermes_home, capsys):
     from sparkii_cli.subcommands.pause import cmd_pause
 
     assert cmd_pause(argparse.Namespace(reason=None)) == 0
@@ -246,7 +246,7 @@ def test_cli_pause_idempotent(sparkii_home, capsys):
     assert estop.is_engaged() is True
 
 
-def test_cli_resume_disengages(sparkii_home, capsys):
+def test_cli_resume_disengages(hermes_home, capsys):
     from sparkii_cli.subcommands.pause import cmd_pause, cmd_resume
 
     cmd_pause(argparse.Namespace(reason=None))
@@ -256,7 +256,7 @@ def test_cli_resume_disengages(sparkii_home, capsys):
     assert "resumed" in capsys.readouterr().out.lower()
 
 
-def test_cli_resume_when_not_paused(sparkii_home, capsys):
+def test_cli_resume_when_not_paused(hermes_home, capsys):
     from sparkii_cli.subcommands.pause import cmd_resume
 
     rc = cmd_resume(argparse.Namespace())
@@ -274,7 +274,7 @@ def test_builtin_subcommands_include_pause_resume():
 # ── sparkii status surfacing ─────────────────────────────────────────────────
 
 
-def test_status_line_when_paused(sparkii_home):
+def test_status_line_when_paused(hermes_home):
     from sparkii_cli.status import _estop_status_line
 
     assert _estop_status_line() is None
@@ -290,7 +290,7 @@ def test_status_line_when_paused(sparkii_home):
 # ── post-merge audit fixes (#81148 follow-up) ───────────────────────────────
 
 
-def test_is_engaged_fails_safe_on_stat_error(sparkii_home, monkeypatch):
+def test_is_engaged_fails_safe_on_stat_error(hermes_home, monkeypatch):
     """A stat failure must report ENGAGED (fail safe) — the pause has to
     hold even when SPARKII_HOME is misbehaving, matching the module's
     corrupt-sentinel doctrine."""
@@ -313,7 +313,7 @@ class _FakeCmdEvent(_FakeEvent):
 
 
 @pytest.mark.asyncio
-async def test_gateway_slash_commands_bypass_estop(sparkii_home):
+async def test_gateway_slash_commands_bypass_estop(hermes_home):
     """Recognized slash commands must pass the estop gate — /pause off is
     the in-band resume path for messaging-only users, and /status, /help
     and friends must keep working while paused."""
@@ -346,7 +346,7 @@ class _FakePauseEvent(_FakeEvent):
 
 
 @pytest.mark.asyncio
-async def test_gateway_pause_command_engages_and_resumes(sparkii_home):
+async def test_gateway_pause_command_engages_and_resumes(hermes_home):
     from gateway.run import GatewayRunner
 
     runner = object.__new__(GatewayRunner)

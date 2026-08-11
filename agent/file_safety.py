@@ -16,19 +16,19 @@ def _sparkii_home_path() -> Path:
         return Path(os.path.expanduser("~/.sparkii"))
 
 
-def _sparkii_root_path() -> Path:
+def _hermes_root_path() -> Path:
     """Resolve the Sparkii root dir (always the parent of any profile, never per-profile)."""
     try:
-        from sparkii_constants import get_default_sparkii_root  # local import to avoid cycles
-        return get_default_sparkii_root()
+        from sparkii_constants import get_default_hermes_root  # local import to avoid cycles
+        return get_default_hermes_root()
     except Exception:
         return Path(os.path.expanduser("~/.sparkii"))
 
 
 def build_write_denied_paths(home: str) -> set[str]:
     """Return exact sensitive paths that must never be written."""
-    sparkii_home = _sparkii_home_path()
-    sparkii_root = _sparkii_root_path()
+    hermes_home = _sparkii_home_path()
+    hermes_root = _hermes_root_path()
     return {
         os.path.realpath(p)
         for p in [
@@ -37,18 +37,18 @@ def build_write_denied_paths(home: str) -> set[str]:
             os.path.join(home, ".ssh", "id_ed25519"),
             os.path.join(home, ".ssh", "config"),
             # Active profile .env (or top-level .env when not in profile mode).
-            str(sparkii_home / ".env"),
+            str(hermes_home / ".env"),
             # Top-level .env, even when running under a profile — overwriting it
             # leaks credentials across every profile that inherits from root (#15981).
-            str(sparkii_root / ".env"),
+            str(hermes_root / ".env"),
             # Active profile Anthropic PKCE credential store.
-            str(sparkii_home / ".anthropic_oauth.json"),
+            str(hermes_home / ".anthropic_oauth.json"),
             # Top-level Anthropic PKCE credential store remains sensitive even
             # when a profile is active; default/non-profile sessions still read it.
-            str(sparkii_root / ".anthropic_oauth.json"),
+            str(hermes_root / ".anthropic_oauth.json"),
             # Bitwarden Secrets Manager encrypted disk cache.
-            str(sparkii_home / "cache" / "bws_cache.enc.json"),
-            str(sparkii_root / "cache" / "bws_cache.enc.json"),
+            str(hermes_home / "cache" / "bws_cache.enc.json"),
+            str(hermes_root / "cache" / "bws_cache.enc.json"),
             os.path.join(home, ".netrc"),
             os.path.join(home, ".pgpass"),
             os.path.join(home, ".npmrc"),
@@ -111,16 +111,16 @@ def _classify_write_denial(path: str) -> Optional[str]:
 
     mcp_tokens_dir_name = "mcp-tokens"
 
-    sparkii_dirs = []
-    for base in (_sparkii_home_path(), _sparkii_root_path()):
+    hermes_dirs = []
+    for base in (_sparkii_home_path(), _hermes_root_path()):
         try:
             real = os.path.realpath(base)
-            if real not in sparkii_dirs:
-                sparkii_dirs.append(real)
+            if real not in hermes_dirs:
+                hermes_dirs.append(real)
         except Exception:
             continue
 
-    for base_real in sparkii_dirs:
+    for base_real in hermes_dirs:
         # Session transcripts are application-owned state.  Letting the agent's
         # generic file tools rewrite state.db or legacy JSON snapshots can
         # falsify conversation history and invalidate resume/compression state.
@@ -243,17 +243,17 @@ def get_read_block_error(path: str) -> Optional[str]:
     # blocked when running under a profile (SPARKII_HOME points at
     # <root>/profiles/<name> in profile mode). Same shape as the write
     # deny widening (#15981, #14157).
-    sparkii_dirs: list[Path] = []
-    for base in (_sparkii_home_path(), _sparkii_root_path()):
+    hermes_dirs: list[Path] = []
+    for base in (_sparkii_home_path(), _hermes_root_path()):
         try:
             real = base.resolve()
-            if real not in sparkii_dirs:
-                sparkii_dirs.append(real)
+            if real not in hermes_dirs:
+                hermes_dirs.append(real)
         except Exception:
             continue
 
     # Skills .hub: prompt-injection carriers.
-    for hd in sparkii_dirs:
+    for hd in hermes_dirs:
         blocked_dirs = [
             hd / "skills" / ".hub" / "index-cache",
             hd / "skills" / ".hub",
@@ -283,7 +283,7 @@ def get_read_block_error(path: str) -> Optional[str]:
         # was introduced by #31968 but not added to this guard.
         os.path.join("cache", "bws_cache.json"),
     )
-    for hd in sparkii_dirs:
+    for hd in hermes_dirs:
         for name in credential_file_names:
             try:
                 blocked = (hd / name).resolve()
@@ -300,7 +300,7 @@ def get_read_block_error(path: str) -> Optional[str]:
 
     # mcp-tokens/: directory prefix match — anything inside is OAuth
     # token material.
-    for hd in sparkii_dirs:
+    for hd in hermes_dirs:
         try:
             mcp_tokens = (hd / "mcp-tokens").resolve()
         except Exception:
@@ -400,7 +400,7 @@ def _resolve_active_profile_name() -> str:
     """
     try:
         home_real = _sparkii_home_path().resolve()
-        root_real = _sparkii_root_path().resolve()
+        root_real = _hermes_root_path().resolve()
     except (OSError, RuntimeError):
         return "default"
     profiles_dir = root_real / "profiles"
@@ -433,7 +433,7 @@ def classify_cross_profile_target(path: str) -> Optional[dict]:
     """
     try:
         target = Path(os.path.expanduser(str(path))).resolve()
-        root_real = _sparkii_root_path().resolve()
+        root_real = _hermes_root_path().resolve()
     except (OSError, RuntimeError):
         return None
 

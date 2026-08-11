@@ -402,8 +402,8 @@ class SessionManager:
             return self._db_instance
         try:
             from sparkii_state import SessionDB
-            sparkii_home = get_sparkii_home()
-            self._db_instance = SessionDB(db_path=sparkii_home / "state.db")
+            hermes_home = get_sparkii_home()
+            self._db_instance = SessionDB(db_path=hermes_home / "state.db")
             return self._db_instance
         except Exception:
             logger.debug("SessionDB unavailable for ACP persistence", exc_info=True)

@@ -527,7 +527,7 @@ os:               Linux 6.14.0-37-generic x86_64
 python:           3.11.14
 openai_sdk:       2.24.0
 profile:          default
-sparkii_home:      ~/.sparkii
+hermes_home:      ~/.sparkii
 model:            anthropic/claude-opus-4.6
 provider:         openrouter
 terminal:         local

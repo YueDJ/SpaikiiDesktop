@@ -26,15 +26,15 @@ def test_unsupported_allocator_is_noop_without_gc(monkeypatch):
 def test_config_kill_switch_overrides_force_from_config_file(monkeypatch, tmp_path):
     from sparkii_constants import reset_sparkii_home_override, set_sparkii_home_override
 
-    sparkii_home = tmp_path / "sparkii"
-    sparkii_home.mkdir()
-    (sparkii_home / "config.yaml").write_text(
+    hermes_home = tmp_path / "sparkii"
+    hermes_home.mkdir()
+    (hermes_home / "config.yaml").write_text(
         "context:\n  memory_trim:\n    enabled: false\n",
         encoding="utf-8",
     )
     trim = Mock(return_value=1)
     monkeypatch.setattr(mem_trim, "_malloc_trim", trim)
-    token = set_sparkii_home_override(sparkii_home)
+    token = set_sparkii_home_override(hermes_home)
 
     try:
         assert mem_trim.trim_memory(force=True) is False

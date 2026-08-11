@@ -175,6 +175,7 @@
 .sparkii-kanban-dot-ready    { background: #d4b348; }  /* amber */
 .sparkii-kanban-dot-running  { background: #3fb97d; }  /* green */
 .sparkii-kanban-dot-blocked  { background: var(--color-destructive, #d14a4a); }
+.sparkii-kanban-dot-review   { background: #48b0c4; }  /* cyan — awaiting review */
 .sparkii-kanban-dot-done     { background: #4a8cd1; }  /* blue */
 .sparkii-kanban-dot-archived { background: var(--color-border); }
 

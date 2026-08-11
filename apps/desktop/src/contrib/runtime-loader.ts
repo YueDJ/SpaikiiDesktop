@@ -248,7 +248,7 @@ async function scanDiskPlugins(): Promise<void> {
 
   try {
     // The plugin root is a LOCAL Electron path, resolved independently of the
-    // connected backend — a remote backend's sparkii_home is a remote path and
+    // connected backend — a remote backend's hermes_home is a remote path and
     // yields `undefined/desktop-plugins` here (#66899).
     const root = await desktop.desktopPluginsRoot?.()
 
@@ -352,7 +352,7 @@ export function watchRuntimePlugins(): void {
 
     try {
       // Same Electron-local root as the scanner — never the backend's
-      // sparkii_home, which is a remote path in remote mode (#66899).
+      // hermes_home, which is a remote path in remote mode (#66899).
       const root = await desktop.desktopPluginsRoot?.()
 
       if (!root) {

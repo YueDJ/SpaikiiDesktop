@@ -101,13 +101,13 @@ end
 ## 详细组件分析
 
 ### 工作流设计器（蓝图驱动的流程编排）
-- 蓝图即“技能”，通过 SKILL.md 的 YAML 前置元数据声明 hermes.blueprint，包含 schedule、deliver、prompt、enabled_toolsets 等字段，从而将自然语言流程固化为可调度任务。
+- 蓝图即“技能”，通过 SKILL.md 的 YAML 前置元数据声明 sparkii.blueprint，包含 schedule、deliver、prompt、enabled_toolsets 等字段，从而将自然语言流程固化为可调度任务。
 - 蓝图解析后转换为 Cron 作业规范，复用现有技能中心、索引、发布与审计链路，无需新增对象类型或存储。
 - 条件分支由技能内部逻辑实现：在技能脚本中根据输入/上下文调用不同工具，形成分支与聚合。
 
 ```mermaid
 flowchart TD
-Start(["开始"]) --> Parse["解析SKILL.md前缀<br/>metadata.hermes.blueprint"]
+Start(["开始"]) --> Parse["解析SKILL.md前缀<br/>metadata.sparkii.blueprint"]
 Parse --> Valid{"是否有效?"}
 Valid -- 否 --> Error["抛出蓝图错误/忽略"]
 Valid -- 是 --> BuildSpec["构建蓝图规范<br/>schedule/deliver/prompt/toolsets"]
@@ -229,7 +229,7 @@ end
 - [cron/scheduler.py:397-461](file://cron/scheduler.py#L397-L461)
 
 ### 模板库与复用组件（蓝图）
-- 蓝图即技能：通过 SKILL.md 的 metadata.hermes.blueprint 声明 schedule/deliver/prompt 等，复用技能中心的全套生命周期（搜索、审核、发布、索引）。
+- 蓝图即技能：通过 SKILL.md 的 metadata.sparkii.blueprint 声明 schedule/deliver/prompt 等，复用技能中心的全套生命周期（搜索、审核、发布、索引）。
 - 一键创建作业：蓝图解析后直接映射为 Cron 作业规范，支持 origin 路由、模型/提供商选择、工具集限制。
 - 建议与审批：安装蓝图会注册“建议作业”，用户确认后创建，避免自动排程带来的风险。
 
@@ -320,7 +320,7 @@ SC --> DL["投递/镜像<br/>各平台适配器"]
 ## 附录
 - 快速上手
   - 安装与启动：参考 README 中的安装与 CLI/Gateway 命令。
-  - 创建蓝图：在 SKILL.md 中添加 metadata.hermes.blueprint 并声明 schedule/deliver/prompt。
+  - 创建蓝图：在 SKILL.md 中添加 metadata.sparkii.blueprint 并声明 schedule/deliver/prompt。
   - 查看状态：使用 cron 相关命令查看作业、输出与健康状态。
 
 **章节来源**

@@ -1,6 +1,6 @@
 """Tests for get_sparkii_home() profile-mode fallback warning.
 
-Regression test for https://github.com/YueDJ/SparkiiAgent/issues/18594.
+Regression test for https://github.com/NousResearch/sparkii-agent/issues/18594.
 
 When SPARKII_HOME is unset but an active_profile file indicates a non-default
 profile is active, get_sparkii_home() should:
@@ -43,9 +43,9 @@ class TestGetSparkiiHomeProfileWarning:
         self, fresh_constants, tmp_path, capsys
     ):
         """active_profile=coder + SPARKII_HOME unset → warn loudly, still return fallback."""
-        sparkii_dir = tmp_path / ".sparkii"
-        sparkii_dir.mkdir()
-        (sparkii_dir / "active_profile").write_text("coder\n")
+        hermes_dir = tmp_path / ".sparkii"
+        hermes_dir.mkdir()
+        (hermes_dir / "active_profile").write_text("coder\n")
 
         result = fresh_constants.get_sparkii_home()
 
@@ -81,10 +81,10 @@ class TestGetSparkiiHomeProfileWarning:
         self, fresh_constants, tmp_path, capsys
     ):
         """active_profile that can't be decoded → fall through silently."""
-        sparkii_dir = tmp_path / ".sparkii"
-        sparkii_dir.mkdir()
+        hermes_dir = tmp_path / ".sparkii"
+        hermes_dir.mkdir()
         # Write bytes that aren't valid utf-8
-        (sparkii_dir / "active_profile").write_bytes(b"\xff\xfe\x00\x00")
+        (hermes_dir / "active_profile").write_bytes(b"\xff\xfe\x00\x00")
 
         result = fresh_constants.get_sparkii_home()
 

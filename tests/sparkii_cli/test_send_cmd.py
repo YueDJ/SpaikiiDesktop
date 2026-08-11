@@ -200,7 +200,7 @@ def test_register_send_subparser_is_reusable():
 # ---------------------------------------------------------------------------
 
 
-def test_load_sparkii_env_bridges_config_yaml_scalars(tmp_path, monkeypatch):
+def test_load_hermes_env_bridges_config_yaml_scalars(tmp_path, monkeypatch):
     """Top-level config.yaml scalars should be bridged into os.environ.
 
     This mirrors the gateway/run.py bootstrap behavior: without this, running
@@ -211,14 +211,14 @@ def test_load_sparkii_env_bridges_config_yaml_scalars(tmp_path, monkeypatch):
     """
     import os
 
-    sparkii_home = tmp_path / ".sparkii"
-    sparkii_home.mkdir()
-    (sparkii_home / ".env").write_text("SOME_TOKEN=abc123\n")
-    (sparkii_home / "config.yaml").write_text(
+    hermes_home = tmp_path / ".sparkii"
+    hermes_home.mkdir()
+    (hermes_home / ".env").write_text("SOME_TOKEN=abc123\n")
+    (hermes_home / "config.yaml").write_text(
         "TELEGRAM_HOME_CHANNEL: '5550001111'\nnested:\n  ignored: true\n"
     )
 
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
     monkeypatch.delenv("TELEGRAM_HOME_CHANNEL", raising=False)
     monkeypatch.delenv("SOME_TOKEN", raising=False)
 
@@ -228,13 +228,13 @@ def test_load_sparkii_env_bridges_config_yaml_scalars(tmp_path, monkeypatch):
     import sparkii_cli.config as _hc_config
     reload(_hc_config)
 
-    send_cmd._load_sparkii_env()
+    send_cmd._load_hermes_env()
 
     assert os.environ.get("SOME_TOKEN") == "abc123"
     assert os.environ.get("TELEGRAM_HOME_CHANNEL") == "5550001111"
 
 
-def test_load_sparkii_env_utf8_bom_preserves_first_key(tmp_path, monkeypatch):
+def test_load_hermes_env_utf8_bom_preserves_first_key(tmp_path, monkeypatch):
     """A leading UTF-8 BOM must not mangle the first .env key name.
 
     PowerShell 5.1 `Set-Content -Encoding UTF8` and Notepad prepend a BOM
@@ -244,13 +244,13 @@ def test_load_sparkii_env_utf8_bom_preserves_first_key(tmp_path, monkeypatch):
     """
     import os
 
-    sparkii_home = tmp_path / ".sparkii"
-    sparkii_home.mkdir()
-    (sparkii_home / ".env").write_bytes(
+    hermes_home = tmp_path / ".sparkii"
+    hermes_home.mkdir()
+    (hermes_home / ".env").write_bytes(
         b"\xef\xbb\xbfSEND_BOM_BOT_TOKEN=tok-first\nSEND_BOM_SECOND=two\n"
     )
 
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
     monkeypatch.delenv("SEND_BOM_BOT_TOKEN", raising=False)
     monkeypatch.delenv("SEND_BOM_SECOND", raising=False)
 
@@ -258,46 +258,46 @@ def test_load_sparkii_env_utf8_bom_preserves_first_key(tmp_path, monkeypatch):
     import sparkii_cli.config as _hc_config
     reload(_hc_config)
 
-    send_cmd._load_sparkii_env()
+    send_cmd._load_hermes_env()
 
     assert os.environ.get("SEND_BOM_BOT_TOKEN") == "tok-first"
     assert os.environ.get("SEND_BOM_SECOND") == "two"
     assert "\ufeff" + "SEND_BOM_BOT_TOKEN" not in os.environ
 
-def test_load_sparkii_env_bomless_utf8_still_loads(tmp_path, monkeypatch):
+def test_load_hermes_env_bomless_utf8_still_loads(tmp_path, monkeypatch):
     """BOM-less UTF-8 .env files must keep loading after the utf-8-sig switch."""
     import os
 
-    sparkii_home = tmp_path / ".sparkii"
-    sparkii_home.mkdir()
-    (sparkii_home / ".env").write_bytes(b"SEND_PLAIN_TOKEN=plain-val\n")
+    hermes_home = tmp_path / ".sparkii"
+    hermes_home.mkdir()
+    (hermes_home / ".env").write_bytes(b"SEND_PLAIN_TOKEN=plain-val\n")
 
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
     monkeypatch.delenv("SEND_PLAIN_TOKEN", raising=False)
 
     from importlib import reload
     import sparkii_cli.config as _hc_config
     reload(_hc_config)
 
-    send_cmd._load_sparkii_env()
+    send_cmd._load_hermes_env()
 
     assert os.environ.get("SEND_PLAIN_TOKEN") == "plain-val"
 
-def test_load_sparkii_env_latin1_fallback_still_loads(tmp_path, monkeypatch):
+def test_load_hermes_env_latin1_fallback_still_loads(tmp_path, monkeypatch):
     """Invalid UTF-8 bytes must still load via the latin-1 fallback path,
     and a leading BOM must be stripped before the latin-1 decode so the
     first key keeps its canonical name."""
     import os
 
-    sparkii_home = tmp_path / ".sparkii"
-    sparkii_home.mkdir()
+    hermes_home = tmp_path / ".sparkii"
+    hermes_home.mkdir()
     # BOM + valid first key + latin-1 é (0xE9, invalid UTF-8 alone) in a
     # later value — forces the UnicodeDecodeError → latin-1 stream path.
-    (sparkii_home / ".env").write_bytes(
+    (hermes_home / ".env").write_bytes(
         b"\xef\xbb\xbfSEND_L1_TOKEN=tok-l1\nSEND_L1_NOTE=caf\xe9\n"
     )
 
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
     monkeypatch.delenv("SEND_L1_TOKEN", raising=False)
     monkeypatch.delenv("SEND_L1_NOTE", raising=False)
 
@@ -305,44 +305,44 @@ def test_load_sparkii_env_latin1_fallback_still_loads(tmp_path, monkeypatch):
     import sparkii_cli.config as _hc_config
     reload(_hc_config)
 
-    send_cmd._load_sparkii_env()
+    send_cmd._load_hermes_env()
 
     assert os.environ.get("SEND_L1_TOKEN") == "tok-l1"
     assert os.environ.get("SEND_L1_NOTE") == "caf\xe9"
     assert "\ufeff" + "SEND_L1_TOKEN" not in os.environ
 
-def test_load_sparkii_env_latin1_fallback_overrides_shell(tmp_path, monkeypatch):
+def test_load_hermes_env_latin1_fallback_overrides_shell(tmp_path, monkeypatch):
     """The stream-based latin-1 fallback must keep override=True semantics:
     the .env value wins over a stale shell export, same as the primary path."""
     import os
 
-    sparkii_home = tmp_path / ".sparkii"
-    sparkii_home.mkdir()
+    hermes_home = tmp_path / ".sparkii"
+    hermes_home.mkdir()
     # 0xE9 forces the UnicodeDecodeError \u2192 latin-1 stream fallback.
-    (sparkii_home / ".env").write_bytes(b"SEND_OVR_TOKEN=caf\xe9-file\n")
+    (hermes_home / ".env").write_bytes(b"SEND_OVR_TOKEN=caf\xe9-file\n")
 
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
     monkeypatch.setenv("SEND_OVR_TOKEN", "stale-shell-value")
 
     from importlib import reload
     import sparkii_cli.config as _hc_config
     reload(_hc_config)
 
-    send_cmd._load_sparkii_env()
+    send_cmd._load_hermes_env()
 
     assert os.environ.get("SEND_OVR_TOKEN") == "caf\xe9-file"
 
-def test_load_sparkii_env_fallback_read_error_is_swallowed(tmp_path, monkeypatch):
+def test_load_hermes_env_fallback_read_error_is_swallowed(tmp_path, monkeypatch):
     """An I/O error inside the latin-1 fallback must not escape \u2014 the send
     path is best-effort by design and must never crash on a broken .env."""
     from pathlib import Path
 
-    sparkii_home = tmp_path / ".sparkii"
-    sparkii_home.mkdir()
+    hermes_home = tmp_path / ".sparkii"
+    hermes_home.mkdir()
     # Invalid UTF-8 so the fallback (and its read_bytes call) is reached.
-    (sparkii_home / ".env").write_bytes(b"SEND_ERR_TOKEN=caf\xe9\n")
+    (hermes_home / ".env").write_bytes(b"SEND_ERR_TOKEN=caf\xe9\n")
 
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     def _boom(self):
         raise OSError("disk went away")
@@ -354,24 +354,24 @@ def test_load_sparkii_env_fallback_read_error_is_swallowed(tmp_path, monkeypatch
     reload(_hc_config)
 
     # Should not raise.
-    send_cmd._load_sparkii_env()
+    send_cmd._load_hermes_env()
 
-def test_load_sparkii_env_bom_only_env_is_noop(tmp_path, monkeypatch):
+def test_load_hermes_env_bom_only_env_is_noop(tmp_path, monkeypatch):
     """A .env containing only a BOM must load zero vars without error."""
     import os
 
-    sparkii_home = tmp_path / ".sparkii"
-    sparkii_home.mkdir()
-    (sparkii_home / ".env").write_bytes(b"\xef\xbb\xbf")
+    hermes_home = tmp_path / ".sparkii"
+    hermes_home.mkdir()
+    (hermes_home / ".env").write_bytes(b"\xef\xbb\xbf")
 
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     from importlib import reload
     import sparkii_cli.config as _hc_config
     reload(_hc_config)
 
     before = dict(os.environ)
-    send_cmd._load_sparkii_env()
+    send_cmd._load_hermes_env()
 
     added = {k: v for k, v in os.environ.items() if k not in before}
     assert "\ufeff" not in "".join(added)

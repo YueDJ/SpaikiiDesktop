@@ -146,7 +146,7 @@ class TestOpenVikingSkillQuerySafety:
         assert openviking_plugin._derive_openviking_user_text([{"text": "hi"}]) == ""
 
 
-    def test_skill_markers_match_sparkii_scaffolding(self, tmp_path, monkeypatch):
+    def test_skill_markers_match_hermes_scaffolding(self, tmp_path, monkeypatch):
         import agent.skill_bundles as skill_bundles
         import agent.skill_commands as skill_commands
         import tools.skills_tool as skills_tool
@@ -301,9 +301,9 @@ class TestOpenVikingConfigSchema:
         """_recall_config() reads memory.openviking values from config.yaml when
         the corresponding OPENVIKING_RECALL_* env vars are not set."""
         # Populate config.yaml in the temp SPARKII_HOME
-        sparkii_home = tmp_path / "sparkii_test"
-        sparkii_home.mkdir(exist_ok=True)
-        config_yaml = sparkii_home / "config.yaml"
+        hermes_home = tmp_path / "hermes_test"
+        hermes_home.mkdir(exist_ok=True)
+        config_yaml = hermes_home / "config.yaml"
         config_yaml.write_text(
             """\
 memory:
@@ -321,7 +321,7 @@ memory:
 """,
             encoding="utf-8",
         )
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
         # Clear any OPENVIKING_RECALL_* env vars so config.yaml prevails
         for key in list(os.environ):
             if key.startswith("OPENVIKING_RECALL_"):
@@ -343,9 +343,9 @@ memory:
     def test_recall_config_env_overrides_config_yaml(self, monkeypatch, tmp_path):
         """Env vars OPENVIKING_RECALL_* take precedence over config.yaml values
         when both are present."""
-        sparkii_home = tmp_path / "sparkii_test"
-        sparkii_home.mkdir(exist_ok=True)
-        config_yaml = sparkii_home / "config.yaml"
+        hermes_home = tmp_path / "hermes_test"
+        hermes_home.mkdir(exist_ok=True)
+        config_yaml = hermes_home / "config.yaml"
         config_yaml.write_text(
             """\
 memory:
@@ -356,7 +356,7 @@ memory:
 """,
             encoding="utf-8",
         )
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
         # Override config.yaml via env
         monkeypatch.setenv("OPENVIKING_RECALL_LIMIT", "6")
         monkeypatch.setenv("OPENVIKING_RECALL_RESOURCES", "false")
@@ -370,9 +370,9 @@ memory:
     def test_recall_config_partial_config_yaml(self, monkeypatch, tmp_path):
         """Partially populated config.yaml falls back to defaults for omitted keys
         and env vars can override individual fields."""
-        sparkii_home = tmp_path / "sparkii_test"
-        sparkii_home.mkdir(exist_ok=True)
-        config_yaml = sparkii_home / "config.yaml"
+        hermes_home = tmp_path / "hermes_test"
+        hermes_home.mkdir(exist_ok=True)
+        config_yaml = hermes_home / "config.yaml"
         config_yaml.write_text(
             """\
 memory:
@@ -383,7 +383,7 @@ memory:
 """,
             encoding="utf-8",
         )
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
         for key in list(os.environ):
             if key.startswith("OPENVIKING_RECALL_"):
                 monkeypatch.delenv(key, raising=False)
@@ -401,7 +401,7 @@ memory:
                 monkeypatch.delenv(key, raising=False)
         monkeypatch.setattr(
             openviking_plugin,
-            "_load_sparkii_openviking_config",
+            "_load_hermes_openviking_config",
             lambda: {
                 "recall_limit": "12",
                 "recall_score_threshold": "0.42",
@@ -426,7 +426,7 @@ memory:
                 monkeypatch.delenv(key, raising=False)
         monkeypatch.setattr(
             openviking_plugin,
-            "_load_sparkii_openviking_config",
+            "_load_hermes_openviking_config",
             lambda: {
                 "recall_limit": "many",
                 "recall_score_threshold": True,
@@ -446,7 +446,7 @@ memory:
     def test_recall_env_overrides_string_config_with_native_types(self, monkeypatch):
         monkeypatch.setattr(
             openviking_plugin,
-            "_load_sparkii_openviking_config",
+            "_load_hermes_openviking_config",
             lambda: {"recall_limit": "12", "recall_resources": "false"},
         )
         monkeypatch.setenv("OPENVIKING_RECALL_LIMIT", "4")

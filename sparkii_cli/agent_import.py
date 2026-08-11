@@ -760,22 +760,22 @@ class AgentImporter:
                             "MCP server already exists in Sparkii config")
                 continue
 
-            sparkii_srv: Dict[str, Any] = {}
+            hermes_srv: Dict[str, Any] = {}
             if srv.get("command"):
-                sparkii_srv["command"] = srv["command"]
+                hermes_srv["command"] = srv["command"]
                 if srv.get("args"):
-                    sparkii_srv["args"] = srv["args"]
+                    hermes_srv["args"] = srv["args"]
                 env_kept, env_stripped = sanitize_mcp_env(srv.get("env"))
                 if env_kept:
-                    sparkii_srv["env"] = env_kept
+                    hermes_srv["env"] = env_kept
                 if env_stripped:
                     self.stripped_secrets.extend(
                         f"mcp_servers.{name}.env.{k}" for k in env_stripped
                     )
                 if srv.get("cwd"):
-                    sparkii_srv["cwd"] = srv["cwd"]
+                    hermes_srv["cwd"] = srv["cwd"]
             if srv.get("url"):
-                sparkii_srv["url"] = srv["url"]
+                hermes_srv["url"] = srv["url"]
                 headers = srv.get("headers")
                 if isinstance(headers, dict):
                     kept_headers = {
@@ -784,18 +784,18 @@ class AgentImporter:
                         and "authorization" not in str(k).lower()
                     }
                     if kept_headers:
-                        sparkii_srv["headers"] = kept_headers
+                        hermes_srv["headers"] = kept_headers
                     for k in headers:
                         if k not in kept_headers:
                             self.stripped_secrets.append(
                                 f"mcp_servers.{name}.headers.{k}"
                             )
-            if not sparkii_srv:
+            if not hermes_srv:
                 self.record(kind, name, None, "skipped",
                             "Server has neither a command nor a url")
                 continue
 
-            existing[name] = sparkii_srv
+            existing[name] = hermes_srv
             added += 1
             self.record(kind, name, f"config.yaml mcp_servers.{name}",
                         "imported")
@@ -890,12 +890,12 @@ def import_agent_command(args) -> None:
                     f"{agent} --source /path/to/{_AGENT_DEFAULT_DIRS[agent]}")
         return
 
-    sparkii_home = get_sparkii_home()
+    hermes_home = get_sparkii_home()
     print()
     print_header("Import Settings")
     print_info(f"Agent:       {agent}")
     print_info(f"Source:      {source_dir}")
-    print_info(f"Target:      {sparkii_home}")
+    print_info(f"Target:      {hermes_home}")
     print_info(f"Overwrite:   {'yes' if overwrite else 'no (skip conflicts)'}")
     print_info("Secrets:     never imported — run 'sparkii setup' for credentials")
 
@@ -909,7 +909,7 @@ def import_agent_command(args) -> None:
         preview = AgentImporter(
             agent=agent,
             source_root=source_dir.resolve(),
-            target_root=sparkii_home.resolve(),
+            target_root=hermes_home.resolve(),
             execute=False,
             overwrite=overwrite,
         ).run()
@@ -949,7 +949,7 @@ def import_agent_command(args) -> None:
         report = AgentImporter(
             agent=agent,
             source_root=source_dir.resolve(),
-            target_root=sparkii_home.resolve(),
+            target_root=hermes_home.resolve(),
             execute=True,
             overwrite=overwrite,
         ).run()

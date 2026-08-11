@@ -241,7 +241,7 @@ ChatCompletionsTransport --> ProviderProfile : "调用钩子构建请求"
 ## 依赖关系分析
 - 插件注册与发现
   - 系统首次调用get_provider_profile/list_providers时会扫描plugins/model-providers目录，导入各__init__.py并执行register_provider(profile)。
-  - 用户可在$HERMES_HOME/plugins/model-providers下放置同名插件覆盖内置实现（后写入优先）。
+  - 用户可在$SPARKII_HOME/plugins/model-providers下放置同名插件覆盖内置实现（后写入优先）。
 - 传输层依赖
   - ChatCompletionsTransport依赖ProviderProfile的钩子完成请求拼装；当存在profile时，不再使用遗留的flag分支。
 - 外部依赖

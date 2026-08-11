@@ -137,6 +137,8 @@ import {
   TEXT_PREVIEW_SOURCE_MAX_BYTES
 } from './hardening'
 import { cursorPointInWindow } from './hud-cursor'
+import { snapHudBounds } from './hud-snap'
+import { createHudSnapShortcut } from './hud-snap-shortcut'
 import { buildHudWindowUrl } from './hud-url'
 import { createLinkTitleWindow, guardLinkTitleSession, readLinkTitleWindowTitle } from './link-title-window'
 import { ensureMainWindow } from './main-window-lifecycle'
@@ -171,6 +173,7 @@ import {
   revalidatePooledRemoteBackends,
   revalidateRemoteConnection
 } from './remote-liveness'
+import { attachRendererConsoleCapture, formatRendererBoundaryReport } from './renderer-log'
 import {
   buildSessionWindowUrl,
   chatWindowWebPreferences,
@@ -216,6 +219,7 @@ import { formatBlockerMessage, formatProbeFailedMessage, scanVenvBlockers } from
 import { fetchMarketplaceThemes, searchMarketplaceThemes } from './vscode-marketplace'
 import { createWakeIndicatorWindowController } from './wake-indicator-window'
 import { readWindowBelow } from './window-below'
+import { installWindowRendererLifecycle } from './window-renderer-lifecycle'
 import { createWindowRevealController } from './window-reveal'
 import {
   bindGeometryPersistence,
@@ -618,7 +622,7 @@ const DESKTOP_INSTALLATION_PATH = path.join(app.getPath('userData'), 'desktop-in
 const DESKTOP_UPDATE_CONFIG_PATH = path.join(app.getPath('userData'), 'updates.json')
 const DESKTOP_WINDOW_STATE_PATH = path.join(app.getPath('userData'), 'window-state.json')
 // active-profile.json records which Sparkii profile the desktop launches its
-// local backend as. When set, startSparkii() passes `sparkii --profile <name>
+// local backend as. When set, startHermes() passes `sparkii --profile <name>
 // dashboard …`, which deterministically pins SPARKII_HOME (see
 // _apply_profile_override in sparkii_cli/main.py) and bypasses the sticky
 // ~/.sparkii/active_profile file. Unset (null) preserves the legacy behavior:
@@ -674,6 +678,7 @@ const BOOT_FAKE_STEP_MS = (() => {
 })()
 
 const APP_NAME = process.env.SPARKII_DESKTOP_APP_NAME || 'Sparkii'
+const HUD_WINDOW_TITLE = `${APP_NAME} HUD`
 const TITLEBAR_HEIGHT = 34
 const MACOS_TRAFFIC_LIGHTS_HEIGHT = 14
 
@@ -1067,7 +1072,7 @@ const remoteRevalidation = new RemoteRevalidationCoordinator()
 let softRehomeInProgress = false
 // Additional per-profile backends, keyed by profile name. The PRIMARY backend
 // (the desktop's launch profile) stays managed by backendConnectionState +
-// startSparkii(); this pool only holds EXTRA profile
+// startHermes(); this pool only holds EXTRA profile
 // backends spawned lazily when a session belongs to a different profile. A user
 // with no named profiles never populates this map, so their experience is
 // byte-for-byte the single-backend behavior.
@@ -1083,15 +1088,17 @@ const POOL_IDLE_MS = Math.max(60_000, Number(process.env.SPARKII_DESKTOP_POOL_ID
 // killing one to honor the soft cap would abort a running agent.
 const POOL_KEEPALIVE_FRESH_MS = 90_000
 let poolIdleReaper = null
-// Auto-reload budget for renderer crashes. A deterministic startup crash would
-// otherwise loop forever (reload → crash → reload), pinning CPU and spamming
-// logs. Allow a few reloads per rolling window, then stop and leave the dead
-// window so the user can read the error / quit.
+// Auto-reload budget for renderer crashes, shared by EVERY window (primary,
+// secondary session, instance) so a crash loop anywhere is suppressed after
+// the same budget instead of reloading per-window forever. A deterministic
+// startup crash would otherwise loop forever (reload → crash → reload),
+// pinning CPU and spamming logs. Allow a few reloads per rolling window, then
+// stop and leave the dead window so the user can read the error / quit.
 const RENDERER_RELOAD_WINDOW_MS = 60_000
 const RENDERER_RELOAD_MAX = 3
-let rendererReloadTimes = []
+const rendererReloadTimesRef: { current: number[] } = { current: [] }
 // Latched bootstrap failure: when the first-launch install fails, we hold
-// onto the error so subsequent startSparkii() calls (e.g. the renderer's
+// onto the error so subsequent startHermes() calls (e.g. the renderer's
 // ensureGatewayOpen retrying after the WS won't open) return the same error
 // instead of re-running install.ps1 in a hot loop. Cleared explicitly by
 // the renderer's "Reload and retry" path or by quitting the app.
@@ -1748,7 +1755,7 @@ function directoryExists(filePath) {
 // relaunches the desktop mid-update — because the window vanished with no
 // progress and looks crashed — a fresh instance must NOT spawn its own local
 // backend: that backend re-locks the venv shim, the updater's straggler cleanup
-// (`force_kill_other_sparkii`, taskkill /IM sparkii.exe) kills it, the launch
+// (`force_kill_other_hermes`, taskkill /IM sparkii.exe) kills it, the launch
 // fails with the 45s "backend didn't come up" error, and the relaunch/kill
 // cycle loops. Instead the fresh instance parks until the update finishes, then
 // brings the backend up itself (it is the surviving instance — the updater's
@@ -2970,7 +2977,7 @@ async function applyUpdates(opts = {}) {
         '(a second Sparkii window or a terminal running sparkii?). Close it and retry.'
 
       emitUpdateProgress({ stage: 'error', message, percent: null })
-      startSparkii().catch(() => {})
+      startHermes().catch(() => {})
 
       return { ok: false, error: message }
     }
@@ -2992,7 +2999,7 @@ async function applyUpdates(opts = {}) {
 
         rememberLog(`[updates] venv-blocked: ${scanOutcome.result.processes.length} process(es) hold the install`)
         emitUpdateProgress({ stage: 'error', message, percent: null })
-        startSparkii().catch(() => {})
+        startHermes().catch(() => {})
 
         return { ok: false, error: 'venv-blocked', message }
       }
@@ -3002,7 +3009,7 @@ async function applyUpdates(opts = {}) {
 
         rememberLog(`[updates] venv-blocker probe failed: ${scanOutcome.error}`)
         emitUpdateProgress({ stage: 'error', message, percent: null })
-        startSparkii().catch(() => {})
+        startHermes().catch(() => {})
 
         return { ok: false, error: 'venv-probe-failed', message }
       }
@@ -3159,7 +3166,7 @@ async function handOffWindowsBootstrapRecovery(reason) {
     : configuredBranch || DEFAULT_UPDATE_BRANCH
 
   const venvBin = path.join(updateRoot, 'venv', IS_WINDOWS ? 'Scripts' : 'bin')
-  const venvSparkii = path.join(venvBin, IS_WINDOWS ? 'sparkii.exe' : 'sparkii')
+  const venvHermes = path.join(venvBin, IS_WINDOWS ? 'sparkii.exe' : 'sparkii')
   const venvPython = path.join(venvBin, IS_WINDOWS ? 'python.exe' : 'python')
 
   // Choose the gentle in-place --update when ANY real-install signal is present,
@@ -3169,7 +3176,7 @@ async function handOffWindowsBootstrapRecovery(reason) {
   // --repair (full venv recreate) and drove reinstall loops. The venv interpreter
   // and the bootstrap-complete marker are present earlier and are better signals.
   const haveRealInstall =
-    fileExists(venvPython) || fileExists(venvSparkii) || fileExists(path.join(updateRoot, '.sparkii-bootstrap-complete'))
+    fileExists(venvPython) || fileExists(venvHermes) || fileExists(path.join(updateRoot, '.sparkii-bootstrap-complete'))
 
   const updaterArgs = chooseUpdaterArgs(haveRealInstall, branch)
 
@@ -3216,10 +3223,10 @@ async function handOffWindowsBootstrapRecovery(reason) {
 // Resolve the sparkii CLI to drive an in-app update: prefer the venv shim in
 // the install we're updating, fall back to `sparkii` on PATH.
 function resolveSparkiiCliBinary(updateRoot) {
-  const venvSparkii = path.join(updateRoot, 'venv', 'bin', 'sparkii')
+  const venvHermes = path.join(updateRoot, 'venv', 'bin', 'sparkii')
 
-  if (fileExists(venvSparkii)) {
-    return venvSparkii
+  if (fileExists(venvHermes)) {
+    return venvHermes
   }
 
   return findOnPath('sparkii') || null
@@ -4008,7 +4015,7 @@ function resolveSparkiiBackend(backendArgs) {
   //    SPARKII_DESKTOP_IGNORE_EXISTING=1 forces the bootstrap path for testing.
   if (process.env.SPARKII_DESKTOP_IGNORE_EXISTING !== '1') {
     let sparkiiCommand = null
-    const sparkiiOverride = process.env.SPARKII_DESKTOP_SPARKII
+    const sparkiiOverride = process.env.SPARKII_DESKTOP_HERMES
 
     if (sparkiiOverride) {
       const resolvedOverride = findOnPath(sparkiiOverride)
@@ -4047,7 +4054,7 @@ function resolveSparkiiBackend(backendArgs) {
       // and lets the resolver fall through to step 6 / bootstrap.
       const shellForProbe = isCommandScript(sparkiiCommand)
 
-      // SPARKII_DESKTOP_SPARKII is an explicit deployment override (used by
+      // SPARKII_DESKTOP_HERMES is an explicit deployment override (used by
       // the Nix wrapper), not a discovered PATH candidate. It must not fall
       // through to the install-script bootstrap if the optional probe times
       // out under load; the pinned backend is the only valid runtime there.
@@ -4228,7 +4235,7 @@ async function ensureRuntime(backend) {
 
       bootstrapError.isBootstrapFailure = true
       bootstrapError.failedStage = bootstrapResult.failedStage || null
-      // Latch the failure so subsequent startSparkii() calls return this
+      // Latch the failure so subsequent startHermes() calls return this
       // same error without re-running install.ps1.  Cleared by the
       // sparkii:bootstrap:reset IPC (renderer's "Reload and retry").
       bootstrapFailure = bootstrapError
@@ -5236,7 +5243,7 @@ async function buildReadinessHealthProbe(baseUrl, authMode, token) {
   return { probeHealth: fetchPublicJson, probeIsCredentialed: false }
 }
 
-async function waitForSparkii(baseUrl, token, signal?, authMode?) {
+async function waitForHermes(baseUrl, token, signal?, authMode?) {
   const { probeHealth, probeIsCredentialed } = await buildReadinessHealthProbe(baseUrl, authMode, token)
 
   return waitForSparkiiReady(baseUrl, {
@@ -5249,12 +5256,18 @@ async function waitForSparkii(baseUrl, token, signal?, authMode?) {
   })
 }
 
-function getWindowButtonPosition() {
+function getWindowButtonPosition(win = mainWindow) {
   if (!IS_MAC) {
     return null
   }
 
-  return mainWindow?.getWindowButtonPosition?.() || WINDOW_BUTTON_POSITION
+  // Fullscreen hides the traffic lights — treat as no left-side controls so the
+  // renderer drops the traffic-light dodge inset and Y nudge.
+  if (win?.isFullScreen?.()) {
+    return null
+  }
+
+  return win?.getWindowButtonPosition?.() || WINDOW_BUTTON_POSITION
 }
 
 function getNativeOverlayWidth() {
@@ -5267,7 +5280,8 @@ function getWindowState(win = mainWindow) {
     isMinimized: Boolean(win?.isMinimized?.()),
     isVisible: Boolean(win?.isVisible?.()),
     nativeOverlayWidth: getNativeOverlayWidth(),
-    windowButtonPosition: getWindowButtonPosition()
+    windowButtonPosition: getWindowButtonPosition(win),
+    darwinMajor: IS_MAC ? DARWIN_MAJOR : 0
   }
 }
 
@@ -5898,7 +5912,7 @@ function installMediaPermissions() {
 // Nous Research) instead of a static session token. The auth model is
 // fundamentally different from the token path:
 //
-//   * REST is authed by HttpOnly session cookies (``sparkii_session_at``),
+//   * REST is authed by HttpOnly session cookies (``hermes_session_at``),
 //     established by a browser redirect round-trip (/login → IDP →
 //     /auth/callback sets cookies). We cannot read the HttpOnly cookie value
 //     in JS — instead we let an Electron BrowserWindow complete the round
@@ -5910,8 +5924,8 @@ function installMediaPermissions() {
 //     path is unconditionally rejected by gated gateways.
 //   * Nous Portal now issues a 24h ROTATING, reuse-detected refresh token
 //     alongside the ~15-min access token (Portal NAS #293 / sparkii #37247).
-//     Both are set as HttpOnly cookies (``sparkii_session_at`` ~15 min,
-//     ``sparkii_session_rt`` 24h). When the AT cookie lapses but the RT cookie
+//     Both are set as HttpOnly cookies (``hermes_session_at`` ~15 min,
+//     ``hermes_session_rt`` 24h). When the AT cookie lapses but the RT cookie
 //     is still alive, the gateway middleware transparently rotates a fresh AT
 //     on the next authenticated request — so connectivity must NOT be gated on
 //     the AT cookie alone. We probe liveness by actually minting a ws-ticket
@@ -5937,7 +5951,7 @@ function getOauthSession() {
 // cookies.get() on a fresh cold start can resolve BEFORE the jar has finished
 // hydrating from disk and return an empty array — even though the user is
 // signed in. That false-negative used to make hasLiveOauthSession() report
-// "not signed in", which on the initial boot path (startSparkii → the renderer's
+// "not signed in", which on the initial boot path (startHermes → the renderer's
 // single-shot boot() with no retry) surfaced as the "Sparkii couldn't start"
 // OAuth overlay that vanishes the instant the user clicks Retry.
 //
@@ -6196,6 +6210,10 @@ function openOauthLoginWindow(baseUrl, { silent = false } = {}) {
     win.webContents.on('did-navigate', () => void checkCookie())
     win.webContents.on('did-redirect-navigation', () => void checkCookie())
     win.webContents.on('did-frame-navigate', () => void checkCookie())
+    // Log-only lifecycle diagnostics: a crashed sign-in renderer is invisible
+    // to the window's promise path (it never settles), so without this the
+    // failure leaves no trace in desktop.log (#81290 follow-up).
+    installWindowRendererLifecycle(win, { kind: 'oauth', callbacks: { log: rememberLog } })
     pollTimer = setInterval(() => void checkCookie(), 750)
 
     // Silent-mode reveal fallback: if the cascade hasn't settled shortly, the
@@ -6575,7 +6593,7 @@ function resolvePortalBaseUrl() {
 // credential that powers both discovery and the silent cascade. The portal
 // authenticates via PRIVY, not the Sparkii gateway session cookies, so this
 // checks for the `privy-token` cookie on the portal host (NOT
-// hasLiveOauthSession, which looks for sparkii_session_at/rt that the portal
+// hasLiveOauthSession, which looks for hermes_session_at/rt that the portal
 // never sets). See connection-config.ts cookiesHavePrivySession.
 async function hasLivePortalSession() {
   const sess = getOauthSession()
@@ -6689,6 +6707,11 @@ function openPortalLoginWindow() {
     win.webContents.on('did-navigate', () => void checkCookie())
     win.webContents.on('did-redirect-navigation', () => void checkCookie())
     win.webContents.on('did-frame-navigate', () => void checkCookie())
+    // Log-only lifecycle diagnostics, same rationale as the OAuth window:
+    // a crashed portal sign-in renderer never settles the promise, so the
+    // failure would otherwise leave no trace in desktop.log (#81290
+    // follow-up).
+    installWindowRendererLifecycle(win, { kind: 'portal', callbacks: { log: rememberLog } })
     pollTimer = setInterval(() => void checkCookie(), 750)
 
     win.on('closed', () => {
@@ -7527,7 +7550,7 @@ async function bootstrapSshConnectionInner(profile, sshConfig, reuseToken, sourc
       forward: (localPort, remotePort) => ssh.forward(localPort, remotePort),
       cancelForward: (localPort, remotePort) => ssh.cancelForward(localPort, remotePort),
       pickLocalPort,
-      waitForSparkii: (baseUrl, token) => waitForSparkii(baseUrl, token, lease.signal, 'token'),
+      waitForHermes: (baseUrl, token) => waitForHermes(baseUrl, token, lease.signal, 'token'),
       probeReuseProof: sshProbeReuseProof,
       adoptServedToken: adoptServedDashboardToken,
       rememberLog: sshRememberLog,
@@ -7729,7 +7752,7 @@ function globalRemoteActive() {
 // True when the PRIMARY profile's backend resolves to a remote/cloud host —
 // i.e. resolveRemoteBackend(primaryProfileKey()) would return a descriptor
 // rather than null. Mirrors that function's precedence (per-profile override →
-// env → global) so a startSparkii() failure can be classified as remote (never
+// env → global) so a startHermes() failure can be classified as remote (never
 // latch — transient, must stay retryable) vs local (latch to break install
 // loops) BEFORE the throwing resolve/mint runs.
 function primaryBackendIsRemote() {
@@ -7939,7 +7962,7 @@ async function testDesktopConnectionConfig(input: any = {}) {
       token = decryptDesktopSecret(block.token)
     }
   } else {
-    const remote = (await resolveRemoteBackend(key)) || (await startSparkii())
+    const remote = (await resolveRemoteBackend(key)) || (await startHermes())
     baseUrl = remote.baseUrl
     token = remote.token
     authMode = normAuthMode(remote.authMode)
@@ -8012,7 +8035,7 @@ function resetSparkiiConnection({ soft = false } = {}) {
 
 // Re-home the primary backend: reset connection state, then wait for the live
 // dashboard process to actually exit (SIGKILL after 5s) so the next
-// startSparkii() spawns fresh instead of racing the dying one. Shared by the
+// startHermes() spawns fresh instead of racing the dying one. Shared by the
 // connection-config and profile switch flows.
 async function teardownPrimaryBackendAndWait({ soft = false } = {}) {
   // Capture the reference before resetSparkiiConnection() invalidates it.
@@ -8061,6 +8084,14 @@ async function waitForBackendExit(child, timeoutMs = 5000) {
       try {
         if (IS_WINDOWS && Number.isInteger(child.pid)) {
           forceKillProcessTree(child.pid)
+        } else if (Number.isInteger(child.pid)) {
+          // POSIX: SIGKILL the whole group (pgid==pid, start_new_session) so
+          // MCP grandchildren die with the backend. Fall back to the child.
+          try {
+            process.kill(-child.pid, 'SIGKILL')
+          } catch {
+            child.kill('SIGKILL')
+          }
         } else {
           child.kill('SIGKILL')
         }
@@ -8102,7 +8133,7 @@ async function ensureBackend(profile) {
   const route = resolveProfileBackendRoute(key, profileRouteOptions(key))
 
   if (route.backend === 'primary') {
-    const connection = await startSparkii()
+    const connection = await startHermes()
 
     // A shared backend still owes the caller its profile scope, so renderer-side
     // WebSocket, filesystem, and cache routing target the selected profile.
@@ -8210,7 +8241,7 @@ function startPoolIdleReaper() {
 }
 
 // Spawn an additional dashboard backend pinned to a named profile. Mirrors the
-// local-spawn portion of startSparkii() but without the boot-progress UI,
+// local-spawn portion of startHermes() but without the boot-progress UI,
 // bootstrap, or remote handling (those belong to the primary backend only).
 async function spawnPoolBackend(profile, entry) {
   // A profile may point at its OWN remote backend (connection.json
@@ -8222,7 +8253,7 @@ async function spawnPoolBackend(profile, entry) {
   const remote = await resolveRemoteBackend(profile)
 
   if (remote) {
-    await waitForSparkii(remote.baseUrl, remote.token, undefined, remote.authMode)
+    await waitForHermes(remote.baseUrl, remote.token, undefined, remote.authMode)
 
     // Recorded on the entry so revalidation can probe this descriptor without
     // awaiting connectionPromise, which may still be pending for a sibling.
@@ -8288,6 +8319,11 @@ async function spawnPoolBackend(profile, entry) {
         // Marks this dashboard backend as desktop-spawned so it runs the cron
         // scheduler tick loop (the gateway isn't running under the app).
         SPARKII_DESKTOP: '1',
+        // Our PID so the backend's parent-death watchdog self-exits if we die
+        // uncleanly (crash / SIGKILL / update handoff) instead of leaking a
+        // serving backend + its MCP child subtree. See web_server.py
+        // _start_parent_death_watchdog.
+        SPARKII_PARENT_PID: String(process.pid),
         SPARKII_WEB_DIST: webDist,
         ...(readyFile ? { SPARKII_DESKTOP_READY_FILE: readyFile } : {})
       },
@@ -8335,7 +8371,7 @@ async function spawnPoolBackend(profile, entry) {
   entry.port = port
 
   const baseUrl = `http://127.0.0.1:${port}`
-  await Promise.race([waitForSparkii(baseUrl, token), startFailed])
+  await Promise.race([waitForHermes(baseUrl, token), startFailed])
   ready = true
 
   const authToken = await adoptServedDashboardToken(baseUrl, token, {
@@ -8435,9 +8471,9 @@ async function prepareProfileDeleteRequest(request) {
   return decision.profile
 }
 
-async function startSparkii() {
+async function startHermes() {
   // Latched-failure short-circuit: once bootstrap has failed in this
-  // process, every subsequent startSparkii() call re-throws the same error
+  // process, every subsequent startHermes() call re-throws the same error
   // without re-running install.ps1. This prevents the renderer's
   // ensureGatewayOpen retries (and any other getConnection callers) from
   // restarting a 5-10 minute install loop while the user is still reading
@@ -8483,7 +8519,7 @@ async function startSparkii() {
   const connectionPromise = (async () => {
     const connectRemote = async remote => {
       await advanceBootProgress('backend.remote', `Connecting to remote Sparkii backend at ${remote.baseUrl}`, 24)
-      await waitForSparkii(remote.baseUrl, remote.token, undefined, remote.authMode)
+      await waitForHermes(remote.baseUrl, remote.token, undefined, remote.authMode)
       updateBootProgress({
         phase: 'backend.ready',
         message: 'Remote Sparkii backend is ready',
@@ -8581,6 +8617,11 @@ async function startSparkii() {
           // Marks this dashboard backend as desktop-spawned so it runs the cron
           // scheduler tick loop (the gateway isn't running under the app).
           SPARKII_DESKTOP: '1',
+          // Our PID so the backend's parent-death watchdog self-exits if we die
+          // uncleanly (crash / SIGKILL / update handoff) instead of leaking a
+          // serving backend + its MCP child subtree. See web_server.py
+          // _start_parent_death_watchdog.
+          SPARKII_PARENT_PID: String(process.pid),
           SPARKII_WEB_DIST: webDist,
           ...(readyFile ? { SPARKII_DESKTOP_READY_FILE: readyFile } : {})
         },
@@ -8673,7 +8714,7 @@ async function startSparkii() {
 
     const baseUrl = `http://127.0.0.1:${port}`
     await advanceBootProgress('backend.wait', 'Waiting for Sparkii backend to become ready', 90)
-    await Promise.race([waitForSparkii(baseUrl, token), backendStartFailed])
+    await Promise.race([waitForHermes(baseUrl, token), backendStartFailed])
     backendReady = true
     backendStartFailure = null
 
@@ -8888,6 +8929,24 @@ function spawnSecondaryWindow({ sessionId, watch }: { sessionId?: string; watch?
 
   streamThrottle.register(win)
   wireCommonWindowHandlers(win, zoomWiringForWindowKind('chat'))
+  attachRendererConsoleCapture(win, 'session-window', rememberLog)
+
+  // Renderer lifecycle diagnostics + recovery (#81290): a dead session-window
+  // renderer used to log nothing and stay black; now it logs with its window
+  // kind and reloads under the shared crash-loop budget, exactly like the
+  // primary window, without touching any other window.
+  installWindowRendererLifecycle(win, {
+    kind: 'secondary',
+    callbacks: {
+      log: rememberLog,
+      reload: () => {
+        win.webContents.reload()
+      }
+    },
+    reloadWindowMs: RENDERER_RELOAD_WINDOW_MS,
+    reloadMax: RENDERER_RELOAD_MAX,
+    recentReloadTimesRef: rendererReloadTimesRef
+  })
 
   loadWindowUrl(
     win,
@@ -8969,10 +9028,27 @@ function createInstanceWindow() {
   streamThrottle.register(win)
   wireCommonWindowHandlers(win, zoomWiringForWindowKind('chat'))
 
+  // Renderer lifecycle diagnostics + recovery (#81290), same policy as the
+  // primary and session windows: a crashed instance renderer logs with its
+  // window kind and reloads under the shared crash-loop budget.
+  installWindowRendererLifecycle(win, {
+    kind: 'instance',
+    callbacks: {
+      log: rememberLog,
+      reload: () => {
+        win.webContents.reload()
+      }
+    },
+    reloadWindowMs: RENDERER_RELOAD_WINDOW_MS,
+    reloadMax: RENDERER_RELOAD_MAX,
+    recentReloadTimesRef: rendererReloadTimesRef
+  })
+
   win.on('closed', () => {
     instanceWindows.delete(win)
   })
 
+  attachRendererConsoleCapture(win, 'instance', rememberLog)
   loadWindowUrl(win, DEV_SERVER || pathToFileURL(resolveRendererIndex()).toString(), 'Instance window')
 
   return win
@@ -8984,6 +9060,7 @@ const wakeIndicatorController = createWakeIndicatorWindowController({
   devServer: DEV_SERVER,
   isMac: IS_MAC,
   loadWindowUrl,
+  log: rememberLog,
   preloadPath: PRELOAD_PATH,
   rendererIndex: resolveRendererIndex,
   wireWindow: window => wireCommonWindowHandlers(window, zoomWiringForWindowKind('wakeIndicator'))
@@ -9079,6 +9156,10 @@ function spawnPetOverlayWindow(bounds) {
 
   wireWindowReveal(win, { show: () => win.showInactive() })
 
+  // Log-only renderer lifecycle (#81290): a dead overlay must never resurrect
+  // itself over the app, but its loss belongs in desktop.log.
+  installWindowRendererLifecycle(win, { kind: 'overlay', callbacks: { log: rememberLog } })
+
   win.on('closed', () => {
     if (petOverlayWindow === win) {
       petOverlayWindow = null
@@ -9092,6 +9173,7 @@ function spawnPetOverlayWindow(bounds) {
     }
   })
 
+  attachRendererConsoleCapture(win, 'pet-overlay', rememberLog)
   loadWindowUrl(win, petOverlayUrl(), 'Pet overlay')
 
   return win
@@ -9211,6 +9293,46 @@ const schedulePersistHudState = debounce(persistHudState, 250)
 // and, when the answer has not changed, nothing else.
 const HUD_CURSOR_POLL_MS = 60
 
+// Snap-to-pointer — global ⌘⇧G while the HUD is open (tap, not hold).
+const HUD_SNAP_ANCHOR_Y = 48
+
+function applyHudSnapToPointer() {
+  if (!hudWindow || hudWindow.isDestroyed()) {
+    return
+  }
+
+  const cursor = screen.getCursorScreenPoint()
+  const bounds = hudWindow.getBounds()
+  const display = screen.getDisplayNearestPoint(cursor)
+  const workArea = display?.workArea ?? bounds
+  const anchor = { x: Math.round(bounds.width / 2), y: HUD_SNAP_ANCHOR_Y }
+
+  const origin = snapHudBounds(
+    cursor,
+    anchor,
+    { width: bounds.width, height: bounds.height },
+    hudWindow.webContents.getZoomFactor(),
+    workArea
+  )
+
+  // setBounds — NOT setPosition alone: on Windows, a transparent frameless
+  // window silently grows ~1px per setPosition call (see move-by handler).
+  hudWindow.setBounds({
+    x: origin.x,
+    y: origin.y,
+    width: bounds.width,
+    height: bounds.height
+  })
+}
+
+const hudSnapShortcut = createHudSnapShortcut(globalShortcut, applyHudSnapToPointer)
+
+function registerHudSnapShortcut() {
+  if (!hudSnapShortcut.register()) {
+    rememberLog('[hud] snap shortcut unavailable — CommandOrControl+Shift+G may be owned by another app')
+  }
+}
+
 /**
  * Feed the HUD renderer the cursor position on Linux.
  *
@@ -9328,9 +9450,18 @@ function spawnHudWindow(sessionId, profile) {
     ...hudBounds(),
     minWidth: 380,
     minHeight: 160,
+    title: HUD_WINDOW_TITLE,
     frame: false,
     transparent: true,
-    resizable: true,
+    // NOT resizable. A transparent frameless window on Windows keeps a
+    // system-level edge resize hot-zone while `resizable` is on — the OS
+    // interprets pointer capture near the edge as a resize gesture, so the
+    // window grows a few px every drag (worse at >100% DPI scaling). The
+    // composer drag calls setPosition, which must move the window, not resize
+    // it. Resizing is done by the renderer's corner handle through
+    // `sparkii:hud:set-bounds`, which flips resizable on for the call — the
+    // same pattern the pet overlay uses for its wheel-scale.
+    resizable: false,
     movable: true,
     minimizable: false,
     maximizable: false,
@@ -9406,6 +9537,10 @@ function spawnHudWindow(sessionId, profile) {
     broadcastHudState(false)
   })
 
+  attachRendererConsoleCapture(win, 'hud', rememberLog)
+  // Log-only lifecycle (#81290): the HUD is a compact auxiliary surface the
+  // user can re-toggle; a dead renderer should be diagnosable, not resurrected.
+  installWindowRendererLifecycle(win, { kind: 'hud', callbacks: { log: rememberLog } })
   loadWindowUrl(win, hudUrl(sessionId, profile), 'HUD')
 
   return win
@@ -9442,6 +9577,7 @@ function openHudWindow(sessionId, profile) {
       hudProfile = profileKey
       hudWindow = spawnHudWindow(sessionId, profileKey)
       broadcastHudState(true)
+      registerHudSnapShortcut()
 
       return hudWindow
     }
@@ -9467,11 +9603,14 @@ function openHudWindow(sessionId, profile) {
   hudProfile = profileKey
   hudWindow = spawnHudWindow(sessionId, profileKey)
   broadcastHudState(true)
+  registerHudSnapShortcut()
 
   return hudWindow
 }
 
 function closeHudWindow() {
+  hudSnapShortcut.dispose()
+
   const win = hudWindow
   hudWindow = null
 
@@ -9584,6 +9723,10 @@ function spawnQuickEntryWindow() {
   // its own OS window and a zoomed composer would overflow it.
   wireCommonWindowHandlers(win, zoomWiringForWindowKind('quickEntry'))
 
+  // Log-only renderer lifecycle (#81290): a dead quick-entry window must never
+  // resurrect itself over the app, but its loss belongs in desktop.log.
+  installWindowRendererLifecycle(win, { kind: 'quick', callbacks: { log: rememberLog } })
+
   // Hide on blur. The window must never hold the user's focus captive — losing
   // focus is the cheapest, least surprising dismiss (matches Spotlight).
   win.on('blur', () => {
@@ -9607,6 +9750,7 @@ function spawnQuickEntryWindow() {
     }
   })
 
+  attachRendererConsoleCapture(win, 'quick-entry', rememberLog)
   loadWindowUrl(win, quickEntryUrl(), 'Quick entry')
 
   return win
@@ -9821,89 +9965,67 @@ function createWindow() {
   streamThrottle.register(mainWindow)
   wireCommonWindowHandlers(mainWindow, zoomWiringForWindowKind('chat'))
 
-  mainWindow.webContents.on('render-process-gone', (_event, details) => {
-    rememberLog(`[renderer] render-process-gone reason=${details?.reason} exitCode=${details?.exitCode}`)
-
-    if (details?.reason === 'crashed' || details?.reason === 'oom') {
-      const now = Date.now()
-      rendererReloadTimes = rendererReloadTimes.filter(t => now - t < RENDERER_RELOAD_WINDOW_MS)
-
-      if (rendererReloadTimes.length >= RENDERER_RELOAD_MAX) {
-        rememberLog(
-          `[renderer] suppressing reload: ${rendererReloadTimes.length} crashes within ${RENDERER_RELOAD_WINDOW_MS}ms (likely a crash loop)`
-        )
-
+  // Per-window renderer lifecycle diagnostics + recovery (#81290). The reload
+  // policy (crashed/oom → bounded reload via the shared rolling budget, then
+  // the #38216 Windows sandbox relaunch check on suppression) is the same
+  // policy this window used before it moved into the shared helper, so a
+  // crashed peer renderer now logs and recovers exactly like the primary one.
+  installWindowRendererLifecycle(mainWindow, {
+    kind: 'main',
+    callbacks: {
+      log: rememberLog,
+      reload: () => {
+        mainWindow.webContents.reload()
+      },
+      onCrashLoopSuppressed: details => {
         // #38216 renderer flavor (same recovery as #56726, credit @Sahil-SS9):
         // a deterministic Windows renderer crash loop with the sandbox
         // breakpoint signature gets one --no-sandbox relaunch instead of a
         // dead window. Gated on the exit code so unrelated crash loops don't
         // silently drop the sandbox.
         if (
-          shouldRelaunchForRendererSandboxCrashLoop({
+          !shouldRelaunchForRendererSandboxCrashLoop({
             reason: details?.reason,
             exitCode: details?.exitCode,
             alreadyNoSandbox: windowsSandboxFallbackActive || alreadyHasNoSandbox(process.argv, process.env),
             relaunchAttempted: windowsNoSandboxRelaunchAttempted
           })
         ) {
-          windowsNoSandboxRelaunchAttempted = true
-          windowsSandboxFallbackActive = true
-          windowsSandboxFallbackSticky = true
-          windowsSandboxFallbackReason = 'renderer-crash-loop'
-
-          try {
-            writeSandboxMarker(app.getPath('userData'), fallbackMarker('renderer-crash-loop', app.getVersion()))
-          } catch {
-            void 0
-          }
-
-          rememberLog('[renderer] Windows sandbox crash loop detected; relaunching once with --no-sandbox (#38216)')
-
-          try {
-            app.relaunch({ args: buildNoSandboxRelaunchArgs(process.argv.slice(1)) })
-            app.exit(0)
-          } catch (err) {
-            rememberLog(`[renderer] --no-sandbox relaunch failed: ${err?.message || err}`)
-          }
-        }
-
-        return
-      }
-
-      rendererReloadTimes.push(now)
-      setImmediate(() => {
-        if (!mainWindow || mainWindow.isDestroyed()) {
           return
         }
 
-        try {
-          mainWindow.webContents.reload()
-        } catch (err) {
-          rememberLog(`[renderer] reload after crash failed: ${err?.message || err}`)
-        }
-      })
-    }
-  })
+        windowsNoSandboxRelaunchAttempted = true
+        windowsSandboxFallbackActive = true
+        windowsSandboxFallbackSticky = true
+        windowsSandboxFallbackReason = 'renderer-crash-loop'
 
-  mainWindow.webContents.on('unresponsive', () => rememberLog('[renderer] webContents became unresponsive'))
+        try {
+          writeSandboxMarker(app.getPath('userData'), fallbackMarker('renderer-crash-loop', app.getVersion()))
+        } catch {
+          void 0
+        }
+
+        rememberLog('[renderer] Windows sandbox crash loop detected; relaunching once with --no-sandbox (#38216)')
+
+        try {
+          app.relaunch({ args: buildNoSandboxRelaunchArgs(process.argv.slice(1)) })
+          app.exit(0)
+        } catch (err) {
+          rememberLog(`[renderer] --no-sandbox relaunch failed: ${err?.message || err}`)
+        }
+      }
+    },
+    reloadWindowMs: RENDERER_RELOAD_WINDOW_MS,
+    reloadMax: RENDERER_RELOAD_MAX,
+    recentReloadTimesRef: rendererReloadTimesRef
+  })
 
   // Electron always passes the event first. The canonical (Electron 36+) shape
   // is (event, messageDetails); the deprecated positional shape is
-  // (event, level, message, line, sourceId). Handle both. `level` is numeric
-  // (0..3), where 3 === error.
-  mainWindow.webContents.on('console-message', (_event, detailsOrLevel, message, line, sourceId) => {
-    const details = detailsOrLevel && typeof detailsOrLevel === 'object' ? detailsOrLevel : null
-    const level = details ? details.level : detailsOrLevel
-
-    if (level !== 3) {
-      return
-    }
-
-    const text = details ? details.message : message
-    const src = details ? details.sourceUrl : sourceId
-    const lineNo = details ? details.lineNumber : line
-    rememberLog(`[renderer console] ${text} (${src}:${lineNo})`)
-  })
+  // (event, level, message, line, sourceId). Handled in renderer-log.ts, which
+  // every renderer-content window shares (#79428: crashes in secondary/HUD/
+  // quick-entry windows used to vanish without a trace).
+  attachRendererConsoleCapture(mainWindow, 'main', rememberLog)
 
   loadWindowUrl(mainWindow, DEV_SERVER || pathToFileURL(resolveRendererIndex()).toString(), 'Renderer')
 
@@ -9914,7 +10036,7 @@ function createWindow() {
   // shared (backendConnectionState), so the renderer's getConnection() joins
   // this in-flight boot instead of duplicating it; early boot-progress events
   // the renderer misses are recovered by its getBootProgress() pull on mount.
-  startSparkii().catch(error => rememberLog(error.stack || error.message))
+  startHermes().catch(error => rememberLog(error.stack || error.message))
 
   mainWindow.webContents.once('did-finish-load', () => {
     // Zoom restore is handled by wireCommonWindowHandlers (shared with session
@@ -10201,14 +10323,52 @@ ipcMain.on('sparkii:hud:move-by', (event, delta) => {
 
   const dx = Number(delta?.x)
   const dy = Number(delta?.y)
+  const width = Number(delta?.width)
+  const height = Number(delta?.height)
 
-  if (!Number.isFinite(dx) || !Number.isFinite(dy)) {
+  if (!Number.isFinite(dx) || !Number.isFinite(dy) || !Number.isFinite(width) || !Number.isFinite(height)) {
     return
   }
 
   const [x, y] = hudWindow.getPosition()
 
-  hudWindow.setPosition(Math.round(x + dx), Math.round(y + dy))
+  // setBounds — NOT setPosition: on Windows, a transparent frameless window
+  // silently grows ~1px per setPosition call (worse at >100% DPI). The renderer
+  // snapshots outerWidth/outerHeight when the composer drag arms and re-pins
+  // to that size on every moveBy (same pattern as the pet overlay drag).
+  hudWindow.setBounds({
+    x: Math.round(x + dx),
+    y: Math.round(y + dy),
+    width: Math.round(width),
+    height: Math.round(height)
+  })
+})
+
+// Resize from the HUD's corner handle. The window is created non-resizable
+// (see spawnHudWindow — a transparent frameless window must not expose a
+// system resize hot-zone, or dragging grows it), which on Windows/Linux also
+// blocks programmatic setBounds sizing — so briefly flip resizable on while
+// the size actually changes, exactly like the pet overlay's wheel-scale does.
+ipcMain.on('sparkii:hud:set-bounds', (event, bounds) => {
+  if (!hudWindow || hudWindow.isDestroyed() || event.sender !== hudWindow.webContents || !bounds) {
+    return
+  }
+
+  const win = hudWindow
+  const width = Math.max(380, Math.round(Number(bounds.width)))
+  const height = Math.max(160, Math.round(Number(bounds.height)))
+  const [curW, curH] = win.getSize()
+  const resizing = width !== curW || height !== curH
+
+  if (resizing && !win.isResizable()) {
+    win.setResizable(true)
+  }
+
+  win.setBounds({ x: Math.round(Number(bounds.x)), y: Math.round(Number(bounds.y)), width, height })
+
+  if (resizing) {
+    win.setResizable(false)
+  }
 })
 
 // The HUD renderer reporting which session it is on, so the close broadcast
@@ -10218,6 +10378,7 @@ ipcMain.on('sparkii:hud:session', (event, sessionId) => {
     hudSessionId = typeof sessionId === 'string' && sessionId ? sessionId : null
   }
 })
+
 ipcMain.handle('sparkii:hud:close', async () => {
   closeHudWindow()
 
@@ -10225,7 +10386,7 @@ ipcMain.handle('sparkii:hud:close', async () => {
 })
 ipcMain.handle('sparkii:bootstrap:reset', async () => {
   // Renderer's "Reload and retry" path. Clear the latched failure and
-  // reset connection state so the next startSparkii() call restarts the
+  // reset connection state so the next startHermes() call restarts the
   // full backend flow (including a fresh runBootstrap pass).
   rememberLog('[bootstrap] reset requested by renderer; clearing latched failure')
   await teardownPrimaryBackendAndWait()
@@ -10238,7 +10399,7 @@ ipcMain.handle('sparkii:bootstrap:reset', async () => {
   return { ok: true }
 })
 ipcMain.handle('sparkii:bootstrap:repair', async () => {
-  // Forceful repair: force the next startSparkii() through the full installer
+  // Forceful repair: force the next startHermes() through the full installer
   // (refreshing a broken/partial venv) and clear any latched failure + live
   // connection. The renderer reloads afterwards to re-drive the boot flow.
   //
@@ -10276,7 +10437,7 @@ ipcMain.handle('sparkii:bootstrap:repair', async () => {
   // The guard may decide the install is healthy enough that a restart
   // (without touching the venv) is the right answer. Translate that into
   // the existing flag: if the guard said "soft restart", we skip the
-  // "bypass active runtime" path inside startSparkii() and fall through
+  // "bypass active runtime" path inside startHermes() and fall through
   // to the normal restart branch, which just kills the current child
   // and respawns it against the same venv. See #74874 — this is what
   // breaks the infinite reinstall loop the user hit.
@@ -10394,7 +10555,7 @@ ipcMain.handle('sparkii:connection-config:oauth-login', async (_event, rawUrl) =
 
       _storeNativeTokens(baseUrl, tokens)
       // Confirmed sign-in — release the reauth latch so the next
-      // startSparkii() re-dials instead of replaying the stale rejection.
+      // startHermes() re-dials instead of replaying the stale rejection.
       remoteReauthFailure = null
 
       return { ok: true, baseUrl, connected: true }
@@ -11429,6 +11590,17 @@ ipcMain.handle('sparkii:logs:reveal', async () => {
 
 ipcMain.handle('sparkii:logs:recent', async () => ({ path: DESKTOP_LOG_PATH, lines: sparkiiLog.slice(-200) }))
 
+// Renderer error-boundary catches (#79428 defect B): the component stack only
+// exists in renderer memory, so the boundary posts it here and we persist it
+// via the desktop.log pipeline. `on`, not `handle` — the sender may be mid-
+// crash and must not await. Flush immediately: a crashing window can be gone
+// before the debounced flush timer fires.
+ipcMain.on('sparkii:logs:renderer-error', (_event, report) => {
+  const { label, boundary, message, componentStack } = report && typeof report === 'object' ? report : {}
+  rememberLog(formatRendererBoundaryReport(label, boundary, message, componentStack))
+  flushDesktopLogBufferSync()
+})
+
 function isExecutableFile(filePath) {
   if (!filePath || !path.isAbsolute(filePath)) {
     return false
@@ -11669,14 +11841,14 @@ ipcMain.handle('sparkii:fs:openDir', async (_event, dirPath) => {
 
 // The LOCAL Desktop runtime-plugin root: `<SPARKII_HOME>/desktop-plugins`,
 // resolved from the main-process SPARKII_HOME (see resolveSparkiiHome) — NOT from
-// the connected backend. A remote backend reports its own `sparkii_home` over
+// the connected backend. A remote backend reports its own `hermes_home` over
 // the gateway, which is a path on the REMOTE box; deriving the plugin dir from
 // it yields `undefined/desktop-plugins` (or a non-existent remote path) and the
 // on-disk plugin door silently breaks (#66899). Electron owns this resolution
 // so it stays valid in every connection mode. Created on demand, like openDir.
 ipcMain.handle('sparkii:fs:desktopPluginsRoot', async () => {
   // Profile-aware: a named Desktop profile gets its own plugin root under
-  // profiles/<name>/, matching the profile-scoped sparkii_home the backend
+  // profiles/<name>/, matching the profile-scoped hermes_home the backend
   // reported before this resolver existed. 'default'/unset pins the global root.
   const profile = readActiveDesktopProfile()
   const base = profile && profile !== 'default' ? path.join(SPARKII_HOME, 'profiles', profile) : SPARKII_HOME
@@ -12054,7 +12226,7 @@ async function getUninstallSummary() {
   // Fast JS-side fallback used when the agent venv is gone (lite client) or the
   // probe fails — the renderer still needs *something* to render options from.
   const fallback = () => ({
-    sparkii_home: SPARKII_HOME,
+    hermes_home: SPARKII_HOME,
     agent_installed: isSparkiiSourceRoot(agentRoot) && fileExists(py),
     gui_installed: true,
     source_built_artifacts: [],
@@ -12548,6 +12720,8 @@ app.on('before-quit', event => {
   // floating composer with nothing behind it. Close it directly rather than via
   // closeHudWindow(): that also re-shows the main window, which is wrong on the
   // way out (and `hudRestoreMainWindow` may still be armed from entering HUD).
+  hudSnapShortcut.dispose()
+
   if (hudWindow && !hudWindow.isDestroyed()) {
     hudWindow.removeAllListeners('closed')
     hudWindow.destroy()

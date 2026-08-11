@@ -290,9 +290,9 @@ class TestApiKeyHintRealPool:
     def _seed_pool(self, tmp_path, monkeypatch):
         import json
 
-        sparkii_home = tmp_path / "sparkii"
-        sparkii_home.mkdir(parents=True, exist_ok=True)
-        (sparkii_home / "auth.json").write_text(
+        hermes_home = tmp_path / "sparkii"
+        hermes_home.mkdir(parents=True, exist_ok=True)
+        (hermes_home / "auth.json").write_text(
             json.dumps(
                 {
                     "version": 1,
@@ -320,7 +320,7 @@ class TestApiKeyHintRealPool:
                 }
             )
         )
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
         from agent.credential_pool import load_pool
 
         return load_pool("openrouter")
@@ -372,9 +372,9 @@ class TestFailureAttribution:
 
     def _make_pool(self, tmp_path, monkeypatch, entries):
         monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "sparkii"))
-        sparkii_home = tmp_path / "sparkii"
-        sparkii_home.mkdir(parents=True, exist_ok=True)
-        (sparkii_home / "auth.json").write_text(
+        hermes_home = tmp_path / "sparkii"
+        hermes_home.mkdir(parents=True, exist_ok=True)
+        (hermes_home / "auth.json").write_text(
             json.dumps({"version": 1, "credential_pool": {"anthropic": entries}})
         )
         from agent.credential_pool import load_pool

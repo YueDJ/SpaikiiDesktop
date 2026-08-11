@@ -13,9 +13,9 @@ import yaml
 
 
 def _write_auth_store(tmp_path, payload: dict) -> None:
-    sparkii_home = tmp_path / "sparkii"
-    sparkii_home.mkdir(parents=True, exist_ok=True)
-    (sparkii_home / "auth.json").write_text(json.dumps(payload, indent=2))
+    hermes_home = tmp_path / "sparkii"
+    hermes_home.mkdir(parents=True, exist_ok=True)
+    (hermes_home / "auth.json").write_text(json.dumps(payload, indent=2))
 
 
 def _jwt_with_email(email: str) -> str:
@@ -538,7 +538,7 @@ def test_clear_provider_auth_removes_provider_pool_entries(tmp_path, monkeypatch
                         "label": "primary",
                         "auth_type": "oauth",
                         "priority": 0,
-                        "source": "manual:sparkii_pkce",
+                        "source": "manual:hermes_pkce",
                         "access_token": "pool-token",
                     }
                 ],
@@ -574,10 +574,10 @@ def test_logout_resets_codex_config_when_auth_state_already_cleared(tmp_path, mo
     openai-codex.  Previously logout reported no auth state and left the agent
     pinned to the Codex provider.
     """
-    sparkii_home = tmp_path / "sparkii"
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    hermes_home = tmp_path / "sparkii"
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
     _write_auth_store(tmp_path, {"version": 1, "providers": {}, "credential_pool": {}})
-    (sparkii_home / "config.yaml").write_text(
+    (hermes_home / "config.yaml").write_text(
         "model:\n"
         "  default: gpt-5.3-codex\n"
         "  provider: openai-codex\n"
@@ -591,7 +591,7 @@ def test_logout_resets_codex_config_when_auth_state_already_cleared(tmp_path, mo
 
     out = capsys.readouterr().out
     assert "Logged out of OpenAI Codex." in out
-    config_text = (sparkii_home / "config.yaml").read_text()
+    config_text = (hermes_home / "config.yaml").read_text()
     assert "provider: auto" in config_text
     assert "base_url: https://openrouter.ai/api/v1" in config_text
 
@@ -645,23 +645,23 @@ def test_unsuppress_credential_source_preserves_other_markers(tmp_path, monkeypa
 # =============================================================================
 
 
-def test_seed_from_singletons_respects_sparkii_pkce_suppression(tmp_path, monkeypatch):
-    """anthropic sparkii_pkce must not re-seed from ~/.sparkii/.anthropic_oauth.json when suppressed."""
-    sparkii_home = tmp_path / "sparkii"
-    sparkii_home.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+def test_seed_from_singletons_respects_hermes_pkce_suppression(tmp_path, monkeypatch):
+    """anthropic hermes_pkce must not re-seed from ~/.sparkii/.anthropic_oauth.json when suppressed."""
+    hermes_home = tmp_path / "sparkii"
+    hermes_home.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     import yaml
-    (sparkii_home / "config.yaml").write_text(yaml.dump({"model": {"provider": "anthropic", "model": "claude"}}))
-    (sparkii_home / "auth.json").write_text(json.dumps({
+    (hermes_home / "config.yaml").write_text(yaml.dump({"model": {"provider": "anthropic", "model": "claude"}}))
+    (hermes_home / "auth.json").write_text(json.dumps({
         "version": 1,
         "providers": {},
-        "suppressed_sources": {"anthropic": ["sparkii_pkce"]},
+        "suppressed_sources": {"anthropic": ["hermes_pkce"]},
     }))
 
-    # Stub the readers so only sparkii_pkce is "available"; claude_code returns None
+    # Stub the readers so only hermes_pkce is "available"; claude_code returns None
     import agent.anthropic_adapter as aa
-    monkeypatch.setattr(aa, "read_sparkii_oauth_credentials", lambda: {
+    monkeypatch.setattr(aa, "read_hermes_oauth_credentials", lambda: {
         "accessToken": "tok", "refreshToken": "r", "expiresAt": 9999999999000,
     })
     monkeypatch.setattr(aa, "read_claude_code_credentials", lambda: None)
@@ -669,9 +669,9 @@ def test_seed_from_singletons_respects_sparkii_pkce_suppression(tmp_path, monkey
     from agent.credential_pool import _seed_from_singletons
     entries = []
     changed, active = _seed_from_singletons("anthropic", entries)
-    # sparkii_pkce suppressed, claude_code returns None → nothing should be seeded
+    # hermes_pkce suppressed, claude_code returns None → nothing should be seeded
     assert entries == []
-    assert "sparkii_pkce" not in active
+    assert "hermes_pkce" not in active
 
 
 
@@ -733,9 +733,9 @@ def test_auth_remove_copilot_suppresses_all_variants(tmp_path, monkeypatch):
     """Removing any copilot source must suppress gh_cli + all env:* variants
     so the duplicate-seed paths don't resurrect the credential.
     """
-    sparkii_home = tmp_path / "sparkii"
-    sparkii_home.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    hermes_home = tmp_path / "sparkii"
+    hermes_home.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     # The copilot pool entry is no longer persisted directly in auth.json —
     # `(copilot, gh_cli)` is borrowed and stripped by
@@ -775,13 +775,13 @@ def test_auth_remove_env_seeded_dotenv_with_bom_no_shell_hint(tmp_path, monkeypa
     warn about a phantom shell export). Regression for the reader that
     dropped encoding='utf-8-sig' and misread the BOM'd first line.
     """
-    sparkii_home = tmp_path / "sparkii"
-    sparkii_home.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    hermes_home = tmp_path / "sparkii"
+    hermes_home.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
     # BOM prefix (utf-8-sig) + the target var as the FIRST line.
-    (sparkii_home / ".env").write_bytes(
+    (hermes_home / ".env").write_bytes(
         b"\xef\xbb\xbfDEEPSEEK_API_KEY=sk-ds-only\n"
     )
     monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-ds-only")

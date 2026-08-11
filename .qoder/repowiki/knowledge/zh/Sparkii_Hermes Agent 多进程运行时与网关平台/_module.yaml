@@ -1,6 +1,6 @@
 schema_version: 1
 module_path: ""
-title: Sparkii/Hermes Agent 多进程运行时与网关平台
+title: Sparkii/Sparkii Agent 多进程运行时与网关平台
 scope:
     - README.md
     - CONTRIBUTING.md
@@ -37,15 +37,15 @@ scope:
     - docker-compose.yml
     - eslint.config.shared.mjs
     - flake.lock
-    - hermes
-    - hermes-already-has-routines.md
+    - sparkii
+    - sparkii-already-has-routines.md
     - log.txt
     - mcp_serve.py
     - mini_swe_runner.py
     - model_tools.py
     - package-lock.json
     - run_agent.py
-    - setup-hermes.sh
+    - setup-sparkii.sh
     - sparkii_bootstrap.py
     - sparkii_constants.py
     - sparkii_logging.py

@@ -280,7 +280,7 @@ async function connectWindowsRemote(deps) {
     pickLocalPort,
     forward,
     cancelForward,
-    waitForSparkii,
+    waitForHermes,
     probeReuseProof,
     rememberLog = () => {},
     readyTimeoutMs = 45_000
@@ -404,7 +404,7 @@ async function connectWindowsRemote(deps) {
     localPort = await pickLocalPort()
     await forward(localPort, remotePort)
     const baseUrl = `http://127.0.0.1:${localPort}`
-    await waitForSparkii(baseUrl, token)
+    await waitForHermes(baseUrl, token)
     assertCurrent(signal)
     await helper(ssh, runtime, 'write-lock', [ownershipId], JSON.stringify({ ...owned, port: remotePort }))
 

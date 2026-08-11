@@ -220,7 +220,7 @@ VALID_HOOKS: Set[str] = {
 
 ENTRY_POINTS_GROUP = "sparkii_agent.plugins"
 
-_NS_PARENT = "sparkii_plugins"
+_NS_PARENT = "hermes_plugins"
 
 
 def _env_enabled(name: str) -> bool:
@@ -852,7 +852,7 @@ class PluginContext:
 
         ``source`` must be an instance of
         :class:`agent.secret_sources.base.SecretSource`.  Registered
-        sources run during ``load_sparkii_dotenv()`` startup — after
+        sources run during ``load_hermes_dotenv()`` startup — after
         ``~/.sparkii/.env`` loads, before Sparkii reads credentials — when
         their ``secrets.<source.name>`` config section is enabled.  The
         orchestrator (``agent.secret_sources.registry.apply_all``) owns
@@ -860,7 +860,7 @@ class PluginContext:
         provenance; the source only fetches.
 
         NOTE ON TIMING: plugin discovery happens later in startup than
-        the first ``load_sparkii_dotenv()`` call, so a plugin-registered
+        the first ``load_hermes_dotenv()`` call, so a plugin-registered
         source is not consulted by the initial env load of the process
         that discovers it.  It IS consulted by every subsequently
         spawned Sparkii process (gateway children, cron sessions,
@@ -2041,11 +2041,11 @@ class PluginManager:
         self._plugins[lookup_key] = loaded
 
     def _load_directory_module(self, manifest: PluginManifest) -> types.ModuleType:
-        """Import a directory-based plugin as ``sparkii_plugins.<slug>``.
+        """Import a directory-based plugin as ``hermes_plugins.<slug>``.
 
         The module slug is derived from ``manifest.key`` so category-namespaced
         plugins (``image_gen/openai``) import as
-        ``sparkii_plugins.image_gen__openai`` without colliding with any
+        ``hermes_plugins.image_gen__openai`` without colliding with any
         future ``tts/openai``.
         """
         plugin_dir = Path(manifest.path)  # type: ignore[arg-type]
@@ -2286,8 +2286,142 @@ def discover_plugins(force: bool = False) -> None:
 
     Default behavior is idempotent. Pass ``force=True`` to rescan plugin
     manifests and reload state in the current process.
+
+    If a background discovery started via
+    :func:`start_background_plugin_discovery` is still running, this waits
+    for it instead of racing a second scan.
     """
+    _join_background_discovery()
     get_plugin_manager().discover_and_load(force=force)
+
+
+_background_discovery_thread: Optional[threading.Thread] = None
+_background_discovery_lock = threading.Lock()
+
+
+def start_background_plugin_discovery() -> None:
+    """Run plugin discovery in a daemon thread (startup-latency overlap).
+
+    Discovery costs ~150ms of manifest scanning + module imports on the CLI
+    startup path. Interactive chat doesn't need plugins until the first
+    agent turn, so callers on that path can start discovery here and let it
+    overlap the CPU/subprocess-heavy rest of startup. Every synchronous
+    consumer goes through :func:`discover_plugins`, which joins this thread
+    first — so no caller can observe a half-loaded registry. Idempotent;
+    no-op when discovery already ran or is already in flight.
+    """
+    global _background_discovery_thread
+    manager = get_plugin_manager()
+    if manager._discovered:
+        return
+    with _background_discovery_lock:
+        if _background_discovery_thread is not None and _background_discovery_thread.is_alive():
+            return
+
+        def _run() -> None:
+            try:
+                manager.discover_and_load()
+                _persist_plugin_toolset_keys()
+            except Exception:
+                logger.warning("background plugin discovery failed", exc_info=True)
+
+        _background_discovery_thread = threading.Thread(
+            target=_run, name="plugin-discovery", daemon=True
+        )
+        _background_discovery_thread.start()
+
+
+def _join_background_discovery(timeout: float = 30.0) -> None:
+    """Wait for an in-flight background discovery (no-op from its own thread)."""
+    t = _background_discovery_thread
+    if t is None or not t.is_alive() or t is threading.current_thread():
+        return
+    t.join(timeout=timeout)
+
+
+def _plugin_toolset_keys_cache_path():
+    from sparkii_constants import get_sparkii_home
+    return get_sparkii_home() / "cache" / "plugin_toolset_keys.json"
+
+
+def _persist_plugin_toolset_keys() -> None:
+    """Persist discovered plugin toolset keys + portable MCP names (best-effort)."""
+    try:
+        import json as _json
+        import os as _os
+        import tempfile as _tempfile
+        keys = sorted({ts_key for ts_key, _, _ in get_plugin_toolsets()})
+        try:
+            portable = sorted(get_plugin_manager().get_portable_mcp_servers())
+        except Exception:
+            portable = []
+        path = _plugin_toolset_keys_cache_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        fd, tmp = _tempfile.mkstemp(dir=str(path.parent), prefix=".pt_keys.")
+        with _os.fdopen(fd, "w", encoding="utf-8") as fh:
+            _json.dump({"toolset_keys": keys, "portable_mcp": portable}, fh)
+        _os.replace(tmp, path)
+    except Exception:
+        logger.debug("plugin toolset key persist failed", exc_info=True)
+
+
+def _read_plugin_keys_cache() -> Optional[dict]:
+    try:
+        import json as _json
+        blob = _json.loads(
+            _plugin_toolset_keys_cache_path().read_text(encoding="utf-8")
+        )
+        if isinstance(blob, dict):
+            return blob
+    except Exception:
+        pass
+    return None
+
+
+def get_plugin_toolset_keys_nowait() -> "set[str]":
+    """Plugin toolset keys without blocking on in-flight discovery.
+
+    When discovery already completed in this process, reads the live
+    registry. While a background discovery is still running, falls back to
+    the key set persisted by the previous run — callers on the startup path
+    (platform toolset resolution) only use these keys to EXCLUDE plugin
+    toolsets from composite expansion, so a stale set from the last launch
+    is harmless and self-heals as soon as discovery lands. When neither is
+    available, blocks via discover_plugins() (correctness first).
+    """
+    manager = get_plugin_manager()
+    t = _background_discovery_thread
+    if manager._discovered and (t is None or not t.is_alive()):
+        return {ts_key for ts_key, _, _ in get_plugin_toolsets()}
+    if t is not None and t.is_alive():
+        blob = _read_plugin_keys_cache()
+        if blob is not None:
+            keys = blob.get("toolset_keys")
+            if isinstance(keys, list) and all(isinstance(k, str) for k in keys):
+                return set(keys)
+    discover_plugins()
+    return {ts_key for ts_key, _, _ in get_plugin_toolsets()}
+
+
+def get_portable_mcp_server_names_nowait() -> "set[str]":
+    """Portable MCP server names without blocking on in-flight discovery.
+
+    Same contract as :func:`get_plugin_toolset_keys_nowait`: live registry
+    when discovery finished, last launch's persisted set while a background
+    discovery is running, blocking discovery otherwise.
+    """
+    manager = get_plugin_manager()
+    t = _background_discovery_thread
+    if manager._discovered and (t is None or not t.is_alive()):
+        return set(manager.get_portable_mcp_servers())
+    if t is not None and t.is_alive():
+        blob = _read_plugin_keys_cache()
+        if blob is not None:
+            names = blob.get("portable_mcp")
+            if isinstance(names, list) and all(isinstance(n, str) for n in names):
+                return set(names)
+    discover_plugins()
+    return set(manager.get_portable_mcp_servers())
 
 
 def invoke_hook(hook_name: str, **kwargs: Any) -> List[Any]:

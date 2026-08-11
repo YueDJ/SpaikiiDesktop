@@ -75,7 +75,7 @@ Examples:
     sparkii debug share             Upload debug report for support
     sparkii console                Open the safe Sparkii command console
     sparkii update                 Update to latest version
-    sparkii dashboard              Start web UI dashboard (port 9119)
+    sparkii dashboard              Start web UI dashboard (port 9219)
     sparkii dashboard --stop       Stop running dashboard processes
     sparkii dashboard --status     List running dashboard processes
 

@@ -239,6 +239,19 @@ async def _lifespan(app: "FastAPI"):
     cron_stop: "threading.Event | None" = None
     cron_thread: "threading.Thread | None" = None
     if os.getenv("SPARKII_DESKTOP") == "1":
+        # Before forking a fresh gateway, reap any orphan left by a previous
+        # serve session. Graceful shutdown reaps the managed child, but an
+        # abnormal exit (crash, SIGKILL, power loss, forced update) reparents
+        # the old gateway to launchd (PPID=1). It keeps holding the QQ
+        # WebSocket, and a newly forked gateway then races the same credential,
+        # splitting messages across parallel session trees (#77276).
+        try:
+            from sparkii_cli.gateway import _reap_unsupervised_gateway_orphans
+
+            _reap_unsupervised_gateway_orphans()
+        except Exception:
+            _log.exception("Desktop startup: orphan gateway reap failed")
+
         cron_stop = threading.Event()
         cron_thread = threading.Thread(
             target=_start_desktop_cron_ticker,
@@ -268,6 +281,8 @@ async def _lifespan(app: "FastAPI"):
         await PTY_REGISTRY.close_all()
         if cron_stop is not None:
             cron_stop.set()
+        if os.getenv("SPARKII_DESKTOP") == "1":
+            _terminate_desktop_managed_gateway()
 
 
 def _get_event_state(app: "FastAPI"):
@@ -1052,6 +1067,10 @@ _CATEGORY_MERGE: Dict[str, str] = {
     # `doctor.live_probe_timeout` is the only schema-surfaced doctor field —
     # fold it into general rather than spawning a one-field orphan category.
     "doctor": "general",
+    # `runtime.nofile_soft_limit` (#78873) is the only schema-surfaced runtime
+    # field — fold it into the agent tab rather than spawning a one-field
+    # orphan category.
+    "runtime": "agent",
 }
 
 # Display order for tabs — unlisted categories sort alphabetically after these.
@@ -2106,14 +2125,14 @@ def _local_dashboard_request(request: Request) -> bool:
     return host in local_hosts or client_host in local_hosts
 
 
-def _default_sparkii_root_is_opt_data() -> bool:
+def _default_hermes_root_is_opt_data() -> bool:
     raw = os.environ.get("SPARKII_HOME", "").strip()
     if not raw:
         return False
     try:
-        from sparkii_constants import get_default_sparkii_root
+        from sparkii_constants import get_default_hermes_root
 
-        root = get_default_sparkii_root().expanduser().resolve(strict=False)
+        root = get_default_hermes_root().expanduser().resolve(strict=False)
     except (OSError, RuntimeError):
         root = Path(raw).expanduser().resolve(strict=False)
     return root == _HOSTED_MANAGED_FILES_ROOT
@@ -2134,7 +2153,7 @@ def _dashboard_local_update_managed_externally() -> bool:
     externally managed unless their apply path is proven safe inside the
     running container filesystem.
     """
-    if _default_sparkii_root_is_opt_data():
+    if _default_hermes_root_is_opt_data():
         return True
     try:
         from sparkii_constants import is_container
@@ -2168,7 +2187,7 @@ def _managed_files_policy(request: Request, *, create_root: bool = True) -> Mana
     # and still expect the Files page to browse their local home directory. Lock
     # to /opt/data only when the installation's Sparkii root is actually /opt/data
     # (the container/hosted layout) or when SPARKII_DASHBOARD_FILES_ROOT is set.
-    if _default_sparkii_root_is_opt_data():
+    if _default_hermes_root_is_opt_data():
         root = _ensure_managed_root(_HOSTED_MANAGED_FILES_ROOT) if create_root else _HOSTED_MANAGED_FILES_ROOT
         return ManagedFilesPolicy(default_path=root, locked_root=root, can_change_path=False)
 
@@ -2365,11 +2384,12 @@ async def list_managed_files(request: Request, path: Optional[str] = None):
         raise HTTPException(status_code=400, detail="Path is not a directory")
 
     try:
-        entries = [
-            _managed_file_entry(policy, child)
-            for child in target.iterdir()
-            if not _is_sensitive_path(child)
-        ]
+        with os.scandir(target) as scan:
+            entries = [
+                _managed_file_entry(policy, Path(entry.path))
+                for entry in scan
+                if not _is_sensitive_path(Path(entry.path))
+            ]
     except PermissionError:
         raise HTTPException(status_code=403, detail="Directory is not readable")
     except OSError as exc:
@@ -3246,7 +3266,7 @@ async def get_status(profile: Optional[str] = None):
             "release_date": __release_date__,
             "config_version": current_ver,
             "latest_config_version": latest_ver,
-            "can_update_sparkii": not _dashboard_local_update_managed_externally(),
+            "can_update_hermes": not _dashboard_local_update_managed_externally(),
             "gateway_running": gateway_running,
             "gateway_state": gateway_state,
             "gateway_platforms": gateway_platforms,
@@ -3358,7 +3378,7 @@ async def get_status(profile: Optional[str] = None):
         # split ``should_require_auth`` draws.
         if not auth_required:
             status.update({
-                "sparkii_home": str(get_sparkii_home()),
+                "hermes_home": str(get_sparkii_home()),
                 "config_path": str(get_config_path()),
                 "env_path": str(get_env_path()),
                 "gateway_pid": gateway_pid,
@@ -3436,7 +3456,7 @@ async def get_system_stats():
         "hostname": _platform.node(),
         "python_version": _platform.python_version(),
         "python_impl": _platform.python_implementation(),
-        "sparkii_version": __version__,
+        "hermes_version": __version__,
         "cpu_count": os.cpu_count(),
     }
 
@@ -3538,7 +3558,7 @@ async def set_curator_paused(body: CuratorPause):
 async def run_curator():
     """Trigger a curator review now (backgrounded; tail via action status)."""
     try:
-        proc = _spawn_sparkii_action(["curator", "run"], "curator-run")
+        proc = _spawn_hermes_action(["curator", "run"], "curator-run")
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to run curator: {exc}")
     return {"ok": True, "pid": proc.pid, "name": "curator-run"}
@@ -3686,7 +3706,7 @@ def _get_portal_status_sync():
 @app.post("/api/ops/prompt-size")
 async def run_prompt_size():
     try:
-        proc = _spawn_sparkii_action(["prompt-size"], "prompt-size")
+        proc = _spawn_hermes_action(["prompt-size"], "prompt-size")
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed: {exc}")
     return {"ok": True, "pid": proc.pid, "name": "prompt-size"}
@@ -3695,7 +3715,7 @@ async def run_prompt_size():
 @app.post("/api/ops/dump")
 async def run_dump():
     try:
-        proc = _spawn_sparkii_action(["dump"], "dump")
+        proc = _spawn_hermes_action(["dump"], "dump")
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed: {exc}")
     return {"ok": True, "pid": proc.pid, "name": "dump"}
@@ -3704,7 +3724,7 @@ async def run_dump():
 @app.post("/api/ops/config-migrate")
 async def run_config_migrate():
     try:
-        proc = _spawn_sparkii_action(["config", "migrate"], "config-migrate")
+        proc = _spawn_hermes_action(["config", "migrate"], "config-migrate")
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed: {exc}")
     return {"ok": True, "pid": proc.pid, "name": "config-migrate"}
@@ -3793,6 +3813,19 @@ _ACTION_IDS: Dict[str, str] = {}
 _ACTION_RESULTS: Dict[str, Dict[str, Any]] = {}
 
 
+def _terminate_desktop_managed_gateway() -> None:
+    """Stop a live gateway restart child when its Desktop backend shuts down."""
+    proc = _ACTION_PROCS.get("gateway-restart")
+    if proc is None:
+        return
+    try:
+        if proc.poll() is None:
+            proc.terminate()
+    except OSError:
+        # The child may have exited between poll() and terminate().
+        pass
+
+
 def _record_completed_action(name: str, message: str, exit_code: int = 1) -> None:
     """Record a non-spawned action result and write it to the action log."""
     log_file_name = _ACTION_LOG_FILES[name]
@@ -3824,7 +3857,7 @@ def _dashboard_spawn_executable() -> str:
     return sys.executable
 
 
-def _spawn_sparkii_action(
+def _spawn_hermes_action(
     subcommand: List[str],
     name: str,
     *,
@@ -4001,8 +4034,21 @@ def _spawn_gateway_restart(profile: Optional[str] = None) -> Tuple[subprocess.Po
     concurrent ``sparkii gateway restart`` children race each other on the
     manual kill-and-start path, so reuse the live one instead.
 
+    Before spawning, sweep for orphaned gateway processes whose parent has
+    exited (e.g. desktop-app restarts leaving a reparented gateway child
+    under launchd/PPID=1).  Without this the orphan keeps its platform
+    connection alive and the fresh gateway stacks a duplicate (#77276).
+
     Returns ``(proc, reused)``.
     """
+    # Reap orphaned gateways before spawning a new one (#77276).
+    try:
+        from sparkii_cli.gateway import _reap_unsupervised_gateway_orphans
+
+        _reap_unsupervised_gateway_orphans()
+    except Exception:
+        pass  # best-effort — don't block the restart on a reap failure
+
     subcommand = _gateway_subcommand(profile, "restart")
     existing = _ACTION_PROCS.get("gateway-restart")
     if existing is not None and existing.poll() is None:
@@ -4010,7 +4056,7 @@ def _spawn_gateway_restart(profile: Optional[str] = None) -> Tuple[subprocess.Po
         if existing_command is None or existing_command == tuple(subcommand):
             return existing, True
         raise RuntimeError("gateway restart already in progress for another profile")
-    return _spawn_sparkii_action(subcommand, "gateway-restart"), False
+    return _spawn_hermes_action(subcommand, "gateway-restart"), False
 
 
 def _restart_gateway_after_webhook_enable(profile: Optional[str] = None) -> dict[str, Any]:
@@ -4126,7 +4172,7 @@ async def gateway_drain(request: Request):
 
 
 @app.post("/api/sparkii/update")
-async def update_sparkii():
+async def update_hermes():
     """Kick off ``sparkii update`` in the background."""
     if _dashboard_local_update_managed_externally():
         message = (
@@ -4184,7 +4230,7 @@ async def update_sparkii():
 
     action_id = secrets.token_hex(16)
     try:
-        proc = _spawn_sparkii_action(
+        proc = _spawn_hermes_action(
             ["update"],
             "sparkii-update",
             env_overrides={"SPARKII_ACTION_ID": action_id},
@@ -4255,7 +4301,7 @@ def _recent_upstream_commits(n: int = 20) -> List[Dict[str, Any]]:
 
 
 @app.get("/api/sparkii/update/check")
-async def check_sparkii_update(force: bool = False):
+async def check_hermes_update(force: bool = False):
     """Report whether a Sparkii update is available, without applying it.
 
     Powers the dashboard's "check before you update" flow: the System page
@@ -5727,13 +5773,13 @@ def _read_json_file(path: Path) -> Dict[str, Any]:
 def _read_memory_provider_existing_values(name: str) -> Dict[str, Any]:
     """Best-effort read of existing provider config across legacy/native stores."""
 
-    sparkii_home = get_sparkii_home()
+    hermes_home = get_sparkii_home()
     values: Dict[str, Any] = {}
 
     # Common native provider stores.
     for path in (
-        sparkii_home / f"{name}.json",
-        sparkii_home / name / "config.json",
+        hermes_home / f"{name}.json",
+        hermes_home / name / "config.json",
     ):
         values.update(_read_json_file(path))
 
@@ -7455,23 +7501,33 @@ def _write_custom_endpoint(cfg: Dict[str, Any], body: CustomEndpointUpdate) -> T
 
 
 @app.get("/api/providers/custom-endpoints")
-def list_custom_endpoints():
-    """Return configured OpenAI-compatible custom endpoints for Desktop."""
+def list_custom_endpoints(profile: Optional[str] = None):
+    """Return configured OpenAI-compatible custom endpoints for Desktop.
+
+    Scoped to the requested profile's config.yaml (issue: custom providers
+    only landing in the default profile): the desktop settings UI targets the
+    active profile, so read/write must resolve that profile's home rather than
+    the process-level SPARKII_HOME. Mirrors ``/api/config``'s profile scoping.
+    """
     try:
-        return _custom_endpoint_response(load_config())
+        with _config_profile_scope(profile):
+            return _custom_endpoint_response(load_config())
+    except HTTPException:
+        raise
     except Exception:
         _log.exception("GET /api/providers/custom-endpoints failed")
         raise HTTPException(status_code=500, detail="Failed to list custom endpoints")
 
 
 @app.post("/api/providers/custom-endpoints")
-def upsert_custom_endpoint(body: CustomEndpointUpdate):
+def upsert_custom_endpoint(body: CustomEndpointUpdate, profile: Optional[str] = None):
     """Create or update a v12+ ``providers`` custom endpoint entry."""
     try:
-        cfg = load_config()
-        endpoint_id, _entry = _write_custom_endpoint(cfg, body)
-        save_config(cfg)
-        response = _custom_endpoint_response(cfg)
+        with _config_profile_scope(profile):
+            cfg = load_config()
+            endpoint_id, _entry = _write_custom_endpoint(cfg, body)
+            save_config(cfg)
+            response = _custom_endpoint_response(cfg)
         response["ok"] = True
         response["id"] = endpoint_id
         return response
@@ -7483,30 +7539,31 @@ def upsert_custom_endpoint(body: CustomEndpointUpdate):
 
 
 @app.post("/api/providers/custom-endpoints/{endpoint_id}/activate")
-def activate_custom_endpoint(endpoint_id: str):
+def activate_custom_endpoint(endpoint_id: str, profile: Optional[str] = None):
     """Set a configured custom endpoint as the default model provider."""
     try:
-        cfg = load_config()
-        provider_key = _custom_endpoint_id(endpoint_id)
-        providers = cfg.get("providers")
-        entry = providers.get(provider_key) if isinstance(providers, dict) else None
-        if not isinstance(entry, dict):
-            raise HTTPException(status_code=404, detail="custom endpoint not found")
+        with _config_profile_scope(profile):
+            cfg = load_config()
+            provider_key = _custom_endpoint_id(endpoint_id)
+            providers = cfg.get("providers")
+            entry = providers.get(provider_key) if isinstance(providers, dict) else None
+            if not isinstance(entry, dict):
+                raise HTTPException(status_code=404, detail="custom endpoint not found")
 
-        models = _models_from_custom_endpoint_entry(entry)
-        model = str(entry.get("model") or (models[0] if models else "")).strip()
-        base_url = str(entry.get("base_url") or "").strip()
-        if not model or not base_url:
-            raise HTTPException(status_code=400, detail="custom endpoint is incomplete")
+            models = _models_from_custom_endpoint_entry(entry)
+            model = str(entry.get("model") or (models[0] if models else "")).strip()
+            base_url = str(entry.get("base_url") or "").strip()
+            if not model or not base_url:
+                raise HTTPException(status_code=400, detail="custom endpoint is incomplete")
 
-        model_cfg = _apply_main_model_assignment(cfg.get("model", {}), provider_key, model, base_url)
-        if entry.get("key_env"):
-            model_cfg["key_env"] = entry["key_env"]
-            model_cfg.pop("api_key", None)
-        elif entry.get("api_key"):
-            model_cfg["api_key"] = entry["api_key"]
-        cfg["model"] = model_cfg
-        save_config(cfg)
+            model_cfg = _apply_main_model_assignment(cfg.get("model", {}), provider_key, model, base_url)
+            if entry.get("key_env"):
+                model_cfg["key_env"] = entry["key_env"]
+                model_cfg.pop("api_key", None)
+            elif entry.get("api_key"):
+                model_cfg["api_key"] = entry["api_key"]
+            cfg["model"] = model_cfg
+            save_config(cfg)
         return {"ok": True, "provider": provider_key, "model": model}
     except HTTPException:
         raise
@@ -7516,20 +7573,21 @@ def activate_custom_endpoint(endpoint_id: str):
 
 
 @app.delete("/api/providers/custom-endpoints/{endpoint_id}")
-def delete_custom_endpoint(endpoint_id: str):
+def delete_custom_endpoint(endpoint_id: str, profile: Optional[str] = None):
     """Remove a configured custom endpoint from ``providers``."""
     try:
-        cfg = load_config()
-        provider_key = _custom_endpoint_id(endpoint_id)
-        providers = cfg.get("providers")
-        if not isinstance(providers, dict) or provider_key not in providers:
-            raise HTTPException(status_code=404, detail="custom endpoint not found")
-        providers.pop(provider_key, None)
-        cfg["providers"] = providers
-        _detach_main_model_from_provider(cfg, provider_key)
-        remove_env_value(custom_endpoint_key_env(provider_key))
-        save_config(cfg)
-        response = _custom_endpoint_response(cfg)
+        with _config_profile_scope(profile):
+            cfg = load_config()
+            provider_key = _custom_endpoint_id(endpoint_id)
+            providers = cfg.get("providers")
+            if not isinstance(providers, dict) or provider_key not in providers:
+                raise HTTPException(status_code=404, detail="custom endpoint not found")
+            providers.pop(provider_key, None)
+            cfg["providers"] = providers
+            _detach_main_model_from_provider(cfg, provider_key)
+            remove_env_value(custom_endpoint_key_env(provider_key))
+            save_config(cfg)
+            response = _custom_endpoint_response(cfg)
         response["ok"] = True
         return response
     except HTTPException:
@@ -8544,9 +8602,9 @@ def _normalize_whatsapp_allowed_users(value: Any) -> str:
 
 
 def _whatsapp_session_path() -> Path:
-    from sparkii_constants import get_sparkii_dir
+    from sparkii_constants import get_hermes_dir
 
-    return get_sparkii_dir("platforms/whatsapp/session", "whatsapp/session")
+    return get_hermes_dir("platforms/whatsapp/session", "whatsapp/session")
 
 
 def _whatsapp_phone_from_identifier(value: Any) -> str | None:
@@ -8596,7 +8654,7 @@ def _ensure_whatsapp_bridge_dependencies(bridge_dir: Path) -> None:
     if (bridge_dir / "node_modules").exists():
         return
 
-    from sparkii_constants import find_node_executable, with_sparkii_node_path
+    from sparkii_constants import find_node_executable, with_hermes_node_path
     from utils import env_int
 
     npm = find_node_executable("npm")
@@ -8618,7 +8676,7 @@ def _ensure_whatsapp_bridge_dependencies(bridge_dir: Path) -> None:
             encoding="utf-8",
             errors="replace",
             timeout=timeout,
-            env=with_sparkii_node_path(),
+            env=with_hermes_node_path(),
             creationflags=windows_hide_flags(),
         )
     except subprocess.TimeoutExpired as exc:
@@ -8644,7 +8702,7 @@ def _ensure_whatsapp_bridge_dependencies(bridge_dir: Path) -> None:
 
 def _spawn_whatsapp_pairing_process(session_path: Path, mode: str) -> subprocess.Popen:
     from gateway.platforms.whatsapp_common import resolve_whatsapp_bridge_dir
-    from sparkii_constants import find_node_executable, with_sparkii_node_path
+    from sparkii_constants import find_node_executable, with_hermes_node_path
 
     bridge_dir = resolve_whatsapp_bridge_dir()
     bridge_script = bridge_dir / "bridge.js"
@@ -8663,7 +8721,7 @@ def _spawn_whatsapp_pairing_process(session_path: Path, mode: str) -> subprocess
     _ensure_whatsapp_bridge_dependencies(bridge_dir)
     session_path.mkdir(parents=True, exist_ok=True)
 
-    env = with_sparkii_node_path()
+    env = with_hermes_node_path()
     env["WHATSAPP_MODE"] = mode
     env["WHATSAPP_DM_POLICY"] = "pairing"
     return subprocess.Popen(
@@ -9630,7 +9688,7 @@ def _anthropic_oauth_status() -> Dict[str, Any]:
     2. ``ANTHROPIC_API_KEY`` → ``ANTHROPIC_TOKEN`` → ``CLAUDE_CODE_OAUTH_TOKEN``
        env vars (registry order) — from ``.env``, the shell, or an external
        secret source like Bitwarden (whose keys are injected into the process
-       env during ``load_sparkii_dotenv()``, so the same check covers them)
+       env during ``load_hermes_dotenv()``, so the same check covers them)
 
     Claude Code's ``~/.claude/.credentials.json`` is deliberately NOT read
     here — it has its own dedicated catalog entry (``claude-code`` →
@@ -9639,27 +9697,27 @@ def _anthropic_oauth_status() -> Dict[str, Any]:
     """
     try:
         from agent.anthropic_adapter import (
-            read_sparkii_oauth_credentials,
-            _get_sparkii_oauth_file,
+            read_hermes_oauth_credentials,
+            _get_hermes_oauth_file,
         )
     except ImportError:
-        read_sparkii_oauth_credentials = None  # type: ignore
-        _get_sparkii_oauth_file = None  # type: ignore
+        read_hermes_oauth_credentials = None  # type: ignore
+        _get_hermes_oauth_file = None  # type: ignore
 
-    sparkii_creds = None
-    if read_sparkii_oauth_credentials:
+    hermes_creds = None
+    if read_hermes_oauth_credentials:
         try:
-            sparkii_creds = read_sparkii_oauth_credentials()
+            hermes_creds = read_hermes_oauth_credentials()
         except Exception:
-            sparkii_creds = None
-    if sparkii_creds and sparkii_creds.get("accessToken"):
+            hermes_creds = None
+    if hermes_creds and hermes_creds.get("accessToken"):
         return {
             "logged_in": True,
-            "source": "sparkii_pkce",
-            "source_label": f"Sparkii PKCE ({_get_sparkii_oauth_file() if _get_sparkii_oauth_file else None})",
-            "token_preview": _truncate_token(sparkii_creds.get("accessToken")),
-            "expires_at": sparkii_creds.get("expiresAt"),
-            "has_refresh_token": bool(sparkii_creds.get("refreshToken")),
+            "source": "hermes_pkce",
+            "source_label": f"Sparkii PKCE ({_get_hermes_oauth_file() if _get_hermes_oauth_file else None})",
+            "token_preview": _truncate_token(hermes_creds.get("accessToken")),
+            "expires_at": hermes_creds.get("expiresAt"),
+            "has_refresh_token": bool(hermes_creds.get("refreshToken")),
         }
 
     # Env-var / secret-source path. ``get_env_value`` checks the process
@@ -10026,7 +10084,7 @@ async def list_oauth_providers(profile: Optional[str] = None):
         docs_url        external docs/portal link for the "Learn more" link
         status:
           logged_in        bool — currently has usable creds
-          source           short slug ("sparkii_pkce", "claude_code", ...)
+          source           short slug ("hermes_pkce", "claude_code", ...)
           source_label     human-readable origin (file path, env var name)
           token_preview    last N chars of the token, never the full token
           expires_at       ISO timestamp string or null
@@ -10099,8 +10157,8 @@ async def disconnect_oauth_provider(
             if provider_id == "anthropic":
                 cleared = False
                 try:
-                    from agent.anthropic_adapter import _get_sparkii_oauth_file
-                    oauth_file = _get_sparkii_oauth_file()
+                    from agent.anthropic_adapter import _get_hermes_oauth_file
+                    oauth_file = _get_hermes_oauth_file()
                     if oauth_file.exists():
                         oauth_file.unlink()
                         cleared = True
@@ -10248,8 +10306,8 @@ def _save_anthropic_oauth_creds(access_token: str, refresh_token: str, expires_a
     Mirrors what auth_commands.add_command does so the dashboard flow leaves
     the system in the same state as ``sparkii auth add anthropic``.
     """
-    from agent.anthropic_adapter import _get_sparkii_oauth_file
-    oauth_file = _get_sparkii_oauth_file()
+    from agent.anthropic_adapter import _get_hermes_oauth_file
+    oauth_file = _get_hermes_oauth_file()
     payload = {
         "accessToken": access_token,
         "refreshToken": refresh_token,
@@ -11809,7 +11867,7 @@ def _annotate_cron_job(job: Dict[str, Any], profile: str, home: Path) -> Dict[st
     annotated = dict(job)
     annotated["profile"] = profile
     annotated["profile_name"] = profile
-    annotated["sparkii_home"] = str(home)
+    annotated["hermes_home"] = str(home)
     annotated["is_default_profile"] = profile == "default"
     return annotated
 
@@ -12328,7 +12386,7 @@ def _mcp_oauth_callback_url(request: Request, server_name: str) -> str:
 
 
 def _mcp_oauth_transaction(flow) -> threading.Lock:
-    key = (flow.sparkii_home, flow.server_name)
+    key = (flow.hermes_home, flow.server_name)
     with _mcp_oauth_transactions_lock:
         return _mcp_oauth_transactions.setdefault(key, threading.Lock())
 
@@ -12351,8 +12409,8 @@ def _run_dashboard_mcp_oauth(flow, cfg: dict) -> None:
         from tools.mcp_oauth import SparkiiTokenStorage, force_interactive_oauth
         from tools.mcp_oauth_manager import get_manager
 
-        home_token = set_sparkii_home_override(flow.sparkii_home)
-        secret_token = set_secret_scope(build_profile_secret_scope(Path(flow.sparkii_home)))
+        home_token = set_sparkii_home_override(flow.hermes_home)
+        secret_token = set_secret_scope(build_profile_secret_scope(Path(flow.hermes_home)))
         try:
             transaction = _mcp_oauth_transaction(flow)
             with transaction, force_interactive_oauth(), dashboard_oauth_flow(flow):
@@ -12363,7 +12421,7 @@ def _run_dashboard_mcp_oauth(flow, cfg: dict) -> None:
                 try:
                     previous_entry = manager.remove(
                         flow.server_name,
-                        sparkii_home=flow.sparkii_home,
+                        hermes_home=flow.hermes_home,
                     )
                     tools = _probe_single_server(
                         flow.server_name,
@@ -12387,7 +12445,7 @@ def _run_dashboard_mcp_oauth(flow, cfg: dict) -> None:
                     manager.restore_entry(
                         flow.server_name,
                         previous_entry,
-                        sparkii_home=flow.sparkii_home,
+                        hermes_home=flow.hermes_home,
                     )
                     raise
         finally:
@@ -12705,7 +12763,7 @@ async def set_webhook_enabled(name: str, body: WebhookEnabledToggle):
 @app.post("/api/gateway/start")
 async def start_gateway(profile: Optional[str] = None):
     try:
-        proc = _spawn_sparkii_action(_gateway_subcommand(profile, "start"), "gateway-start")
+        proc = _spawn_hermes_action(_gateway_subcommand(profile, "start"), "gateway-start")
     except HTTPException:
         raise
     except Exception as exc:
@@ -12717,7 +12775,7 @@ async def start_gateway(profile: Optional[str] = None):
 @app.post("/api/gateway/stop")
 async def stop_gateway(profile: Optional[str] = None):
     try:
-        proc = _spawn_sparkii_action(_gateway_subcommand(profile, "stop"), "gateway-stop")
+        proc = _spawn_hermes_action(_gateway_subcommand(profile, "stop"), "gateway-stop")
     except HTTPException:
         raise
     except Exception as exc:
@@ -12986,7 +13044,7 @@ async def reset_memory(body: MemoryReset):
 @app.post("/api/ops/doctor")
 async def run_doctor():
     try:
-        proc = _spawn_sparkii_action(["doctor"], "doctor")
+        proc = _spawn_hermes_action(["doctor"], "doctor")
     except Exception as exc:
         _log.exception("Failed to spawn doctor")
         raise HTTPException(status_code=500, detail=f"Failed to run doctor: {exc}")
@@ -12996,7 +13054,7 @@ async def run_doctor():
 @app.post("/api/ops/security-audit")
 async def run_security_audit():
     try:
-        proc = _spawn_sparkii_action(["security", "audit"], "security-audit")
+        proc = _spawn_hermes_action(["security", "audit"], "security-audit")
     except Exception as exc:
         _log.exception("Failed to spawn security audit")
         raise HTTPException(status_code=500, detail=f"Failed to run security audit: {exc}")
@@ -13030,7 +13088,7 @@ async def run_backup(body: BackupRequest):
             )
         args.extend(["-o", str(archive)])
     try:
-        proc = _spawn_sparkii_action(args, "backup")
+        proc = _spawn_hermes_action(args, "backup")
     except Exception as exc:
         _log.exception("Failed to spawn backup")
         raise HTTPException(status_code=500, detail=f"Failed to run backup: {exc}")
@@ -13074,7 +13132,7 @@ async def run_import(body: ImportRequest):
     if body.force:
         args.append("--force")
     try:
-        proc = _spawn_sparkii_action(args, "import")
+        proc = _spawn_hermes_action(args, "import")
     except Exception as exc:
         _log.exception("Failed to spawn import")
         raise HTTPException(status_code=500, detail=f"Failed to run import: {exc}")
@@ -13156,7 +13214,7 @@ async def run_import_upload(
     if force:
         args.append("--force")
     try:
-        proc = _spawn_sparkii_action(args, "import")
+        proc = _spawn_hermes_action(args, "import")
     except Exception as exc:
         _log.exception("Failed to spawn import")
         raise HTTPException(status_code=500, detail=f"Failed to run import: {exc}")
@@ -13326,7 +13384,7 @@ async def delete_hook(body: HookDelete):
 @app.get("/api/ops/checkpoints")
 async def list_checkpoints():
     """List the /rollback shadow store checkpoints (read-only)."""
-    # Checkpoints live under <sparkii_home>/checkpoints/.  Surface a count +
+    # Checkpoints live under <hermes_home>/checkpoints/.  Surface a count +
     # total size so the dashboard can show what a prune would reclaim; the
     # actual prune is a spawned action so confirmation/pruning logic stays
     # in one place (the CLI).
@@ -13334,7 +13392,9 @@ async def list_checkpoints():
     sessions = []
     total_bytes = 0
     if cp_dir.is_dir():
-        for child in sorted(cp_dir.iterdir()):
+        with os.scandir(cp_dir) as scan:
+            children = sorted((Path(e.path) for e in scan), key=lambda p: p.name)
+        for child in children:
             if not child.is_dir():
                 continue
             size = 0
@@ -13358,7 +13418,7 @@ async def list_checkpoints():
 @app.post("/api/ops/checkpoints/prune")
 async def prune_checkpoints():
     try:
-        proc = _spawn_sparkii_action(["checkpoints", "prune"], "checkpoints-prune")
+        proc = _spawn_hermes_action(["checkpoints", "prune"], "checkpoints-prune")
     except Exception as exc:
         _log.exception("Failed to spawn checkpoints prune")
         raise HTTPException(status_code=500, detail=f"Failed to prune checkpoints: {exc}")
@@ -13395,7 +13455,7 @@ def _profile_cli_args(profile: Optional[str]) -> List[str]:
 def _hub_action_name(verb: str, key: str) -> str:
     """Unique per-skill hub action name (+ registered log file).
 
-    ``_spawn_sparkii_action`` tracks one process/log per name, so a shared
+    ``_spawn_hermes_action`` tracks one process/log per name, so a shared
     "skills-install"/"skills-uninstall" would make concurrent row-level actions
     overwrite each other's status/log while the UI polls per identifier. Slug
     (readable) + hash (collision-proof) keys each action to its own row.
@@ -13552,21 +13612,28 @@ def _fallback_profile_dicts(profiles_mod) -> List[Dict[str, Any]]:
 
     profiles_root = profiles_mod._get_profiles_root()
     if profiles_root.is_dir():
-        for entry in sorted(profiles_root.iterdir()):
+        # Use os.scandir (context-managed) instead of Path.iterdir to avoid
+        # leaking directory fds when an exception interrupts iteration — the
+        # sidebar polls every few seconds so an fd leak exhausts RLIMIT_NOFILE
+        # within days (#81547).
+        with os.scandir(profiles_root) as scan:
+            entries = sorted(scan, key=lambda e: e.name)
+        for entry in entries:
+            entry_path = Path(entry.path)
             if not entry.is_dir() or not profiles_mod._PROFILE_ID_RE.match(entry.name):
                 continue
-            model, provider = _safe(lambda entry=entry: profiles_mod._read_config_model(entry), (None, None))
+            model, provider = _safe(lambda entry=entry_path: profiles_mod._read_config_model(entry), (None, None))
             profiles.append({
                 "name": entry.name,
-                "path": str(entry),
+                "path": str(entry_path),
                 "is_default": False,
                 "model": model,
                 "provider": provider,
-                "has_env": (entry / ".env").exists(),
-                "skill_count": _safe(lambda entry=entry: profiles_mod._count_skills(entry), 0),
-                "gateway_running": _safe(lambda entry=entry: profiles_mod._check_gateway_running(entry), False),
-                "description": _safe(lambda entry=entry: profiles_mod.read_profile_meta(entry).get("description", ""), ""),
-                "description_auto": _safe(lambda entry=entry: profiles_mod.read_profile_meta(entry).get("description_auto", False), False),
+                "has_env": _safe(lambda entry=entry_path: (entry / ".env").exists(), False),
+                "skill_count": _safe(lambda entry=entry_path: profiles_mod._count_skills(entry), 0),
+                "gateway_running": _safe(lambda entry=entry_path: profiles_mod._check_gateway_running(entry), False),
+                "description": _safe(lambda entry=entry_path: profiles_mod.read_profile_meta(entry).get("description", ""), ""),
+                "description_auto": _safe(lambda entry=entry_path: profiles_mod.read_profile_meta(entry).get("description_auto", False), False),
                 "distribution_name": None,
                 "distribution_version": None,
                 "distribution_source": None,
@@ -16836,7 +16903,9 @@ def _discover_dashboard_plugins() -> list:
     for plugins_root, source in search_dirs:
         if not plugins_root.is_dir():
             continue
-        for child in sorted(plugins_root.iterdir()):
+        with os.scandir(plugins_root) as scan:
+            children = sorted((Path(e.path) for e in scan), key=lambda p: p.name)
+        for child in children:
             if not child.is_dir():
                 continue
             manifest_file = child / "dashboard" / "manifest.json"
@@ -17504,7 +17573,7 @@ def _mount_plugin_api_routes():
             _log.warning("Plugin %s declares api=%s but file not found", plugin["name"], api_file_name)
             continue
         try:
-            module_name = f"sparkii_dashboard_plugin_{plugin['name']}"
+            module_name = f"hermes_dashboard_plugin_{plugin['name']}"
             spec = importlib.util.spec_from_file_location(module_name, api_path)
             if spec is None or spec.loader is None:
                 continue
@@ -17639,6 +17708,65 @@ def _maybe_open_browser(
     threading.Thread(target=_open, daemon=True).start()
 
 
+def _is_serve_orphaned(desktop_pid: int, pid_exists=None) -> bool:
+    """True when the Desktop process that owns this serve backend is gone.
+
+    ``SPARKII_PARENT_PID`` is the Electron Desktop PID, not necessarily this
+    Python process's immediate PPID. On Windows the venv ``sparkii.exe`` launcher
+    introduces one or more shim processes, so comparing ``os.getppid()`` to the
+    Electron PID incorrectly treats a healthy backend as orphaned and exits 0.
+    Probe the recorded Desktop PID directly instead.
+
+    Any liveness-probe failure is fail-safe: keep serving rather than killing a
+    backend whose owner could not be conclusively shown to be dead.
+    """
+    try:
+        if pid_exists is None:
+            from gateway.status import _pid_exists
+
+            pid_exists = _pid_exists
+        return not bool(pid_exists(int(desktop_pid)))
+    except Exception:
+        return False
+
+
+def _start_parent_death_watchdog() -> None:
+    """Exit when the desktop parent that spawned this backend dies.
+
+    The desktop passes its own PID via SPARKII_PARENT_PID. When that process
+    vanishes (crash, SIGKILL, update handoff exiting before it reaps us) this
+    orphaned backend would otherwise keep serving forever and leak its MCP
+    child subtree. os._exit propagates to the MCP watchdogs parented here.
+
+    No-op for standalone `sparkii serve` (env unset). Poll interval tunable via
+    SPARKII_SERVE_WATCHDOG_POLL_S.
+    """
+    raw = os.environ.get("SPARKII_PARENT_PID")
+    if not raw:
+        return
+    try:
+        desktop_pid = int(raw)
+    except (TypeError, ValueError):
+        return
+    try:
+        poll = max(0.5, float(os.environ.get("SPARKII_SERVE_WATCHDOG_POLL_S", "2.0")))
+    except (TypeError, ValueError):
+        poll = 2.0
+
+    def _loop() -> None:
+        while not _is_serve_orphaned(desktop_pid):
+            time.sleep(poll)
+        os._exit(0)
+
+    threading.Thread(target=_loop, daemon=True, name="serve-parent-watchdog").start()
+
+
+def _demo() -> None:
+    assert _is_serve_orphaned(999999999, pid_exists=lambda _pid: False) is True
+    assert _is_serve_orphaned(42, pid_exists=lambda _pid: True) is False
+    print("web_server parent-death watchdog self-check: OK")
+
+
 def start_server(
     host: str = "127.0.0.1",
     port: int = 9219,
@@ -17665,6 +17793,14 @@ def start_server(
     """
     _apply_ssh_session_token(ssh_session_token or "")
     _apply_ssh_owner_nonce(ssh_owner_nonce)
+
+    # Raise RLIMIT_NOFILE for dashboard-mode starts that don't route through
+    # the `serve` path in main.py (which applies the same floor). Canonical
+    # policy lives in resource_limits; #81547's motivating leak (iterdir fds)
+    # is fixed above, this covers legitimate high fd demand.
+    from sparkii_cli.resource_limits import apply_nofile_soft_limit
+
+    apply_nofile_soft_limit()
 
     import uvicorn
 
@@ -17843,6 +17979,29 @@ def start_server(
             await server.startup()
             if server.should_exit:
                 return
+
+            # Parent-death watchdog. The desktop spawns us and is supposed to
+            # SIGTERM us on quit, but a crash / SIGKILL / update handoff that
+            # exits before reaping leaves us orphaned (ppid→1) yet still
+            # serving — leaking the whole backend + its MCP child subtree
+            # (each MCP watchdog is parented to THIS process, so os._exit here
+            # cascades their teardown). Same pattern as
+            # Clear corpses left by a previous unclean Desktop exit before we
+            # stack another backend + MCP tree (EMFILE / missing tabs).
+            # Parent-death watchdog only protects *this* process going forward.
+            if os.getenv("SPARKII_DESKTOP") == "1":
+                try:
+                    from sparkii_cli.dashboard_procs import (
+                        _reap_orphaned_desktop_local_serves,
+                    )
+
+                    _reap_orphaned_desktop_local_serves()
+                except Exception as exc:
+                    _log.debug("orphan desktop-local serve reap skipped: %s", exc)
+
+            # tui_gateway/slash_worker.py::_start_parent_death_watchdog. No-op
+            # for standalone `sparkii serve` (no SPARKII_PARENT_PID env).
+            _start_parent_death_watchdog()
 
             actual_port = _read_bound_port(server, fallback=port)
             app.state.bound_port = actual_port

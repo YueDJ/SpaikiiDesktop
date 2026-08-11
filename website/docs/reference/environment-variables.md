@@ -113,7 +113,7 @@ Sparkii reads environment variables from the process environment and, for user-m
 | `SPARKII_HOME` | Override Sparkii config directory (default: `~/.sparkii`). Also scopes the gateway PID file and systemd service name, so multiple installations can run concurrently |
 | `SPARKII_GIT_BASH_PATH` | **Windows only.** Override `bash.exe` discovery for the terminal tool. Points at any bash — full Git-for-Windows install, WSL bash via symlink, MSYS2, Cygwin. The installer sets this automatically to the PortableGit it provisioned. See the [Windows (Native) Guide](../user-guide/windows-native.md#how-sparkii-runs-shell-commands-on-windows) |
 | `SPARKII_DISABLE_WINDOWS_UTF8` | **Windows only.** Set to `1` to disable the UTF-8 stdio shim (`configure_windows_stdio()`) and fall back to the console's locale code page. Useful for bisecting encoding bugs; rarely the right setting in normal operation |
-| `SPARKII_KANBAN_HOME` | Override the shared Sparkii root that anchors the kanban board (db + workspaces + worker logs). Falls back to `get_default_sparkii_root()` (the parent of any active profile). Useful for tests and unusual deployments |
+| `SPARKII_KANBAN_HOME` | Override the shared Sparkii root that anchors the kanban board (db + workspaces + worker logs). Falls back to `get_default_hermes_root()` (the parent of any active profile). Useful for tests and unusual deployments |
 | `SPARKII_KANBAN_BOARD` | Pin the active kanban board for this process. Takes precedence over `~/.sparkii/kanban/current`; the dispatcher injects this into worker subprocess env so workers physically cannot see tasks on other boards. Defaults to `default`. Slug validation: lowercase alphanumerics + hyphens + underscores, 1-64 chars |
 | `SPARKII_KANBAN_DB` | Pin the kanban database file path directly (highest precedence; beats `SPARKII_KANBAN_BOARD` and `SPARKII_KANBAN_HOME`). The dispatcher injects this into worker subprocess env so profile workers converge on the dispatcher's board |
 | `SPARKII_KANBAN_WORKSPACES_ROOT` | Pin the kanban workspaces root directly (highest precedence for workspaces; beats `SPARKII_KANBAN_HOME`). The dispatcher injects this into worker subprocess env |
@@ -554,7 +554,7 @@ Three dashboard-auth providers ship in the box. For a remote Sparkii Desktop con
 | `SPARKII_DASHBOARD_OIDC_CLIENT_ID` | Public OIDC client id (authorization-code + PKCE) for the self-hosted OIDC provider. Required to activate it. Overrides `dashboard.oauth.self_hosted.client_id`. |
 | `SPARKII_DASHBOARD_OIDC_SCOPES` | Requested OIDC scopes for the self-hosted OIDC provider (default `openid profile email`). Overrides `dashboard.oauth.self_hosted.scopes`. |
 | `SPARKII_DESKTOP_REMOTE_URL` | (Desktop side) Base URL of the remote backend, e.g. `http://host:9119`. When set, overrides the in-app Gateway URL; you still sign in from the Gateway settings panel (OAuth redirect or username/password, whichever the backend advertises). |
-| `SPARKII_DESKTOP_SPARKII` | Desktop backend command override. Used by packagers/Nix or troubleshooting to point Electron at a specific `sparkii` executable after backend probing. |
+| `SPARKII_DESKTOP_HERMES` | Desktop backend command override. Used by packagers/Nix or troubleshooting to point Electron at a specific `sparkii` executable after backend probing. |
 | `SPARKII_DESKTOP_SPARKII_ROOT` | Desktop source-checkout override used by `sparkii desktop --sparkii-root`; checked before the packaged first-launch install or an existing `sparkii` on `PATH`. |
 | `SPARKII_DESKTOP_IGNORE_EXISTING` | Set to `1` to make Desktop ignore an existing `sparkii` on `PATH` during backend resolution. Equivalent to `sparkii desktop --ignore-existing`. |
 | `SPARKII_DESKTOP_CWD` | Initial project directory for Desktop chat sessions. Set by `sparkii desktop --cwd`. |
@@ -818,7 +818,7 @@ Advanced per-platform knobs for throttling the outbound message batcher. Most us
 | `SPARKII_PREFILL_MESSAGES_FILE` | Path to a JSON file of ephemeral prefill messages injected at API-call time. |
 | `SPARKII_ALLOW_PRIVATE_URLS` | `true`/`false` — allow tools to fetch localhost/private-network URLs. Off by default in gateway mode. |
 | `SPARKII_REDACT_SECRETS` | `true`/`false` — control secret redaction in tool output, logs, and chat responses (default: `true`). |
-| `SPARKII_WRITE_SAFE_ROOT` | Optional directory prefix that **hard-blocks** `write_file`/`patch` writes outside the listed roots (no approval prompt). Supports multiple directories separated by `os.pathsep` (`:` on Unix, `;` on Windows). See [SPARKII_WRITE_SAFE_ROOT](#sparkii_write_safe_root) below. |
+| `SPARKII_WRITE_SAFE_ROOT` | Optional directory prefix that **hard-blocks** `write_file`/`patch` writes outside the listed roots (no approval prompt). Supports multiple directories separated by `os.pathsep` (`:` on Unix, `;` on Windows). See [SPARKII_WRITE_SAFE_ROOT](#hermes_write_safe_root) below. |
 | `SPARKII_DISABLE_LAZY_INSTALLS` | Internal bridge var set automatically in the official Docker image to prevent runtime dependency installs into the immutable `/opt/sparkii` tree. The user-facing equivalent is `security.allow_lazy_installs: false` in `config.yaml`; do not set this in `.env`. |
 | `SPARKII_DISABLE_FILE_STATE_GUARD` | Set to `1` to turn off the "file changed since you read it" guard on `patch`/`write_file`. |
 | `SPARKII_BUNDLED_SKILLS` | Comma-separated override for the list of bundled skills loaded at startup. |
@@ -831,7 +831,7 @@ Advanced per-platform knobs for throttling the outbound message batcher. Most us
 | `SPARKII_AGENT_LOGO` | Override the ASCII banner logo at CLI startup. |
 | `DELEGATION_MAX_CONCURRENT_CHILDREN` | Max parallel subagents per `delegate_task` batch (default: `3`, floor of 1, no ceiling). Also configurable via `delegation.max_concurrent_children` in `config.yaml` — the config value takes priority. |
 
-### SPARKII_WRITE_SAFE_ROOT {#sparkii_write_safe_root}
+### SPARKII_WRITE_SAFE_ROOT {#hermes_write_safe_root}
 
 When this variable is set, `write_file` and `patch` may only target paths inside the listed directory prefix(es). Any path outside those roots is **rejected immediately** — the write does not go through the dangerous-command approval system and there is no prompt to override it.
 
@@ -864,6 +864,8 @@ Unset the variable or remove it from `.env` to restore normal writes (still subj
 | `SESSION_IDLE_MINUTES` | Reset sessions after N minutes of inactivity (default: 1440) |
 | `SESSION_RESET_HOUR` | Daily reset hour in 24h format (default: 4 = 4am) |
 | `SPARKII_SESSION_ID` | **Exported automatically into every tool subprocess** Sparkii spawns (`terminal`, `execute_code`, persistent shell, Docker/Singularity backends, delegated subagent runs). Set by the agent to the current session ID; user scripts called from tools can read it to correlate their output, telemetry, or side effects with the originating Sparkii session. **You should not set this manually** — overriding it from a parent shell only takes effect outside an agent run, and is overwritten the moment the agent starts a session. |
+| `AI_AGENT` | **Set to `sparkii-agent` by the CLI and gateway entry points** (only when not already set by an outer harness), and exported into every terminal-tool shell — including remote backends (Docker, SSH, Modal, Daytona, Singularity, Vercel). The emerging cross-agent standard for child-process attribution — generic tooling (e.g. huggingface_hub's agent detection) reads it to know it runs under an AI agent. The value matches Sparkii' id in the public agent-harness registry. Don't set manually. |
+| `SPARKII_AGENT` | **Set to `true` by the CLI and gateway entry points** and exported into every terminal-tool shell so child processes can detect they run inside Sparkii specifically. Don't set manually. |
 
 ## Context Compression (config.yaml only)
 

@@ -14,13 +14,13 @@ import gateway.run as gateway_run
 
 
 def _write_home(tmp_path: Path, sessions_cfg: dict, env_text: str = "") -> Path:
-    sparkii_home = tmp_path / ".sparkii"
-    sparkii_home.mkdir()
-    (sparkii_home / "config.yaml").write_text(
+    hermes_home = tmp_path / ".sparkii"
+    hermes_home.mkdir()
+    (hermes_home / "config.yaml").write_text(
         yaml.safe_dump({"sessions": sessions_cfg}), encoding="utf-8"
     )
-    (sparkii_home / ".env").write_text(env_text, encoding="utf-8")
-    return sparkii_home
+    (hermes_home / ".env").write_text(env_text, encoding="utf-8")
+    return hermes_home
 
 
 def test_cjk_fts_bridged_from_config(tmp_path, monkeypatch):

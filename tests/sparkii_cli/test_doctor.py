@@ -30,7 +30,7 @@ class TestDoctorPlatformHints:
 
         hint = doctor._sqlite_upgrade_hint()
 
-        assert "docker pull yuedj/spaikiidesktop:latest" in hint
+        assert "docker pull nousresearch/sparkii-agent:latest" in hint
         assert "recreate all Sparkii containers" in hint
         assert "sparkii update" not in hint
 
@@ -74,19 +74,19 @@ class TestDoctorEnvFileEncoding:
     ):
         import pathlib
 
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
+        hermes_home = tmp_path / ".sparkii"
+        hermes_home.mkdir()
         # Write a UTF-8 .env containing an em dash (U+2014 = e2 80 94). The
         # 0x94 byte is exactly the one the issue reporter hit: it's invalid
         # as a GBK trailing byte in this position, so locale-default reads
         # raise UnicodeDecodeError on Chinese Windows.
-        env_path = sparkii_home / ".env"
+        env_path = hermes_home / ".env"
         env_path.write_text(
             "OPENAI_API_KEY=sk-test  # em-dash here — should not crash\n",
             encoding="utf-8",
         )
 
-        monkeypatch.setattr(doctor_mod, "SPARKII_HOME", sparkii_home)
+        monkeypatch.setattr(doctor_mod, "SPARKII_HOME", hermes_home)
 
         orig_read_text = pathlib.Path.read_text
 
@@ -119,14 +119,14 @@ class TestDoctorEnvFileEncoding:
         self, monkeypatch, tmp_path
     ):
         """cp1252/latin-1 .env with ASCII provider hints must not abort doctor."""
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        env_path = sparkii_home / ".env"
+        hermes_home = tmp_path / ".sparkii"
+        hermes_home.mkdir()
+        env_path = hermes_home / ".env"
         # 0xff is invalid UTF-8; latin-1 decodes it. Keep an ASCII provider key
         # so the scan still reports a configured endpoint/key.
         env_path.write_bytes(b"OPENAI_API_KEY=sk-test\xff\n")
 
-        monkeypatch.setattr(doctor_mod, "SPARKII_HOME", sparkii_home)
+        monkeypatch.setattr(doctor_mod, "SPARKII_HOME", hermes_home)
 
         fake_model_tools = types.SimpleNamespace(
             check_tool_availability=lambda *a, **kw: (_ for _ in ()).throw(SystemExit(0)),
@@ -502,7 +502,7 @@ def test_run_doctor_flags_missing_credentials_for_active_openrouter_provider(mon
         ("moa", "anthropic/claude-sonnet-4.6"),
     ],
 )
-def test_run_doctor_accepts_sparkii_provider_ids_that_catalog_aliases(
+def test_run_doctor_accepts_hermes_provider_ids_that_catalog_aliases(
     monkeypatch, tmp_path, provider, default_model
 ):
     home = tmp_path / ".sparkii"
@@ -1274,20 +1274,20 @@ class TestDoctorStaleMaxIterationsDrift:
         import io
         from argparse import Namespace
 
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir(parents=True)
-        (sparkii_home / "config.yaml").write_text(
+        hermes_home = tmp_path / ".sparkii"
+        hermes_home.mkdir(parents=True)
+        (hermes_home / "config.yaml").write_text(
             f"agent:\n  max_turns: {cfg_turns}\n", encoding="utf-8"
         )
         env_lines = ["OPENAI_API_KEY=sk-test\n"]
         if ghost is not None:
             env_lines.append(f"SPARKII_MAX_ITERATIONS={ghost}\n")
-        (sparkii_home / ".env").write_text("".join(env_lines), encoding="utf-8")
+        (hermes_home / ".env").write_text("".join(env_lines), encoding="utf-8")
 
-        monkeypatch.setattr(doctor_mod, "SPARKII_HOME", sparkii_home)
-        monkeypatch.setattr(doctor_mod, "get_sparkii_home", lambda: sparkii_home)
+        monkeypatch.setattr(doctor_mod, "SPARKII_HOME", hermes_home)
+        monkeypatch.setattr(doctor_mod, "get_sparkii_home", lambda: hermes_home)
         # Point the config helpers at the temp home.
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
         if os_environ_value is not None:
             # Simulate the gateway bridge having already overridden os.environ.
             monkeypatch.setenv("SPARKII_MAX_ITERATIONS", str(os_environ_value))
@@ -1305,25 +1305,25 @@ class TestDoctorStaleMaxIterationsDrift:
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf), pytest.raises(SystemExit):
             doctor_mod.run_doctor(Namespace(fix=fix))
-        return buf.getvalue(), sparkii_home
+        return buf.getvalue(), hermes_home
 
     def test_detects_drift_warn_only(self, monkeypatch, tmp_path):
-        out, sparkii_home = self._run_config_section(
+        out, hermes_home = self._run_config_section(
             monkeypatch, tmp_path, fix=False, ghost=90, cfg_turns=400,
             os_environ_value=400,  # bridge contaminated os.environ
         )
         assert "SPARKII_MAX_ITERATIONS=90" in out
         assert "shadows" in out
         # Warn-only must NOT mutate .env.
-        assert "SPARKII_MAX_ITERATIONS=90" in (sparkii_home / ".env").read_text(encoding="utf-8")
+        assert "SPARKII_MAX_ITERATIONS=90" in (hermes_home / ".env").read_text(encoding="utf-8")
 
     def test_fix_removes_ghost(self, monkeypatch, tmp_path):
-        out, sparkii_home = self._run_config_section(
+        out, hermes_home = self._run_config_section(
             monkeypatch, tmp_path, fix=True, ghost=90, cfg_turns=400,
             os_environ_value=400,
         )
         assert "Removed stale SPARKII_MAX_ITERATIONS" in out
-        env_after = (sparkii_home / ".env").read_text(encoding="utf-8")
+        env_after = (hermes_home / ".env").read_text(encoding="utf-8")
         assert "SPARKII_MAX_ITERATIONS" not in env_after
         assert "OPENAI_API_KEY=sk-test" in env_after  # other keys preserved
 
@@ -1365,15 +1365,15 @@ class TestDoctorDeprecatedConfigAndEnv:
         assert mode["SPARKII_TOOL_PROGRESS_MODE"] == "display.tool_progress in config.yaml"
 
     def _run_doctor_with_config(self, monkeypatch, tmp_path, *, config_yaml: str, env_text: str = ""):
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir(parents=True)
-        (sparkii_home / "config.yaml").write_text(config_yaml, encoding="utf-8")
+        hermes_home = tmp_path / ".sparkii"
+        hermes_home.mkdir(parents=True)
+        (hermes_home / "config.yaml").write_text(config_yaml, encoding="utf-8")
         env_body = env_text if env_text else "OPENAI_API_KEY=sk-test\n"
-        (sparkii_home / ".env").write_text(env_body, encoding="utf-8")
+        (hermes_home / ".env").write_text(env_body, encoding="utf-8")
 
-        monkeypatch.setattr(doctor_mod, "SPARKII_HOME", sparkii_home)
-        monkeypatch.setattr(doctor_mod, "get_sparkii_home", lambda: sparkii_home)
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setattr(doctor_mod, "SPARKII_HOME", hermes_home)
+        monkeypatch.setattr(doctor_mod, "get_sparkii_home", lambda: hermes_home)
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
         # Clear process-level legacy env so tests only see the on-disk .env.
         for k in (
             "SPARKII_TOOL_PROGRESS",
@@ -1394,7 +1394,7 @@ class TestDoctorDeprecatedConfigAndEnv:
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf), pytest.raises(SystemExit):
             doctor_mod.run_doctor(Namespace(fix=False))
-        return buf.getvalue(), sparkii_home
+        return buf.getvalue(), hermes_home
 
 
 

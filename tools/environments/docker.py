@@ -25,7 +25,7 @@ from tools.environments.base import (
 )
 from tools.environments.local import (
     _SPARKII_PROVIDER_ENV_BLOCKLIST,
-    _is_sparkii_internal_secret,
+    _is_hermes_internal_secret,
 )
 
 logger = logging.getLogger(__name__)
@@ -100,7 +100,7 @@ def _normalize_env_dict(env: dict | None) -> dict[str, str]:
     return normalized
 
 
-def _load_sparkii_env_vars() -> dict[str, str]:
+def _load_hermes_env_vars() -> dict[str, str]:
     """Load ~/.sparkii/.env values without failing Docker command execution."""
     try:
         from sparkii_cli.config import load_env
@@ -1568,15 +1568,15 @@ class DockerEnvironment(BaseEnvironment):
         # win over the generic Sparkii secret blocklist. Only implicit passthrough
         # keys are filtered. Also strip Sparkii-internal dynamic secrets
         # (AUXILIARY_*_API_KEY / _BASE_URL, GATEWAY_RELAY_* auth) that the
-        # name-based blocklist doesn't cover — see _is_sparkii_internal_secret.
+        # name-based blocklist doesn't cover — see _is_hermes_internal_secret.
         _implicit_forward = {
-            k for k in passthrough_keys if not _is_sparkii_internal_secret(k)
+            k for k in passthrough_keys if not _is_hermes_internal_secret(k)
         }
         forward_keys = explicit_forward_keys | (_implicit_forward - _SPARKII_PROVIDER_ENV_BLOCKLIST)
-        sparkii_env = _load_sparkii_env_vars() if forward_keys else {}
+        hermes_env = _load_hermes_env_vars() if forward_keys else {}
         unset_names: set[str] = set()
         for key in sorted(forward_keys):
-            value = os.getenv(key) or sparkii_env.get(key)
+            value = os.getenv(key) or hermes_env.get(key)
             if resolve_passthrough_value is not None:
                 value = resolve_passthrough_value(key, value)
             if value is not None:

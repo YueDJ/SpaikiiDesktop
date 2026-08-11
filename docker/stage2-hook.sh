@@ -21,7 +21,7 @@ SPARKII_HOME="${SPARKII_HOME:-/opt/data}"
 INSTALL_DIR="/opt/sparkii"
 
 # Drop to sparkii via s6-setuidgid, but skip it when already non-root.
-as_sparkii() { [ "$(id -u)" = 0 ] || { "$@"; return; }; s6-setuidgid sparkii "$@"; }
+as_hermes() { [ "$(id -u)" = 0 ] || { "$@"; return; }; s6-setuidgid sparkii "$@"; }
 
 # --- Reject the unsupported `docker run --user <uid>:<gid>` start ---
 # Detect the case where the container was launched with `--user` pinned to an
@@ -180,7 +180,7 @@ done
 #
 # The canonical list of sparkii-owned subdirs is the same one the s6-setuidgid
 # mkdir -p block below seeds. Keep them in sync if the seed list changes.
-actual_sparkii_uid=$(id -u sparkii)
+actual_hermes_uid=$(id -u sparkii)
 
 path_has_symlink_component() {
     path="$1"
@@ -211,7 +211,7 @@ refuse_symlinked_path() {
     return 1
 }
 
-chown_sparkii_tree() {
+chown_hermes_tree() {
     target="$1"
     if refuse_symlinked_path "recursive chown" "$target"; then
         return 0
@@ -220,17 +220,17 @@ chown_sparkii_tree() {
         echo "[stage2] Warning: chown $target failed (rootless container?) — continuing"
 }
 
-tree_has_non_sparkii_owner() {
+tree_has_non_hermes_owner() {
     target="$1"
     find "$target" \( ! -user sparkii -o ! -group sparkii \) -print -quit 2>/dev/null | grep -q .
 }
 
 needs_chown=false
-if [ "$(stat -c %u "$SPARKII_HOME" 2>/dev/null)" != "$actual_sparkii_uid" ]; then
+if [ "$(stat -c %u "$SPARKII_HOME" 2>/dev/null)" != "$actual_hermes_uid" ]; then
     needs_chown=true
 fi
 if [ "$needs_chown" = true ]; then
-    echo "[stage2] Fixing ownership of $SPARKII_HOME (targeted) to sparkii ($actual_sparkii_uid)"
+    echo "[stage2] Fixing ownership of $SPARKII_HOME (targeted) to sparkii ($actual_hermes_uid)"
     # In rootless Podman the container's "root" is mapped to an
     # unprivileged host UID — chown will fail. That's fine: the volume
     # is already owned by the mapped user on the host side.
@@ -248,8 +248,8 @@ if [ "$needs_chown" = true ]; then
     # created and managed exclusively by sparkii (see the s6-setuidgid mkdir
     # -p block below for the canonical list).
     for sub in cron sessions logs hooks memories skills skins plans workspace home profiles pairing platforms/pairing lazy-packages; do
-        if [ -e "$SPARKII_HOME/$sub" ] && tree_has_non_sparkii_owner "$SPARKII_HOME/$sub"; then
-            chown_sparkii_tree "$SPARKII_HOME/$sub"
+        if [ -e "$SPARKII_HOME/$sub" ] && tree_has_non_hermes_owner "$SPARKII_HOME/$sub"; then
+            chown_hermes_tree "$SPARKII_HOME/$sub"
         fi
     done
 fi
@@ -281,8 +281,8 @@ fi
 # the profiles dir. Skip the recursive walk when the tree is already
 # owned correctly so warm boots do not rescan huge profile caches.
 # Idempotent; skipped on rootless containers where chown would fail.
-if [ -d "$SPARKII_HOME/profiles" ] && tree_has_non_sparkii_owner "$SPARKII_HOME/profiles"; then
-    chown_sparkii_tree "$SPARKII_HOME/profiles"
+if [ -d "$SPARKII_HOME/profiles" ] && tree_has_non_hermes_owner "$SPARKII_HOME/profiles"; then
+    chown_hermes_tree "$SPARKII_HOME/profiles"
 fi
 
 # Always reset ownership of $SPARKII_HOME/cron on every boot for the same
@@ -291,8 +291,8 @@ fi
 # after root-context maintenance commands or scheduler writes. Skip the
 # recursive walk when the tree is already owned correctly (same warm-boot
 # gate as profiles/).
-if [ -d "$SPARKII_HOME/cron" ] && tree_has_non_sparkii_owner "$SPARKII_HOME/cron"; then
-    chown_sparkii_tree "$SPARKII_HOME/cron"
+if [ -d "$SPARKII_HOME/cron" ] && tree_has_non_hermes_owner "$SPARKII_HOME/cron"; then
+    chown_hermes_tree "$SPARKII_HOME/cron"
 fi
 
 # Always ensure logs/gateways is sparkii-owned (#45258). Formerly healed by
@@ -320,12 +320,12 @@ fi
 # self-heal. Tiny directory (a handful of small JSON files), so even the
 # ownership pre-scan is negligible; gated for consistency with profiles/
 # and cron/.
-if [ -d "$SPARKII_HOME/platforms/pairing" ] && tree_has_non_sparkii_owner "$SPARKII_HOME/platforms/pairing"; then
-    chown_sparkii_tree "$SPARKII_HOME/platforms/pairing"
+if [ -d "$SPARKII_HOME/platforms/pairing" ] && tree_has_non_hermes_owner "$SPARKII_HOME/platforms/pairing"; then
+    chown_hermes_tree "$SPARKII_HOME/platforms/pairing"
 fi
 # Legacy location (pre-consolidated layout).
-if [ -d "$SPARKII_HOME/pairing" ] && tree_has_non_sparkii_owner "$SPARKII_HOME/pairing"; then
-    chown_sparkii_tree "$SPARKII_HOME/pairing"
+if [ -d "$SPARKII_HOME/pairing" ] && tree_has_non_hermes_owner "$SPARKII_HOME/pairing"; then
+    chown_hermes_tree "$SPARKII_HOME/pairing"
 fi
 
 # Reset ownership of sparkii-owned top-level state files on every boot.
@@ -378,7 +378,7 @@ fi
 # Use direct `mkdir -p` invocation (no `sh -c "..."` wrapper) so the
 # shell isn't a second interpreter — defends against $SPARKII_HOME values
 # containing shell metacharacters. PR #30136 review item O2.
-as_sparkii mkdir -p \
+as_hermes mkdir -p \
     "$SPARKII_HOME/backups" \
     "$SPARKII_HOME/cron" \
     "$SPARKII_HOME/sessions" \
@@ -423,7 +423,7 @@ seed_one() {
         if refuse_symlinked_path "seed" "$SPARKII_HOME/$dest"; then
             :
         else
-            as_sparkii cp "$INSTALL_DIR/$src" "$SPARKII_HOME/$dest"
+            as_hermes cp "$INSTALL_DIR/$src" "$SPARKII_HOME/$dest"
         fi
     fi
 }
@@ -536,7 +536,7 @@ fi
 # the python binary's own bin-stub already sets up (sys.path is rooted
 # at the venv's site-packages by virtue of running .venv/bin/python).
 if [ -d "$INSTALL_DIR/skills" ]; then
-    as_sparkii "$INSTALL_DIR/.venv/bin/python" "$INSTALL_DIR/tools/skills_sync.py" \
+    as_hermes "$INSTALL_DIR/.venv/bin/python" "$INSTALL_DIR/tools/skills_sync.py" \
         || echo "[stage2] Warning: skills_sync.py failed; continuing"
 fi
 

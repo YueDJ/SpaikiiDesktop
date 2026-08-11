@@ -24,7 +24,7 @@
 10. [附录](#附录)
 
 ## 简介
-本指南面向在Google Cloud Platform（GCP）上部署SpaikiiDesktop（Hermes Agent）的完整流程，覆盖以下目标：
+本指南面向在Google Cloud Platform（GCP）上部署SpaikiiDesktop（Sparkii Agent）的完整流程，覆盖以下目标：
 - 在Google Kubernetes Engine（GKE）上创建集群、配置命名空间并部署应用
 - 使用Cloud Run进行无服务器化部署
 - 集成Cloud SQL作为数据库、Cloud Storage用于文件存储

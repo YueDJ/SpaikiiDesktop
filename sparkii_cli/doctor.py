@@ -18,7 +18,7 @@ from sparkii_cli.config import (
     get_project_root,
     recommended_update_command_for_method,
 )
-from sparkii_cli.env_loader import load_sparkii_dotenv
+from sparkii_cli.env_loader import load_hermes_dotenv
 from sparkii_constants import display_sparkii_home
 from sparkii_constants import agent_browser_runnable
 
@@ -28,7 +28,7 @@ _DHH = display_sparkii_home()  # user-facing display path (e.g. ~/.sparkii or ~/
 
 # Load environment variables from ~/.sparkii/.env so API key checks work
 _env_path = get_env_path()
-load_sparkii_dotenv(sparkii_home=_env_path.parent, project_env=PROJECT_ROOT / ".env")
+load_hermes_dotenv(hermes_home=_env_path.parent, project_env=PROJECT_ROOT / ".env")
 
 from sparkii_cli.colors import Colors, color
 from sparkii_cli.models import _SPARKII_USER_AGENT
@@ -99,19 +99,19 @@ def _sqlite_upgrade_hint(install_method: str | None = None) -> str:
     )
 
 
-def _sparkii_database_paths(sparkii_home: Path) -> list[tuple[str, Path]]:
+def _hermes_database_paths(hermes_home: Path) -> list[tuple[str, Path]]:
     """Return (display name, path) pairs for Sparkii-managed SQLite databases."""
     # backup.py owns the canonical list of per-profile stores; reuse it.
     from sparkii_cli.backup import _QUICK_STATE_FILES
 
     entries = [
-        (name, sparkii_home / name)
+        (name, hermes_home / name)
         for name in _QUICK_STATE_FILES
         if name.endswith(".db")
     ]
     # Non-default kanban boards each keep their own kanban.db.
-    for board_db in sorted((sparkii_home / "kanban" / "boards").glob("*/kanban.db")):
-        entries.append((str(board_db.relative_to(sparkii_home)), board_db))
+    for board_db in sorted((hermes_home / "kanban" / "boards").glob("*/kanban.db")):
+        entries.append((str(board_db.relative_to(hermes_home)), board_db))
     return entries
 
 
@@ -154,16 +154,16 @@ def _format_db_size(db_path: Path) -> str:
 
 
 def _report_database_journal_modes(
-    sparkii_home: Path | None = None,
+    hermes_home: Path | None = None,
     version_info: tuple[int, ...] | None = None,
 ) -> None:
     """List each database's journal mode; warn on WAL under a vulnerable SQLite."""
     from sparkii_state import _wal_reset_repair_hint, is_sqlite_wal_reset_vulnerable
 
     vulnerable = is_sqlite_wal_reset_vulnerable(version_info)
-    home = sparkii_home if sparkii_home is not None else SPARKII_HOME
+    home = hermes_home if hermes_home is not None else SPARKII_HOME
     try:
-        databases = _sparkii_database_paths(home)
+        databases = _hermes_database_paths(home)
     except Exception as exc:
         check_warn(f"Could not list Sparkii databases: {exc}")
         return
@@ -1617,11 +1617,11 @@ def run_doctor(args):
         pass
 
     _section("Directory Structure")
-    sparkii_home = SPARKII_HOME
-    if sparkii_home.exists():
+    hermes_home = SPARKII_HOME
+    if hermes_home.exists():
         check_ok(f"{_DHH} directory exists")
     elif should_fix:
-        sparkii_home.mkdir(parents=True, exist_ok=True)
+        hermes_home.mkdir(parents=True, exist_ok=True)
         check_ok(f"Created {_DHH} directory")
         fixed_count += 1
     else:
@@ -1630,7 +1630,7 @@ def run_doctor(args):
     # Check expected subdirectories
     expected_subdirs = ["cron", "sessions", "logs", "skills", "memories"]
     for subdir_name in expected_subdirs:
-        subdir_path = sparkii_home / subdir_name
+        subdir_path = hermes_home / subdir_name
         if subdir_path.exists():
             check_ok(f"{_DHH}/{subdir_name}/ exists")
         elif should_fix:
@@ -1641,7 +1641,7 @@ def run_doctor(args):
             check_warn(f"{_DHH}/{subdir_name}/ not found", "(will be created on first use)")
     
     # Check for SOUL.md persona file
-    soul_path = sparkii_home / "SOUL.md"
+    soul_path = hermes_home / "SOUL.md"
     if soul_path.exists():
         content = soul_path.read_text(encoding="utf-8").strip()
         # Check if it's just the template comments (no real content)
@@ -1664,7 +1664,7 @@ def run_doctor(args):
             fixed_count += 1
     
     # Check memory directory
-    memories_dir = sparkii_home / "memories"
+    memories_dir = hermes_home / "memories"
     if memories_dir.exists():
         check_ok(f"{_DHH}/memories/ directory exists")
         memory_file = memories_dir / "MEMORY.md"
@@ -1687,7 +1687,7 @@ def run_doctor(args):
             fixed_count += 1
     
     # Check SQLite session store
-    state_db_path = sparkii_home / "state.db"
+    state_db_path = hermes_home / "state.db"
     if state_db_path.exists():
         try:
             import sqlite3
@@ -1818,7 +1818,7 @@ def run_doctor(args):
         check_info(f"{_DHH}/state.db not created yet (will be created on first session)")
 
     # Check WAL file size (unbounded growth indicates missed checkpoints)
-    wal_path = sparkii_home / "state.db-wal"
+    wal_path = hermes_home / "state.db-wal"
     if wal_path.exists():
         try:
             wal_size = wal_path.stat().st_size

@@ -32,7 +32,7 @@
 ## 项目结构
 - gateway/platforms/api_server.py：OpenAI 兼容 HTTP 服务器，提供 /v1/* 与 /api/sessions*、健康检查等端点，支持 SSE 流式输出、Runs 异步任务、Responses 持久化存储。
 - sparkii_cli/web_server.py：FastAPI 后端，承载 Web UI 与 /api/* 管理接口，内置鉴权中间件、CORS、Host 校验、插件路由门控、健康自检。
-- acp_adapter/server.py：ACP 协议实现，封装 Hermes Agent，暴露会话、模型选择、工具执行、资源附件等能力。
+- acp_adapter/server.py：ACP 协议实现，封装 Sparkii Agent，暴露会话、模型选择、工具执行、资源附件等能力。
 - tui_gateway/server.py：TUI/Gateway 内部 RPC 网关，负责长耗时操作线程池隔离、会话生命周期、子进程管理与崩溃日志。
 - sparkii_cli/dashboard_auth/routes.py：Dashboard OAuth/密码登录流程、提供者列表、当前用户信息、WS 票据等认证相关端点。
 
@@ -174,7 +174,7 @@ Err413 --> End
 
 ### Web Dashboard API（/api/*）
 - 认证与授权
-  - 本地回环绑定：注入临时会话令牌到前端，通过 X-Hermes-Session-Token 或 Bearer 头校验
+  - 本地回环绑定：注入临时会话令牌到前端，通过 X-Sparkii-Session-Token 或 Bearer 头校验
   - 非回环绑定：启用 OAuth/密码登录门控，基于 Cookie 会话
   - Host 头校验防止 DNS Rebinding；CORS 限制为 localhost/127.0.0.1
   - 插件 API 动态门控：运行时禁用插件时拒绝对应路由
@@ -226,7 +226,7 @@ D-->>U : 当前用户信息(JSON)
 
 ```mermaid
 classDiagram
-class HermesACPAgent {
+class SparkiiACPAgent {
 +on_connect(conn)
 +_session_modes(state) SessionModeState
 +_build_model_state(state) SessionModelState
@@ -237,7 +237,7 @@ class SessionManager {
 +resume_session(id)
 +list_sessions(cursor, limit)
 }
-HermesACPAgent --> SessionManager : "管理会话"
+SparkiiACPAgent --> SessionManager : "管理会话"
 ```
 
 **图示来源**
@@ -267,7 +267,7 @@ HermesACPAgent --> SessionManager : "管理会话"
 ## 依赖关系分析
 - OpenAI 兼容 API 依赖 aiohttp；若不可用则降级
 - Dashboard API 依赖 FastAPI/Starlette；首次使用时按需安装
-- ACP 依赖 acp 包与 Hermes Agent 包装器
+- ACP 依赖 acp 包与 Sparkii Agent 包装器
 - 所有服务均与 Gateway/Agent 运行时交互，共享会话、模型、工具与审批策略
 
 ```mermaid
@@ -332,10 +332,10 @@ ACP --> GW
 ## 附录：客户端集成与最佳实践
 - 认证
   - OpenAI 兼容 API：使用 API_SERVER_KEY 或平台配置密钥；必要时通过 Authorization 头传递
-  - Dashboard API：本地回环模式使用 X-Hermes-Session-Token；非回环模式使用 OAuth/密码登录后 Cookie
+  - Dashboard API：本地回环模式使用 X-Sparkii-Session-Token；非回环模式使用 OAuth/密码登录后 Cookie
 - 会话与消息
   - 使用 /api/sessions 管理会话；/api/sessions/{id}/chat 进行对话；需要流式时使用 /stream 后缀
-  - 使用 /v1/chat/completions 进行无状态对话；如需上下文延续可使用 X-Hermes-Session-Id
+  - 使用 /v1/chat/completions 进行无状态对话；如需上下文延续可使用 X-Sparkii-Session-Id
 - 运行任务
   - 使用 /v1/runs 启动任务并轮询状态；通过 /events 订阅 SSE 事件；必要时提交审批或停止
 - 多模态内容

@@ -81,7 +81,7 @@ python $SPARKII_HOME/skills/devops/watchers/scripts/watch_rss.py \
 
 ```bash
 python $SPARKII_HOME/skills/devops/watchers/scripts/watch_github.py \
-  --name sparkii-issues --repo YueDJ/SparkiiAgent --scope issues
+  --name sparkii-issues --repo NousResearch/sparkii-agent --scope issues
 ```
 
 轮询任意 JSON API：

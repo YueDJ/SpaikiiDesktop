@@ -124,18 +124,18 @@ pub fn run() {
             // its existing behavior (Windows users relaunch via the Start
             // Menu/Desktop "Sparkii" shortcuts that install.ps1 creates, and a
             // reliable detached relaunch there needs the DETACHED_PROCESS +
-            // startup-grace handling used by launch_sparkii_desktop — out of
+            // startup-grace handling used by launch_hermes_desktop — out of
             // scope here). So this is a pure no-op on non-macOS.
             //
             // `--reinstall`/`--repair` opts out so a broken install can be
             // repaired by re-running setup instead of launching the bad app.
             if cfg!(target_os = "macos") && mode == AppMode::Install && !force_setup {
-                let install_root = paths::sparkii_home().join("sparkii-agent");
-                if bootstrap::sparkii_is_installed(&install_root) {
+                let install_root = paths::hermes_home().join("sparkii-agent");
+                if bootstrap::hermes_is_installed(&install_root) {
                     match bootstrap::spawn_installed_desktop(&install_root) {
                         Ok(()) => {
                             // Brief grace so the spawned app is registered
-                            // before we exit (mirrors launch_sparkii_desktop).
+                            // before we exit (mirrors launch_hermes_desktop).
                             std::thread::sleep(std::time::Duration::from_millis(200));
                             tracing::info!(
                                 "sparkii already installed — relaunched desktop; exiting installer"
@@ -175,7 +175,7 @@ pub fn run() {
             // Update lifecycle
             update::start_update,
             // Hand-off
-            bootstrap::launch_sparkii_desktop,
+            bootstrap::launch_hermes_desktop,
             // Diagnostics
             paths::get_log_path,
             paths::get_sparkii_home,

@@ -564,7 +564,7 @@ export async function setupPackagedApp(): Promise<PackagedAppFixture> {
   // Clear dev-server + sparkii-root overrides — the packaged binary
   // should use its own bundled renderer, not the dev checkout.
   delete (env as Record<string, string | undefined>).SPARKII_DESKTOP_DEV_SERVER
-  delete (env as Record<string, string | undefined>).SPARKII_DESKTOP_SPARKII
+  delete (env as Record<string, string | undefined>).SPARKII_DESKTOP_HERMES
   delete (env as Record<string, string | undefined>).SPARKII_DESKTOP_SPARKII_ROOT
 
   const app = await _electron.launch({

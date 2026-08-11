@@ -51,9 +51,9 @@ def _write_plugin(
     return plugin_dir
 
 
-def _enable(sparkii_home: Path, name: str) -> None:
-    """Append ``name`` to ``plugins.enabled`` in ``<sparkii_home>/config.yaml``."""
-    cfg_path = sparkii_home / "config.yaml"
+def _enable(hermes_home: Path, name: str) -> None:
+    """Append ``name`` to ``plugins.enabled`` in ``<hermes_home>/config.yaml``."""
+    cfg_path = hermes_home / "config.yaml"
     cfg: dict = {}
     if cfg_path.exists():
         try:
@@ -75,11 +75,11 @@ class TestCategoryNamespaceRecursion:
         """``<root>/image_gen/openai/plugin.yaml`` is discovered with key
         ``image_gen/openai`` when the ``image_gen`` parent has no manifest."""
         import os
-        sparkii_home = Path(os.environ["SPARKII_HOME"])  # set by hermetic conftest fixture
-        user_plugins = sparkii_home / "plugins"
+        hermes_home = Path(os.environ["SPARKII_HOME"])  # set by hermetic conftest fixture
+        user_plugins = hermes_home / "plugins"
 
         _write_plugin(user_plugins, ["image_gen", "openai"])
-        _enable(sparkii_home, "image_gen/openai")
+        _enable(hermes_home, "image_gen/openai")
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -98,8 +98,8 @@ class TestCategoryNamespaceRecursion:
         two segments.
         """
         import os
-        sparkii_home = Path(os.environ["SPARKII_HOME"])  # set by hermetic conftest fixture
-        user_plugins = sparkii_home / "plugins"
+        hermes_home = Path(os.environ["SPARKII_HOME"])  # set by hermetic conftest fixture
+        user_plugins = hermes_home / "plugins"
 
         _write_plugin(user_plugins, ["a", "b", "c"])
 
@@ -120,9 +120,9 @@ class TestCategoryNamespaceRecursion:
 class TestKindField:
     def test_default_kind_is_standalone(self, tmp_path, monkeypatch):
         import os
-        sparkii_home = Path(os.environ["SPARKII_HOME"])  # set by hermetic conftest fixture
-        _write_plugin(sparkii_home / "plugins", ["p1"])
-        _enable(sparkii_home, "p1")
+        hermes_home = Path(os.environ["SPARKII_HOME"])  # set by hermetic conftest fixture
+        _write_plugin(hermes_home / "plugins", ["p1"])
+        _enable(hermes_home, "p1")
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -132,14 +132,14 @@ class TestKindField:
     @pytest.mark.parametrize("kind", ["backend", "exclusive", "standalone"])
     def test_valid_kinds_parsed(self, kind, tmp_path, monkeypatch):
         import os
-        sparkii_home = Path(os.environ["SPARKII_HOME"])  # set by hermetic conftest fixture
+        hermes_home = Path(os.environ["SPARKII_HOME"])  # set by hermetic conftest fixture
         _write_plugin(
-            sparkii_home / "plugins",
+            hermes_home / "plugins",
             ["p1"],
             manifest_extra={"kind": kind},
         )
         # Not all kinds auto-load, but manifest should parse.
-        _enable(sparkii_home, "p1")
+        _enable(hermes_home, "p1")
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -149,13 +149,13 @@ class TestKindField:
 
     def test_unknown_kind_falls_back_to_standalone(self, tmp_path, monkeypatch, caplog):
         import os
-        sparkii_home = Path(os.environ["SPARKII_HOME"])  # set by hermetic conftest fixture
+        hermes_home = Path(os.environ["SPARKII_HOME"])  # set by hermetic conftest fixture
         _write_plugin(
-            sparkii_home / "plugins",
+            hermes_home / "plugins",
             ["p1"],
             manifest_extra={"kind": "bogus"},
         )
-        _enable(sparkii_home, "p1")
+        _enable(hermes_home, "p1")
 
         with caplog.at_level("WARNING"):
             mgr = PluginManager()
@@ -175,8 +175,8 @@ class TestBackendGate:
         """User-installed ``kind: backend`` plugins still require opt-in —
         they're not trusted by default."""
         import os
-        sparkii_home = Path(os.environ["SPARKII_HOME"])  # set by hermetic conftest fixture
-        user_plugins = sparkii_home / "plugins"
+        hermes_home = Path(os.environ["SPARKII_HOME"])  # set by hermetic conftest fixture
+        user_plugins = hermes_home / "plugins"
 
         _write_plugin(
             user_plugins,
@@ -197,13 +197,13 @@ class TestBackendGate:
         """``kind: exclusive`` plugins are recorded but not loaded — the
         category's own discovery system handles them (memory today)."""
         import os
-        sparkii_home = Path(os.environ["SPARKII_HOME"])  # set by hermetic conftest fixture
+        hermes_home = Path(os.environ["SPARKII_HOME"])  # set by hermetic conftest fixture
         _write_plugin(
-            sparkii_home / "plugins",
+            hermes_home / "plugins",
             ["some-backend"],
             manifest_extra={"kind": "exclusive"},
         )
-        _enable(sparkii_home, "some-backend")
+        _enable(hermes_home, "some-backend")
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -221,7 +221,7 @@ class TestBundledBackendAutoLoad:
         """The bundled ``plugins/image_gen/openai/`` plugin loads without
         any opt-in — it's ``kind: backend`` and shipped in-repo."""
         import os
-        sparkii_home = Path(os.environ["SPARKII_HOME"])  # set by hermetic conftest fixture
+        hermes_home = Path(os.environ["SPARKII_HOME"])  # set by hermetic conftest fixture
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -252,9 +252,9 @@ class TestRegisterImageGenProvider:
                 return {"success": True, "image": "test://fake"}
 
         import os
-        sparkii_home = Path(os.environ["SPARKII_HOME"])  # set by hermetic conftest fixture
+        hermes_home = Path(os.environ["SPARKII_HOME"])  # set by hermetic conftest fixture
         plugin_dir = _write_plugin(
-            sparkii_home / "plugins",
+            hermes_home / "plugins",
             ["my-img-plugin"],
             register_body=(
                 "from agent.image_gen_provider import ImageGenProvider\n"
@@ -266,7 +266,7 @@ class TestRegisterImageGenProvider:
                 "    ctx.register_image_gen_provider(P())"
             ),
         )
-        _enable(sparkii_home, "my-img-plugin")
+        _enable(hermes_home, "my-img-plugin")
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -282,13 +282,13 @@ class TestRegisterImageGenProvider:
         image_gen_registry._reset_for_tests()
 
         import os
-        sparkii_home = Path(os.environ["SPARKII_HOME"])  # set by hermetic conftest fixture
+        hermes_home = Path(os.environ["SPARKII_HOME"])  # set by hermetic conftest fixture
         _write_plugin(
-            sparkii_home / "plugins",
+            hermes_home / "plugins",
             ["bad-img-plugin"],
             register_body="ctx.register_image_gen_provider('not a provider')",
         )
-        _enable(sparkii_home, "bad-img-plugin")
+        _enable(hermes_home, "bad-img-plugin")
 
         with caplog.at_level("WARNING"):
             mgr = PluginManager()

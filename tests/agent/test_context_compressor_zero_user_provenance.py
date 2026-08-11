@@ -337,8 +337,8 @@ def test_real_task_wins_over_trailing_dropped_tools_continuation_nudge(compresso
 def test_compress_context_todo_snapshot_stays_synthetic_across_two_boundaries(
     tmp_path, monkeypatch
 ):
-    sparkii_home = tmp_path / "sparkii-home"
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    hermes_home = tmp_path / "sparkii-home"
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
     db = SessionDB(db_path=tmp_path / "state.db")
     session_id = "zero-user-todo-lifecycle"
     db.create_session(session_id, source="cron", model="test/model")

@@ -55,7 +55,7 @@ Good verification targets:
 
 - CLI commands: `sparkii --help`, `sparkii <command> --help`, and `sparkii_cli/main.py`
 - User documentation: https://sparkii-agent.nousresearch.com/docs/
-- Source tree: https://github.com/YueDJ/SparkiiAgent
+- Source tree: https://github.com/NousResearch/sparkii-agent
 
 ## Quick Start
 

@@ -190,12 +190,12 @@ class FastMCP {
 +tool(name, description)(handler)
 +run()
 }
-class HermesToolDispatcher {
+class SparkiiToolDispatcher {
 +get_tool_definitions(quiet_mode) list
 +handle_function_call(name, args) str
 }
 SparkiiToolsServer --> FastMCP : "创建并注册工具"
-SparkiiToolsServer --> HermesToolDispatcher : "调用工具"
+SparkiiToolsServer --> SparkiiToolDispatcher : "调用工具"
 ```
 
 **图表来源**
@@ -429,7 +429,7 @@ H["sparkii_cli/mcp_config.py"] --> F
   - 兼容不同MCP服务器的capabilities差异
 - 迁移
   - 从hermes CLI迁移至sparkii CLI：配置键与行为保持一致
-  - 从OpenClaw 9-tool通道迁移：Hermes MCP服务匹配其工具表面并扩展channels_list
+  - 从OpenClaw 9-tool通道迁移：Sparkii MCP服务匹配其工具表面并扩展channels_list
   - 从本地脚本迁移至manifest.yaml：标准化传输、认证、工具清单与安装后步骤
 
 **章节来源**

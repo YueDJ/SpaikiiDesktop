@@ -235,7 +235,7 @@ def _clear_install_failed():
         pass
 
 
-def _sparkii_bin_dir() -> str:
+def _hermes_bin_dir() -> str:
     """Return $SPARKII_HOME/bin, creating it if needed."""
     d = os.path.join(_get_sparkii_home(), "bin")
     os.makedirs(d, exist_ok=True)
@@ -459,7 +459,7 @@ def _install_tirith(*, log_failures: bool = True) -> tuple[str | None, str]:
             if src is None:
                 return None, reason
 
-        dest = os.path.join(_sparkii_bin_dir(), "tirith")
+        dest = os.path.join(_hermes_bin_dir(), "tirith")
         try:
             shutil.move(src, dest)
         except OSError:
@@ -549,12 +549,12 @@ def _resolve_tirith_path(configured_path: str) -> str:
         _clear_install_failed()
         return found
 
-    sparkii_bin = os.path.join(_sparkii_bin_dir(), "tirith")
-    if os.path.isfile(sparkii_bin) and os.access(sparkii_bin, os.X_OK):
-        _resolved_path = sparkii_bin
+    hermes_bin = os.path.join(_hermes_bin_dir(), "tirith")
+    if os.path.isfile(hermes_bin) and os.access(hermes_bin, os.X_OK):
+        _resolved_path = hermes_bin
         _install_failure_reason = ""
         _clear_install_failed()
-        return sparkii_bin
+        return hermes_bin
 
     # Local checks failed.  If a previous install attempt already failed,
     # skip the network retry — UNLESS the failure was "cosign_missing" and
@@ -613,9 +613,9 @@ def _background_install(*, log_failures: bool = True):
             _install_failure_reason = ""
             return
 
-        sparkii_bin = os.path.join(_sparkii_bin_dir(), "tirith")
-        if os.path.isfile(sparkii_bin) and os.access(sparkii_bin, os.X_OK):
-            _resolved_path = sparkii_bin
+        hermes_bin = os.path.join(_hermes_bin_dir(), "tirith")
+        if os.path.isfile(hermes_bin) and os.access(hermes_bin, os.X_OK):
+            _resolved_path = hermes_bin
             _install_failure_reason = ""
             return
 
@@ -683,12 +683,12 @@ def ensure_installed(*, log_failures: bool = True):
         _clear_install_failed()
         return found
 
-    sparkii_bin = os.path.join(_sparkii_bin_dir(), "tirith")
-    if os.path.isfile(sparkii_bin) and os.access(sparkii_bin, os.X_OK):
-        _resolved_path = sparkii_bin
+    hermes_bin = os.path.join(_hermes_bin_dir(), "tirith")
+    if os.path.isfile(hermes_bin) and os.access(hermes_bin, os.X_OK):
+        _resolved_path = hermes_bin
         _install_failure_reason = ""
         _clear_install_failed()
-        return sparkii_bin
+        return hermes_bin
 
     # If previously failed in-memory, check if the cause is now resolved
     if _resolved_path is _INSTALL_FAILED:

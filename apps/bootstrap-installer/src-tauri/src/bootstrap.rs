@@ -45,7 +45,7 @@ pub struct StartBootstrapArgs {
     pub include_desktop: bool,
     /// Optional override for SPARKII_HOME. Tests use this; production
     /// almost always falls back to the OS default.
-    pub sparkii_home: Option<String>,
+    pub hermes_home: Option<String>,
 }
 
 fn default_true() -> bool {
@@ -163,12 +163,12 @@ pub async fn get_bootstrap_status(
 /// (e.g. when Stage-Desktop was skipped) so the frontend can present
 /// actionable failure UI rather than silently doing nothing.
 #[tauri::command]
-pub async fn launch_sparkii_desktop(
+pub async fn launch_hermes_desktop(
     app: AppHandle,
     install_root: String,
 ) -> Result<(), String> {
     let install_root = PathBuf::from(install_root);
-    let exe_path = resolve_sparkii_desktop_exe(&install_root).ok_or_else(|| {
+    let exe_path = resolve_hermes_desktop_exe(&install_root).ok_or_else(|| {
         format!(
             "Couldn't find a built Sparkii desktop at {}. The desktop build step \
              may have been skipped or failed. Run `sparkii desktop` from a \
@@ -210,7 +210,7 @@ pub async fn launch_sparkii_desktop(
 /// Walks the well-known electron-builder unpacked-app paths under
 /// `install_root`. Mirrors the resolver in `cmd_gui` (apps/desktop/release/
 /// <os>-unpacked/<exe>).
-pub(crate) fn resolve_sparkii_desktop_exe(install_root: &std::path::Path) -> Option<PathBuf> {
+pub(crate) fn resolve_hermes_desktop_exe(install_root: &std::path::Path) -> Option<PathBuf> {
     let release_dir = install_root.join("apps").join("desktop").join("release");
     let candidates: &[(&str, &str)] = if cfg!(target_os = "windows") {
         &[
@@ -234,8 +234,8 @@ pub(crate) fn resolve_sparkii_desktop_exe(install_root: &std::path::Path) -> Opt
     None
 }
 
-pub(crate) fn resolve_sparkii_desktop_app(install_root: &std::path::Path) -> Option<PathBuf> {
-    let exe = resolve_sparkii_desktop_exe(install_root)?;
+pub(crate) fn resolve_hermes_desktop_app(install_root: &std::path::Path) -> Option<PathBuf> {
+    let exe = resolve_hermes_desktop_exe(install_root)?;
     #[cfg(target_os = "macos")]
     {
         // .../Sparkii.app/Contents/MacOS/Sparkii -> .../Sparkii.app
@@ -255,9 +255,9 @@ pub(crate) fn resolve_sparkii_desktop_app(install_root: &std::path::Path) -> Opt
 /// True when a prior install completed (bootstrap-complete marker present) AND a
 /// launchable desktop app exists on disk. Used by the installer's launcher fast
 /// path so a bare re-open just opens Sparkii instead of re-running setup.
-pub(crate) fn sparkii_is_installed(install_root: &std::path::Path) -> bool {
+pub(crate) fn hermes_is_installed(install_root: &std::path::Path) -> bool {
     install_root.join(".sparkii-bootstrap-complete").exists()
-        && resolve_sparkii_desktop_exe(install_root).is_some()
+        && resolve_hermes_desktop_exe(install_root).is_some()
 }
 
 fn resolve_marker_commit(install_root: &Path, pin: &Pin) -> Option<String> {
@@ -313,7 +313,7 @@ fn write_bootstrap_complete_marker(install_root: &Path, pin: &Pin) -> Result<ser
     body.push(b'\n');
 
     // Atomic publish (temp sibling + flush + rename), matching Electron's
-    // writeFileAtomic(). sparkii_is_installed() only checks existence, so a
+    // writeFileAtomic(). hermes_is_installed() only checks existence, so a
     // partial direct write would incorrectly enable the launcher fast path.
     let tmp_path = install_root.join(".sparkii-bootstrap-complete.tmp");
     {
@@ -365,7 +365,7 @@ fn write_bootstrap_complete_marker(install_root: &Path, pin: &Pin) -> Result<ser
 /// exists or the spawn fails, so the caller can fall back to showing the
 /// installer UI.
 pub(crate) fn spawn_installed_desktop(install_root: &std::path::Path) -> std::io::Result<()> {
-    let exe = resolve_sparkii_desktop_exe(install_root).ok_or_else(|| {
+    let exe = resolve_hermes_desktop_exe(install_root).ok_or_else(|| {
         std::io::Error::new(std::io::ErrorKind::NotFound, "no built Sparkii desktop app")
     })?;
     let mut cmd = desktop_launch_command_std(&exe, install_root);
@@ -373,7 +373,7 @@ pub(crate) fn spawn_installed_desktop(install_root: &std::path::Path) -> std::io
     {
         use std::os::windows::process::CommandExt;
         // DETACHED_PROCESS = 0x00000008 — keep the desktop alive after the
-        // installer exits, mirroring launch_sparkii_desktop. Kept correct here
+        // installer exits, mirroring launch_hermes_desktop. Kept correct here
         // even though the only caller is macOS-gated today, so future reuse on
         // Windows doesn't reintroduce the relaunch race.
         cmd.creation_flags(0x0000_0008);
@@ -385,7 +385,7 @@ pub(crate) fn spawn_installed_desktop(install_root: &std::path::Path) -> std::io
 pub(crate) fn open_macos_app_detached(app_bundle: &std::path::Path) -> std::io::Result<()> {
     let mut cmd = std::process::Command::new("/usr/bin/open");
     cmd.arg(app_bundle);
-    cmd.current_dir(crate::paths::sparkii_home());
+    cmd.current_dir(crate::paths::hermes_home());
     cmd.spawn().map(|_child| ())
 }
 
@@ -408,7 +408,7 @@ fn desktop_launch_command(
         if let Some(app_bundle) = app_bundle_for_exe(exe_path) {
             let mut cmd = tokio::process::Command::new("/usr/bin/open");
             cmd.arg(app_bundle);
-            cmd.current_dir(crate::paths::sparkii_home());
+            cmd.current_dir(crate::paths::hermes_home());
             return cmd;
         }
     }
@@ -427,7 +427,7 @@ fn desktop_launch_command_std(
         if let Some(app_bundle) = app_bundle_for_exe(exe_path) {
             let mut cmd = std::process::Command::new("/usr/bin/open");
             cmd.arg(app_bundle);
-            cmd.current_dir(crate::paths::sparkii_home());
+            cmd.current_dir(crate::paths::hermes_home());
             return cmd;
         }
     }
@@ -522,7 +522,7 @@ async fn run_bootstrap(
         &app,
         &script.path,
         &manifest_args_full,
-        args.sparkii_home.as_deref(),
+        args.hermes_home.as_deref(),
         None,
         Some("__manifest__".to_string()),
     )
@@ -629,7 +629,7 @@ async fn run_bootstrap(
             &app,
             &script.path,
             &stage_args,
-            args.sparkii_home.as_deref(),
+            args.hermes_home.as_deref(),
             local_cancel_rx,
             Some(stage.name.clone()),
         )
@@ -739,11 +739,11 @@ async fn run_bootstrap(
     // 4. Resolve install_root. install.ps1 doesn't (yet) report this back
     // explicitly; we infer it from $SparkiiHome which Stage-Repository clones
     // the repo INTO at $SparkiiHome\sparkii-agent. Mirrors sparkii_constants.
-    let sparkii_home = args
-        .sparkii_home
+    let hermes_home = args
+        .hermes_home
         .clone()
-        .unwrap_or_else(|| crate::paths::sparkii_home().to_string_lossy().into_owned());
-    let install_root = PathBuf::from(&sparkii_home).join("sparkii-agent");
+        .unwrap_or_else(|| crate::paths::hermes_home().to_string_lossy().into_owned());
+    let install_root = PathBuf::from(&hermes_home).join("sparkii-agent");
 
     // Marker publish is terminal for this run: a write failure must emit Failed
     // so the UI leaves the progress state (it does not poll get_bootstrap_status).
@@ -798,7 +798,7 @@ async fn run_install_script(
     app: &AppHandle,
     script_path: &std::path::Path,
     args: &[String],
-    sparkii_home_override: Option<&str>,
+    hermes_home_override: Option<&str>,
     cancel_rx: Option<mpsc::Receiver<()>>,
     stage_name: Option<String>,
 ) -> Result<powershell::ScriptResult> {
@@ -850,7 +850,7 @@ async fn run_install_script(
         }),
     };
 
-    powershell::run_script(script_path, args, sink, sparkii_home_override, cancel_rx)
+    powershell::run_script(script_path, args, sink, hermes_home_override, cancel_rx)
         .await
         .map_err(|e| {
             tracing::error!(?e, "install script invocation failed");
@@ -985,11 +985,11 @@ mod tests {
     // what the updater ditto's over /Applications/Sparkii.app). A regression in
     // this derivation breaks the post-update auto-relaunch, so guard it.
     #[test]
-    fn resolve_sparkii_desktop_app_finds_built_bundle() {
+    fn resolve_hermes_desktop_app_finds_built_bundle() {
         let root = unique_tmp_dir("app-ok");
         let expected = make_release_tree(&root);
 
-        let resolved = resolve_sparkii_desktop_app(&root)
+        let resolved = resolve_hermes_desktop_app(&root)
             .expect("should resolve the freshly-built desktop app");
 
         #[cfg(target_os = "macos")]
@@ -1009,11 +1009,11 @@ mod tests {
     }
 
     #[test]
-    fn resolve_sparkii_desktop_app_is_none_without_a_build() {
+    fn resolve_hermes_desktop_app_is_none_without_a_build() {
         let root = unique_tmp_dir("app-none");
         // No release tree created.
         assert!(
-            resolve_sparkii_desktop_app(&root).is_none(),
+            resolve_hermes_desktop_app(&root).is_none(),
             "no resolved app when nothing has been built"
         );
         let _ = std::fs::remove_dir_all(&root);
@@ -1066,14 +1066,14 @@ mod tests {
             "temp sibling must not remain after atomic publish"
         );
         assert!(
-            sparkii_is_installed(&root),
+            hermes_is_installed(&root),
             "atomically published marker must enable the installer fast path"
         );
         let _ = std::fs::remove_dir_all(&root);
     }
 
     #[test]
-    fn sparkii_is_installed_treats_marker_existence_as_sufficient() {
+    fn hermes_is_installed_treats_marker_existence_as_sufficient() {
         // Documents why write_bootstrap_complete_marker must publish atomically:
         // the launcher predicate only checks existence, so a partial/corrupt
         // final marker would still enable the fast path.
@@ -1082,7 +1082,7 @@ mod tests {
         std::fs::write(root.join(".sparkii-bootstrap-complete"), b"").unwrap();
 
         assert!(
-            sparkii_is_installed(&root),
+            hermes_is_installed(&root),
             "empty/partial marker content still counts as installed"
         );
         let _ = std::fs::remove_dir_all(&root);

@@ -5,9 +5,9 @@ keep the user's real HOME by default so external CLIs find existing credentials.
 Containers still use the profile home for persistence, and users can explicitly
 opt into profile HOME isolation on the host.
 
-See: https://github.com/YueDJ/SparkiiAgent/issues/25114
-See: https://github.com/YueDJ/SparkiiAgent/issues/36144
-See: https://github.com/YueDJ/SparkiiAgent/issues/29015
+See: https://github.com/NousResearch/sparkii-agent/issues/25114
+See: https://github.com/NousResearch/sparkii-agent/issues/36144
+See: https://github.com/NousResearch/sparkii-agent/issues/29015
 """
 
 import os
@@ -41,20 +41,20 @@ class TestGetSubprocessHome:
         """Host installs should not hide real ~/.ssh, ~/.gitconfig, ~/.azure, etc."""
         self._host_mode(monkeypatch)
         real_home = tmp_path / "real-home"
-        sparkii_home = real_home / ".sparkii" / "profiles" / "coder"
-        profile_home = sparkii_home / "home"
+        hermes_home = real_home / ".sparkii" / "profiles" / "coder"
+        profile_home = hermes_home / "home"
         profile_home.mkdir(parents=True)
         monkeypatch.setenv("HOME", str(real_home))
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
         from sparkii_constants import get_subprocess_home
         assert get_subprocess_home() is None
 
     def test_container_auto_uses_profile_home_when_home_dir_exists(self, tmp_path, monkeypatch):
         self._container_mode(monkeypatch)
-        sparkii_home = tmp_path / ".sparkii"
-        profile_home = sparkii_home / "home"
+        hermes_home = tmp_path / ".sparkii"
+        profile_home = hermes_home / "home"
         profile_home.mkdir(parents=True)
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
         from sparkii_constants import get_subprocess_home
         assert get_subprocess_home() == str(profile_home)
 
@@ -120,13 +120,13 @@ class TestMakeRunEnvHomeInjection:
     """Verify _make_run_env() applies the subprocess HOME policy."""
 
     def test_host_auto_preserves_real_home_when_profile_home_exists(self, tmp_path, monkeypatch):
-        sparkii_home = tmp_path / "sparkii"
-        sparkii_home.mkdir()
-        (sparkii_home / "home").mkdir()
+        hermes_home = tmp_path / "sparkii"
+        hermes_home.mkdir()
+        (hermes_home / "home").mkdir()
         real_home = tmp_path / "real-home"
         real_home.mkdir()
         monkeypatch.setattr(sparkii_constants, "is_container", lambda: False)
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
         monkeypatch.setenv("HOME", str(real_home))
         monkeypatch.setenv("PATH", "/usr/bin:/bin")
 
@@ -137,28 +137,28 @@ class TestMakeRunEnvHomeInjection:
         assert result["SPARKII_REAL_HOME"] == str(real_home)
 
     def test_profile_mode_injects_profile_home_when_profile_home_exists(self, tmp_path, monkeypatch):
-        sparkii_home = tmp_path / "sparkii"
-        sparkii_home.mkdir()
-        (sparkii_home / "home").mkdir()
+        hermes_home = tmp_path / "sparkii"
+        hermes_home.mkdir()
+        (hermes_home / "home").mkdir()
         real_home = tmp_path / "real-home"
         real_home.mkdir()
         monkeypatch.setattr(sparkii_constants, "is_container", lambda: False)
         monkeypatch.setenv("TERMINAL_HOME_MODE", "profile")
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
         monkeypatch.setenv("HOME", str(real_home))
         monkeypatch.setenv("PATH", "/usr/bin:/bin")
 
         from tools.environments.local import _make_run_env
         result = _make_run_env({})
 
-        assert result["HOME"] == str(sparkii_home / "home")
+        assert result["HOME"] == str(hermes_home / "home")
         assert result["SPARKII_REAL_HOME"] == str(real_home)
 
     def test_no_injection_when_home_dir_missing(self, tmp_path, monkeypatch):
-        sparkii_home = tmp_path / "sparkii"
-        sparkii_home.mkdir()
+        hermes_home = tmp_path / "sparkii"
+        hermes_home.mkdir()
         # No home/ subdirectory
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
         monkeypatch.setenv("HOME", "/root")
         monkeypatch.setenv("PATH", "/usr/bin:/bin")
 
@@ -187,13 +187,13 @@ class TestSanitizeSubprocessEnvHomeInjection:
     """Verify _sanitize_subprocess_env() applies the subprocess HOME policy."""
 
     def test_host_auto_preserves_real_home_when_profile_home_exists(self, tmp_path, monkeypatch):
-        sparkii_home = tmp_path / "sparkii"
-        sparkii_home.mkdir()
-        (sparkii_home / "home").mkdir()
+        hermes_home = tmp_path / "sparkii"
+        hermes_home.mkdir()
+        (hermes_home / "home").mkdir()
         real_home = tmp_path / "real-home"
         real_home.mkdir()
         monkeypatch.setattr(sparkii_constants, "is_container", lambda: False)
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
         base_env = {"HOME": str(real_home), "PATH": "/usr/bin", "USER": "root"}
         from tools.environments.local import _sanitize_subprocess_env
@@ -203,26 +203,26 @@ class TestSanitizeSubprocessEnvHomeInjection:
         assert result["SPARKII_REAL_HOME"] == str(real_home)
 
     def test_profile_mode_injects_profile_home_when_profile_home_exists(self, tmp_path, monkeypatch):
-        sparkii_home = tmp_path / "sparkii"
-        sparkii_home.mkdir()
-        (sparkii_home / "home").mkdir()
+        hermes_home = tmp_path / "sparkii"
+        hermes_home.mkdir()
+        (hermes_home / "home").mkdir()
         real_home = tmp_path / "real-home"
         real_home.mkdir()
         monkeypatch.setattr(sparkii_constants, "is_container", lambda: False)
         monkeypatch.setenv("TERMINAL_HOME_MODE", "profile")
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
         base_env = {"HOME": str(real_home), "PATH": "/usr/bin", "USER": "root"}
         from tools.environments.local import _sanitize_subprocess_env
         result = _sanitize_subprocess_env(base_env)
 
-        assert result["HOME"] == str(sparkii_home / "home")
+        assert result["HOME"] == str(hermes_home / "home")
         assert result["SPARKII_REAL_HOME"] == str(real_home)
 
     def test_no_injection_when_home_dir_missing(self, tmp_path, monkeypatch):
-        sparkii_home = tmp_path / "sparkii"
-        sparkii_home.mkdir()
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        hermes_home = tmp_path / "sparkii"
+        hermes_home.mkdir()
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
         base_env = {"HOME": "/root", "PATH": "/usr/bin"}
         from tools.environments.local import _sanitize_subprocess_env

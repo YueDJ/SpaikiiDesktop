@@ -6,7 +6,7 @@
 - [docker/entrypoint.sh](file://docker/entrypoint.sh)
 - [docker/main-wrapper.sh](file://docker/main-wrapper.sh)
 - [docker/stage2-hook.sh](file://docker/stage2-hook.sh)
-- [docker/s6-rc.d/main-hermes/run](file://docker/s6-rc.d/main-hermes/run)
+- [docker/s6-rc.d/main-sparkii/run](file://docker/s6-rc.d/main-sparkii/run)
 - [docker/s6-rc.d/dashboard/run](file://docker/s6-rc.d/dashboard/run)
 - [.github/workflows/docker.yml](file://.github/workflows/docker.yml)
 - [.dockerignore](file://.dockerignore)
@@ -77,7 +77,7 @@ E --> M["ENTRYPOINT/CMD<br/>entrypoint-dispatch.sh"]
 - [docker/entrypoint.sh:1-29](file://docker/entrypoint.sh#L1-L29)
 - [docker/main-wrapper.sh:1-92](file://docker/main-wrapper.sh#L1-L92)
 - [docker/stage2-hook.sh:1-592](file://docker/stage2-hook.sh#L1-L592)
-- [docker/s6-rc.d/main-hermes/run:1-28](file://docker/s6-rc.d/main-hermes/run#L1-L28)
+- [docker/s6-rc.d/main-sparkii/run:1-28](file://docker/s6-rc.d/main-sparkii/run#L1-L28)
 - [docker/s6-rc.d/dashboard/run:1-57](file://docker/s6-rc.d/dashboard/run#L1-L57)
 
 ## 架构总览
@@ -96,7 +96,7 @@ Dev->>Build : 触发构建(多阶段)
 Build-->>Dev : 生成镜像层(缓存命中/未命中)
 Dev->>Runtime : docker run <image> [args]
 Runtime->>S6 : /init (PID 1路径) 或 fallback
-S6->>Hook : cont-init.d/01-hermes-setup
+S6->>Hook : cont-init.d/01-sparkii-setup
 Hook-->>S6 : 完成UID/GID重映射、数据卷chown、配置种子
 S6->>Wrapper : 执行CMD(非PID 1路径直接exec)
 Wrapper->>Service : 以hermes用户执行目标命令
@@ -132,7 +132,7 @@ Runtime-->>Dev : 容器退出
 
 ### 安全加固措施
 - 非root用户运行
-  - 创建hermes用户（默认UID 10000），服务通过s6-setuidgid降权执行；禁止以任意非hermes UID启动容器，引导用户使用HERMES_UID/PUID机制。
+  - 创建hermes用户（默认UID 10000），服务通过s6-setuidgid降权执行；禁止以任意非hermes UID启动容器，引导用户使用SPARKII_UID/PUID机制。
 - 最小化镜像大小
   - 使用slim基础镜像；仅安装必要系统依赖；清理apt列表与npm缓存；排除测试、文档、桌面应用等无关内容。
 - 漏洞与依赖验证
@@ -148,33 +148,33 @@ Runtime-->>Dev : 容器退出
 
 ### s6-overlay服务管理器集成
 - 服务定义
-  - main-hermes：占位服务以满足s6-rc要求，当前不执行业务逻辑。
+  - main-sparkii：占位服务以满足s6-rc要求，当前不执行业务逻辑。
   - dashboard：根据环境变量决定是否启动Dashboard服务，监听端口并支持认证配置。
 - 进程监控与优雅关闭
   - s6-svscan作为PID 1接管进程树，自动回收僵尸进程；finish脚本标记永久失败状态，避免重启风暴。
 - 初始化钩子
-  - cont-init.d/01-hermes-setup执行stage2-hook，完成UID/GID重映射、数据卷所有权修复、配置种子、技能同步、Chromium路径发现等。
+  - cont-init.d/01-sparkii-setup执行stage2-hook，完成UID/GID重映射、数据卷所有权修复、配置种子、技能同步、Chromium路径发现等。
 - 入口分发
   - entrypoint-dispatch.sh在PID 1路径下exec /init，在非PID 1路径下直接执行stage2-hook与main-wrapper，保证交互式命令与子命令透传一致性。
 
 ```mermaid
 flowchart TD
 Start(["容器启动"]) --> Init["/init (s6-overlay)"]
-Init --> Hooks["cont-init.d/01-hermes-setup"]
+Init --> Hooks["cont-init.d/01-sparkii-setup"]
 Hooks --> Setup["stage2-hook<br/>UID/GID重映射/数据卷chown/配置种子"]
-Setup --> Services["s6-rc服务: main-hermes, dashboard"]
+Setup --> Services["s6-rc服务: main-sparkii, dashboard"]
 Services --> CMD["main-wrapper.sh<br/>执行CMD/子命令"]
 CMD --> Exit(["进程退出/容器停止"])
 ```
 
 图表来源
-- [docker/s6-rc.d/main-hermes/run:1-28](file://docker/s6-rc.d/main-hermes/run#L1-L28)
+- [docker/s6-rc.d/main-sparkii/run:1-28](file://docker/s6-rc.d/main-sparkii/run#L1-L28)
 - [docker/s6-rc.d/dashboard/run:1-57](file://docker/s6-rc.d/dashboard/run#L1-L57)
 - [docker/stage2-hook.sh:1-592](file://docker/stage2-hook.sh#L1-L592)
 - [docker/main-wrapper.sh:1-92](file://docker/main-wrapper.sh#L1-L92)
 
 章节来源
-- [docker/s6-rc.d/main-hermes/run:1-28](file://docker/s6-rc.d/main-hermes/run#L1-L28)
+- [docker/s6-rc.d/main-sparkii/run:1-28](file://docker/s6-rc.d/main-sparkii/run#L1-L28)
 - [docker/s6-rc.d/dashboard/run:1-57](file://docker/s6-rc.d/dashboard/run#L1-L57)
 - [docker/stage2-hook.sh:1-592](file://docker/stage2-hook.sh#L1-L592)
 - [docker/entrypoint.sh:1-29](file://docker/entrypoint.sh#L1-L29)
@@ -182,8 +182,8 @@ CMD --> Exit(["进程退出/容器停止"])
 
 ### 构建参数配置选项
 - TARGETARCH：用于选择s6-overlay架构包（amd64/arm64），实现多架构构建。
-- HERMES_GIT_SHA：注入构建时Git提交哈希，便于运行时识别镜像来源。
-- 其他可选环境变量（运行时）：HERMES_UID/HERMES_GID、PUID/PGID、HERMES_DASHBOARD_*、HERMES_HOME等，用于用户映射、Dashboard开关与路径配置。
+- SPARKII_GIT_SHA：注入构建时Git提交哈希，便于运行时识别镜像来源。
+- 其他可选环境变量（运行时）：SPARKII_UID/SPARKII_GID、PUID/PGID、SPARKII_DASHBOARD_*、SPARKII_HOME等，用于用户映射、Dashboard开关与路径配置。
 
 章节来源
 - [Dockerfile:107-135](file://Dockerfile#L107-L135)
@@ -236,9 +236,9 @@ Runtime --> Playwright["Playwright浏览器"]
 - [.github/workflows/docker.yml:33-84](file://.github/workflows/docker.yml#L33-L84)
 
 ## 故障排查指南
-- 启动失败：检查是否以非root且非hermes UID启动，参考错误提示改用HERMES_UID/PUID方式。
+- 启动失败：检查是否以非root且非hermes UID启动，参考错误提示改用SPARKII_UID/PUID方式。
 - 权限问题：确认/opt/data所有权正确，stage2-hook会在启动时修复；若挂载宿主机目录，注意避免符号链接导致的安全拒绝。
-- Dashboard无法访问：确认HERMES_DASHBOARD开启并配置认证提供者；非回环地址必须启用认证。
+- Dashboard无法访问：确认SPARKII_DASHBOARD开启并配置认证提供者；非回环地址必须启用认证。
 - 浏览器工具失败：检查PLAYWRIGHT_BROWSERS_PATH是否存在，stage2-hook会尝试发现Chromium二进制并导出环境变量。
 
 章节来源
@@ -251,7 +251,7 @@ Runtime --> Playwright["Playwright浏览器"]
 
 ## 附录
 - 常用构建命令示例（概念性说明）
-  - 本地构建：docker build --build-arg HERMES_GIT_SHA=$(git rev-parse HEAD) -t hermes-agent:dev .
+  - 本地构建：docker build --build-arg SPARKII_GIT_SHA=$(git rev-parse HEAD) -t sparkii-agent:dev .
   - 多架构构建：使用BuildKit与--platform指定目标架构，或通过CI工作流触发。
 - 参考文件
   - 构建与发布流水线：.github/workflows/docker.yml

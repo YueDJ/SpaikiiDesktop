@@ -42,7 +42,7 @@ subgraph "Telegram平台"
 TBot["Telegram Bot"]
 API["Telegram Bot API"]
 end
-subgraph "Hermes/Gateway"
+subgraph "Sparkii/Gateway"
 Adapter["Telegram适配器<br/>plugins/platforms/telegram/adapter.py"]
 Net["网络回退传输<br/>plugins/platforms/telegram/telegram_network.py"]
 IDs["ID归一化<br/>plugins/platforms/telegram/telegram_ids.py"]

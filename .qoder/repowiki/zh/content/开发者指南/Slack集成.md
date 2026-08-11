@@ -18,7 +18,7 @@
 ## 简介
 为Hermes Agent的Slack平台集成创建全面文档。详细介绍Slack App的创建和配置过程，包括OAuth2授权、Bot Token设置和工作空间权限。深入说明Slack消息处理流程，包括消息事件、Block Kit界面、交互式组件和文件上传。解释Slack特有的功能适配，如频道管理、Direct Message处理、Thread回复和Reaction支持。介绍Slack App的配置...
 
-本模块是 Sparkii/Hermes Agent 系统的重要组成部分，负责Slack集成的核心功能实现。
+本模块是 Sparkii/Sparkii Agent 系统的重要组成部分，负责Slack集成的核心功能实现。
 
 ## 核心概念
 

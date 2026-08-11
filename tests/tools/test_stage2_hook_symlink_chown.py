@@ -19,7 +19,7 @@ def stage2_text() -> str:
     return STAGE2_HOOK.read_text()
 
 
-def _chown_sparkii_tree_function(text: str) -> str:
+def _chown_hermes_tree_function(text: str) -> str:
     start = text.index("path_has_symlink_component() {")
     end = text.index("\n\nneeds_chown=false", start)
     return text[start:end]
@@ -30,18 +30,18 @@ def _run_helper(
     target: Path,
     log_path: Path,
     *,
-    sparkii_home: Path | None = None,
+    hermes_home: Path | None = None,
 ) -> subprocess.CompletedProcess[str]:
     shell = shutil.which("sh")
     if shell is None:
         pytest.skip("sh not available")
-    sparkii_home = target if sparkii_home is None else sparkii_home
+    hermes_home = target if hermes_home is None else hermes_home
     script = (
         "set -eu\n"
-        f'SPARKII_HOME="{sparkii_home}"\n'
-        f"{_chown_sparkii_tree_function(text)}\n"
+        f'SPARKII_HOME="{hermes_home}"\n'
+        f"{_chown_hermes_tree_function(text)}\n"
         f'chown() {{ printf "%s\\n" "$*" >> "{log_path}"; }}\n'
-        f'chown_sparkii_tree "{target}"\n'
+        f'chown_hermes_tree "{target}"\n'
     )
     return subprocess.run([shell, "-c", script], capture_output=True, text=True)
 
@@ -93,7 +93,7 @@ def test_chown_helper_refuses_target_under_symlinked_home(
         stage2_text,
         linked_home / "cron",
         log_path,
-        sparkii_home=linked_home,
+        hermes_home=linked_home,
     )
 
     assert proc.returncode == 0, proc.stderr
@@ -102,9 +102,9 @@ def test_chown_helper_refuses_target_under_symlinked_home(
 
 
 def test_stage2_uses_symlink_safe_helper_for_sparkii_home_trees(stage2_text: str) -> None:
-    assert 'chown_sparkii_tree "$SPARKII_HOME/$sub"' in stage2_text
-    assert 'chown_sparkii_tree "$SPARKII_HOME/profiles"' in stage2_text
-    assert 'chown_sparkii_tree "$SPARKII_HOME/cron"' in stage2_text
+    assert 'chown_hermes_tree "$SPARKII_HOME/$sub"' in stage2_text
+    assert 'chown_hermes_tree "$SPARKII_HOME/profiles"' in stage2_text
+    assert 'chown_hermes_tree "$SPARKII_HOME/cron"' in stage2_text
     assert 'chown -R sparkii:sparkii "$SPARKII_HOME/$sub"' not in stage2_text
     assert 'chown -R sparkii:sparkii "$SPARKII_HOME/profiles"' not in stage2_text
     assert 'chown -R sparkii:sparkii "$SPARKII_HOME/cron"' not in stage2_text
@@ -119,10 +119,10 @@ def test_stage2_skips_top_level_chown_for_symlinked_sparkii_home(
 def test_stage2_skips_recursive_repairs_when_tree_is_already_owned(
     stage2_text: str,
 ) -> None:
-    assert "tree_has_non_sparkii_owner() {" in stage2_text
-    assert 'if [ -e "$SPARKII_HOME/$sub" ] && tree_has_non_sparkii_owner "$SPARKII_HOME/$sub"; then' in stage2_text
-    assert 'if [ -d "$SPARKII_HOME/profiles" ] && tree_has_non_sparkii_owner "$SPARKII_HOME/profiles"; then' in stage2_text
+    assert "tree_has_non_hermes_owner() {" in stage2_text
+    assert 'if [ -e "$SPARKII_HOME/$sub" ] && tree_has_non_hermes_owner "$SPARKII_HOME/$sub"; then' in stage2_text
+    assert 'if [ -d "$SPARKII_HOME/profiles" ] && tree_has_non_hermes_owner "$SPARKII_HOME/profiles"; then' in stage2_text
     # Sibling every-boot chown blocks carry the same warm-boot gate.
-    assert 'if [ -d "$SPARKII_HOME/cron" ] && tree_has_non_sparkii_owner "$SPARKII_HOME/cron"; then' in stage2_text
-    assert 'if [ -d "$SPARKII_HOME/platforms/pairing" ] && tree_has_non_sparkii_owner "$SPARKII_HOME/platforms/pairing"; then' in stage2_text
-    assert 'if [ -d "$SPARKII_HOME/pairing" ] && tree_has_non_sparkii_owner "$SPARKII_HOME/pairing"; then' in stage2_text
+    assert 'if [ -d "$SPARKII_HOME/cron" ] && tree_has_non_hermes_owner "$SPARKII_HOME/cron"; then' in stage2_text
+    assert 'if [ -d "$SPARKII_HOME/platforms/pairing" ] && tree_has_non_hermes_owner "$SPARKII_HOME/platforms/pairing"; then' in stage2_text
+    assert 'if [ -d "$SPARKII_HOME/pairing" ] && tree_has_non_hermes_owner "$SPARKII_HOME/pairing"; then' in stage2_text

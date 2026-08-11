@@ -26,7 +26,7 @@
 ## 项目结构
 - Web服务入口与路由：位于sparkii_cli/web_server.py，基于FastAPI，提供静态前端托管与/api/* REST端点，以及/ws、/pty等WebSocket端点。
 - 认证与授权：
-  - 本地回环模式：使用进程内会话令牌（X-Hermes-Session-Token或Authorization: Bearer）保护敏感接口。
+  - 本地回环模式：使用进程内会话令牌（X-Sparkii-Session-Token或Authorization: Bearer）保护敏感接口。
   - 网关/OAuth模式：通过插件化的仪表板认证门控（如Nous Portal OAuth）进行Cookie+JWT校验。
   - 平台级授权策略由gateway/authz_mixin.py维护，控制不同平台/渠道的消息准入。
 - 外部提供商认证：sparkii_cli/auth.py集中管理多提供商的API密钥与OAuth流程（如OpenAI、Anthropic、xAI等），供Agent运行时使用。
@@ -54,7 +54,7 @@ WS --> Gateway
   - Host头校验：防止DNS重绑定攻击。
   - 插件API运行时门控：按启用/禁用动态拦截/api/plugins/*。
   - OAuth门控：非回环绑定下强制OAuth登录。
-  - 会话令牌校验：对/api/*（除白名单）要求X-Hermes-Session-Token或Bearer。
+  - 会话令牌校验：对/api/*（除白名单）要求X-Sparkii-Session-Token或Bearer。
   - Token认证通道：为特定路由提供无交互Bearer认证。
 - 健康监控：记录未处理异常与5xx，周期性自测受保护端点可用性。
 - WebSocket支持：/api/ws与/ai/pty用于实时通信与伪终端交互。
@@ -93,7 +93,7 @@ RT-->>C : JSON/文件/流式响应
 
 ### 认证与授权机制
 - 会话令牌（本地回环）：
-  - 通过X-Hermes-Session-Token或Authorization: Bearer传递。
+  - 通过X-Sparkii-Session-Token或Authorization: Bearer传递。
   - 仅对/api/*生效，部分下载链接支持?token=查询参数。
 - OAuth门控（非回环）：
   - 当绑定为非回环地址时启用，需完成登录并设置HttpOnly Cookie。
@@ -126,7 +126,7 @@ TokenCheck --> |失败| Err401["401 未授权"]
 ### REST API概览
 - 基础URL：http(s)://{host}:{port}/api
 - 认证方式：
-  - 本地回环：X-Hermes-Session-Token或Authorization: Bearer <token>
+  - 本地回环：X-Sparkii-Session-Token或Authorization: Bearer <token>
   - 非回环：先完成OAuth登录，后续请求携带Cookie
 - 公共路径：/api/status等少数只读端点无需认证（详见内部白名单）
 - 典型端点类别（以功能划分，具体路径见源码路由）：
@@ -248,7 +248,7 @@ Biz --> Store["配置/状态/插件"]
 
 ## 故障排查指南
 - 401未授权
-  - 检查是否携带正确的X-Hermes-Session-Token或Bearer
+  - 检查是否携带正确的X-Sparkii-Session-Token或Bearer
   - 非回环环境需完成OAuth登录并持有有效Cookie
 - 400无效Host
   - 确保请求Host与服务器绑定地址一致（含IPv6与端口）
@@ -267,7 +267,7 @@ Biz --> Store["配置/状态/插件"]
 ## 附录
 
 ### 认证与授权要点
-- 本地回环模式：使用X-Hermes-Session-Token或Authorization: Bearer
+- 本地回环模式：使用X-Sparkii-Session-Token或Authorization: Bearer
 - 非回环模式：完成OAuth登录后使用Cookie
 - 平台授权：依据环境变量与配对白名单控制接入
 

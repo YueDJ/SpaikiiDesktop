@@ -293,7 +293,7 @@
         description = ''
           Paths to environment files containing secrets (API keys, tokens).
           Contents are merged into $SPARKII_HOME/.env at activation time.
-          Sparkii reads this file on every startup via load_sparkii_dotenv().
+          Sparkii reads this file on every startup via load_hermes_dotenv().
         '';
       };
 
@@ -772,7 +772,7 @@
     backend=${cfg.container.backend}
     container_name=${containerName}
     exec_user=${cfg.user}
-    sparkii_bin=${containerDataDir}/current-package/bin/sparkii
+    hermes_bin=${containerDataDir}/current-package/bin/sparkii
     SPARKII_CONTAINER_MODE_EOF
             chown ${cfg.user}:${cfg.group} ${cfg.stateDir}/.sparkii/.container-mode
             chmod 0644 ${cfg.stateDir}/.sparkii/.container-mode
@@ -828,7 +828,7 @@
           ''}
 
           # Seed .env from Nix-declared environment + environmentFiles.
-          # Sparkii reads $SPARKII_HOME/.env at startup via load_sparkii_dotenv(),
+          # Sparkii reads $SPARKII_HOME/.env at startup via load_hermes_dotenv(),
           # so this is the single source of truth for both native and container mode.
           ${lib.optionalString (cfg.environment != {} || cfg.environmentFiles != []) ''
             ENV_FILE="${cfg.stateDir}/.sparkii/.env"
@@ -891,7 +891,7 @@
             WorkingDirectory = cfg.workingDirectory;
 
             # cfg.environment and cfg.environmentFiles are written to
-            # $SPARKII_HOME/.env by the activation script. load_sparkii_dotenv()
+            # $SPARKII_HOME/.env by the activation script. load_hermes_dotenv()
             # reads them at Python startup — no systemd EnvironmentFile needed.
 
             ExecStart = lib.concatStringsSep " " ([

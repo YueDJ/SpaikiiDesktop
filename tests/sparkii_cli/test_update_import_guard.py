@@ -20,7 +20,7 @@ from pathlib import Path
 
 import pytest
 
-from sparkii_cli import main as sparkii_main
+from sparkii_cli import main as hermes_main
 from sparkii_cli import update_cmd
 from sparkii_constants import partial_update_hint
 
@@ -44,7 +44,7 @@ def test_syntax_guard_passes_but_import_guard_catches_skew(monkeypatch, tmp_path
     _write_skewed_tree(tmp_path, skewed=True)
 
     # Both files are valid Python -- the syntax guard sees nothing wrong.
-    # NOTE: patch update_cmd's global, not sparkii_main's. Both modules expose
+    # NOTE: patch update_cmd's global, not hermes_main's. Both modules expose
     # the name, but _validate_critical_files_syntax reads the one in its own
     # module. Patching the re-export leaves the real list in place, the stub
     # files are never looked at, and the guard returns a vacuous (True, None,
@@ -52,12 +52,12 @@ def test_syntax_guard_passes_but_import_guard_catches_skew(monkeypatch, tmp_path
     monkeypatch.setattr(
         update_cmd, "_UPDATE_CRITICAL_FILES", ("consumer.py", "provider/thing.py")
     )
-    syntax_ok, _, _ = sparkii_main._validate_critical_files_syntax(tmp_path)
+    syntax_ok, _, _ = hermes_main._validate_critical_files_syntax(tmp_path)
     assert syntax_ok, "sanity: the skewed tree must parse cleanly"
 
     # The import guard catches it.
     monkeypatch.setattr(update_cmd, "_UPDATE_CRITICAL_MODULES", ("consumer",))
-    ok, module, error = sparkii_main._validate_critical_modules_import(tmp_path)
+    ok, module, error = hermes_main._validate_critical_modules_import(tmp_path)
     assert ok is False
     assert module == "consumer"
     assert error is not None and "SHARED_NAME" in error
@@ -67,7 +67,7 @@ def test_import_guard_passes_on_consistent_tree(monkeypatch, tmp_path):
     _write_skewed_tree(tmp_path, skewed=False)
     monkeypatch.setattr(update_cmd, "_UPDATE_CRITICAL_MODULES", ("consumer",))
 
-    assert sparkii_main._validate_critical_modules_import(tmp_path) == (True, None, None)
+    assert hermes_main._validate_critical_modules_import(tmp_path) == (True, None, None)
 
 
 def test_import_guard_ignores_non_import_errors(monkeypatch, tmp_path):
@@ -78,7 +78,7 @@ def test_import_guard_ignores_non_import_errors(monkeypatch, tmp_path):
     )
     monkeypatch.setattr(update_cmd, "_UPDATE_CRITICAL_MODULES", ("consumer",))
 
-    ok, _, _ = sparkii_main._validate_critical_modules_import(tmp_path)
+    ok, _, _ = hermes_main._validate_critical_modules_import(tmp_path)
     assert ok is True
 
 
@@ -178,7 +178,7 @@ def test_import_guard_flags_missing_first_party_module(monkeypatch, tmp_path):
     assert error is not None and "tools.nonexistent_module" in error
 
 
-@pytest.mark.parametrize("modname", ["agents", "agentops", "toolsets_x", "sparkiix"])
+@pytest.mark.parametrize("modname", ["agents", "agentops", "toolsets_x", "hermesx"])
 def test_hint_does_not_claim_partial_update_for_lookalike_third_party(modname):
     """``startswith`` would match third-party ``agents``/``agentops`` and blame
     our updater for someone else's import error."""
@@ -199,7 +199,7 @@ def test_probe_and_hint_share_one_first_party_definition():
     """The guard that BLOCKS and the hint that EXPLAINS must never disagree.
 
     These started as two hand-maintained lists and immediately diverged:
-    `cli` was first-party to the hint but not the probe, and `sparkiix`
+    `cli` was first-party to the hint but not the probe, and `hermesx`
     (third-party) matched the probe's loose `startswith("sparkii")`. A user
     could get a rollback with no explanation, or an explanation with no
     detection. Both now derive from FIRST_PARTY_MODULE_ROOTS; this test
@@ -233,5 +233,5 @@ def test_probe_and_hint_share_one_first_party_definition():
     for root in FIRST_PARTY_MODULE_ROOTS:
         assert is_first_party_module(f"{root}.anything")
     # Lookalikes stay out of both.
-    for lookalike in ("agents", "agentops", "toolsets_x", "sparkiix"):
+    for lookalike in ("agents", "agentops", "toolsets_x", "hermesx"):
         assert not is_first_party_module(lookalike)

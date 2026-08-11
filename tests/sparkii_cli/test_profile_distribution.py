@@ -25,7 +25,7 @@ from sparkii_cli.profile_distribution import (
     _env_template_from_manifest,
     _looks_like_git_url,
     _parse_semver,
-    check_sparkii_requires,
+    check_hermes_requires,
     describe_distribution,
     install_distribution,
     plan_install,
@@ -94,7 +94,7 @@ class TestManifestParsing:
             "name: telem\n"
             "version: 1.2.3\n"
             "description: Telem monitor\n"
-            "sparkii_requires: '>=0.12.0'\n"
+            "hermes_requires: '>=0.12.0'\n"
             "author: Kyle\n"
             "license: MIT\n"
             "env_requires:\n"
@@ -161,10 +161,10 @@ class TestVersionRequires:
     ])
     def test_check_matrix(self, spec, cur, ok):
         if ok:
-            check_sparkii_requires(spec, cur)
+            check_hermes_requires(spec, cur)
         else:
             with pytest.raises(DistributionError, match="requires Sparkii"):
-                check_sparkii_requires(spec, cur)
+                check_hermes_requires(spec, cur)
 
     def test_parse_semver_handles_prerelease(self):
         assert _parse_semver("0.12.0-rc1") == (0, 12, 0)
@@ -353,7 +353,7 @@ class TestInstall:
             plan_install(str(bogus), tmp_path / "work", override_name="x")
 
 
-    def test_install_enforces_sparkii_requires(self, profile_env, monkeypatch):
+    def test_install_enforces_hermes_requires(self, profile_env, monkeypatch):
         # Pin current Sparkii version to something well below the requirement
         import sparkii_cli
         monkeypatch.setattr(sparkii_cli, "__version__", "0.1.0", raising=False)
@@ -361,7 +361,7 @@ class TestInstall:
         mf = DistributionManifest(
             name="future",
             version="1.0.0",
-            sparkii_requires=">=99.0.0",
+            hermes_requires=">=99.0.0",
         )
         staged = _make_staging_dir(profile_env, "future", manifest=mf)
         with pytest.raises(DistributionError, match="requires Sparkii"):

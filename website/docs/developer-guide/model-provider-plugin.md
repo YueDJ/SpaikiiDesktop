@@ -252,10 +252,10 @@ Like any Sparkii plugin, model providers can ship as a pip package. Add an entry
 
 ```toml
 [project.entry-points."sparkii_agent.plugins"]
-acme-inference = "acme_sparkii_plugin:register"
+acme-inference = "acme_hermes_plugin:register"
 ```
 
-…where `acme_sparkii_plugin:register` is a function that calls `register_provider(profile)`. The general PluginManager picks up entry-point plugins during `discover_and_load()`. For `kind: model-provider` pip plugins, you still need to declare the kind in your manifest (or rely on the source-text heuristic).
+…where `acme_hermes_plugin:register` is a function that calls `register_provider(profile)`. The general PluginManager picks up entry-point plugins during `discover_and_load()`. For `kind: model-provider` pip plugins, you still need to declare the kind in your manifest (or rely on the source-text heuristic).
 
 See [Building a Sparkii Plugin](/developer-guide/plugins#distribute-via-pip) for the full entry-points setup.
 

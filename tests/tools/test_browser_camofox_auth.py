@@ -1,6 +1,6 @@
 """Tests that Camofox browser sends Authorization header when CAMOFOX_API_KEY is set.
 
-Regression test for https://github.com/YueDJ/SparkiiAgent/issues/20476
+Regression test for https://github.com/NousResearch/sparkii-agent/issues/20476
 """
 
 import json

@@ -56,7 +56,7 @@ Sparkii 采用 **YAML + .env + 环境变量** 的分层配置模型，核心由 
 ### 3.3 环境变量白名单/黑名单
 
 - **写入黑名单** `_ENV_VAR_NAME_DENYLIST`：禁止通过 dashboard/env writer 写入 `LD_PRELOAD`、`PYTHONPATH`、`PATH`、`EDITOR`、`GIT_SSH_COMMAND`、`SPARKII_HOME`、`SPARKII_PROFILE`、`SPARKII_CONFIG`、`SPARKII_ENV` 等危险变量（仅针对写操作，已存在的值仍可用）
-- **已知密钥集合** `_EXTRA_ENV_KEYS` + `OPTIONAL_ENV_VARS.keys()` 构成“Hermes 已知 env 键”全集，用于 setup 向导、缺失检查、secret source 标注
+- **已知密钥集合** `_EXTRA_ENV_KEYS` + `OPTIONAL_ENV_VARS.keys()` 构成“Sparkii 已知 env 键”全集，用于 setup 向导、缺失检查、secret source 标注
 - **Profile 隔离键** `_PROFILE_MANAGED_ENV_KEYS`：ACP/Copilot 相关键在 profile `.env` 中缺失时被清理，防止父进程泄漏影响路由
 
 ### 3.4 安全与权限

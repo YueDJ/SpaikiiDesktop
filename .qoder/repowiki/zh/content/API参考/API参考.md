@@ -42,7 +42,7 @@ graph TB
 Client["客户端"] --> REST["OpenAI兼容HTTP API<br/>gateway/platforms/api_server.py"]
 Client --> WS["Dashboard WebSocket/REST<br/>sparkii_cli/web_server.py"]
 Client --> ACP["ACP适配器<br/>acp_adapter/server.py"]
-REST --> Agent["Hermes Agent运行时"]
+REST --> Agent["Sparkii Agent运行时"]
 WS --> Gateway["Gateway/会话管理"]
 ACP --> Agent
 Agent --> MCP["MCP工具/服务桥接<br/>tools/mcp_tool.py / agent/transports/sparkii_tools_mcp_server.py"]
@@ -157,7 +157,7 @@ Health --> Status["返回健康状态"]
   - 提供WebSocket与PTY通道，用于前端实时交互与终端输出。
 - 安全
   - 支持两种认证：
-    - 回环绑定：注入会话令牌（X-Hermes-Session-Token或Bearer）。
+    - 回环绑定：注入会话令牌（X-Sparkii-Session-Token或Bearer）。
     - 非回环绑定：强制OAuth或密码门控。
   - Host头校验防止DNS重绑定攻击。
   - 插件API按启用状态动态门控。
@@ -202,7 +202,7 @@ Note over W,B : 所有/api/受令牌或OAuth保护
 
 ```mermaid
 classDiagram
-class HermesACPAgent {
+class SparkiiACPAgent {
 +on_connect(conn)
 +_session_modes(state)
 +_build_model_state(state)
@@ -213,7 +213,7 @@ class SessionManager {
 +new_session()
 +resume_session()
 }
-HermesACPAgent --> SessionManager : "管理会话"
+SparkiiACPAgent --> SessionManager : "管理会话"
 ```
 
 **图示来源**
@@ -334,7 +334,7 @@ AG --> MCP["MCP工具/传输"]
 ### 认证与安全要点
 - OpenAI兼容API：使用API密钥鉴权。
 - Dashboard：
-  - 回环绑定：会话令牌（X-Hermes-Session-Token或Bearer）。
+  - 回环绑定：会话令牌（X-Sparkii-Session-Token或Bearer）。
   - 非回环绑定：强制OAuth或密码门控。
   - Host头校验防DNS重绑定。
   - 插件API按启用状态动态门控。

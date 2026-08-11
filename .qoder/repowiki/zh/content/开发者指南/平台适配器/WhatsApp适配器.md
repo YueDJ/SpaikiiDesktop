@@ -18,7 +18,7 @@
 9. [结论](#结论)
 
 ## 简介
-本文详细阐述 Hermes Agent 的 WhatsApp 平台适配器实现。WhatsApp 适配器基于 WhatsApp Business API 集成，将 Agent 的对话能力接入 WhatsApp 消息平台，支持消息队列管理、媒体文件处理、模板消息发送和群组聊天。
+本文详细阐述 Sparkii Agent 的 WhatsApp 平台适配器实现。WhatsApp 适配器基于 WhatsApp Business API 集成，将 Agent 的对话能力接入 WhatsApp 消息平台，支持消息队列管理、媒体文件处理、模板消息发送和群组聊天。
 
 适配器继承自 BasePlatformAdapter，实现了与 WhatsApp Cloud API 的完整集成，包括 Webhook 配置、消息格式转换和已读回执。
 

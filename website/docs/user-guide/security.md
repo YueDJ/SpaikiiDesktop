@@ -296,7 +296,7 @@ Safe-root violations return `Write denied: '…' is outside SPARKII_WRITE_SAFE_R
 
 When set, `write_file` and `patch` may only target paths inside the listed directory prefix(es). Anything outside is **hard-blocked** — not routed through dangerous-command approval.
 
-- Set automatically in the [official Docker image](https://github.com/YueDJ/SparkiiAgent) (`SPARKII_WRITE_SAFE_ROOT=/opt/data`)
+- Set automatically in the [official Docker image](https://github.com/NousResearch/sparkii-agent) (`SPARKII_WRITE_SAFE_ROOT=/opt/data`)
 - Supports multiple roots separated by `:` on Unix or `;` on Windows
 - **Do not add to `~/.sparkii/.env` casually.** If you set it to a project directory, the agent cannot write to `~/.sparkii/cron/jobs.json`, profile skills, or other Sparkii state outside that prefix
 
@@ -306,7 +306,7 @@ To allow both a workspace and Sparkii home:
 export SPARKII_WRITE_SAFE_ROOT=/path/to/project:/home/you/.sparkii
 ```
 
-Unset the variable to restore unrestricted writes (subject to the protected-path denylist). Full reference: [SPARKII_WRITE_SAFE_ROOT](../reference/environment-variables.md#sparkii_write_safe_root).
+Unset the variable to restore unrestricted writes (subject to the protected-path denylist). Full reference: [SPARKII_WRITE_SAFE_ROOT](../reference/environment-variables.md#hermes_write_safe_root).
 
 ### Cron and other Sparkii state
 
@@ -431,7 +431,7 @@ docker exec -u sparkii sparkii-agent sparkii pairing approve telegram ABC12DEF
 If you already ran the command as root and the user is still unauthorized,
 restart the container — the entrypoint will fix ownership on the next start.
 
-[i10270]: https://github.com/YueDJ/SparkiiAgent/issues/10270
+[i10270]: https://github.com/NousResearch/sparkii-agent/issues/10270
 :::
 
 **Storage:** Pairing data is stored in `~/.sparkii/pairing/` with per-platform JSON files:

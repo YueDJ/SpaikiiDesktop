@@ -24,21 +24,21 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 @pytest.fixture
 def cron_env(tmp_path, monkeypatch):
     """Isolated cron environment with temp SPARKII_HOME."""
-    sparkii_home = tmp_path / ".sparkii"
-    sparkii_home.mkdir()
-    (sparkii_home / "cron").mkdir()
-    (sparkii_home / "cron" / "output").mkdir()
-    (sparkii_home / "scripts").mkdir()
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    hermes_home = tmp_path / ".sparkii"
+    hermes_home.mkdir()
+    (hermes_home / "cron").mkdir()
+    (hermes_home / "cron" / "output").mkdir()
+    (hermes_home / "scripts").mkdir()
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     # Clear cached module-level paths
     import cron.jobs as jobs_mod
-    monkeypatch.setattr(jobs_mod, "SPARKII_DIR", sparkii_home)
-    monkeypatch.setattr(jobs_mod, "CRON_DIR", sparkii_home / "cron")
-    monkeypatch.setattr(jobs_mod, "JOBS_FILE", sparkii_home / "cron" / "jobs.json")
-    monkeypatch.setattr(jobs_mod, "OUTPUT_DIR", sparkii_home / "cron" / "output")
+    monkeypatch.setattr(jobs_mod, "SPARKII_DIR", hermes_home)
+    monkeypatch.setattr(jobs_mod, "CRON_DIR", hermes_home / "cron")
+    monkeypatch.setattr(jobs_mod, "JOBS_FILE", hermes_home / "cron" / "jobs.json")
+    monkeypatch.setattr(jobs_mod, "OUTPUT_DIR", hermes_home / "cron" / "output")
 
-    return sparkii_home
+    return hermes_home
 
 
 class TestJobScriptField:
@@ -72,7 +72,7 @@ def test_cronjob_tool_rejects_stale_past_one_shot(cron_env, monkeypatch):
     from tools.cronjob_tools import cronjob
 
     now = datetime(2026, 3, 18, 4, 30, 0, tzinfo=timezone.utc)
-    monkeypatch.setattr("cron.jobs._sparkii_now", lambda: now)
+    monkeypatch.setattr("cron.jobs._hermes_now", lambda: now)
     stale = (now - timedelta(minutes=5)).isoformat()
 
     result = json.loads(cronjob(action="create", prompt="Too late", schedule=stale))

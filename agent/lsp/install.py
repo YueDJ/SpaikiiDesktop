@@ -122,7 +122,7 @@ def _is_windows() -> bool:
     return os.name == "nt"
 
 
-def sparkii_lsp_bin_dir() -> Path:
+def hermes_lsp_bin_dir() -> Path:
     """Return the Sparkii-owned bin staging dir for LSP servers."""
     from sparkii_constants import get_sparkii_home
 
@@ -147,7 +147,7 @@ def _native_binary_candidates(base: Path) -> list[Path]:
 
 def _existing_binary(name: str) -> Optional[str]:
     """Probe the staging dir + PATH for a binary named ``name``."""
-    for staged in _native_binary_candidates(sparkii_lsp_bin_dir() / name):
+    for staged in _native_binary_candidates(hermes_lsp_bin_dir() / name):
         if staged.exists() and os.access(staged, os.X_OK):
             return str(staged)
     on_path = shutil.which(name)
@@ -257,7 +257,7 @@ def _install_npm(
     if npm is None:
         logger.info("[install] cannot install %s: no usable npm found", pkg)
         return None
-    staging = sparkii_lsp_bin_dir().parent  # <SPARKII_HOME>/lsp/
+    staging = hermes_lsp_bin_dir().parent  # <SPARKII_HOME>/lsp/
     install_targets = [pkg] + list(extra_pkgs or [])
     try:
         logger.info(
@@ -288,7 +288,7 @@ def _install_npm(
     for c in _native_binary_candidates(nm_bin):
         if c.exists():
             # Symlink into our `lsp/bin/` for stable PATH access.
-            link = sparkii_lsp_bin_dir() / c.name
+            link = hermes_lsp_bin_dir() / c.name
             if not link.exists():
                 try:
                     link.symlink_to(c)
@@ -309,7 +309,7 @@ def _install_go(pkg: str, bin_name: str) -> Optional[str]:
     if go is None:
         logger.info("[install] cannot install %s: go not on PATH", pkg)
         return None
-    staging = sparkii_lsp_bin_dir()
+    staging = hermes_lsp_bin_dir()
     env = dict(os.environ)
     env["GOBIN"] = str(staging)
     try:
@@ -350,7 +350,7 @@ def _install_pip(pkg: str, bin_name: str) -> Optional[str]:
     ``<staging>/bin``.  Note: this only works for packages that ship a
     console script.
     """
-    pip_target = sparkii_lsp_bin_dir().parent / "python-packages"
+    pip_target = hermes_lsp_bin_dir().parent / "python-packages"
     pip_target.mkdir(parents=True, exist_ok=True)
     try:
         logger.info("[install] pip install --target %s %s", pip_target, pkg)
@@ -376,7 +376,7 @@ def _install_pip(pkg: str, bin_name: str) -> Optional[str]:
     for script_dir in script_dirs:
         for bin_path in _native_binary_candidates(script_dir / bin_name):
             if bin_path.exists():
-                link = sparkii_lsp_bin_dir() / bin_path.name
+                link = hermes_lsp_bin_dir() / bin_path.name
                 if not link.exists():
                     try:
                         link.symlink_to(bin_path)
@@ -408,5 +408,5 @@ __all__ = [
     "INSTALL_RECIPES",
     "try_install",
     "detect_status",
-    "sparkii_lsp_bin_dir",
+    "hermes_lsp_bin_dir",
 ]

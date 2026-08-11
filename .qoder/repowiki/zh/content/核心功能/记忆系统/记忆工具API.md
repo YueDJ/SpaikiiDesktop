@@ -18,7 +18,7 @@
 9. [结论](#结论)
 
 ## 简介
-本文详细阐述 Hermes Agent 的记忆工具 API，即记忆管理器（MemoryManager）对外暴露的工具接口。记忆工具允许 Agent 进行长期记忆的查询、写入和管理，支持多后端存储（Honcho、OpenViking 等）和自动工具发现注册机制。
+本文详细阐述 Sparkii Agent 的记忆工具 API，即记忆管理器（MemoryManager）对外暴露的工具接口。记忆工具允许 Agent 进行长期记忆的查询、写入和管理，支持多后端存储（Honcho、OpenViking 等）和自动工具发现注册机制。
 
 记忆系统是 Agent 实现个性化和上下文保持的关键组件，通过工具化的接口设计，Agent 可以像调用其他工具一样操作记忆。
 

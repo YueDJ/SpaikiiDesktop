@@ -19,7 +19,7 @@
 9. [结论](#结论)
 
 ## 简介
-本文详细阐述 Hermes Agent 的 Webhook 平台适配器实现。Webhook 适配器提供通用的 HTTP Webhook 接口，支持任意系统通过 HTTP 请求与 Agent 交互，包括事件订阅、签名验证、重试机制和回调 URL 管理。
+本文详细阐述 Sparkii Agent 的 Webhook 平台适配器实现。Webhook 适配器提供通用的 HTTP Webhook 接口，支持任意系统通过 HTTP 请求与 Agent 交互，包括事件订阅、签名验证、重试机制和回调 URL 管理。
 
 适配器实现了 RESTful API 设计，支持 JSON 数据格式，提供完整的 Webhook 注册、事件分发和响应处理能力。
 

@@ -38,7 +38,7 @@ def server():
     # the whole test would poison modules first imported inside test bodies
     # (see tests/tui_gateway/test_protocol.py for the full rationale).
     with patch.dict("sys.modules", {
-        "sparkii_constants": MagicMock(get_sparkii_home=MagicMock(return_value="/tmp/sparkii_test")),
+        "sparkii_constants": MagicMock(get_sparkii_home=MagicMock(return_value="/tmp/hermes_test")),
         "sparkii_cli.env_loader": MagicMock(),
         "sparkii_cli.banner": MagicMock(),
         "sparkii_state": MagicMock(),

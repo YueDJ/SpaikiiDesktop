@@ -85,6 +85,57 @@ def _reload_updated_runtime_modules() -> None:
     except Exception as exc:
         logger.debug("Could not refresh update runtime modules: %s", exc)
 
+
+def _reload_config_modules() -> None:
+    """Force-reload config modules from disk after git pull.
+
+    ``sparkii update`` runs in the PRE-pull Python process. After ``git pull``
+    updates the source files on disk, modules already in ``sys.modules``
+    still hold the OLD code. Function-level imports return the cached module,
+    so ``DEFAULT_CONFIG["_config_version"]`` is the OLD value and
+    ``check_config_version()`` reports ``(33, 33)`` — "up to date" — even
+    though the freshly-pulled code has v34 with a migration to run.
+
+    This function force-reloads ``sparkii_cli.config_defaults``,
+    ``sparkii_cli.config``, and ``sparkii_cli.config_migrations`` from disk
+    so subsequent imports read the UPDATED code.
+    """
+    import importlib
+
+    importlib.invalidate_caches()
+    for mod_name in ("sparkii_cli.config_defaults", "sparkii_cli.config", "sparkii_cli.config_migrations"):
+        mod = sys.modules.get(mod_name)
+        if mod is not None:
+            try:
+                importlib.reload(mod)
+            except Exception as exc:
+                logger.debug("Could not reload %s for fresh config check: %s", mod_name, exc)
+
+
+def _run_config_check_fresh() -> tuple:
+    """Check config version using freshly-reloaded modules.
+
+    See ``_reload_config_modules`` for why this is necessary.
+    Returns ``(current_ver, latest_ver)``.
+    """
+    _reload_config_modules()
+    from sparkii_cli.config import check_config_version
+
+    return check_config_version()
+
+
+def _run_migrate_config_fresh(*, interactive: bool = False, quiet: bool = False) -> dict:
+    """Run config migration using freshly-reloaded modules.
+
+    See ``_reload_config_modules`` for why this is necessary.
+    Returns the migration results dict.
+    """
+    _reload_config_modules()
+    from sparkii_cli.config import migrate_config
+
+    return migrate_config(interactive=interactive, quiet=quiet)
+
+
 # Critical files that Sparkii must be able to import immediately after an
 # update/install. Most are imported on every CLI startup; ``web_server.py``
 # is the desktop/dashboard backend path that a fresh Windows install launches
@@ -209,7 +260,7 @@ def _validate_critical_modules_import(root) -> tuple[bool, str | None, str | Non
         # The root set is injected from sparkii_constants so this can't drift
         # from the hint the user is shown (they disagreed once already).
         "        missing = (getattr(exc, 'name', '') or '').split('.')[0]\n"
-        "        if missing in %r or missing.startswith('sparkii_'):\n"
+        "        if missing in %r or missing.startswith('hermes_'):\n"
         "            sys.stdout.write(name + '\\n' + str(exc))\n"
         "            raise SystemExit(3)\n"
         "    except ImportError as exc:\n"
@@ -752,7 +803,7 @@ def _update_via_zip(args):
         )
         _m().sys.exit(1)
     zip_url = (
-        f"https://github.com/YueDJ/SparkiiAgent/archive/refs/heads/{branch}.zip"
+        f"https://github.com/NousResearch/sparkii-agent/archive/refs/heads/{branch}.zip"
     )
 
     print("→ Downloading latest version...")
@@ -1416,13 +1467,13 @@ def _discard_stashed_changes(
     return True
 
 OFFICIAL_REPO_URLS = {
-    "https://github.com/YueDJ/SparkiiAgent.git",
-    "git@github.com:YueDJ/SparkiiAgent.git",
-    "https://github.com/YueDJ/SparkiiAgent",
-    "git@github.com:YueDJ/SparkiiAgent",
+    "https://github.com/NousResearch/sparkii-agent.git",
+    "git@github.com:NousResearch/sparkii-agent.git",
+    "https://github.com/NousResearch/sparkii-agent",
+    "git@github.com:NousResearch/sparkii-agent",
 }
 
-OFFICIAL_REPO_URL = "https://github.com/YueDJ/SparkiiAgent.git"
+OFFICIAL_REPO_URL = "https://github.com/NousResearch/sparkii-agent.git"
 
 SKIP_UPSTREAM_PROMPT_FILE = ".skip_upstream_prompt"
 
@@ -1548,7 +1599,7 @@ def _sync_with_upstream_if_needed(git_cmd: list[str], cwd: Path) -> None:
         # Ask user if they want to add upstream
         print()
         print("ℹ Your fork is not tracking the official Sparkii repository.")
-        print("  This means you may miss updates from YueDJ/SparkiiAgent.")
+        print("  This means you may miss updates from NousResearch/sparkii-agent.")
         print()
         try:
             response = (
@@ -1562,7 +1613,7 @@ def _sync_with_upstream_if_needed(git_cmd: list[str], cwd: Path) -> None:
             print("→ Adding upstream remote...")
             if _add_upstream_remote(git_cmd, cwd):
                 print(
-                    "  ✓ Added upstream: https://github.com/YueDJ/SparkiiAgent.git"
+                    "  ✓ Added upstream: https://github.com/NousResearch/sparkii-agent.git"
                 )
                 has_upstream = True
             else:
@@ -1570,7 +1621,7 @@ def _sync_with_upstream_if_needed(git_cmd: list[str], cwd: Path) -> None:
                 return
         else:
             print(
-                "  Skipped. Run 'git remote add upstream https://github.com/YueDJ/SparkiiAgent.git' to add later."
+                "  Skipped. Run 'git remote add upstream https://github.com/NousResearch/sparkii-agent.git' to add later."
             )
             _mark_skip_upstream_prompt()
             return
@@ -1653,9 +1704,9 @@ def _invalidate_update_cache():
     """
     homes = []
     # Default profile home (Docker-aware — uses /opt/data in Docker)
-    from sparkii_constants import get_default_sparkii_root
+    from sparkii_constants import get_default_hermes_root
 
-    default_home = get_default_sparkii_root()
+    default_home = get_default_hermes_root()
     homes.append(default_home)
     # Named profiles under <root>/profiles/
     profiles_root = default_home / "profiles"
@@ -2012,7 +2063,7 @@ def _npm_manifests_digest() -> str | None:
             h.update(b"<missing>")
     return h.hexdigest()
 
-def _npm_lockfile_changed(sparkii_root: Path) -> bool:
+def _npm_lockfile_changed(hermes_root: Path) -> bool:
     current = _npm_manifests_digest()
     if current is None:
         return True
@@ -2032,20 +2083,20 @@ def _npm_lockfile_changed(sparkii_root: Path) -> bool:
     try:
         # Key the cache by PROJECT_ROOT so parallel worktrees don't collide.
         cache_key = hashlib.sha256(str(_m().PROJECT_ROOT).encode()).hexdigest()[:12]
-        cache_file = sparkii_root / f".npm_lock_hash_{cache_key}"
+        cache_file = hermes_root / f".npm_lock_hash_{cache_key}"
         if not cache_file.exists():
             return True
         return cache_file.read_text(encoding="utf-8").strip() != current
     except OSError:
         return True
 
-def _record_npm_lockfile_hash(sparkii_root: Path) -> None:
+def _record_npm_lockfile_hash(hermes_root: Path) -> None:
     digest = _npm_manifests_digest()
     if digest is None:
         return
     try:
         cache_key = hashlib.sha256(str(_m().PROJECT_ROOT).encode()).hexdigest()[:12]
-        cache_file = sparkii_root / f".npm_lock_hash_{cache_key}"
+        cache_file = hermes_root / f".npm_lock_hash_{cache_key}"
         cache_file.write_text(digest, encoding="utf-8")
     except OSError:
         logger.debug("Could not write npm lockfile hash cache")
@@ -2082,13 +2133,13 @@ def _update_node_dependencies() -> list[str]:
             return failed
         return []
 
-    from sparkii_constants import get_default_sparkii_root
+    from sparkii_constants import get_default_hermes_root
 
     # This cache describes PROJECT_ROOT/node_modules, which is shared by every
     # Sparkii profile using this checkout. Keep one per-checkout cache under the
     # shared Sparkii root rather than rerunning npm once per named profile.
-    shared_sparkii_root = get_default_sparkii_root()
-    if not _m()._npm_lockfile_changed(shared_sparkii_root):
+    shared_hermes_root = get_default_hermes_root()
+    if not _m()._npm_lockfile_changed(shared_hermes_root):
         logger.info("npm lockfile unchanged, skipping npm install")
         return []
 
@@ -2110,9 +2161,9 @@ def _update_node_dependencies() -> list[str]:
 
     extra_args = ["--no-fund", "--no-audit", "--prefer-offline", "--progress=false"]
 
-    from sparkii_constants import with_sparkii_node_path
+    from sparkii_constants import with_hermes_node_path
 
-    nixos_env = with_sparkii_node_path(_m()._nixos_build_env())
+    nixos_env = with_hermes_node_path(_m()._nixos_build_env())
 
     # Step 1: root install (no workspace recursion).
     # NOTE: capture_output=False here is deliberate (#18840) — optional
@@ -2146,7 +2197,7 @@ def _update_node_dependencies() -> list[str]:
         env=nixos_env,
     )
     if ws_result.returncode == 0:
-        _record_npm_lockfile_hash(shared_sparkii_root)
+        _record_npm_lockfile_hash(shared_hermes_root)
         print("  ✓ repo root + ui-tui, web workspaces (desktop skipped)")
         return []
 
@@ -2479,10 +2530,10 @@ def _ensure_acp_launcher() -> None:
     if _m().sys.platform == "win32":
         return
     for bin_dir in (Path.home() / ".local" / "bin", Path("/usr/local/bin")):
-        sparkii_cmd = bin_dir / "sparkii"
+        hermes_cmd = bin_dir / "sparkii"
         acp_cmd = bin_dir / "sparkii-acp"
         try:
-            if not (sparkii_cmd.is_file() or sparkii_cmd.is_symlink()):
+            if not (hermes_cmd.is_file() or hermes_cmd.is_symlink()):
                 continue
             # Already present — a console script (pip/pipx install), an
             # earlier shim, or a symlink. is_symlink() catches broken
@@ -2495,7 +2546,7 @@ def _ensure_acp_launcher() -> None:
                 "# Sparkii Agent — ACP launcher (written by `sparkii update`).\n"
                 "# ACP hosts (Zed, JetBrains, Buzz) resolve the agent by this\n"
                 "# command name on the login-shell PATH.\n"
-                f'exec "{sparkii_cmd}" acp "$@"\n'
+                f'exec "{hermes_cmd}" acp "$@"\n'
             )
             acp_cmd.write_text(shim, encoding="utf-8")
             acp_cmd.chmod(acp_cmd.stat().st_mode | 0o755)
@@ -3821,7 +3872,7 @@ def _cmd_update_impl(args, gateway_mode: bool):
     if _m()._is_windows() and not getattr(args, "force", False):
         scripts_dir = _m()._venv_scripts_dir()
         if scripts_dir is not None:
-            concurrent = _m()._detect_concurrent_sparkii_instances(scripts_dir)
+            concurrent = _m()._detect_concurrent_hermes_instances(scripts_dir)
             if concurrent:
                 print(_format_concurrent_instances_message(concurrent, scripts_dir))
                 sys.exit(2)
@@ -4481,9 +4532,9 @@ def _cmd_update_impl(args, gateway_mode: bool):
                 # (Desktop → sparkii-setup → sparkii update), the shell PATH
                 # customizations are lost, so a bare-PATH child would fail with
                 # `node: not found` before cmd_gui can self-heal.
-                from sparkii_constants import with_sparkii_node_path
+                from sparkii_constants import with_hermes_node_path
 
-                _build_env = with_sparkii_node_path()
+                _build_env = with_hermes_node_path()
                 build_result = _m()._run_logged_subprocess(_desktop_build_cmd, cwd=_m().PROJECT_ROOT, env=_build_env)
                 if build_result.returncode != 0:
                     build_result = _m()._run_logged_subprocess(_desktop_build_cmd, cwd=_m().PROJECT_ROOT, env=_build_env)
@@ -4688,20 +4739,36 @@ def _cmd_update_impl(args, gateway_mode: bool):
         except Exception:
             pass  # honcho plugin not installed or not configured
 
-        # Check for config migrations
+        # Check for config migrations.
+        #
+        # CRITICAL: check_config_version and migrate_config must use
+        # freshly-reloaded modules, not the sys.modules cache. The
+        # ``sparkii update`` process is the PRE-pull Python process — its
+        # ``sys.modules`` cache holds the OLD ``sparkii_cli.config`` and
+        # ``sparkii_cli.config_migrations`` from before ``git pull`` updated
+        # the source files. A function-level ``from sparkii_cli.config import
+        # check_config_version`` returns the cached module, so
+        # ``DEFAULT_CONFIG["_config_version"]`` is the OLD value and
+        # ``check_config_version()`` reports ``(33, 33)`` — "up to date" —
+        # even though the freshly-pulled code has v34 with a migration to
+        # run. The personality reset migration (#81946) was silently skipped
+        # this way, leaving ``display.personality: kawaii`` active after
+        # updates that should have reset it.
         print()
         print("→ Checking configuration for new options...")
+
+        # Reload config modules BEFORE any config reads so get_missing_*,
+        # check_config_version, and migrate_config all use the updated code.
+        _reload_config_modules()
 
         from sparkii_cli.config import (
             get_missing_env_vars,
             get_missing_config_fields,
-            check_config_version,
-            migrate_config,
         )
 
         missing_env = get_missing_env_vars(required_only=True)
         missing_config = get_missing_config_fields()
-        current_ver, latest_ver = check_config_version()
+        current_ver, latest_ver = _run_config_check_fresh()
 
         has_new_options = bool(missing_env or missing_config)
         version_bump_only = (
@@ -4720,7 +4787,7 @@ def _cmd_update_impl(args, gateway_mode: bool):
                 f"  ℹ Updating config format (v{current_ver} → v{latest_ver})…"
             )
             try:
-                migrate_config(interactive=False, quiet=True)
+                _run_migrate_config_fresh(interactive=False, quiet=True)
                 print("  ✓ Config format updated (no new settings to configure)")
             except Exception as _mig_err:
                 print(f"  ⚠️  Config format update failed: {_mig_err}")
@@ -4806,7 +4873,7 @@ def _cmd_update_impl(args, gateway_mode: bool):
                 interactive_migration = not (
                     gateway_mode or assume_yes or response == "auto"
                 )
-                results = migrate_config(interactive=interactive_migration, quiet=False)
+                results = _run_migrate_config_fresh(interactive=interactive_migration, quiet=False)
 
                 if results["env_added"] or results["config_added"]:
                     print()
@@ -5634,15 +5701,15 @@ def _cmd_update_impl(args, gateway_mode: bool):
         # every `sparkii update` surfaces the issue until the user migrates.
         try:
             from sparkii_cli.gateway import (
-                has_legacy_sparkii_units,
-                _find_legacy_sparkii_units,
+                has_legacy_hermes_units,
+                _find_legacy_hermes_units,
                 supports_systemd_services,
             )
 
-            if supports_systemd_services() and has_legacy_sparkii_units():
+            if supports_systemd_services() and has_legacy_hermes_units():
                 print()
                 print("⚠ Legacy Sparkii gateway unit(s) detected:")
-                for name, path, is_sys in _find_legacy_sparkii_units():
+                for name, path, is_sys in _find_legacy_hermes_units():
                     scope = "system" if is_sys else "user"
                     print(f"    {path}  ({scope} scope)")
                 print()

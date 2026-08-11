@@ -18,7 +18,7 @@
 9. [结论](#结论)
 
 ## 简介
-本文详细阐述 Hermes Agent 的运行管理 API，即 /v1/runs 端点的完整接口规范。运行管理 API 提供对 Agent 运行实例的创建、查询和控制能力，是网关模式下管理 Agent 执行生命周期的核心接口。
+本文详细阐述 Sparkii Agent 的运行管理 API，即 /v1/runs 端点的完整接口规范。运行管理 API 提供对 Agent 运行实例的创建、查询和控制能力，是网关模式下管理 Agent 执行生命周期的核心接口。
 
 系统支持通过 RESTful API 创建新的运行实例、查询运行状态、获取运行结果，以及取消正在执行的运行。
 
@@ -106,5 +106,5 @@ sequenceDiagram
 - **结果缺失**：检查 ResponseStore 数据库完整性。
 
 ## 结论
-运行管理 API 是 Hermes Agent 网关模式的核心接口，提供了完整的 Agent 运行生命周期管理。通过标准化的 RESTful 接口，客户端可以灵活地创建、监控和控制 Agent 运行实例。
+运行管理 API 是 Sparkii Agent 网关模式的核心接口，提供了完整的 Agent 运行生命周期管理。通过标准化的 RESTful 接口，客户端可以灵活地创建、监控和控制 Agent 运行实例。
 

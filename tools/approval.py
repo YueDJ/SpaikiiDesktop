@@ -61,25 +61,25 @@ _approval_tool_call_id: contextvars.ContextVar[str] = contextvars.ContextVar(
 # thread/task-local, so each executor worker (or asyncio task) sees only its
 # own value. None = unset → fall back to the env var for legacy
 # single-threaded CLI callers that still export SPARKII_INTERACTIVE.
-_sparkii_interactive_ctx: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar(
-    "sparkii_interactive",
+_hermes_interactive_ctx: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar(
+    "hermes_interactive",
     default=None,
 )
 
 
-def set_sparkii_interactive_context(interactive: bool) -> contextvars.Token:
+def set_hermes_interactive_context(interactive: bool) -> contextvars.Token:
     """Bind interactive mode for the current context (thread or asyncio task).
 
     Use this instead of mutating ``os.environ["SPARKII_INTERACTIVE"]`` from
     concurrent executor threads. When unset (default), interactive detection
     falls back to the ``SPARKII_INTERACTIVE`` env var for legacy callers.
     """
-    return _sparkii_interactive_ctx.set("1" if interactive else "")
+    return _hermes_interactive_ctx.set("1" if interactive else "")
 
 
-def reset_sparkii_interactive_context(token: contextvars.Token) -> None:
-    """Restore the prior value from :func:`set_sparkii_interactive_context`."""
-    _sparkii_interactive_ctx.reset(token)
+def reset_hermes_interactive_context(token: contextvars.Token) -> None:
+    """Restore the prior value from :func:`set_hermes_interactive_context`."""
+    _hermes_interactive_ctx.reset(token)
 
 
 def _is_interactive_cli() -> bool:
@@ -88,7 +88,7 @@ def _is_interactive_cli() -> bool:
     Prefers the context-local flag (set by concurrent ACP sessions) and falls
     back to the ``SPARKII_INTERACTIVE`` env var for single-threaded callers.
     """
-    ctx_val = _sparkii_interactive_ctx.get()
+    ctx_val = _hermes_interactive_ctx.get()
     if ctx_val is not None:
         return is_truthy_value(ctx_val)
     return env_var_enabled("SPARKII_INTERACTIVE")
@@ -273,7 +273,7 @@ _SSH_SENSITIVE_PATH = r'(?:~|\$home|\$\{home\})/\.ssh(?:/|$)'
 _SPARKII_ENV_PATH = (
     r'(?:~\/\.sparkii/|'
     r'(?:\$home|\$\{home\})/\.sparkii/|'
-    r'(?:\$sparkii_home|\$\{sparkii_home\})/)'
+    r'(?:\$hermes_home|\$\{hermes_home\})/)'
     r'\.env\b'
 )
 # ~/.sparkii/config.yaml IS the security policy: approvals.mode, yolo, and the
@@ -287,7 +287,7 @@ _SPARKII_ENV_PATH = (
 _SPARKII_CONFIG_PATH = (
     r'(?:~\/\.sparkii/|'
     r'(?:\$home|\$\{home\})/\.sparkii/|'
-    r'(?:\$sparkii_home|\$\{sparkii_home\})/)'
+    r'(?:\$hermes_home|\$\{hermes_home\})/)'
     r'config\.yaml\b'
 )
 _PROJECT_ENV_PATH = r'(?:(?:/|\.{1,2}/)?(?:[^\s/"\'`]+/)*\.env(?:\.[^/\s"\'`]+)*)'
@@ -788,8 +788,8 @@ DANGEROUS_PATTERNS = [
     # terminates all running agents mid-work.  Allow global flags between
     # `sparkii` and `gateway` (e.g. `sparkii -p ade gateway restart`) so a
     # profile flag can't slip the agent past the guard.
-    (r'\bsparkii\s+(?:-{1,2}\S+(?:\s+\S+)?\s+)*gateway\s+(stop|restart)\b', "stop/restart sparkii gateway (kills running agents)"),
-    (r'\bsparkii\s+update\b', "sparkii update (restarts gateway, kills running agents)"),
+    (r'\bhermes\s+(?:-{1,2}\S+(?:\s+\S+)?\s+)*gateway\s+(stop|restart)\b', "stop/restart sparkii gateway (kills running agents)"),
+    (r'\bhermes\s+update\b', "sparkii update (restarts gateway, kills running agents)"),
     # Docker container lifecycle — any user with docker.sock mounted (a common
     # Docker Compose pattern) gives the agent the ability to restart/stop/kill
     # containers without approval.  These are agent-initiated lifecycle operations

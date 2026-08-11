@@ -134,11 +134,11 @@ class TestHelpers:
     def test_to_image_url_part_blocks_credential_store(self, tmp_path, monkeypatch):
         from plugins.image_gen.openrouter import _to_image_url_part
 
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        auth_json = sparkii_home / "auth.json"
+        hermes_home = tmp_path / ".sparkii"
+        hermes_home.mkdir()
+        auth_json = hermes_home / "auth.json"
         auth_json.write_text('{"api_key":"sk-secret"}', encoding="utf-8")
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
         with pytest.raises(ValueError, match="credential store"):
             _to_image_url_part(str(auth_json))

@@ -400,21 +400,21 @@ deploy-dev:
   only:
     - branches
   script:
-    - helm upgrade --install hermes-dev ./charts/hermes --set image.tag=$CI_COMMIT_SHORT_SHA --namespace dev
+    - helm upgrade --install sparkii-dev ./charts/sparkii --set image.tag=$CI_COMMIT_SHORT_SHA --namespace dev
 
 deploy-staging:
   stage: deploy-staging
   only:
     - main
   script:
-    - helm upgrade --install hermes-staging ./charts/hermes --set image.tag=$CI_COMMIT_SHORT_SHA --namespace staging
+    - helm upgrade --install sparkii-staging ./charts/sparkii --set image.tag=$CI_COMMIT_SHORT_SHA --namespace staging
 
 deploy-prod:
   stage: deploy-prod
   only:
     - tags
   script:
-    - helm upgrade --install hermes-prod ./charts/hermes --set image.tag=$CI_TAG --namespace prod
+    - helm upgrade --install sparkii-prod ./charts/sparkii --set image.tag=$CI_TAG --namespace prod
 ```
 
 [本节为概念性示例，未直接映射到具体文件]
@@ -449,27 +449,27 @@ pipeline {
         }
         stage('Build Image') {
             steps {
-                sh 'docker build -t hermes-agent:${BUILD_NUMBER} .'
-                sh 'docker push hermes-agent:${BUILD_NUMBER}'
+                sh 'docker build -t sparkii-agent:${BUILD_NUMBER} .'
+                sh 'docker push sparkii-agent:${BUILD_NUMBER}'
             }
         }
         stage('Deploy Dev') {
             when { branch 'develop' }
-            steps { sh 'helm upgrade --install hermes-dev ./charts/hermes --set image.tag=${BUILD_NUMBER} --namespace dev' }
+            steps { sh 'helm upgrade --install sparkii-dev ./charts/sparkii --set image.tag=${BUILD_NUMBER} --namespace dev' }
         }
         stage('Deploy Staging') {
             when { branch 'main' }
-            steps { sh 'helm upgrade --install hermes-staging ./charts/hermes --set image.tag=${BUILD_NUMBER} --namespace staging' }
+            steps { sh 'helm upgrade --install sparkii-staging ./charts/sparkii --set image.tag=${BUILD_NUMBER} --namespace staging' }
         }
         stage('Deploy Prod') {
             when { tag 'v*' }
-            steps { sh 'helm upgrade --install hermes-prod ./charts/hermes --set image.tag=${BUILD_TAG} --namespace prod' }
+            steps { sh 'helm upgrade --install sparkii-prod ./charts/sparkii --set image.tag=${BUILD_TAG} --namespace prod' }
         }
     }
     post {
         failure {
             echo 'Rolling back to previous stable version...'
-            sh 'helm rollback hermes-prod 1 || true'
+            sh 'helm rollback sparkii-prod 1 || true'
         }
     }
 }

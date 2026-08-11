@@ -16,7 +16,7 @@
  *   - clean up a stale dashboard only when it is provably ours.
  *
  * No `import 'electron'` so it's unit-testable with `node --test`. main.ts wires
- * the real SshConnection, fetch, adoptServedDashboardToken, and waitForSparkii in.
+ * the real SshConnection, fetch, adoptServedDashboardToken, and waitForHermes in.
  *
  * The minted SPARKII_DASHBOARD_SESSION_TOKEN is the SPAWN credential. After
  * readiness the caller runs served-token adoption against the tunneled baseUrl
@@ -37,6 +37,11 @@ const REMOTE_LOCK_DIR = '~/.sparkii/desktop-ssh'
 const SUPPORTED_REMOTE_OS = new Set(['Linux', 'Darwin'])
 const DEFAULT_READY_TIMEOUT_MS = 45_000
 const READY_POLL_INTERVAL_MS = 750
+// macOS sshd starts non-interactive shells with a 256-FD soft limit even when
+// the hard limit is unlimited. A Desktop backend can legitimately exceed that
+// while serving several profiles/tools, so raise only the child process limit.
+// Keep startup portable: restricted hosts retain their existing limit.
+const REMOTE_NOFILE_SOFT_LIMIT = 65_536
 
 function mintToken() {
   return crypto.randomBytes(32).toString('hex')
@@ -135,7 +140,7 @@ async function locateSparkii(ssh, remoteSparkiiPath) {
     //   - version checking: `<python> --version` printed "Python x.y.z" instead of
     //     the Sparkii version, and
     //   - capability probing: `<python> serve --help` failed entirely.
-    // See https://github.com/YueDJ/SparkiiAgent/issues/74411
+    // See https://github.com/NousResearch/sparkii-agent/issues/74411
     return candidate
   }
 
@@ -442,7 +447,10 @@ function buildSpawnCommand(sparkiiPath, profile, opts: any = {}) {
   const tokenArg = tokenFilePath ? ` --ssh-session-token-file ${expandRemotePath(tokenFilePath)}` : ''
   const ownerArg = opts.spawnNonce ? ` --ssh-owner-nonce ${validateSpawnNonce(opts.spawnNonce)}` : ''
   const subCmd = `serve --isolated --host 127.0.0.1 --port 0${tokenArg}${ownerArg}`
-  const dashCmd = `env SPARKII_DESKTOP=1 ${sparkii} ${profileArgs}${subCmd}`
+
+  const dashCmd =
+    `ulimit -n ${REMOTE_NOFILE_SOFT_LIMIT} 2>/dev/null || true; ` +
+    `exec env SPARKII_DESKTOP=1 ${sparkii} ${profileArgs}${subCmd}`
 
   return (
     `mkdir -p "$(dirname ${logPath})" && ` +
@@ -644,7 +652,7 @@ async function openForward(deps, remotePort, attempts = 3) {
 
 /**
  * Establish (or reuse) a remote dashboard and a tunnel to it. `deps` injects the
- * opened SshConnection, forward/pickLocalPort/waitForSparkii, a token-gated
+ * opened SshConnection, forward/pickLocalPort/waitForHermes, a token-gated
  * probeReuseProof, and adoptServedToken. Returns the connection descriptor
  * { baseUrl, token, tokenFingerprint, remotePort, localPort, pid, reused, platform }.
  */
@@ -671,7 +679,7 @@ async function connect(deps) {
     ownershipId,
     forward,
     pickLocalPort,
-    waitForSparkii,
+    waitForHermes,
     probeReuseProof,
     adoptServedToken,
     rememberLog = () => {},
@@ -821,7 +829,7 @@ async function connect(deps) {
     localPort = await openForward(deps, remotePort)
     assertNotAborted(signal)
     const baseUrl = `http://127.0.0.1:${localPort}`
-    await waitForSparkii(baseUrl, spawnToken)
+    await waitForHermes(baseUrl, spawnToken)
     assertNotAborted(signal)
 
     const token = await adoptOwnedServedToken(adoptServedToken, baseUrl, spawnToken, ssh, pid, 'remote dashboard')

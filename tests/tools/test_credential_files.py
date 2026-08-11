@@ -32,27 +32,27 @@ def _clean_state():
 
 class TestRegisterCredentialFiles:
     def test_dict_with_path_key(self, tmp_path):
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        (sparkii_home / "token.json").write_text("{}")
+        hermes_home = tmp_path / ".sparkii"
+        hermes_home.mkdir()
+        (hermes_home / "token.json").write_text("{}")
 
-        with patch.dict(os.environ, {"SPARKII_HOME": str(sparkii_home)}):
+        with patch.dict(os.environ, {"SPARKII_HOME": str(hermes_home)}):
             missing = register_credential_files([{"path": "token.json"}])
 
         assert missing == []
         mounts = get_credential_file_mounts()
         assert len(mounts) == 1
-        assert mounts[0]["host_path"] == str(sparkii_home / "token.json")
+        assert mounts[0]["host_path"] == str(hermes_home / "token.json")
         assert mounts[0]["container_path"] == "/root/.sparkii/token.json"
 
 
     def test_path_takes_precedence_over_name(self, tmp_path):
         """When both path and name are present, path wins."""
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        (sparkii_home / "real.json").write_text("{}")
+        hermes_home = tmp_path / ".sparkii"
+        hermes_home.mkdir()
+        (hermes_home / "real.json").write_text("{}")
 
-        with patch.dict(os.environ, {"SPARKII_HOME": str(sparkii_home)}):
+        with patch.dict(os.environ, {"SPARKII_HOME": str(hermes_home)}):
             missing = register_credential_files([
                 {"path": "real.json", "name": "wrong.json"},
             ])
@@ -64,13 +64,13 @@ class TestRegisterCredentialFiles:
 
 class TestSkillsDirectoryMount:
     def test_returns_mount_when_skills_dir_exists(self, tmp_path):
-        sparkii_home = tmp_path / ".sparkii"
-        skills_dir = sparkii_home / "skills"
+        hermes_home = tmp_path / ".sparkii"
+        skills_dir = hermes_home / "skills"
         skills_dir.mkdir(parents=True)
         (skills_dir / "test-skill").mkdir()
         (skills_dir / "test-skill" / "SKILL.md").write_text("# test")
 
-        with patch.dict(os.environ, {"SPARKII_HOME": str(sparkii_home)}):
+        with patch.dict(os.environ, {"SPARKII_HOME": str(hermes_home)}):
             mounts = get_skills_directory_mount()
 
         assert len(mounts) >= 1
@@ -79,18 +79,18 @@ class TestSkillsDirectoryMount:
 
 
     def test_custom_container_base(self, tmp_path):
-        sparkii_home = tmp_path / ".sparkii"
-        (sparkii_home / "skills").mkdir(parents=True)
+        hermes_home = tmp_path / ".sparkii"
+        (hermes_home / "skills").mkdir(parents=True)
 
-        with patch.dict(os.environ, {"SPARKII_HOME": str(sparkii_home)}):
+        with patch.dict(os.environ, {"SPARKII_HOME": str(hermes_home)}):
             mounts = get_skills_directory_mount(container_base="/home/user/.sparkii")
 
         assert mounts[0]["container_path"] == "/home/user/.sparkii/skills"
 
     def test_symlinks_are_sanitized(self, tmp_path):
         """Symlinks in skills dir should be excluded from the mount."""
-        sparkii_home = tmp_path / ".sparkii"
-        skills_dir = sparkii_home / "skills"
+        hermes_home = tmp_path / ".sparkii"
+        skills_dir = hermes_home / "skills"
         skills_dir.mkdir(parents=True)
         (skills_dir / "legit.md").write_text("# real skill")
         # Create a symlink pointing outside the skills tree
@@ -98,7 +98,7 @@ class TestSkillsDirectoryMount:
         secret.write_text("TOP SECRET")
         (skills_dir / "evil_link").symlink_to(secret)
 
-        with patch.dict(os.environ, {"SPARKII_HOME": str(sparkii_home)}):
+        with patch.dict(os.environ, {"SPARKII_HOME": str(hermes_home)}):
             mounts = get_skills_directory_mount()
 
         assert len(mounts) >= 1
@@ -114,12 +114,12 @@ class TestSkillsDirectoryMount:
 
     def test_no_symlinks_returns_original_dir(self, tmp_path):
         """When no symlinks exist, the original dir is returned (no copy)."""
-        sparkii_home = tmp_path / ".sparkii"
-        skills_dir = sparkii_home / "skills"
+        hermes_home = tmp_path / ".sparkii"
+        skills_dir = hermes_home / "skills"
         skills_dir.mkdir(parents=True)
         (skills_dir / "skill.md").write_text("ok")
 
-        with patch.dict(os.environ, {"SPARKII_HOME": str(sparkii_home)}):
+        with patch.dict(os.environ, {"SPARKII_HOME": str(hermes_home)}):
             mounts = get_skills_directory_mount()
 
         assert mounts[0]["host_path"] == str(skills_dir)
@@ -127,8 +127,8 @@ class TestSkillsDirectoryMount:
 
 class TestIterSkillsFiles:
     def test_returns_files_skipping_symlinks(self, tmp_path):
-        sparkii_home = tmp_path / ".sparkii"
-        skills_dir = sparkii_home / "skills"
+        hermes_home = tmp_path / ".sparkii"
+        skills_dir = hermes_home / "skills"
         (skills_dir / "cat" / "myskill").mkdir(parents=True)
         (skills_dir / "cat" / "myskill" / "SKILL.md").write_text("# skill")
         (skills_dir / "cat" / "myskill" / "scripts").mkdir()
@@ -138,7 +138,7 @@ class TestIterSkillsFiles:
         secret.write_text("nope")
         (skills_dir / "cat" / "myskill" / "evil").symlink_to(secret)
 
-        with patch.dict(os.environ, {"SPARKII_HOME": str(sparkii_home)}):
+        with patch.dict(os.environ, {"SPARKII_HOME": str(hermes_home)}):
             files = iter_skills_files()
 
         paths = {f["container_path"] for f in files}
@@ -148,10 +148,10 @@ class TestIterSkillsFiles:
         assert not any("evil" in f["container_path"] for f in files)
 
     def test_empty_when_no_skills_dir(self, tmp_path):
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
+        hermes_home = tmp_path / ".sparkii"
+        hermes_home.mkdir()
 
-        with patch.dict(os.environ, {"SPARKII_HOME": str(sparkii_home)}):
+        with patch.dict(os.environ, {"SPARKII_HOME": str(hermes_home)}):
             assert iter_skills_files() == []
 
 class TestPathTraversalSecurity:
@@ -171,7 +171,7 @@ class TestPathTraversalSecurity:
         monkeypatch.setenv("SPARKII_HOME", str(tmp_path / ".sparkii"))
         (tmp_path / ".sparkii").mkdir()
 
-        # Create a sensitive file one level above sparkii_home
+        # Create a sensitive file one level above hermes_home
         sensitive = tmp_path / "sensitive.json"
         sensitive.write_text('{"secret": "value"}')
 
@@ -182,11 +182,11 @@ class TestPathTraversalSecurity:
 
     def test_deep_traversal_rejected(self, tmp_path, monkeypatch):
         """'../../etc/passwd' style traversal must be rejected."""
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        hermes_home = tmp_path / ".sparkii"
+        hermes_home.mkdir()
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
-        # Create a fake sensitive file outside sparkii_home
+        # Create a fake sensitive file outside hermes_home
         ssh_dir = tmp_path / ".ssh"
         ssh_dir.mkdir()
         (ssh_dir / "id_rsa").write_text("PRIVATE KEY")
@@ -198,9 +198,9 @@ class TestPathTraversalSecurity:
 
     def test_absolute_path_rejected(self, tmp_path, monkeypatch):
         """Absolute paths must be rejected regardless of whether they exist."""
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        hermes_home = tmp_path / ".sparkii"
+        hermes_home.mkdir()
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
         # Create a file at an absolute path
         sensitive = tmp_path / "absolute.json"
@@ -214,12 +214,12 @@ class TestPathTraversalSecurity:
 
     def test_nested_subdir_inside_sparkii_home_allowed(self, tmp_path, monkeypatch):
         """Files in subdirectories of SPARKII_HOME must be allowed."""
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        subdir = sparkii_home / "creds"
+        hermes_home = tmp_path / ".sparkii"
+        hermes_home.mkdir()
+        subdir = hermes_home / "creds"
         subdir.mkdir()
         (subdir / "oauth.json").write_text("{}")
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
         result = register_credential_file("creds/oauth.json")
 
@@ -227,16 +227,16 @@ class TestPathTraversalSecurity:
 
     def test_symlink_traversal_rejected(self, tmp_path, monkeypatch):
         """A symlink inside SPARKII_HOME pointing outside must be rejected."""
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        hermes_home = tmp_path / ".sparkii"
+        hermes_home.mkdir()
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
-        # Create a sensitive file outside sparkii_home
+        # Create a sensitive file outside hermes_home
         sensitive = tmp_path / "sensitive.json"
         sensitive.write_text('{"secret": "value"}')
 
-        # Create a symlink inside sparkii_home pointing outside
-        symlink = sparkii_home / "evil_link.json"
+        # Create a symlink inside hermes_home pointing outside
+        symlink = hermes_home / "evil_link.json"
         try:
             symlink.symlink_to(sensitive)
         except (OSError, NotImplementedError):
@@ -256,20 +256,20 @@ class TestPathTraversalSecurity:
 class TestConfigPathTraversal:
     """terminal.credential_files in config.yaml must also reject traversal."""
 
-    def _write_config(self, sparkii_home: Path, cred_files: list):
+    def _write_config(self, hermes_home: Path, cred_files: list):
         import yaml
-        config_path = sparkii_home / "config.yaml"
+        config_path = hermes_home / "config.yaml"
         config_path.write_text(yaml.dump({"terminal": {"credential_files": cred_files}}))
 
     def test_config_traversal_rejected(self, tmp_path, monkeypatch):
         """'../secret' in config.yaml must not escape SPARKII_HOME."""
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        hermes_home = tmp_path / ".sparkii"
+        hermes_home.mkdir()
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
         sensitive = tmp_path / "secret.json"
         sensitive.write_text("{}")
-        self._write_config(sparkii_home, ["../secret.json"])
+        self._write_config(hermes_home, ["../secret.json"])
 
         mounts = get_credential_file_mounts()
         host_paths = [m["host_path"] for m in mounts]
@@ -278,25 +278,25 @@ class TestConfigPathTraversal:
 
     def test_config_absolute_path_rejected(self, tmp_path, monkeypatch):
         """Absolute paths in config.yaml must be rejected."""
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        hermes_home = tmp_path / ".sparkii"
+        hermes_home.mkdir()
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
         sensitive = tmp_path / "abs.json"
         sensitive.write_text("{}")
-        self._write_config(sparkii_home, [str(sensitive)])
+        self._write_config(hermes_home, [str(sensitive)])
 
         mounts = get_credential_file_mounts()
         assert mounts == []
 
     def test_config_legitimate_file_works(self, tmp_path, monkeypatch):
         """Normal files inside SPARKII_HOME via config must still mount."""
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        hermes_home = tmp_path / ".sparkii"
+        hermes_home.mkdir()
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
-        (sparkii_home / "oauth.json").write_text("{}")
-        self._write_config(sparkii_home, ["oauth.json"])
+        (hermes_home / "oauth.json").write_text("{}")
+        self._write_config(hermes_home, ["oauth.json"])
 
         mounts = get_credential_file_mounts()
         assert len(mounts) == 1
@@ -312,12 +312,12 @@ class TestCacheDirectoryMounts:
 
     def test_returns_existing_cache_dirs(self, tmp_path, monkeypatch):
         """Existing cache dirs are returned with correct container paths."""
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        (sparkii_home / "cache" / "documents").mkdir(parents=True)
-        (sparkii_home / "cache" / "audio").mkdir(parents=True)
-        (sparkii_home / "cache" / "videos").mkdir(parents=True)
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        hermes_home = tmp_path / ".sparkii"
+        hermes_home.mkdir()
+        (hermes_home / "cache" / "documents").mkdir(parents=True)
+        (hermes_home / "cache" / "audio").mkdir(parents=True)
+        (hermes_home / "cache" / "videos").mkdir(parents=True)
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
         mounts = get_cache_directory_mounts()
         paths = {m["container_path"] for m in mounts}
@@ -330,25 +330,25 @@ class TestCacheDirectoryMounts:
         """Old-style dir names (e.g. document_cache) are resolved correctly.
 
         Populates the legacy dirs with a sentinel file so they count as
-        ``has content`` for ``get_sparkii_dir``'s populated-legacy check
+        ``has content`` for ``get_hermes_dir``'s populated-legacy check
         (see #27602 — empty legacy stubs are no longer honoured).
         """
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        # Use legacy dir name with content — get_sparkii_dir prefers
+        hermes_home = tmp_path / ".sparkii"
+        hermes_home.mkdir()
+        # Use legacy dir name with content — get_hermes_dir prefers
         # populated old over new.
-        legacy_doc = sparkii_home / "document_cache"
-        legacy_img = sparkii_home / "image_cache"
+        legacy_doc = hermes_home / "document_cache"
+        legacy_img = hermes_home / "image_cache"
         legacy_doc.mkdir()
         legacy_img.mkdir()
         (legacy_doc / "cached.txt").write_bytes(b"x")
         (legacy_img / "cached.png").write_bytes(b"x")
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
         mounts = get_cache_directory_mounts()
         host_paths = {m["host_path"] for m in mounts}
-        assert str(sparkii_home / "document_cache") in host_paths
-        assert str(sparkii_home / "image_cache") in host_paths
+        assert str(hermes_home / "document_cache") in host_paths
+        assert str(hermes_home / "image_cache") in host_paths
         # Container paths always use the new layout
         container_paths = {m["container_path"] for m in mounts}
         assert "/root/.sparkii/cache/documents" in container_paths
@@ -360,9 +360,9 @@ class TestCacheDirectoryMounts:
         Docker snapshots the mount list at container creation; skipping
         not-yet-existing dirs meant the first attachment/clipboard file after
         container start dangled forever. All _CACHE_DIRS entries mount."""
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        hermes_home = tmp_path / ".sparkii"
+        hermes_home.mkdir()
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
         mounts = get_cache_directory_mounts()
         container_paths = {m["container_path"] for m in mounts}
@@ -379,14 +379,14 @@ class TestCacheDirectoryMounts:
         under ``cache/``. Without this entry vision_analyze on a desktop upload
         fails because the file is not reachable inside the sandbox.
         """
-        sparkii_home = tmp_path / ".sparkii"
-        (sparkii_home / "images").mkdir(parents=True)
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        hermes_home = tmp_path / ".sparkii"
+        (hermes_home / "images").mkdir(parents=True)
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
         mounts = get_cache_directory_mounts()
         by_container = {m["container_path"]: m["host_path"] for m in mounts}
         assert "/root/.sparkii/images" in by_container
-        assert by_container["/root/.sparkii/images"] == str(sparkii_home / "images")
+        assert by_container["/root/.sparkii/images"] == str(hermes_home / "images")
 
     def test_images_upload_file_maps_into_container(self, tmp_path, monkeypatch):
         """A concrete upload under ``images/`` maps to its container path.
@@ -394,11 +394,11 @@ class TestCacheDirectoryMounts:
         This is the reverse mapping vision uses to translate a container-visible
         path back to the host mount; it must recognise the ``images/`` dir.
         """
-        sparkii_home = tmp_path / ".sparkii"
-        (sparkii_home / "images").mkdir(parents=True)
-        upload = sparkii_home / "images" / "upload_20260722_181019_1.png"
+        hermes_home = tmp_path / ".sparkii"
+        (hermes_home / "images").mkdir(parents=True)
+        upload = hermes_home / "images" / "upload_20260722_181019_1.png"
         upload.write_bytes(bytes.fromhex("89504e470d0a1a0a"))
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
         assert (
             map_cache_path_to_container(str(upload))
@@ -410,11 +410,11 @@ class TestMapCachePathToContainer:
     """Tests for map_cache_path_to_container() — the backend-agnostic mapper."""
 
     def test_maps_path_under_cache_dir(self, tmp_path, monkeypatch):
-        sparkii_home = tmp_path / ".sparkii"
-        img_dir = sparkii_home / "cache" / "images"
+        hermes_home = tmp_path / ".sparkii"
+        img_dir = hermes_home / "cache" / "images"
         img_dir.mkdir(parents=True)
         host_path = str(img_dir / "generated.png")
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
         assert (
             map_cache_path_to_container(host_path)
@@ -427,13 +427,13 @@ class TestMapCachePathToContainer:
         Docker snapshots mounts at container creation, so a dir that appears
         later would dangle for the container's whole life. The map must
         therefore succeed (and the dir exist) even before first use."""
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        hermes_home = tmp_path / ".sparkii"
+        hermes_home.mkdir()
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
-        mapped = map_cache_path_to_container(str(sparkii_home / "cache" / "images" / "x.png"))
+        mapped = map_cache_path_to_container(str(hermes_home / "cache" / "images" / "x.png"))
         assert mapped == "/root/.sparkii/cache/images/x.png"
-        assert (sparkii_home / "cache" / "images").is_dir()
+        assert (hermes_home / "cache" / "images").is_dir()
 
 
 class TestToAgentVisiblePathPerBackend:
@@ -442,18 +442,18 @@ class TestToAgentVisiblePathPerBackend:
     stays correct (local; singularity auto-binds the host home)."""
 
     def _staged(self, tmp_path, monkeypatch):
-        sparkii_home = tmp_path / ".sparkii"
-        (sparkii_home / "attachments").mkdir(parents=True)
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
-        return str(sparkii_home / "attachments" / "drop.zip")
+        hermes_home = tmp_path / ".sparkii"
+        (hermes_home / "attachments").mkdir(parents=True)
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        return str(hermes_home / "attachments" / "drop.zip")
 
-    def test_docker_maps_to_root_sparkii(self, tmp_path, monkeypatch):
+    def test_docker_maps_to_root_hermes(self, tmp_path, monkeypatch):
         staged = self._staged(tmp_path, monkeypatch)
         monkeypatch.setenv("TERMINAL_ENV", "docker")
         from tools.credential_files import to_agent_visible_cache_path
         assert to_agent_visible_cache_path(staged) == "/root/.sparkii/attachments/drop.zip"
 
-    def test_ssh_maps_to_tilde_sparkii(self, tmp_path, monkeypatch):
+    def test_ssh_maps_to_tilde_hermes(self, tmp_path, monkeypatch):
         staged = self._staged(tmp_path, monkeypatch)
         monkeypatch.setenv("TERMINAL_ENV", "ssh")
         from tools.credential_files import to_agent_visible_cache_path
@@ -478,12 +478,12 @@ class TestIterCacheFiles:
 
     def test_enumerates_files(self, tmp_path, monkeypatch):
         """Regular files in cache dirs are returned."""
-        sparkii_home = tmp_path / ".sparkii"
-        doc_dir = sparkii_home / "cache" / "documents"
+        hermes_home = tmp_path / ".sparkii"
+        doc_dir = hermes_home / "cache" / "documents"
         doc_dir.mkdir(parents=True)
         (doc_dir / "upload.zip").write_bytes(b"PK\x03\x04")
         (doc_dir / "report.pdf").write_bytes(b"%PDF-1.4")
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
         entries = iter_cache_files()
         names = {Path(e["container_path"]).name for e in entries}
@@ -492,13 +492,13 @@ class TestIterCacheFiles:
 
     def test_skips_symlinks(self, tmp_path, monkeypatch):
         """Symlinks inside cache dirs are skipped."""
-        sparkii_home = tmp_path / ".sparkii"
-        doc_dir = sparkii_home / "cache" / "documents"
+        hermes_home = tmp_path / ".sparkii"
+        doc_dir = hermes_home / "cache" / "documents"
         doc_dir.mkdir(parents=True)
         real_file = doc_dir / "real.txt"
         real_file.write_text("content")
         (doc_dir / "link.txt").symlink_to(real_file)
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
         entries = iter_cache_files()
         names = [Path(e["container_path"]).name for e in entries]
@@ -508,9 +508,9 @@ class TestIterCacheFiles:
 
     def test_empty_cache(self, tmp_path, monkeypatch):
         """No cache dirs → empty list."""
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+        hermes_home = tmp_path / ".sparkii"
+        hermes_home.mkdir()
+        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
         assert iter_cache_files() == []
 

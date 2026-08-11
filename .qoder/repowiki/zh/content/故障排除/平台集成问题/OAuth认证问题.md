@@ -192,14 +192,14 @@ class _ProviderEntry {
 +lock
 +pending_401
 }
-class HermesMCPOAuthProvider {
+class SparkiiMCPOAuthProvider {
 +async_auth_flow()
 -_prefetch_oauth_metadata()
 -_maybe_flag_poisoned_client()
 -_persist_oauth_metadata_if_changed()
 }
 MCPOAuthManager --> _ProviderEntry : "管理"
-_ProviderEntry --> HermesMCPOAuthProvider : "持有"
+_ProviderEntry --> SparkiiMCPOAuthProvider : "持有"
 ```
 
 **图示来源**

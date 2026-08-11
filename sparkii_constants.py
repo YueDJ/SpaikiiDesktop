@@ -127,7 +127,7 @@ def get_sparkii_home() -> Path:
     callers that import this at load time.  Subprocess spawners are
     expected to propagate ``SPARKII_HOME`` explicitly (see the systemd
     template in ``sparkii_cli/gateway.py`` and the kanban dispatcher in
-    ``sparkii_cli/kanban_db.py``).  See https://github.com/YueDJ/SparkiiAgent/issues/18594.
+    ``sparkii_cli/kanban_db.py``).  See https://github.com/NousResearch/sparkii-agent/issues/18594.
     """
     override = get_sparkii_home_override()
     if override:
@@ -158,7 +158,7 @@ def get_process_sparkii_home() -> Path:
     return _sparkii_home_from_env()
 
 
-def get_default_sparkii_root() -> Path:
+def get_default_hermes_root() -> Path:
     """Return the root Sparkii directory for profile-level operations.
 
     In standard deployments this is the platform-native Sparkii home
@@ -244,7 +244,7 @@ def get_bundled_skills_dir(default: Path | None = None) -> Path:
     return get_sparkii_home() / "skills"
 
 
-def get_sparkii_dir(
+def get_hermes_dir(
     new_subpath: str,
     old_name: str,
     *,
@@ -282,7 +282,7 @@ def get_sparkii_dir(
     return home / new_subpath
 
 
-def iter_sparkii_node_dirs(home: Path | None = None) -> list[Path]:
+def iter_hermes_node_dirs(home: Path | None = None) -> list[Path]:
     """Return Sparkii-managed Node.js directories in preferred lookup order.
 
     Windows installs from ``scripts/install.ps1`` unpack portable Node directly
@@ -328,7 +328,7 @@ def node_tool_runnable(path: str | None) -> bool:
     Sparkii-managed Node trees live under ``$SPARKII_HOME/node`` (or a profile's
     ``SPARKII_HOME``). A partial upgrade or interrupted install can leave
     ``bin/npm`` behind while ``lib/cli.js`` is missing — the wrapper exists but
-    immediately throws ``MODULE_NOT_FOUND``. ``find_sparkii_node_executable``
+    immediately throws ``MODULE_NOT_FOUND``. ``find_hermes_node_executable``
     used to trust file presence alone, so ``sparkii update`` would pick that
     broken npm and fail the Node refresh / web UI build.
 
@@ -353,7 +353,7 @@ def node_tool_runnable(path: str | None) -> bool:
             [path, "--version"],
             capture_output=True,
             timeout=10,
-            env=with_sparkii_node_path(),
+            env=with_hermes_node_path(),
             creationflags=windows_hide_flags(),
         )
     except (OSError, subprocess.TimeoutExpired, ValueError):
@@ -361,12 +361,12 @@ def node_tool_runnable(path: str | None) -> bool:
     return result.returncode == 0
 
 
-def sparkii_managed_node_tree_present(home: Path | None = None) -> bool:
+def hermes_managed_node_tree_present(home: Path | None = None) -> bool:
     """Return True when any Sparkii-managed node/npm/npx shim exists on disk."""
     names = set()
     for command in ("node", "npm", "npx"):
         names.update(_candidate_node_command_names(command))
-    for directory in iter_sparkii_node_dirs(home):
+    for directory in iter_hermes_node_dirs(home):
         for name in names:
             candidate = directory / name
             if candidate.is_file() and (
@@ -476,7 +476,7 @@ def _bootstrap_managed_node_posix() -> bool:
     return result.returncode == 0
 
 
-def bootstrap_sparkii_managed_node() -> str | None:
+def bootstrap_hermes_managed_node() -> str | None:
     """Install a Sparkii-managed Node tree and return its npm path.
 
     Used when the only Node/npm on the machine belongs to the user (system,
@@ -489,7 +489,7 @@ def bootstrap_sparkii_managed_node() -> str | None:
     No-ops (returning the existing npm) when a healthy managed tree is already
     present.
     """
-    existing = find_sparkii_node_executable("npm")
+    existing = find_hermes_node_executable("npm")
     if existing:
         return existing
 
@@ -500,7 +500,7 @@ def bootstrap_sparkii_managed_node() -> str | None:
     if not ok:
         return None
 
-    for directory in iter_sparkii_node_dirs():
+    for directory in iter_hermes_node_dirs():
         for name in _candidate_node_command_names("npm"):
             candidate = directory / name
             if candidate.is_file() and (
@@ -512,7 +512,7 @@ def bootstrap_sparkii_managed_node() -> str | None:
     return None
 
 
-def heal_sparkii_managed_node() -> bool:
+def heal_hermes_managed_node() -> bool:
     """Redownload Sparkii-managed Node when the tree exists but is broken.
 
     Runs at most once per process. POSIX installs shell out to
@@ -522,7 +522,7 @@ def heal_sparkii_managed_node() -> bool:
     global _managed_node_heal_attempted
     if _managed_node_heal_attempted:
         return False
-    if not sparkii_managed_node_tree_present():
+    if not hermes_managed_node_tree_present():
         return False
     _managed_node_heal_attempted = True
 
@@ -555,7 +555,7 @@ def _managed_node_tree_outdated(home: Path | None = None) -> bool:
     """Return True when the managed tree's node runs but is below the target major.
 
     An outdated managed Node (e.g. a 22 tree from an older install) heals the
-    same way a broken one does: :func:`find_sparkii_node_executable` triggers
+    same way a broken one does: :func:`find_hermes_node_executable` triggers
     the once-per-process heal, which redownloads
     ``latest-v{_SPARKII_NODE_TARGET_MAJOR}.x`` — so existing users are upgraded
     on next launch, not just on the next installer re-run. Mirrors
@@ -563,7 +563,7 @@ def _managed_node_tree_outdated(home: Path | None = None) -> bool:
     """
     import subprocess
 
-    for directory in iter_sparkii_node_dirs(home):
+    for directory in iter_hermes_node_dirs(home):
         for name in _candidate_node_command_names("node"):
             candidate = directory / name
             if not candidate.is_file() or (
@@ -586,7 +586,7 @@ def _managed_node_tree_outdated(home: Path | None = None) -> bool:
     return False
 
 
-def find_sparkii_node_executable(command: str) -> str | None:
+def find_hermes_node_executable(command: str) -> str | None:
     """Return a Sparkii-managed Node/npm executable path, healing broken trees.
 
     Outdated trees (node major below ``_SPARKII_NODE_TARGET_MAJOR``) heal the
@@ -599,7 +599,7 @@ def find_sparkii_node_executable(command: str) -> str | None:
 
     def _first_runnable() -> tuple[str | None, bool]:
         broken = False
-        for directory in iter_sparkii_node_dirs():
+        for directory in iter_hermes_node_dirs():
             for name in names:
                 candidate = directory / name
                 if candidate.is_file() and (
@@ -615,7 +615,7 @@ def find_sparkii_node_executable(command: str) -> str | None:
     needs_heal = broken_present or (
         resolved is not None and _managed_node_tree_outdated()
     )
-    if needs_heal and heal_sparkii_managed_node():
+    if needs_heal and heal_hermes_managed_node():
         healed, _ = _first_runnable()
         if healed:
             return healed
@@ -658,20 +658,20 @@ def find_node_executable(command: str) -> str | None:
     tree exists but cannot be healed, returns ``None`` instead of falling back
     to system npm on PATH.
     """
-    managed = find_sparkii_node_executable(command)
+    managed = find_hermes_node_executable(command)
     if managed:
         return managed
-    if sparkii_managed_node_tree_present():
+    if hermes_managed_node_tree_present():
         return None
     return find_node_executable_on_path(command)
 
 
-def with_sparkii_node_path(env: dict[str, str] | None = None) -> dict[str, str]:
+def with_hermes_node_path(env: dict[str, str] | None = None) -> dict[str, str]:
     """Return *env* with Sparkii-managed Node directories prepended to PATH."""
     merged = dict(os.environ if env is None else env)
     existing = merged.get("PATH", "")
     parts = [p for p in existing.split(os.pathsep) if p]
-    managed = [str(path) for path in iter_sparkii_node_dirs() if path.is_dir()]
+    managed = [str(path) for path in iter_hermes_node_dirs() if path.is_dir()]
     for entry in reversed(managed):
         if entry not in parts:
             parts.insert(0, entry)
@@ -719,7 +719,7 @@ def agent_browser_runnable(path: str | None) -> bool:
             [path, "--version"],
             capture_output=True,
             timeout=10,
-            env=with_sparkii_node_path(),
+            env=with_hermes_node_path(),
             creationflags=windows_hide_flags(),
         )
     except (OSError, subprocess.TimeoutExpired, ValueError):
@@ -804,7 +804,7 @@ def secure_parent_dir(path: Path) -> None:
     prevent catastrophic host bricking when ``SPARKII_HOME`` or other path
     env vars resolve to an unexpected location.
 
-    See https://github.com/YueDJ/SparkiiAgent/issues/25821.
+    See https://github.com/NousResearch/sparkii-agent/issues/25821.
     """
     parent = path.parent.resolve()
     # Refuse root and its direct children (/usr, /home, /var, /tmp, …).
@@ -829,10 +829,10 @@ def _norm_home_path(path: str | None) -> str:
 
 def _profile_home_path(env: dict[str, str] | None = None) -> str | None:
     """Return ``{SPARKII_HOME}/home`` when the profile-home directory exists."""
-    sparkii_home = get_sparkii_home_override() or (env or {}).get("SPARKII_HOME") or os.getenv("SPARKII_HOME")
-    if not sparkii_home:
+    hermes_home = get_sparkii_home_override() or (env or {}).get("SPARKII_HOME") or os.getenv("SPARKII_HOME")
+    if not hermes_home:
         return None
-    profile_home = os.path.join(sparkii_home, "home")
+    profile_home = os.path.join(hermes_home, "home")
     if os.path.isdir(profile_home):
         return profile_home
     return None
@@ -1248,7 +1248,7 @@ def is_container() -> bool:
 
     Result is cached for the process lifetime.  Import-safe — no heavy deps.
 
-    See: YueDJ/SparkiiAgent#47111
+    See: NousResearch/sparkii-agent#47111
     """
     global _container_detected
     if _container_detected is not None:
@@ -1335,7 +1335,7 @@ def apply_ipv4_preference(force: bool = False) -> None:
     import socket
 
     # Guard against double-patching
-    if getattr(socket.getaddrinfo, "_sparkii_ipv4_patched", False):
+    if getattr(socket.getaddrinfo, "_hermes_ipv4_patched", False):
         return
 
     _original_getaddrinfo = socket.getaddrinfo
@@ -1351,7 +1351,7 @@ def apply_ipv4_preference(force: bool = False) -> None:
                 return _original_getaddrinfo(host, port, family, type, proto, flags)
         return _original_getaddrinfo(host, port, family, type, proto, flags)
 
-    _ipv4_getaddrinfo._sparkii_ipv4_patched = True  # type: ignore[attr-defined]
+    _ipv4_getaddrinfo._hermes_ipv4_patched = True  # type: ignore[attr-defined]
     socket.getaddrinfo = _ipv4_getaddrinfo  # type: ignore[assignment]
 
 
@@ -1442,7 +1442,7 @@ def is_first_party_module(name: str | None) -> bool:
     root = str(name).split(".")[0] if name else ""
     if not root:
         return False
-    return root in FIRST_PARTY_MODULE_ROOTS or root.startswith("sparkii_")
+    return root in FIRST_PARTY_MODULE_ROOTS or root.startswith("hermes_")
 
 
 def partial_update_hint(exc: BaseException) -> list[str]:

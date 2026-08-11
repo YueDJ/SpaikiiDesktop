@@ -29,16 +29,16 @@ def _make_fake_jwt(expiry_offset: int = 3600) -> str:
 
 
 @pytest.fixture()
-def sparkii_auth_only_env(tmp_path, monkeypatch):
+def hermes_auth_only_env(tmp_path, monkeypatch):
     """Tokens already in Sparkii auth store (no Codex CLI needed)."""
-    sparkii_home = tmp_path / ".sparkii"
-    sparkii_home.mkdir()
+    hermes_home = tmp_path / ".sparkii"
+    hermes_home.mkdir()
 
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
     # Point CODEX_HOME to nonexistent dir to prove it's not needed
     monkeypatch.setenv("CODEX_HOME", str(tmp_path / "no_codex"))
 
-    (sparkii_home / "auth.json").write_text(json.dumps({
+    (hermes_home / "auth.json").write_text(json.dumps({
         "version": 2,
         "providers": {
             "openai-codex": {
@@ -57,10 +57,10 @@ def sparkii_auth_only_env(tmp_path, monkeypatch):
     ]:
         monkeypatch.delenv(var, raising=False)
 
-    return sparkii_home
+    return hermes_home
 
 
-def test_normal_path_still_works(sparkii_auth_only_env):
+def test_normal_path_still_works(hermes_auth_only_env):
     """openai-codex appears when tokens are already in Sparkii auth store."""
     from sparkii_cli.model_switch import list_authenticated_providers
 
@@ -79,14 +79,14 @@ def claude_code_only_env(tmp_path, monkeypatch):
     """Set up an environment where Anthropic credentials only exist in
     ~/.claude/.credentials.json (Claude Code) — not in env vars or Sparkii
     auth store."""
-    sparkii_home = tmp_path / ".sparkii"
-    sparkii_home.mkdir()
+    hermes_home = tmp_path / ".sparkii"
+    hermes_home.mkdir()
 
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
     # No Codex CLI
     monkeypatch.setenv("CODEX_HOME", str(tmp_path / "no_codex"))
 
-    (sparkii_home / "auth.json").write_text(
+    (hermes_home / "auth.json").write_text(
         json.dumps({"version": 2, "providers": {}})
     )
 
@@ -111,7 +111,7 @@ def claude_code_only_env(tmp_path, monkeypatch):
     ]:
         monkeypatch.delenv(var, raising=False)
 
-    return sparkii_home
+    return hermes_home
 
 
 def test_claude_code_file_detected_by_model_picker(claude_code_only_env):
@@ -134,13 +134,13 @@ def test_claude_code_file_detected_by_model_picker(claude_code_only_env):
 
 def test_no_codex_when_no_credentials(tmp_path, monkeypatch):
     """openai-codex should NOT appear when no credentials exist anywhere."""
-    sparkii_home = tmp_path / ".sparkii"
-    sparkii_home.mkdir()
+    hermes_home = tmp_path / ".sparkii"
+    hermes_home.mkdir()
 
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
     monkeypatch.setenv("CODEX_HOME", str(tmp_path / "no_codex"))
 
-    (sparkii_home / "auth.json").write_text(
+    (hermes_home / "auth.json").write_text(
         json.dumps({"version": 2, "providers": {}})
     )
 

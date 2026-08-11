@@ -3,7 +3,7 @@ import importlib
 import os
 import sys
 
-from sparkii_cli.env_loader import load_sparkii_dotenv
+from sparkii_cli.env_loader import load_hermes_dotenv
 
 
 def test_utf8_bom_does_not_mangle_first_key(tmp_path, monkeypatch):
@@ -24,7 +24,7 @@ def test_utf8_bom_does_not_mangle_first_key(tmp_path, monkeypatch):
     monkeypatch.delenv("SECOND_KEY", raising=False)
     monkeypatch.delenv("\ufeffFIRST_KEY", raising=False)
 
-    loaded = load_sparkii_dotenv(sparkii_home=home)
+    loaded = load_hermes_dotenv(hermes_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("FIRST_KEY") == "first-value"
@@ -42,7 +42,7 @@ def test_bomless_utf8_env_still_loads(tmp_path, monkeypatch):
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("SECOND_KEY", raising=False)
 
-    loaded = load_sparkii_dotenv(sparkii_home=home)
+    loaded = load_hermes_dotenv(hermes_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("OPENAI_API_KEY") == "sk-plain"
@@ -59,7 +59,7 @@ def test_latin1_env_falls_back(tmp_path, monkeypatch):
 
     monkeypatch.delenv("LATIN1_VALUE", raising=False)
 
-    loaded = load_sparkii_dotenv(sparkii_home=home)
+    loaded = load_hermes_dotenv(hermes_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("LATIN1_VALUE") == "café"
@@ -78,7 +78,7 @@ def test_utf8_bom_preserves_first_api_key_name(tmp_path, monkeypatch):
     monkeypatch.delenv("SECOND_KEY", raising=False)
     monkeypatch.delenv("\ufeffANTHROPIC_API_KEY", raising=False)
 
-    loaded = load_sparkii_dotenv(sparkii_home=home)
+    loaded = load_hermes_dotenv(hermes_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("ANTHROPIC_API_KEY") == "sk-test-123"
@@ -105,7 +105,7 @@ def test_utf8_bom_plus_invalid_utf8_preserves_first_key(tmp_path, monkeypatch):
     monkeypatch.delenv("BAD", raising=False)
     monkeypatch.delenv("\ufeffANTHROPIC_API_KEY", raising=False)
 
-    loaded = load_sparkii_dotenv(sparkii_home=home)
+    loaded = load_hermes_dotenv(hermes_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("ANTHROPIC_API_KEY") == "sk-test-123"
@@ -122,7 +122,7 @@ def test_bomless_latin1_env_still_loads(tmp_path, monkeypatch):
     monkeypatch.delenv("LATIN1_VALUE", raising=False)
     monkeypatch.delenv("OTHER", raising=False)
 
-    loaded = load_sparkii_dotenv(sparkii_home=home)
+    loaded = load_hermes_dotenv(hermes_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("LATIN1_VALUE") == "café"
@@ -163,7 +163,7 @@ def test_latin1_fallback_stream_preserves_interpolation(tmp_path, monkeypatch):
     monkeypatch.delenv("BAR", raising=False)
     monkeypatch.delenv("LATIN1_VALUE", raising=False)
 
-    loaded = load_sparkii_dotenv(sparkii_home=home)
+    loaded = load_hermes_dotenv(hermes_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("FOO") == "bar"
@@ -208,7 +208,7 @@ def test_utf16_le_bom_preserves_non_ascii_values(tmp_path, monkeypatch):
     monkeypatch.delenv("GREETING", raising=False)
     monkeypatch.delenv("CJK_LABEL", raising=False)
 
-    loaded = load_sparkii_dotenv(sparkii_home=home)
+    loaded = load_hermes_dotenv(hermes_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("GREETING") == "café"
@@ -289,7 +289,7 @@ def test_plain_utf8_env_regression(tmp_path, monkeypatch):
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("SECOND_KEY", raising=False)
 
-    loaded = load_sparkii_dotenv(sparkii_home=home)
+    loaded = load_hermes_dotenv(hermes_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("OPENAI_API_KEY") == "sk-plain"
@@ -317,7 +317,7 @@ def test_cp1252_env_regression_does_not_crash(tmp_path, monkeypatch):
     monkeypatch.delenv("ASCII_KEY", raising=False)
     monkeypatch.delenv("LATIN1_VALUE", raising=False)
 
-    loaded = load_sparkii_dotenv(sparkii_home=home)
+    loaded = load_hermes_dotenv(hermes_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("ASCII_KEY") == "ok"
@@ -352,7 +352,7 @@ def test_known_keys_absent_from_user_env_are_cleared(tmp_path, monkeypatch):
     # Unrelated shell var must NOT be touched
     monkeypatch.setenv("MY_SHELL_ONLY_VAR", "keep-me")
 
-    load_sparkii_dotenv(sparkii_home=home)
+    load_hermes_dotenv(hermes_home=home)
 
     # OPENAI_BASE_URL is defined in the profile .env → overridden to the new value
     assert os.getenv("OPENAI_BASE_URL") == "https://profile.example/v1"
@@ -378,7 +378,7 @@ def test_empty_assignment_in_user_env_is_preserved(tmp_path, monkeypatch):
     monkeypatch.setenv("SPARKII_ACP_AUTH_METHOD", "cursor_login")
     monkeypatch.setenv("COPILOT_CLI_PATH", "/usr/bin/sneaky")  # NOT in .env → cleared
 
-    load_sparkii_dotenv(sparkii_home=home)
+    load_hermes_dotenv(hermes_home=home)
 
     # KEY= in .env keeps the key (now empty string)
     assert "SPARKII_ACP_AUTH_METHOD" in os.environ
@@ -388,7 +388,7 @@ def test_empty_assignment_in_user_env_is_preserved(tmp_path, monkeypatch):
 
 
 def test_no_user_env_does_not_clear_anything(tmp_path, monkeypatch):
-    """When no profile .env exists (bare profile), load_sparkii_dotenv must not
+    """When no profile .env exists (bare profile), load_hermes_dotenv must not
     wipe inherited known keys — the bare-profile case follows #66930 / #67027
     semantics and the user's shell environment should not be mutilated.
     """
@@ -399,7 +399,7 @@ def test_no_user_env_does_not_clear_anything(tmp_path, monkeypatch):
     monkeypatch.setenv("SPARKII_ACP_AUTH_METHOD", "cursor_login")
     monkeypatch.setenv("PATH", "/usr/bin:/bin")
 
-    load_sparkii_dotenv(sparkii_home=home)
+    load_hermes_dotenv(hermes_home=home)
 
     assert os.getenv("SPARKII_ACP_AUTH_METHOD") == "cursor_login"
     assert os.getenv("PATH") == "/usr/bin:/bin"
@@ -417,7 +417,7 @@ def test_known_key_explicitly_set_in_user_env_is_kept(tmp_path, monkeypatch):
 
     monkeypatch.setenv("SPARKII_ACP_AUTH_METHOD", "cursor_login")
 
-    load_sparkii_dotenv(sparkii_home=home)
+    load_hermes_dotenv(hermes_home=home)
 
     assert os.getenv("SPARKII_ACP_AUTH_METHOD") == "claude_code_cli"
 
@@ -434,7 +434,7 @@ def test_export_prefixed_known_key_in_user_env_is_kept(tmp_path, monkeypatch):
         "export SPARKII_ACP_AUTH_METHOD=claude_code_cli\n", encoding="utf-8"
     )
     monkeypatch.setenv("SPARKII_ACP_AUTH_METHOD", "cursor_login")
-    load_sparkii_dotenv(sparkii_home=home)
+    load_hermes_dotenv(hermes_home=home)
     assert os.getenv("SPARKII_ACP_AUTH_METHOD") == "claude_code_cli"
 
 
@@ -459,7 +459,7 @@ def test_shell_exported_credentials_survive_cleanup(tmp_path, monkeypatch):
     # A profile-managed routing key inherited alongside them IS cleared.
     monkeypatch.setenv("SPARKII_ACP_AUTH_METHOD", "cursor_login")
 
-    load_sparkii_dotenv(sparkii_home=home)
+    load_hermes_dotenv(hermes_home=home)
 
     assert os.getenv("OPENAI_API_KEY") == "sk-from-shell"
     assert os.getenv("ANTHROPIC_API_KEY") == "sk-ant-from-shell"
@@ -485,7 +485,7 @@ def test_cleanup_scope_is_the_profile_managed_set():
 # ---------------------------------------------------------------------------
 # config.yaml terminal.* re-apply after dotenv loads (#29186 / #67323)
 #
-# load_sparkii_dotenv loads .env with override=True, so a stale
+# load_hermes_dotenv loads .env with override=True, so a stale
 # TERMINAL_ENV=docker in .env used to silently beat config.yaml's
 # terminal.backend on every reload (gateway per-turn reload, cron standalone
 # runs). The bridge re-applies config.yaml's EXPLICIT terminal keys last via
@@ -519,7 +519,7 @@ def test_config_yaml_terminal_backend_overrides_stale_env(tmp_path, monkeypatch)
 
     monkeypatch.delenv("TERMINAL_ENV", raising=False)
 
-    load_sparkii_dotenv(sparkii_home=home)
+    load_hermes_dotenv(hermes_home=home)
 
     assert os.getenv("TERMINAL_ENV") == "local"
 
@@ -534,7 +534,7 @@ def test_config_yaml_terminal_backend_overrides_stale_shell(tmp_path, monkeypatc
 
     monkeypatch.setenv("TERMINAL_ENV", "docker")
 
-    load_sparkii_dotenv(sparkii_home=home)
+    load_hermes_dotenv(hermes_home=home)
 
     assert os.getenv("TERMINAL_ENV") == "local"
 
@@ -551,7 +551,7 @@ def test_no_terminal_section_leaves_env_value_alone(tmp_path, monkeypatch):
 
     monkeypatch.delenv("TERMINAL_ENV", raising=False)
 
-    load_sparkii_dotenv(sparkii_home=home)
+    load_hermes_dotenv(hermes_home=home)
 
     assert os.getenv("TERMINAL_ENV") == "docker"
 
@@ -567,7 +567,7 @@ def test_config_yaml_terminal_omitted_key_does_not_clear_env(tmp_path, monkeypat
 
     monkeypatch.delenv("TERMINAL_ENV", raising=False)
 
-    load_sparkii_dotenv(sparkii_home=home)
+    load_hermes_dotenv(hermes_home=home)
 
     assert os.getenv("TERMINAL_ENV") == "docker"
     assert os.getenv("TERMINAL_TIMEOUT") == "600"
@@ -591,7 +591,7 @@ def test_other_profile_home_does_not_bridge_process_config(tmp_path, monkeypatch
 
     monkeypatch.delenv("TERMINAL_ENV", raising=False)
 
-    load_sparkii_dotenv(sparkii_home=other_home)
+    load_hermes_dotenv(hermes_home=other_home)
 
     # The other profile's .env value stands; the process config was not applied.
     assert os.getenv("TERMINAL_ENV") == "docker"

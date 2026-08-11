@@ -80,7 +80,7 @@ const config: Config = {
         docs: {
           routeBasePath: '/',  // Docs at the root of /docs/
           sidebarPath: './sidebars.ts',
-          editUrl: 'https://github.com/YueDJ/SparkiiAgent/edit/main/website/',
+          editUrl: 'https://github.com/NousResearch/sparkii-agent/edit/main/website/',
         },
         blog: false,
         theme: {
@@ -149,7 +149,7 @@ const config: Config = {
           position: 'right',
         },
         {
-          href: 'https://github.com/YueDJ/SparkiiAgent',
+          href: 'https://github.com/NousResearch/sparkii-agent',
           label: 'GitHub',
           position: 'right',
         },
@@ -176,7 +176,7 @@ const config: Config = {
           title: 'Community',
           items: [
             { label: 'Discord', href: 'https://discord.gg/NousResearch' },
-            { label: 'GitHub Issues', href: 'https://github.com/YueDJ/SparkiiAgent/issues' },
+            { label: 'GitHub Issues', href: 'https://github.com/NousResearch/sparkii-agent/issues' },
             { label: 'Skills Hub', href: 'https://agentskills.io' },
           ],
         },
@@ -184,7 +184,7 @@ const config: Config = {
           title: 'More',
           items: [
             { label: 'Desktop Download', href: 'https://sparkii-agent.nousresearch.com/' },
-            { label: 'GitHub', href: 'https://github.com/YueDJ/SparkiiAgent' },
+            { label: 'GitHub', href: 'https://github.com/NousResearch/sparkii-agent' },
             { label: 'Nous Research', href: 'https://nousresearch.com' },
           ],
         },

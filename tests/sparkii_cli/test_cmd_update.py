@@ -73,9 +73,9 @@ def _patch_managed_uv(request):
 
 class TestCmdUpdateNpmLockfileCache:
     @staticmethod
-    def _cache_file(sparkii_root, project_root):
+    def _cache_file(hermes_root, project_root):
         cache_key = hashlib.sha256(str(project_root).encode()).hexdigest()[:12]
-        return sparkii_root / f".npm_lock_hash_{cache_key}"
+        return hermes_root / f".npm_lock_hash_{cache_key}"
 
 
 
@@ -212,7 +212,7 @@ class TestCmdUpdateBranchFallback:
         """Regression for issue #26172: forks whose local HEAD already matches
         origin/main must still consult upstream/main before printing
         "Already up to date!" — otherwise a fork that's caught up to its own
-        origin but behind YueDJ/SparkiiAgent silently misses updates.
+        origin but behind NousResearch/sparkii-agent silently misses updates.
         """
         from sparkii_cli import main as hm
 
@@ -244,10 +244,14 @@ class TestCmdUpdateBranchFallback:
         ), patch(
             "sparkii_cli.config.get_missing_config_fields",
             return_value=[{"key": "new.option", "default": True}],
-        ), patch("sparkii_cli.config.check_config_version", return_value=(1, 2)), patch(
-            "sparkii_cli.config.migrate_config",
+        ), patch(
+            "sparkii_cli.update_cmd._reload_config_modules"
+        ), patch(
+            "sparkii_cli.update_cmd._run_config_check_fresh", return_value=(1, 2)
+        ), patch(
+            "sparkii_cli.update_cmd._run_migrate_config_fresh",
             return_value={"env_added": [], "config_added": ["new.option"]},
-        ), patch("sparkii_cli.main.sys") as mock_sys:
+        ) as migrate_config, patch("sparkii_cli.main.sys") as mock_sys:
             mock_sys.stdin.isatty.return_value = False
             mock_sys.stdout.isatty.return_value = False
             mock_run.side_effect = _make_run_side_effect(
@@ -257,8 +261,6 @@ class TestCmdUpdateBranchFallback:
             cmd_update(mock_args)
 
             mock_input.assert_not_called()
-            from sparkii_cli.config import migrate_config
-
             migrate_config.assert_called_once_with(interactive=False, quiet=False)
             captured = capsys.readouterr()
             assert "applying safe config migrations" in captured.out
@@ -286,9 +288,11 @@ class TestCmdUpdateMigrationPrompt:
         ), patch(
             "sparkii_cli.config.get_missing_config_fields", return_value=[]
         ), patch(
-            "sparkii_cli.config.check_config_version", return_value=(5, 24)
+            "sparkii_cli.update_cmd._reload_config_modules"
         ), patch(
-            "sparkii_cli.config.migrate_config",
+            "sparkii_cli.update_cmd._run_config_check_fresh", return_value=(5, 24)
+        ), patch(
+            "sparkii_cli.update_cmd._run_migrate_config_fresh",
             return_value={"env_added": [], "config_added": [], "warnings": []},
         ) as mock_migrate:
             mock_run.side_effect = _make_run_side_effect(
@@ -322,9 +326,11 @@ class TestCmdUpdateMigrationPrompt:
         ), patch(
             "sparkii_cli.config.get_missing_config_fields", return_value=cfg_items
         ), patch(
-            "sparkii_cli.config.check_config_version", return_value=(1, 24)
+            "sparkii_cli.update_cmd._reload_config_modules"
         ), patch(
-            "sparkii_cli.config.migrate_config",
+            "sparkii_cli.update_cmd._run_config_check_fresh", return_value=(1, 24)
+        ), patch(
+            "sparkii_cli.update_cmd._run_migrate_config_fresh",
             return_value={"env_added": [], "config_added": [], "warnings": []},
         ), patch("sparkii_cli.main.sys") as mock_sys:
             mock_sys.stdin.isatty.return_value = True
@@ -340,6 +346,37 @@ class TestCmdUpdateMigrationPrompt:
             assert "FOO_API_KEY" in out
             assert "Foo service API key" in out
             assert "display.new_widget" in out
+
+
+class TestConfigVersionCheckUsesFreshModules:
+    """Regression: config migration must use freshly-reloaded modules, not the
+    sys.modules cache from before git pull.
+
+    Before the fix, ``sparkii update`` ran in the PRE-pull Python process.
+    After ``git pull`` updated the source on disk, function-level imports
+    returned the OLD cached ``sparkii_cli.config`` module — so
+    ``DEFAULT_CONFIG["_config_version"]`` was stale and
+    ``check_config_version()`` reported ``(33, 33)`` "up to date" even though
+    the freshly-pulled code had v34 with a migration to run. The personality
+    reset migration (#81946) was silently skipped this way.
+    """
+
+    def test_run_config_check_fresh_reloads_modules(self):
+        """_run_config_check_fresh must call _reload_config_modules which
+        force-reloads the config modules from disk.
+
+        Regression: config migration was silently skipped because
+        sys.modules held the OLD sparkii_cli.config with the OLD
+        DEFAULT_CONFIG["_config_version"] after git pull.
+        """
+        from unittest.mock import patch
+
+        import sparkii_cli.update_cmd as update_cmd
+
+        with patch.object(update_cmd, "_reload_config_modules") as mock_reload:
+            update_cmd._run_config_check_fresh()
+
+        mock_reload.assert_called_once()
 
 
 class TestCmdUpdateProfileSkillSync:

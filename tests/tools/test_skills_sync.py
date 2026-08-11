@@ -705,9 +705,9 @@ class TestNoBundledSkillsOptOut:
 
         skills_dir = tmp_path / "user_skills"
         manifest_file = skills_dir / ".bundled_manifest"
-        sparkii_home = tmp_path / "home"
-        sparkii_home.mkdir()
-        marker = sparkii_home / ".no-bundled-skills"
+        hermes_home = tmp_path / "home"
+        hermes_home.mkdir()
+        marker = hermes_home / ".no-bundled-skills"
         marker.write_text("opted out\n")
 
         from contextlib import ExitStack
@@ -718,7 +718,7 @@ class TestNoBundledSkillsOptOut:
             stack.enter_context(patch("tools.skills_sync._get_optional_dir", return_value=bundled.parent / "optional-skills"))
             stack.enter_context(patch("tools.skills_sync.SKILLS_DIR", skills_dir))
             stack.enter_context(patch("tools.skills_sync.MANIFEST_FILE", manifest_file))
-            stack.enter_context(patch("tools.skills_sync.SPARKII_HOME", sparkii_home))
+            stack.enter_context(patch("tools.skills_sync.SPARKII_HOME", hermes_home))
             return stack
 
         with _patches():

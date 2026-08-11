@@ -13,7 +13,7 @@ import type {
   DesktopUpdateStatus,
   DesktopVersionInfo
 } from '@/global'
-import { checkSparkiiUpdate, getActionStatus, updateSparkii } from '@/sparkii'
+import { checkSparkiiUpdate, getActionStatus, updateHermes } from '@/sparkii'
 import { translateNow } from '@/i18n'
 import { persistString, storedString } from '@/lib/storage'
 import { dismissNotification, notify } from '@/store/notifications'
@@ -94,7 +94,9 @@ function isUpdateToastSnoozed(): boolean {
 // v3: requires approvals.mode config RPCs and session.info reconciliation.
 // v4: requires explicit Fast-off session creation and session-scoped Fast edits.
 // v5: requires raised WebSocket frame size for large one-shot file.attach.
-const REQUIRED_BACKEND_CONTRACT = 5
+// v6: requires key-addressed plugins.manage rows (keyless rows render
+//     read-only in Settings → Plugins).
+const REQUIRED_BACKEND_CONTRACT = 6
 const SKEW_TOAST_ID = 'backend-contract-skew'
 // The contract check runs on every session.resume (applyRuntimeInfo), so
 // without a snooze the warning re-popped on every thread the user opened, even
@@ -157,7 +159,7 @@ export function reportBackendContract(contract: number | undefined): void {
 
   notify({
     action: {
-      label: translateNow('notifications.updateSparkii'),
+      label: translateNow('notifications.updateHermes'),
       onClick: () => {
         snoozeSkewToast()
         void applyBackendUpdate()
@@ -574,7 +576,7 @@ async function runBackendUpdate(): Promise<DesktopUpdateApplyResult> {
       ? previousStatus.targetSha.slice('backend:'.length)
       : undefined
 
-    const started = await updateSparkii()
+    const started = await updateHermes()
 
     if (!started.ok) {
       const message = (started as { message?: string }).message || translateNow('updates.applyStatus.notAvailable')

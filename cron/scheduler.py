@@ -49,7 +49,7 @@ from sparkii_cli.config import (
     load_config,
 )
 from sparkii_cli.fallback_config import get_fallback_chain
-from sparkii_time import now as _sparkii_now
+from sparkii_time import now as _hermes_now
 from agent.interrupt_compat import request_hard_interrupt
 from agent.delegation_context import (
     enter_non_dispatcher_owned_context,
@@ -727,8 +727,8 @@ def _get_sparkii_home() -> Path:
 
 def _get_lock_paths() -> tuple[Path, Path]:
     """Resolve cron lock paths at call time so profile/env changes are honored."""
-    sparkii_home = _get_sparkii_home()
-    lock_dir = sparkii_home / "cron"
+    hermes_home = _get_sparkii_home()
+    lock_dir = hermes_home / "cron"
     return lock_dir, lock_dir / ".tick.lock"
 
 
@@ -2230,7 +2230,11 @@ def _deliver_result(job: dict, content: str, adapters=None, loop=None) -> Option
                 continue
 
             if result and result.get("error"):
-                msg = f"delivery error: {result['error']}"
+                # Include target context (platform/chat) so a bare error string
+                # like "Discord send failed: TimeoutError: " is attributable.
+                # Not inside an except block — the error comes from the send
+                # result dict, so there is no traceback to attach.
+                msg = f"delivery error: {result['error']} (target {platform_name}:{chat_id})"
                 logger.error("Job '%s': %s", job["id"], msg)
                 target_errors.extend([msg])
                 delivery_errors.extend(target_errors)
@@ -3207,6 +3211,22 @@ def run_job(
     #                               the whole point of no_agent is that there
     #                               is no agent to wake
     if job.get("no_agent"):
+        # Load .env before the script runs so auto-delivery can resolve home
+        # channels. A standalone cron tick process typically starts WITHOUT
+        # TELEGRAM_HOME_CHANNEL/DISCORD_HOME_CHANNEL in its environment, and
+        # the agent path's per-run dotenv reload below never executes for
+        # no_agent jobs — every deliver=telegram/all script job failed with
+        # "no delivery target resolved". load_hermes_dotenv does not override
+        # already-set vars, so the gateway's in-process tick is unaffected.
+        try:
+            from sparkii_cli.env_loader import load_hermes_dotenv
+
+            load_hermes_dotenv(hermes_home=_get_sparkii_home())
+        except Exception:
+            logger.debug(
+                "Job '%s': no_agent .env reload failed", job_id, exc_info=True
+            )
+
         script_path = job.get("script")
         if not script_path:
             err = "no_agent=True but no script is set for this job"
@@ -3235,7 +3255,7 @@ def run_job(
             )
             ok, output = False, f"Script execution failed: {exc}"
 
-        now_iso = _sparkii_now().strftime("%Y-%m-%d %H:%M:%S")
+        now_iso = _hermes_now().strftime("%Y-%m-%d %H:%M:%S")
 
         if not ok:
             # Script crashed / timed out / exited non-zero.  Deliver the
@@ -3302,7 +3322,7 @@ def run_job(
     _monitor_context: Optional[str] = None
     if job_has_monitor(job):
         _mon = check_monitor(job)
-        _mon_now = _sparkii_now().strftime("%Y-%m-%d %H:%M:%S")
+        _mon_now = _hermes_now().strftime("%Y-%m-%d %H:%M:%S")
         if not _mon.ok:
             # Source failure is an ERROR, never a change: alert the user so
             # a broken monitor can't silently stop watching. Stored hash is
@@ -3439,7 +3459,7 @@ def run_job(
             silent_doc = (
                 f"# Cron Job: {job_name}\n\n"
                 f"**Job ID:** {job_id}\n"
-                f"**Run Time:** {_sparkii_now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+                f"**Run Time:** {_hermes_now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
                 "Script gate returned `wakeAgent=false` — agent skipped.\n"
             )
             return True, silent_doc, SILENT_MARKER, None
@@ -3460,7 +3480,7 @@ def run_job(
         blocked_doc = (
             f"# Cron Job: {job_name}\n\n"
             f"**Job ID:** {job_id}\n"
-            f"**Run Time:** {_sparkii_now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+            f"**Run Time:** {_hermes_now().strftime('%Y-%m-%d %H:%M:%S')}\n"
             f"**Status:** BLOCKED\n\n"
             "The assembled prompt (user prompt + loaded skill content) tripped "
             "the cron injection scanner and the agent was NOT run.\n\n"
@@ -3474,7 +3494,7 @@ def run_job(
     if prompt is None:
         logger.info("Job '%s': script produced no output, skipping AI call.", job_name)
         return True, "", SILENT_MARKER, None
-    _cron_session_id = f"cron_{job_id}_{_sparkii_now().strftime('%Y%m%d_%H%M%S')}"
+    _cron_session_id = f"cron_{job_id}_{_hermes_now().strftime('%Y%m%d_%H%M%S')}"
 
     logger.info("Running job '%s' (ID: %s)", job_name, job_id)
     logger.info("Prompt: %s", prompt[:100])
@@ -3638,7 +3658,7 @@ def run_job(
 
         # Re-read .env and config.yaml fresh every run so provider/key
         # changes take effect without a gateway restart. Route through
-        # load_sparkii_dotenv (not a bare load_dotenv) and reset the secret-
+        # load_hermes_dotenv (not a bare load_dotenv) and reset the secret-
         # source cache first: startup already applied external secrets and
         # recorded this SPARKII_HOME in _APPLIED_HOMES, so a naive reload would
         # re-apply only the .env placeholder and never re-resolve a Bitwarden/
@@ -3646,14 +3666,14 @@ def run_job(
         # (#33465). Clearing the cache forces the re-pull; the resolved secret
         # overrides the placeholder only when secrets.bitwarden.override_existing
         # is set (mirrors startup), and the Bitwarden value-cache keeps the
-        # forced re-pull off the network. load_sparkii_dotenv also handles the
+        # forced re-pull off the network. load_hermes_dotenv also handles the
         # utf-8/latin-1 encoding fallback internally.
         from sparkii_cli.env_loader import (
-            load_sparkii_dotenv,
+            load_hermes_dotenv,
             reset_secret_source_cache,
         )
         reset_secret_source_cache()
-        load_sparkii_dotenv(sparkii_home=_get_sparkii_home())
+        load_hermes_dotenv(hermes_home=_get_sparkii_home())
 
         delivery_target = _resolve_delivery_target(job)
         if delivery_target:
@@ -3852,7 +3872,7 @@ def run_job(
             blocked_doc = (
                 f"# Cron Job: {job_name}\n\n"
                 f"**Job ID:** {job_id}\n"
-                f"**Run Time:** {_sparkii_now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+                f"**Run Time:** {_hermes_now().strftime('%Y-%m-%d %H:%M:%S')}\n"
                 f"**Status:** BLOCKED (configuration)\n\n"
                 "Pre-dispatch validation found a configuration problem and "
                 "the agent was NOT run (no tokens spent).\n\n"
@@ -4306,7 +4326,7 @@ def run_job(
         output = f"""# Cron Job: {job_name}
 
 **Job ID:** {job_id}
-**Run Time:** {_sparkii_now().strftime('%Y-%m-%d %H:%M:%S')}
+**Run Time:** {_hermes_now().strftime('%Y-%m-%d %H:%M:%S')}
 **Schedule:** {job.get('schedule_display', 'N/A')}
 
 ## Prompt
@@ -4363,7 +4383,7 @@ def run_job(
         output = f"""# Cron Job: {job_name} (FAILED)
 
 **Job ID:** {job_id}
-**Run Time:** {_sparkii_now().strftime('%Y-%m-%d %H:%M:%S')}
+**Run Time:** {_hermes_now().strftime('%Y-%m-%d %H:%M:%S')}
 **Schedule:** {job.get('schedule_display', 'N/A')}
 
 ## Prompt
@@ -4439,7 +4459,7 @@ def run_job(
             # except-fallback below guarantees a non-blank title (#50535).
             try:
                 _title_base = " ".join(job_name.split())[:60].strip() or f"cron {job_id}"
-                _cron_title = f"{_title_base} · {_sparkii_now().strftime('%b %d %H:%M')}"
+                _cron_title = f"{_title_base} · {_hermes_now().strftime('%b %d %H:%M')}"
                 if not _set_cron_session_title(
                     _session_db, _final_cron_session_id, _cron_title
                 ):
@@ -4890,7 +4910,7 @@ def tick(
             # sweeps on idle ticks so orphaned stdio children from crashed
             # jobs are reaped even when nothing is due.
             if verbose:
-                logger.info("%s - No jobs due", _sparkii_now().strftime('%H:%M:%S'))
+                logger.info("%s - No jobs due", _hermes_now().strftime('%H:%M:%S'))
             try:
                 from tools.mcp_tool import _kill_orphaned_mcp_children
                 _kill_orphaned_mcp_children()
@@ -4899,7 +4919,7 @@ def tick(
             return 0
 
         if verbose:
-            logger.info("%s - %s job(s) due", _sparkii_now().strftime('%H:%M:%S'), len(due_jobs))
+            logger.info("%s - %s job(s) due", _hermes_now().strftime('%H:%M:%S'), len(due_jobs))
 
         # Advance next_run_at for all recurring jobs FIRST, under the file lock,
         # before any execution begins.  This preserves at-most-once semantics.

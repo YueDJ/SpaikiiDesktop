@@ -1,6 +1,6 @@
 """Tests for SPARKII_HOME credential-file read blocking in file_safety.
 
-Regression for https://github.com/YueDJ/SparkiiAgent/issues/17656 —
+Regression for https://github.com/NousResearch/sparkii-agent/issues/17656 —
 ``read_file`` was previously only sandboxed against ``SPARKII_HOME`` itself,
 which left ``auth.json`` and ``.anthropic_oauth.json`` (plaintext provider
 keys + OAuth tokens) readable by the agent. A prompt-injection reaching
@@ -24,7 +24,7 @@ def fake_home(tmp_path, monkeypatch):
     """Point ``_sparkii_home_path()`` at a tmp dir for isolated checks."""
     import agent.file_safety as fs
 
-    home = tmp_path / "sparkii_home"
+    home = tmp_path / "hermes_home"
     home.mkdir()
     monkeypatch.setattr(fs, "_sparkii_home_path", lambda: home)
     return home
@@ -190,7 +190,7 @@ def test_webhook_subscriptions_blocked(fake_home):
 
 
 
-def test_identically_named_sparkii_files_outside_home_not_blocked(
+def test_identically_named_hermes_files_outside_home_not_blocked(
     fake_home, tmp_path
 ):
     """Sparkii-specific filenames (``auth.json``, ``mcp-tokens/``, ``google_oauth.json``)
@@ -249,7 +249,7 @@ def test_profile_mode_blocks_root_credentials(tmp_path, monkeypatch):
     profile = root / "profiles" / "coder"
     profile.mkdir(parents=True)
     monkeypatch.setattr(fs, "_sparkii_home_path", lambda: profile)
-    monkeypatch.setattr(fs, "_sparkii_root_path", lambda: root)
+    monkeypatch.setattr(fs, "_hermes_root_path", lambda: root)
 
     from agent.file_safety import get_read_block_error
 

@@ -56,7 +56,7 @@ Tools --> STT["语音转文本工具"]
 
 ## 核心组件
 - OpenAI兼容API网关
-  - 提供/v1/chat/completions、/v1/responses、/v1/runs等端点；支持SSE流式输出；支持X-Hermes-Session-Id/X-Hermes-Session-Key进行会话延续与长期记忆作用域控制。
+  - 提供/v1/chat/completions、/v1/responses、/v1/runs等端点；支持SSE流式输出；支持X-Sparkii-Session-Id/X-Sparkii-Session-Key进行会话延续与长期记忆作用域控制。
   - 提供/v1/models与/v1/capabilities用于能力发现。
 - 聊天补全传输层
   - 负责消息清洗、工具定义、温度/超时/推理配置、提示缓存键注入、多提供商适配与响应标准化。
@@ -111,7 +111,7 @@ Note over H,U : 若需要TTS/STT/图像生成，H通过工具层执行
 - 流式响应
   - 使用SSE帧序列化，统一data: JSON格式，支持keepalive心跳。
 - 会话与上下文
-  - 可选头X-Hermes-Session-Id维持无状态会话连续性；X-Hermes-Session-Key限定长期记忆作用域。
+  - 可选头X-Sparkii-Session-Id维持无状态会话连续性；X-Sparkii-Session-Key限定长期记忆作用域。
 - 多模态内容
   - 支持text与image_url/input_image；data:image/...仅允许图片类型；非文本部分会被忽略或拒绝。
 - 提示缓存
@@ -305,7 +305,7 @@ TOOLS --> STT["STT转录"]
 ### 与官方OpenAI API的差异与兼容性说明
 - 兼容范围：聊天补全、模型列表、能力查询基本对齐OpenAI格式；Responses与Runs为扩展能力。
 - 差异点：
-  - 会话作用域：通过X-Hermes-Session-Id与X-Hermes-Session-Key控制会话与记忆作用域。
+  - 会话作用域：通过X-Sparkii-Session-Id与X-Sparkii-Session-Key控制会话与记忆作用域。
   - 提示缓存：仅在明确支持的后端注入prompt_cache_key。
   - 工具调用：以工具形式暴露TTS/STT/图像生成，不在OpenAI原生范围内。
   - 流式事件：SSE格式统一，但事件结构与字段可能因后端而异。

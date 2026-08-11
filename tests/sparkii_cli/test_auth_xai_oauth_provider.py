@@ -34,7 +34,7 @@ from sparkii_cli.auth import (
 
 
 def _setup_sparkii_auth(
-    sparkii_home: Path,
+    hermes_home: Path,
     *,
     access_token: str = "access",
     refresh_token: str = "refresh",
@@ -42,7 +42,7 @@ def _setup_sparkii_auth(
     auth_mode: str = "oauth_pkce",
 ):
     """Write xAI OAuth tokens into the Sparkii auth store at the given root."""
-    sparkii_home.mkdir(parents=True, exist_ok=True)
+    hermes_home.mkdir(parents=True, exist_ok=True)
     state = {
         "tokens": {
             "access_token": access_token,
@@ -61,7 +61,7 @@ def _setup_sparkii_auth(
         "active_provider": "xai-oauth",
         "providers": {"xai-oauth": state},
     }
-    auth_file = sparkii_home / "auth.json"
+    auth_file = hermes_home / "auth.json"
     auth_file.write_text(json.dumps(auth_store, indent=2))
     return auth_file
 
@@ -153,10 +153,10 @@ def test_resolve_provider_normalizes_xai_oauth_aliases():
 
 
 def test_save_and_read_xai_oauth_tokens_roundtrip(tmp_path, monkeypatch):
-    sparkii_home = tmp_path / "sparkii"
-    sparkii_home.mkdir(parents=True, exist_ok=True)
-    (sparkii_home / "auth.json").write_text(json.dumps({"version": 1, "providers": {}}))
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    hermes_home = tmp_path / "sparkii"
+    hermes_home.mkdir(parents=True, exist_ok=True)
+    (hermes_home / "auth.json").write_text(json.dumps({"version": 1, "providers": {}}))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     _save_xai_oauth_tokens(
         {
@@ -178,12 +178,12 @@ def test_save_and_read_xai_oauth_tokens_roundtrip(tmp_path, monkeypatch):
 
 def test_refresh_xai_oauth_tokens_preserves_active_provider(tmp_path, monkeypatch):
     """Token refresh must not flip active_provider away from the chat provider."""
-    sparkii_home = tmp_path / "sparkii"
+    hermes_home = tmp_path / "sparkii"
     near = _jwt_with_exp(int(time.time()) + 30)
-    _setup_sparkii_auth(sparkii_home, access_token=near, refresh_token="rt-old")
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    _setup_sparkii_auth(hermes_home, access_token=near, refresh_token="rt-old")
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
-    auth_path = sparkii_home / "auth.json"
+    auth_path = hermes_home / "auth.json"
     raw = json.loads(auth_path.read_text())
     raw["active_provider"] = "openrouter"
     auth_path.write_text(json.dumps(raw))
@@ -215,10 +215,10 @@ def test_refresh_xai_oauth_tokens_preserves_active_provider(tmp_path, monkeypatc
 
 
 def test_read_xai_oauth_tokens_missing(tmp_path, monkeypatch):
-    sparkii_home = tmp_path / "sparkii"
-    sparkii_home.mkdir(parents=True, exist_ok=True)
-    (sparkii_home / "auth.json").write_text(json.dumps({"version": 1, "providers": {}}))
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    hermes_home = tmp_path / "sparkii"
+    hermes_home.mkdir(parents=True, exist_ok=True)
+    (hermes_home / "auth.json").write_text(json.dumps({"version": 1, "providers": {}}))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     with pytest.raises(AuthError) as exc:
         _read_xai_oauth_tokens()
@@ -232,15 +232,15 @@ def test_read_xai_oauth_tokens_missing(tmp_path, monkeypatch):
 
 
 def test_resolve_xai_runtime_credentials_refreshes_expiring_token(tmp_path, monkeypatch):
-    sparkii_home = tmp_path / "sparkii"
+    hermes_home = tmp_path / "sparkii"
     expiring = _jwt_with_exp(int(time.time()) - 10)
     _setup_sparkii_auth(
-        sparkii_home,
+        hermes_home,
         access_token=expiring,
         refresh_token="rt-old",
         discovery={"token_endpoint": "https://auth.x.ai/oauth2/token"},
     )
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     new_access = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
     called = {"count": 0}
@@ -293,15 +293,15 @@ _STALE_XAI_OAUTH_STATE = {
 
 
 def _seed_xai_oauth_state(
-    sparkii_home: Path, state: dict, *, active_provider: str = "xai-oauth"
+    hermes_home: Path, state: dict, *, active_provider: str = "xai-oauth"
 ) -> None:
-    sparkii_home.mkdir(parents=True, exist_ok=True)
+    hermes_home.mkdir(parents=True, exist_ok=True)
     auth_store = {
         "version": 1,
         "active_provider": active_provider,
         "providers": {"xai-oauth": state},
     }
-    (sparkii_home / "auth.json").write_text(json.dumps(auth_store, indent=2))
+    (hermes_home / "auth.json").write_text(json.dumps(auth_store, indent=2))
 
 
 def test_resolve_credentials_quarantines_dead_tokens_on_terminal_refresh_failure(
@@ -313,9 +313,9 @@ def test_resolve_credentials_quarantines_dead_tokens_on_terminal_refresh_failure
     last_auth_error marker so subsequent calls fail fast without a network retry.
     Mirrors the credential_pool.py quarantine for the singleton/direct resolve path.
     """
-    sparkii_home = tmp_path / "sparkii"
-    _seed_xai_oauth_state(sparkii_home, dict(_STALE_XAI_OAUTH_STATE), active_provider="nous")
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    hermes_home = tmp_path / "sparkii"
+    _seed_xai_oauth_state(hermes_home, dict(_STALE_XAI_OAUTH_STATE), active_provider="nous")
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     def _terminal_refresh(tokens, **kwargs):
         raise AuthError(
@@ -333,7 +333,7 @@ def test_resolve_credentials_quarantines_dead_tokens_on_terminal_refresh_failure
     assert exc_info.value.code == "xai_refresh_failed"
     assert exc_info.value.relogin_required is True
 
-    raw = json.loads((sparkii_home / "auth.json").read_text())
+    raw = json.loads((hermes_home / "auth.json").read_text())
     tokens = raw["providers"]["xai-oauth"]["tokens"]
 
     # Dead OAuth fields must be cleared.
@@ -362,10 +362,10 @@ def test_resolve_credentials_quarantines_dead_tokens_on_terminal_refresh_failure
 
 
 def test_get_xai_oauth_auth_status_logged_out(tmp_path, monkeypatch):
-    sparkii_home = tmp_path / "sparkii"
-    sparkii_home.mkdir(parents=True, exist_ok=True)
-    (sparkii_home / "auth.json").write_text(json.dumps({"version": 1, "providers": {}}))
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    hermes_home = tmp_path / "sparkii"
+    hermes_home.mkdir(parents=True, exist_ok=True)
+    (hermes_home / "auth.json").write_text(json.dumps({"version": 1, "providers": {}}))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     status = get_xai_oauth_auth_status()
     assert status["logged_in"] is False
@@ -536,10 +536,10 @@ def test_credential_pool_seeds_xai_oauth_from_singleton(tmp_path, monkeypatch):
     always surfaced as ``device_code``."""
     from agent.credential_pool import load_pool
 
-    sparkii_home = tmp_path / "sparkii"
+    hermes_home = tmp_path / "sparkii"
     fresh = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
-    _setup_sparkii_auth(sparkii_home, access_token=fresh, refresh_token="rt-1")
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    _setup_sparkii_auth(hermes_home, access_token=fresh, refresh_token="rt-1")
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     pool = load_pool("xai-oauth")
     assert pool.has_credentials()
@@ -556,14 +556,14 @@ def test_credential_pool_device_code_seed_respects_suppression(tmp_path, monkeyp
     from agent.credential_pool import load_pool
     from sparkii_cli.auth import suppress_credential_source
 
-    sparkii_home = tmp_path / "sparkii"
+    hermes_home = tmp_path / "sparkii"
     fresh = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
     _setup_sparkii_auth(
-        sparkii_home,
+        hermes_home,
         access_token=fresh,
         auth_mode="oauth_device_code",
     )
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     suppress_credential_source("xai-oauth", "device_code")
 
@@ -589,15 +589,15 @@ def test_auth_remove_xai_oauth_clears_singleton_and_sticks(tmp_path, monkeypatch
     from sparkii_cli.auth_commands import auth_remove_command
     from types import SimpleNamespace
 
-    sparkii_home = tmp_path / "sparkii"
+    hermes_home = tmp_path / "sparkii"
     fresh = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
-    _setup_sparkii_auth(sparkii_home, access_token=fresh, refresh_token="rt-1")
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    _setup_sparkii_auth(hermes_home, access_token=fresh, refresh_token="rt-1")
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     # Confirm pre-state: pool sees the seeded entry, auth.json has the singleton.
     pool = load_pool("xai-oauth")
     assert pool.has_credentials()
-    raw = json.loads((sparkii_home / "auth.json").read_text())
+    raw = json.loads((hermes_home / "auth.json").read_text())
     assert "xai-oauth" in raw.get("providers", {})
 
     # Act: the user runs `sparkii auth remove xai-oauth 1`.
@@ -605,7 +605,7 @@ def test_auth_remove_xai_oauth_clears_singleton_and_sticks(tmp_path, monkeypatch
 
     # Post-state: auth.json singleton must be cleared so a re-seed has
     # nothing to import.
-    raw_after = json.loads((sparkii_home / "auth.json").read_text())
+    raw_after = json.loads((hermes_home / "auth.json").read_text())
     assert "xai-oauth" not in raw_after.get("providers", {}), (
         "auth.json providers.xai-oauth must be cleared — otherwise the "
         "next load_pool() reseeds the removed entry from the surviving "
@@ -642,10 +642,10 @@ def test_login_xai_oauth_relogin_clears_suppression_and_reseeds(tmp_path, monkey
         suppress_credential_source,
     )
 
-    sparkii_home = tmp_path / "sparkii"
-    sparkii_home.mkdir(parents=True, exist_ok=True)
-    (sparkii_home / "auth.json").write_text(json.dumps({"version": 1, "providers": {}}))
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    hermes_home = tmp_path / "sparkii"
+    hermes_home.mkdir(parents=True, exist_ok=True)
+    (hermes_home / "auth.json").write_text(json.dumps({"version": 1, "providers": {}}))
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
     monkeypatch.delenv("SPARKII_XAI_BASE_URL", raising=False)
     monkeypatch.delenv("XAI_BASE_URL", raising=False)
 
@@ -704,10 +704,10 @@ def test_pool_sync_back_writes_to_singleton(tmp_path, monkeypatch):
     doesn't keep using the consumed refresh token."""
     from agent.credential_pool import load_pool
 
-    sparkii_home = tmp_path / "sparkii"
+    hermes_home = tmp_path / "sparkii"
     expired = _jwt_with_exp(int(time.time()) - 10)
-    _setup_sparkii_auth(sparkii_home, access_token=expired, refresh_token="rt-old")
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    _setup_sparkii_auth(hermes_home, access_token=expired, refresh_token="rt-old")
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     new_access = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
 
@@ -732,7 +732,7 @@ def test_pool_sync_back_writes_to_singleton(tmp_path, monkeypatch):
 
     # Singleton must reflect refreshed tokens — otherwise the next process
     # to load credentials would re-seed the consumed refresh token.
-    auth_path = sparkii_home / "auth.json"
+    auth_path = hermes_home / "auth.json"
     raw = json.loads(auth_path.read_text())
     state = raw["providers"]["xai-oauth"]
     assert state["tokens"]["access_token"] == new_access
@@ -748,10 +748,10 @@ def test_pool_sync_back_writes_to_singleton(tmp_path, monkeypatch):
 def test_runtime_provider_uses_pool_entry_for_xai_oauth(tmp_path, monkeypatch):
     from sparkii_cli.runtime_provider import resolve_runtime_provider
 
-    sparkii_home = tmp_path / "sparkii"
+    hermes_home = tmp_path / "sparkii"
     fresh = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
-    _setup_sparkii_auth(sparkii_home, access_token=fresh)
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    _setup_sparkii_auth(hermes_home, access_token=fresh)
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
     monkeypatch.delenv("SPARKII_XAI_BASE_URL", raising=False)
     monkeypatch.delenv("XAI_BASE_URL", raising=False)
 
@@ -777,10 +777,10 @@ def test_pool_refresh_recovers_when_other_process_already_refreshed(tmp_path, mo
     entry exhausted."""
     from agent.credential_pool import load_pool
 
-    sparkii_home = tmp_path / "sparkii"
+    hermes_home = tmp_path / "sparkii"
     in_memory_at = _jwt_with_exp(int(time.time()) + 30)
-    _setup_sparkii_auth(sparkii_home, access_token=in_memory_at, refresh_token="rt-shared")
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    _setup_sparkii_auth(hermes_home, access_token=in_memory_at, refresh_token="rt-shared")
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     pool = load_pool("xai-oauth")
 
@@ -790,7 +790,7 @@ def test_pool_refresh_recovers_when_other_process_already_refreshed(tmp_path, mo
         # Simulate the racing process winning at the auth server right
         # before our POST: by the time we reach this call, auth.json
         # already holds the fresher pair, but we POSTed with rt-shared.
-        raw = json.loads((sparkii_home / "auth.json").read_text())
+        raw = json.loads((hermes_home / "auth.json").read_text())
         raw["providers"]["xai-oauth"]["tokens"] = {
             "access_token": other_process_at,
             "refresh_token": "rt-rotated",
@@ -798,7 +798,7 @@ def test_pool_refresh_recovers_when_other_process_already_refreshed(tmp_path, mo
             "expires_in": 3600,
             "token_type": "Bearer",
         }
-        (sparkii_home / "auth.json").write_text(json.dumps(raw))
+        (hermes_home / "auth.json").write_text(json.dumps(raw))
         raise AuthError(
             "refresh_token_reused",
             provider="xai-oauth",
@@ -824,11 +824,11 @@ def test_pool_manual_entry_does_not_sync_back_to_singleton(tmp_path, monkeypatch
     from agent.credential_pool import load_pool, AUTH_TYPE_OAUTH, PooledCredential
     import uuid
 
-    sparkii_home = tmp_path / "sparkii"
+    hermes_home = tmp_path / "sparkii"
     # Singleton has its own tokens (separate login).
     singleton_at = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
-    _setup_sparkii_auth(sparkii_home, access_token=singleton_at, refresh_token="rt-singleton")
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    _setup_sparkii_auth(hermes_home, access_token=singleton_at, refresh_token="rt-singleton")
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     manual_at_old = _jwt_with_exp(int(time.time()) + 30)
     manual_at_new = _jwt_with_exp(int(time.time()) + 7200)
@@ -865,7 +865,7 @@ def test_pool_manual_entry_does_not_sync_back_to_singleton(tmp_path, monkeypatch
     assert len(manual_entries) == 1
     pool._refresh_entry(manual_entries[0], force=True)
 
-    raw = json.loads((sparkii_home / "auth.json").read_text())
+    raw = json.loads((hermes_home / "auth.json").read_text())
     tokens = raw["providers"]["xai-oauth"]["tokens"]
     # Singleton must be untouched — manual refresh shouldn't leak across.
     assert tokens["access_token"] == singleton_at
@@ -894,10 +894,10 @@ def test_auxiliary_client_routes_xai_oauth_through_responses_api(tmp_path, monke
         resolve_provider_client,
     )
 
-    sparkii_home = tmp_path / "sparkii"
+    hermes_home = tmp_path / "sparkii"
     fresh = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
-    _setup_sparkii_auth(sparkii_home, access_token=fresh)
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    _setup_sparkii_auth(hermes_home, access_token=fresh)
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
     monkeypatch.delenv("SPARKII_XAI_BASE_URL", raising=False)
     monkeypatch.delenv("XAI_BASE_URL", raising=False)
 
@@ -921,10 +921,10 @@ def test_auxiliary_client_xai_oauth_requires_explicit_model(tmp_path, monkeypatc
     must pass an explicit model (auxiliary.<task>.model in config.yaml)."""
     from agent.auxiliary_client import resolve_provider_client
 
-    sparkii_home = tmp_path / "sparkii"
+    hermes_home = tmp_path / "sparkii"
     fresh = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
-    _setup_sparkii_auth(sparkii_home, access_token=fresh)
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    _setup_sparkii_auth(hermes_home, access_token=fresh)
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     client, model = resolve_provider_client("xai-oauth", model=None)
     assert client is None
@@ -946,17 +946,17 @@ def test_pool_sync_back_preserves_active_provider(tmp_path, monkeypatch):
     no future refactor regresses to the legacy semantic."""
     from agent.credential_pool import load_pool
 
-    sparkii_home = tmp_path / "sparkii"
+    hermes_home = tmp_path / "sparkii"
     near_expiry = _jwt_with_exp(int(time.time()) + 30)
-    _setup_sparkii_auth(sparkii_home, access_token=near_expiry, refresh_token="rt-xai")
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    _setup_sparkii_auth(hermes_home, access_token=near_expiry, refresh_token="rt-xai")
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
 
     # Simulate a multi-provider user whose actual chosen provider is
     # OpenRouter — xai-oauth tokens exist in the singleton but are NOT
     # the active provider.
-    raw = json.loads((sparkii_home / "auth.json").read_text())
+    raw = json.loads((hermes_home / "auth.json").read_text())
     raw["active_provider"] = "openrouter"
-    (sparkii_home / "auth.json").write_text(json.dumps(raw))
+    (hermes_home / "auth.json").write_text(json.dumps(raw))
 
     new_access = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
 
@@ -979,7 +979,7 @@ def test_pool_sync_back_preserves_active_provider(tmp_path, monkeypatch):
 
     # The refresh wrote new tokens back into the singleton — the user's
     # prior ``active_provider`` choice (openrouter) MUST survive.
-    raw_after = json.loads((sparkii_home / "auth.json").read_text())
+    raw_after = json.loads((hermes_home / "auth.json").read_text())
     assert raw_after["active_provider"] == "openrouter", (
         "pool sync-back must not flip active_provider; otherwise xAI/Codex/"
         "Nous token rotations silently take over multi-provider users' "

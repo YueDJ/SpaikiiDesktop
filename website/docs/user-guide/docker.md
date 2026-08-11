@@ -34,7 +34,7 @@ result before hitting Enter.
 mkdir -p ~/.sparkii
 docker run -it --rm \
   -v ~/.sparkii:/opt/data \
-  yuedj/spaikiidesktop setup
+  nousresearch/sparkii-agent setup
 ```
 
 This drops you into the setup wizard, which will prompt you for your API keys and write them to `~/.sparkii/.env`. You only need to do this once. It is highly recommended to set up a chat system for the gateway to work with at this point.
@@ -53,7 +53,7 @@ docker run -d \
   --restart unless-stopped \
   -v ~/.sparkii:/opt/data \
   -p 8642:8642 \
-  yuedj/spaikiidesktop gateway run
+  nousresearch/sparkii-agent gateway run
 ```
 
 Port 8642 exposes the gateway's [OpenAI-compatible API server](./features/api-server.md) and health endpoint. It's optional if you only use chat platforms (Telegram, Discord, etc.), but required if you want the dashboard or external tools to reach the gateway.
@@ -94,7 +94,7 @@ docker run -d \
   -e API_SERVER_HOST=0.0.0.0 \
   -e API_SERVER_KEY="$(openssl rand -hex 32)" \
   -e API_SERVER_CORS_ORIGINS='*' \
-  yuedj/spaikiidesktop gateway run
+  nousresearch/sparkii-agent gateway run
 ```
 
 Opening any port on an internet facing machine is a security risk. You should not do it unless you understand the risks.
@@ -111,7 +111,7 @@ docker run -d \
   -p 8642:8642 \
   -p 9119:9119 \
   -e SPARKII_DASHBOARD=1 \
-  yuedj/spaikiidesktop gateway run
+  nousresearch/sparkii-agent gateway run
 ```
 
 The dashboard is supervised by s6 — if it crashes, `s6-supervise` restarts it automatically after a short backoff. Dashboard stdout/stderr is forwarded to `docker logs <container>` (no prefix; the gateway's own output now lives in a per-profile s6-log file — see [Where the logs go](#where-the-logs-go) below — so the two streams don't clash).
@@ -153,7 +153,7 @@ To open an interactive chat session against a running data directory:
 ```sh
 docker run -it --rm \
   -v ~/.sparkii:/opt/data \
-  yuedj/spaikiidesktop
+  nousresearch/sparkii-agent
 ```
 
 Or if you have already opened a terminal in your running container (via Docker Desktop for instance), just run:
@@ -279,7 +279,7 @@ In those cases, declare one service per profile with distinct `container_name`, 
 ```yaml
 services:
   sparkii-work:
-    image: yuedj/spaikiidesktop:latest
+    image: nousresearch/sparkii-agent:latest
     container_name: sparkii-work
     restart: unless-stopped
     command: gateway run
@@ -289,7 +289,7 @@ services:
       - ~/.sparkii-work:/opt/data
 
   sparkii-personal:
-    image: yuedj/spaikiidesktop:latest
+    image: nousresearch/sparkii-agent:latest
     container_name: sparkii-personal
     restart: unless-stopped
     command: gateway run
@@ -326,7 +326,7 @@ docker run -it --rm \
   -v ~/.sparkii:/opt/data \
   -e ANTHROPIC_API_KEY="sk-ant-..." \
   -e OPENAI_API_KEY="sk-..." \
-  yuedj/spaikiidesktop
+  nousresearch/sparkii-agent
 ```
 
 Direct `-e` flags override values from `.env`. This is useful for CI/CD or secrets-manager integrations where you don't want keys on disk.
@@ -342,7 +342,7 @@ For persistent deployment with both the gateway and dashboard, a `docker-compose
 ```yaml
 services:
   sparkii:
-    image: yuedj/spaikiidesktop:latest
+    image: nousresearch/sparkii-agent:latest
     container_name: sparkii
     restart: unless-stopped
     command: gateway run
@@ -397,7 +397,7 @@ ctl.!default {
 Then build a small derived image with the ALSA PulseAudio plugin installed:
 
 ```dockerfile title="Dockerfile.audio"
-FROM yuedj/spaikiidesktop:latest
+FROM nousresearch/sparkii-agent:latest
 
 USER root
 RUN apt-get update \
@@ -464,7 +464,7 @@ docker run -d \
   --restart unless-stopped \
   --memory=4g --cpus=2 \
   -v ~/.sparkii:/opt/data \
-  yuedj/spaikiidesktop gateway run
+  nousresearch/sparkii-agent gateway run
 ```
 
 ## What the Dockerfile does
@@ -536,13 +536,13 @@ When a migration is needed, Sparkii writes timestamped backups next to
 `config.yaml` and `.env` first.
 
 ```sh
-docker pull yuedj/spaikiidesktop:latest
+docker pull nousresearch/sparkii-agent:latest
 docker rm -f sparkii
 docker run -d \
   --name sparkii \
   --restart unless-stopped \
   -v ~/.sparkii:/opt/data \
-  yuedj/spaikiidesktop gateway run
+  nousresearch/sparkii-agent gateway run
 ```
 
 Or with Docker Compose:
@@ -579,10 +579,10 @@ This is a good fit for tools that are quick to install and used occasionally. Fo
 
 ### Durable installs — build a derived image
 
-When a tool must be available immediately on every container start with no re-install delay, build a new image that inherits from `yuedj/spaikiidesktop` and installs the tool in a layer:
+When a tool must be available immediately on every container start with no re-install delay, build a new image that inherits from `nousresearch/sparkii-agent` and installs the tool in a layer:
 
 ```dockerfile
-FROM yuedj/spaikiidesktop:latest
+FROM nousresearch/sparkii-agent:latest
 
 USER root
 RUN apt-get update \
@@ -603,7 +603,7 @@ docker run -d \
   my-sparkii:latest gateway run
 ```
 
-The entrypoint script and `/opt/data` semantics are inherited unchanged, so the rest of this page still applies. Remember to rebuild the image when pulling a newer upstream `yuedj/spaikiidesktop`.
+The entrypoint script and `/opt/data` semantics are inherited unchanged, so the rest of this page still applies. Remember to rebuild the image when pulling a newer upstream `nousresearch/sparkii-agent`.
 
 ### Complex tools or multi-service stacks — run a sidecar container
 
@@ -612,7 +612,7 @@ For tools that bring their own service (a database, a web server, a queue, a hea
 ```yaml
 services:
   sparkii:
-    image: yuedj/spaikiidesktop:latest
+    image: nousresearch/sparkii-agent:latest
     container_name: sparkii
     restart: unless-stopped
     command: gateway run
@@ -639,7 +639,7 @@ From inside the Sparkii container, the sidecar is reachable at `http://my-tool:<
 
 ### Broadly useful tools — open an issue or pull request
 
-If a tool is likely to be useful to most Sparkii Agent users, consider contributing it upstream rather than carrying it in a private derived image. Open an issue or pull request on the [sparkii-agent repository](https://github.com/YueDJ/SparkiiAgent) describing the tool and its use case. Tools that get bundled into the official image benefit every user and avoid the maintenance overhead of a downstream fork.
+If a tool is likely to be useful to most Sparkii Agent users, consider contributing it upstream rather than carrying it in a private derived image. Open an issue or pull request on the [sparkii-agent repository](https://github.com/NousResearch/sparkii-agent) describing the tool and its use case. Tools that get bundled into the official image benefit every user and avoid the maintenance overhead of a downstream fork.
 
 ## Connecting to local inference servers (vLLM, Ollama, etc.)
 
@@ -670,7 +670,7 @@ services:
             - capabilities: [gpu]
 
   sparkii:
-    image: yuedj/spaikiidesktop:latest
+    image: nousresearch/sparkii-agent:latest
     container_name: sparkii
     restart: unless-stopped
     command: gateway run
@@ -714,7 +714,7 @@ docker run -d \
   --name sparkii \
   -v ~/.sparkii:/opt/data \
   -p 8642:8642 \
-  yuedj/spaikiidesktop gateway run
+  nousresearch/sparkii-agent gateway run
 ```
 
 ```yaml
@@ -733,7 +733,7 @@ docker run -d \
   --name sparkii \
   --network host \
   -v ~/.sparkii:/opt/data \
-  yuedj/spaikiidesktop gateway run
+  nousresearch/sparkii-agent gateway run
 ```
 
 ```yaml
@@ -797,7 +797,7 @@ docker run -d \
   --name sparkii \
   -e PUID=1000 -e PGID=10 \
   -v /volume1/docker/sparkii:/opt/data \
-  yuedj/spaikiidesktop gateway run
+  nousresearch/sparkii-agent gateway run
 ```
 
 `docker exec sparkii <cmd>` automatically drops to UID 10000 too — see [`docker exec` automatically drops to the `sparkii` user](#docker-exec-automatically-drops-to-the-sparkii-user) for details and the per-invocation opt-out.
@@ -811,7 +811,7 @@ docker run -d \
   --name sparkii \
   --shm-size=1g \
   -v ~/.sparkii:/opt/data \
-  yuedj/spaikiidesktop gateway run
+  nousresearch/sparkii-agent gateway run
 ```
 
 ### Gateway not reconnecting after network issues
@@ -826,6 +826,6 @@ docker restart sparkii
 
 ```sh
 docker logs --tail 50 sparkii          # Recent logs
-docker run -it --rm yuedj/spaikiidesktop:latest version     # Verify version
+docker run -it --rm nousresearch/sparkii-agent:latest version     # Verify version
 docker stats sparkii                    # Resource usage
 ```

@@ -9,10 +9,10 @@ import { connectWindowsRemote } from './windows-remote-lifecycle'
 // your test rig; skipped everywhere else (CI, other machines).
 //   SPARKII_WIN_SSH_HOST   ssh alias/host of the Windows box
 //   SPARKII_WIN_SSH_USER   remote user
-//   SPARKII_WIN_SSH_SPARKII absolute path to the remote sparkii.exe under test
+//   SPARKII_WIN_SSH_HERMES absolute path to the remote sparkii.exe under test
 const liveHost = process.env.SPARKII_WIN_SSH_HOST || ''
 const liveUser = process.env.SPARKII_WIN_SSH_USER || ''
-const configuredSparkii = process.env.SPARKII_WIN_SSH_SPARKII || ''
+const configuredHermes = process.env.SPARKII_WIN_SSH_HERMES || ''
 const ownershipId = '89abcdef0123456789abcdef01234567'
 
 function fetchJson(url, token, path) {
@@ -25,7 +25,7 @@ function fetchJson(url, token, path) {
   })
 }
 
-test.skipIf(!liveHost || !liveUser || !configuredSparkii)(
+test.skipIf(!liveHost || !liveUser || !configuredHermes)(
   'live Windows remote lifecycle spawns, authenticates, reuses, and cleans exact ownership',
   async () => {
     const ssh = new SshConnection({ host: liveHost, user: liveUser, port: 22, keyPath: '' }, { mux: true })
@@ -35,11 +35,11 @@ test.skipIf(!liveHost || !liveUser || !configuredSparkii)(
       ssh,
       ownershipId,
       profile: '',
-      remoteSparkiiPath: configuredSparkii,
+      remoteSparkiiPath: configuredHermes,
       pickLocalPort,
       forward: (local, remote) => ssh.forward(local, remote),
       cancelForward: (local, remote) => ssh.cancelForward(local, remote),
-      waitForSparkii: async (baseUrl, token) => {
+      waitForHermes: async (baseUrl, token) => {
         for (let i = 0; i < 40; i++) {
           try {
             await fetchJson(baseUrl, token, '/api/status')
@@ -81,14 +81,14 @@ test.skipIf(!liveHost || !liveUser || !configuredSparkii)(
         await ssh.cancelForward(second.localPort, second.remotePort)
       }
 
-      const runtimeScript = `& '${configuredSparkii.replace('sparkii.exe', 'python.exe')}' -m sparkii_cli.windows_ssh_runtime read-lock '${ownershipId}'`
+      const runtimeScript = `& '${configuredHermes.replace('sparkii.exe', 'python.exe')}' -m sparkii_cli.windows_ssh_runtime read-lock '${ownershipId}'`
 
       const lock: any = JSON.parse(
         await ssh.exec(`powershell.exe -NoProfile -NonInteractive -Command "${runtimeScript}"`)
       )
 
       if (lock) {
-        const python = configuredSparkii.replace('sparkii.exe', 'python.exe')
+        const python = configuredHermes.replace('sparkii.exe', 'python.exe')
         const terminate = `& '${python}' -m sparkii_cli.windows_ssh_runtime terminate '${lock.pid}' '${lock.creationTimeNs}' '${lock.sparkiiPath}' '${lock.spawnNonce}'`
         await ssh.exec(`powershell.exe -NoProfile -NonInteractive -Command "${terminate}"`)
         await ssh.exec(

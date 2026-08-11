@@ -66,9 +66,9 @@ class TestMcpEndpoints:
         assert response.json()["auth"] == "header"
         assert "bearer_token" not in response.json()
 
-        sparkii_home = get_sparkii_home()
-        config_text = (sparkii_home / "config.yaml").read_text()
-        env_text = (sparkii_home / ".env").read_text()
+        hermes_home = get_sparkii_home()
+        config_text = (hermes_home / "config.yaml").read_text()
+        env_text = (hermes_home / ".env").read_text()
         assert secret not in config_text
         assert "Bearer ${MCP_BEARER_SERVER_API_KEY}" in config_text
         assert f"MCP_BEARER_SERVER_API_KEY={secret}" in env_text
@@ -361,7 +361,7 @@ class TestWebhookEndpoints:
             restart_calls.append((subcommand, name))
             return FakeRestartProc()
 
-        monkeypatch.setattr(ws, "_spawn_sparkii_action", fake_spawn_action)
+        monkeypatch.setattr(ws, "_spawn_hermes_action", fake_spawn_action)
 
         r = self.client.post("/api/webhooks/enable")
 
@@ -397,7 +397,7 @@ class TestWebhookEndpoints:
         def fail_spawn_action(subcommand, name):
             raise AssertionError("must not spawn a second concurrent restart")
 
-        monkeypatch.setattr(ws, "_spawn_sparkii_action", fail_spawn_action)
+        monkeypatch.setattr(ws, "_spawn_hermes_action", fail_spawn_action)
 
         r = self.client.post("/api/webhooks/enable")
 
@@ -475,7 +475,7 @@ class TestSystemStatsEndpoint:
         assert r.status_code == 200
         s = r.json()
         # Identity fields always present (stdlib-sourced).
-        for key in ("os", "arch", "hostname", "python_version", "sparkii_version"):
+        for key in ("os", "arch", "hostname", "python_version", "hermes_version"):
             assert key in s and s[key]
         # psutil flag tells the UI whether the richer metrics are populated.
         assert "psutil" in s
@@ -938,10 +938,10 @@ class TestToolsConfigEndpoints:
 
 
 # ---------------------------------------------------------------------------
-# _spawn_sparkii_action env scrubbing (#52470)
+# _spawn_hermes_action env scrubbing (#52470)
 # ---------------------------------------------------------------------------
 
-def test_spawn_sparkii_action_scrubs_gateway_loop_guard_env(monkeypatch, tmp_path):
+def test_spawn_hermes_action_scrubs_gateway_loop_guard_env(monkeypatch, tmp_path):
     """The dashboard runs inside the gateway, so os.environ has
     _SPARKII_GATEWAY=1. Spawned actions (e.g. `gateway restart`) must NOT inherit
     it, or the in-process restart-loop guard rejects the restart and it silently
@@ -951,6 +951,10 @@ def test_spawn_sparkii_action_scrubs_gateway_loop_guard_env(monkeypatch, tmp_pat
 
     monkeypatch.setenv("_SPARKII_GATEWAY", "1")
     monkeypatch.setattr(ws, "_ACTION_LOG_DIR", tmp_path)
+    # Isolate the module-global proc registry: _spawn_hermes_action stores
+    # _FakeProc (no poll()) in _ACTION_PROCS, and later tests' lifespan
+    # shutdown (_terminate_desktop_managed_gateway) would trip over it.
+    monkeypatch.setattr(ws, "_ACTION_PROCS", {})
 
     captured = {}
 
@@ -963,7 +967,73 @@ def test_spawn_sparkii_action_scrubs_gateway_loop_guard_env(monkeypatch, tmp_pat
 
     monkeypatch.setattr(ws.subprocess, "Popen", _fake_popen)
 
-    ws._spawn_sparkii_action(["gateway", "restart"], "gateway-restart")
+    ws._spawn_hermes_action(["gateway", "restart"], "gateway-restart")
 
     assert "_SPARKII_GATEWAY" not in captured["env"]
     assert captured["env"]["SPARKII_NONINTERACTIVE"] == "1"
+
+
+# ---------------------------------------------------------------------------
+# Desktop lifespan reaps orphan gateways at serve startup (#77276)
+# ---------------------------------------------------------------------------
+
+def test_desktop_lifespan_reaps_orphan_gateways_on_startup(
+    monkeypatch, _isolate_sparkii_home
+):
+    """Starting a Desktop serve backend should reap orphan gateways left by a
+    previous serve session before forking a fresh one (#77276).
+
+    Graceful shutdown reaps the managed child, but an abnormal exit reparents
+    the old gateway to launchd (PPID=1) where it keeps holding the QQ
+    WebSocket. The lifespan calls _reap_unsupervised_gateway_orphans() once at
+    startup under SPARKII_DESKTOP=1 so the stale orphan is cleared first.
+    """
+    import sparkii_cli.web_server as ws
+
+    called = []
+
+    def _fake_reap():
+        called.append(True)
+        return True
+
+    monkeypatch.setenv("SPARKII_DESKTOP", "1")
+    # Keep the lifespan cheap: don't re-import the gateway module or spin up the
+    # real cron scheduler thread.
+    monkeypatch.setattr(ws, "_warm_gateway_module", lambda: None)
+    monkeypatch.setattr(ws, "_start_desktop_cron_ticker", lambda *_args: None)
+    # web_server imports the reaper lazily from sparkii_cli.gateway, so patch it
+    # on that module.
+    import sparkii_cli.gateway as g
+
+    monkeypatch.setattr(g, "_reap_unsupervised_gateway_orphans", _fake_reap)
+
+    client, _header = _client()
+    with client:
+        pass
+
+    assert called == [True]
+
+
+def test_desktop_lifespan_terminates_managed_gateway_restart(monkeypatch):
+    """A Desktop-owned gateway child must not survive its serve backend."""
+    import sparkii_cli.web_server as ws
+
+    calls = []
+
+    class _FakeRunningProc:
+        def poll(self):
+            return None
+
+        def terminate(self):
+            calls.append("terminate")
+
+    monkeypatch.setenv("SPARKII_DESKTOP", "1")
+    monkeypatch.setattr(ws, "_warm_gateway_module", lambda: None)
+    monkeypatch.setattr(ws, "_start_desktop_cron_ticker", lambda *_args: None)
+    monkeypatch.setitem(ws._ACTION_PROCS, "gateway-restart", _FakeRunningProc())
+
+    client, _header = _client()
+    with client:
+        pass
+
+    assert calls == ["terminate"]

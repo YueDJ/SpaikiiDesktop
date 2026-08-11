@@ -141,7 +141,7 @@ test('resolveVenvSparkiiCommand: returns the resolved python backend descriptor 
 test('resolveVenvSparkiiCommand: is case-insensitive on sparkii.exe and the Scripts dir name', () => {
   const deps = makeDeps()
 
-  assert.ok(resolveVenvSparkiiCommand('/root/venv/Scripts/SPARKII.EXE', [], deps))
+  assert.ok(resolveVenvSparkiiCommand('/root/venv/Scripts/HERMES.EXE', [], deps))
   assert.ok(resolveVenvSparkiiCommand('/root/venv/SCRIPTS/sparkii.exe', [], deps))
 })
 

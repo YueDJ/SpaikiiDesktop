@@ -8,7 +8,7 @@
 - [entrypoint-dispatch.sh](file://docker/entrypoint-dispatch.sh)
 - [stage2-hook.sh](file://docker/stage2-hook.sh)
 - [s6-rc.d/dashboard/run](file://docker/s6-rc.d/dashboard/run)
-- [s6-rc.d/main-hermes/run](file://docker/s6-rc.d/main-hermes/run)
+- [s6-rc.d/main-sparkii/run](file://docker/s6-rc.d/main-sparkii/run)
 </cite>
 
 ## 目录
@@ -26,7 +26,7 @@
 12. [结论](#结论)
 
 ## 简介
-本文件面向使用 Docker Compose 编排 Hermes Agent 的运维与开发者，系统说明服务定义、网络拓扑、数据卷管理、环境变量与敏感信息管理、Windows 平台差异、生产级健康检查与重启策略、监控集成以及故障恢复机制。文档基于仓库内提供的 Compose 文件、Dockerfile 与 s6-overlay 服务脚本进行解读，确保内容与实际实现一致。
+本文件面向使用 Docker Compose 编排 Sparkii Agent 的运维与开发者，系统说明服务定义、网络拓扑、数据卷管理、环境变量与敏感信息管理、Windows 平台差异、生产级健康检查与重启策略、监控集成以及故障恢复机制。文档基于仓库内提供的 Compose 文件、Dockerfile 与 s6-overlay 服务脚本进行解读，确保内容与实际实现一致。
 
 ## 项目结构
 - 顶层编排：提供 Linux/macOS 默认编排（host 网络）与 Windows 专用编排（端口映射）。
@@ -39,7 +39,7 @@ A["Compose 文件<br/>docker-compose.yml / docker-compose.windows.yml"] --> B["�
 B --> C["入口调度器<br/>entrypoint-dispatch.sh"]
 C --> D["初始化钩子<br/>stage2-hook.sh"]
 D --> E["s6 服务: dashboard<br/>dashboard/run"]
-D --> F["s6 服务: main-hermes(占位)<br/>main-hermes/run"]
+D --> F["s6 服务: main-sparkii(占位)<br/>main-sparkii/run"]
 ```
 
 **图表来源**
@@ -49,7 +49,7 @@ D --> F["s6 服务: main-hermes(占位)<br/>main-hermes/run"]
 - [entrypoint-dispatch.sh:1-26](file://docker/entrypoint-dispatch.sh#L1-L26)
 - [stage2-hook.sh:1-17](file://docker/stage2-hook.sh#L1-L17)
 - [s6-rc.d/dashboard/run:1-57](file://docker/s6-rc.d/dashboard/run#L1-L57)
-- [s6-rc.d/main-hermes/run:1-28](file://docker/s6-rc.d/main-hermes/run#L1-L28)
+- [s6-rc.d/main-sparkii/run:1-28](file://docker/s6-rc.d/main-sparkii/run#L1-L28)
 
 **章节来源**
 - [docker-compose.yml:1-77](file://docker-compose.yml#L1-L77)
@@ -57,14 +57,14 @@ D --> F["s6 服务: main-hermes(占位)<br/>main-hermes/run"]
 - [Dockerfile:1-458](file://Dockerfile#L1-L458)
 
 ## 核心组件
-- 网关服务（gateway）：Hermes 的核心运行时，负责会话、工具调用、外部适配器与消息通道。
+- 网关服务（gateway）：Sparkii 的核心运行时，负责会话、工具调用、外部适配器与消息通道。
 - 仪表板服务（dashboard）：Web 控制台，用于查看状态、管理会话与配置，默认仅本地访问或通过隧道暴露。
-- 主进程占位服务（main-hermes）：为满足 s6-overlay 要求而存在的占位服务，实际 CMD 作为容器“主程序”运行。
+- 主进程占位服务（main-sparkii）：为满足 s6-overlay 要求而存在的占位服务，实际 CMD 作为容器“主程序”运行。
 
 关键要点
 - 默认网络模式为 host（Linux），Windows 版本使用显式端口映射。
 - 数据卷统一挂载到 /opt/data，持久化会话、日志、配置与技能等。
-- 通过 HERMES_UID/HERMES_GID（或 PUID/PGID）在启动时重映射内部 hermes 用户，保证宿主机可读可写。
+- 通过 SPARKII_UID/SPARKII_GID（或 PUID/PGID）在启动时重映射内部 sparkii 用户，保证宿主机可读可写。
 
 **章节来源**
 - [docker-compose.yml:29-77](file://docker-compose.yml#L29-L77)
@@ -93,7 +93,7 @@ EP-->>S2 : 非PID=1时直接引导
 S2->>S2 : UID/GID重映射、权限修复、配置种子化
 S6->>DBS : 启动 dashboard 服务
 S6->>GW : 以CMD形式运行 gateway run
-Note over S2,DBS : 数据卷 /opt/data 挂载于宿主 ~/.hermes
+Note over S2,DBS : 数据卷 /opt/data 挂载于宿主 ~/.sparkii
 ```
 
 **图表来源**
@@ -109,7 +109,7 @@ Note over S2,DBS : 数据卷 /opt/data 挂载于宿主 ~/.hermes
 ### 网关服务（gateway）
 - 启动方式：Compose 中通过 command 指定 ["gateway", "run"]。
 - 网络：Linux 默认 network_mode: host；Windows 使用端口映射（如需对外暴露需结合反向代理与鉴权）。
-- 数据卷：~/.hermes:/opt/data，所有持久化数据落盘。
+- 数据卷：~/.sparkii:/opt/data，所有持久化数据落盘。
 - 环境变量：支持 Teams、Google Chat 等通道开关与凭据注入（通过 .env 或 Compose environment）。
 
 注意
@@ -128,7 +128,7 @@ Note over S2,DBS : 数据卷 /opt/data 挂载于宿主 ~/.hermes
 
 ```mermaid
 flowchart TD
-Start(["Dashboard 启动"]) --> CheckEnv{"HERMES_DASHBOARD 已启用?"}
+Start(["Dashboard 启动"]) --> CheckEnv{"SPARKII_DASHBOARD 已启用?"}
 CheckEnv --> |否| Down["服务标记为永久失败(不重启)"]
 CheckEnv --> |是| Bind["绑定主机与端口"]
 Bind --> Auth{"是否非回环绑定?"}
@@ -149,12 +149,12 @@ Run --> End
 - [docker-compose.yml:63-77](file://docker-compose.yml#L63-L77)
 - [docker-compose.windows.yml:24-39](file://docker-compose.windows.yml#L24-L39)
 
-### 主进程占位服务（main-hermes）
+### 主进程占位服务（main-sparkii）
 - 作用：满足 s6-overlay 至少一个用户服务的要求；当前实现为 sleep infinity。
 - 实际主程序：容器 CMD 指定的命令（如 gateway run）由 /init 作为“主程序”运行，退出即容器退出。
 
 **章节来源**
-- [s6-rc.d/main-hermes/run:1-28](file://docker/s6-rc.d/main-hermes/run#L1-L28)
+- [s6-rc.d/main-sparkii/run:1-28](file://docker/s6-rc.d/main-sparkii/run#L1-L28)
 - [Dockerfile:424-458](file://Dockerfile#L424-L458)
 
 ### 入口调度器与初始化钩子
@@ -207,7 +207,7 @@ S2["初始化钩子(stage2)"] --> |创建/修复| DATA
 ## 性能与资源限制
 - 资源限制：当前 Compose 未声明 CPU/内存限制。建议在编排层按场景添加 limits/reservations，避免单实例占用过多资源。
 - 网络模式：Linux 使用 host 网络以获得最佳性能与端口直出；Windows 使用端口映射，注意端口冲突。
-- I/O 优化：数据卷挂载到宿主机目录，减少跨层拷贝；Playwright 浏览器缓存置于 /opt/hermes/.playwright，避免被数据卷覆盖导致重建。
+- I/O 优化：数据卷挂载到宿主机目录，减少跨层拷贝；Playwright 浏览器缓存置于 /opt/sparkii/.playwright，避免被数据卷覆盖导致重建。
 
 建议
 - 在生产环境中为 gateway 与 dashboard 分别设置 CPU/内存上限与保留值。
@@ -243,7 +243,7 @@ S2["初始化钩子(stage2)"] --> |创建/修复| DATA
 
 ### 开发环境
 - 网络：Linux 使用 host 网络；Windows 使用端口映射。
-- 数据卷：~/.hermes 映射到 /opt/data，便于快速迭代。
+- 数据卷：~/.sparkii 映射到 /opt/data，便于快速迭代。
 - 环境变量：按需启用 Teams/Google Chat 等通道；调试时可临时放宽限制（遵循安全建议）。
 
 **章节来源**
@@ -270,7 +270,7 @@ S2["初始化钩子(stage2)"] --> |创建/修复| DATA
 
 ## 排错指南
 常见问题与定位
-- 无法写入数据卷：确认 HERMES_UID/HERMES_GID 或 PUID/PGID 设置正确；检查 stage2 是否成功修复权限。
+- 无法写入数据卷：确认 SPARKII_UID/SPARKII_GID 或 PUID/PGID 设置正确；检查 stage2 是否成功修复权限。
 - 仪表板无法访问：确认绑定地址与端口；非回环绑定需配置认证；Windows 下检查端口映射。
 - 浏览器工具失败：确认 Playwright 安装的 Chromium 二进制已被发现并导出相应环境变量。
 - 外部命令权限不足：如需在容器内操作 Docker，确保 socket 组权限已正确配置。

@@ -118,10 +118,10 @@ def score_survey(resp: str, truth: Dict[str, bool]) -> bool:
 def run_one(scenario, mode, rep, out_dir: Path):
     model = os.environ.get("TS_UE_MODEL", "anthropic/claude-opus-4.8")
     lmax = int(os.environ.get("TS_UE_LISTING_MAX", "30000"))
-    sparkii_home = base.setup_isolated_home(
+    hermes_home = base.setup_isolated_home(
         True, listing=("auto" if mode == "listing" else "off"),
         listing_max_tokens=lmax, model=model)
-    os.environ["SPARKII_HOME"] = str(sparkii_home)
+    os.environ["SPARKII_HOME"] = str(hermes_home)
     base.reset_module_state()
     register_epic_tools_adversarial()
 

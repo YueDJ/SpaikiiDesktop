@@ -32,7 +32,7 @@ source_files:
 
 - `apps/desktop/src/styles.css`：桌面应用主样式入口，定义 `@theme inline` 中的 `--dt-*` / `--ui-*` 设计令牌、字体嵌入（Noto Sans SC、JetBrains Mono、Collapse）、暗色模式 `:root.dark` 覆盖、z-index 层级阶梯（`--z-modal-backdrop` → `--z-crash`）、`prefers-reduced-motion` 全局禁用、`.ref` 引用链接、`.arc-border` 动画边框等。
 - `apps/desktop/src/themes/`：主题运行时——`skin.ts`、`presets.ts`、`context.tsx`、`user-themes.ts`、`backend-sync.ts`、`install.ts` 等，负责皮肤加载、用户自定义主题、与后端同步主题。
-- `web/src/index.css`：Web 仪表盘样式入口，导入 Nous DS fonts/globals，声明 LENS_0（Hermes Teal）默认主题变量，映射 shadcn 兼容 token，定义密度缩放（`--spacing` via `--theme-spacing-mul`）与 RTL 支持。
+- `web/src/index.css`：Web 仪表盘样式入口，导入 Nous DS fonts/globals，声明 LENS_0（Sparkii Teal）默认主题变量，映射 shadcn 兼容 token，定义密度缩放（`--spacing` via `--theme-spacing-mul`）与 RTL 支持。
 - `web/src/themes/`：Web 侧主题上下文与预设。
 - `ui-tui/src/theme.ts`：TUI 主题引擎，定义 `ThemeSeeds` → `buildPalette` → `adaptColorsToBackground` → `fromSkin` 的完整管线，以及 `detectLightMode`、`normalizeThemeForAnsiLightTerminal` 等环境探测逻辑。
 - `apps/desktop/components.json`：shadcn/ui 配置（style: new-york, cssVariables: true, iconLibrary: tabler）。

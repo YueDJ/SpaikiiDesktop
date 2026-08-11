@@ -1072,7 +1072,7 @@ class TestWebServerEndpoints:
 
 
 
-    def test_update_sparkii_returns_docker_guidance_without_spawning(self, monkeypatch):
+    def test_update_hermes_returns_docker_guidance_without_spawning(self, monkeypatch):
         import sparkii_cli.web_server as web_server
 
         spawned = False
@@ -1085,7 +1085,7 @@ class TestWebServerEndpoints:
         # Bypass the managed-externally gate so we reach the docker install check.
         monkeypatch.setattr(web_server, "_dashboard_local_update_managed_externally", lambda: False)
         monkeypatch.setattr(web_server, "detect_install_method", lambda _root: "docker")
-        monkeypatch.setattr(web_server, "_spawn_sparkii_action", fail_spawn)
+        monkeypatch.setattr(web_server, "_spawn_hermes_action", fail_spawn)
         web_server._ACTION_PROCS.pop("sparkii-update", None)
         web_server._ACTION_RESULTS.pop("sparkii-update", None)
 
@@ -1097,7 +1097,7 @@ class TestWebServerEndpoints:
         assert data["name"] == "sparkii-update"
         assert data["pid"] is None
         assert data["error"] == "docker_update_unsupported"
-        assert "docker pull yuedj/spaikiidesktop:latest" in data["message"]
+        assert "docker pull nousresearch/sparkii-agent:latest" in data["message"]
         assert spawned is False
 
         status = self.client.get("/api/actions/sparkii-update/status")
@@ -1106,9 +1106,9 @@ class TestWebServerEndpoints:
         assert status_data["running"] is False
         assert status_data["exit_code"] == 1
         assert status_data["pid"] is None
-        assert any("docker pull yuedj/spaikiidesktop:latest" in line for line in status_data["lines"])
+        assert any("docker pull nousresearch/sparkii-agent:latest" in line for line in status_data["lines"])
 
-    def test_update_sparkii_spawns_with_action_id(self, monkeypatch):
+    def test_update_hermes_spawns_with_action_id(self, monkeypatch):
         import sparkii_cli.web_server as web_server
 
         class Proc:
@@ -1123,7 +1123,7 @@ class TestWebServerEndpoints:
         monkeypatch.setattr(web_server, "_dashboard_local_update_managed_externally", lambda: False)
         monkeypatch.setattr(web_server, "detect_install_method", lambda _root: "git")
         monkeypatch.setattr(web_server.secrets, "token_hex", lambda _size: "a" * 32)
-        monkeypatch.setattr(web_server, "_spawn_sparkii_action", fake_spawn)
+        monkeypatch.setattr(web_server, "_spawn_hermes_action", fake_spawn)
         web_server._ACTION_PROCS.pop("sparkii-update", None)
         web_server._ACTION_RESULTS.pop("sparkii-update", None)
 
@@ -1140,7 +1140,7 @@ class TestWebServerEndpoints:
             (["update"], "sparkii-update", {"SPARKII_ACTION_ID": "a" * 32})
         ]
 
-    def test_update_sparkii_reuses_running_action(self, monkeypatch):
+    def test_update_hermes_reuses_running_action(self, monkeypatch):
         import sparkii_cli.web_server as web_server
 
         class Proc:
@@ -1153,7 +1153,7 @@ class TestWebServerEndpoints:
         monkeypatch.setattr(web_server, "detect_install_method", lambda _root: "git")
         monkeypatch.setattr(
             web_server,
-            "_spawn_sparkii_action",
+            "_spawn_hermes_action",
             lambda *_args, **_kwargs: pytest.fail("must not spawn a duplicate update"),
         )
         web_server._ACTION_PROCS["sparkii-update"] = Proc()
@@ -1367,9 +1367,9 @@ class TestWebServerEndpoints:
                 return {
                     "pairing_id": "pair-restart-fails",
                     "poll_token": "poll-secret",
-                    "suggested_username": "sparkii_pair_restart_fails_bot",
-                    "deep_link": "https://t.me/newbot/SparkiiSetupBot/sparkii_pair_restart_fails_bot",
-                    "qr_payload": "https://t.me/newbot/SparkiiSetupBot/sparkii_pair_restart_fails_bot",
+                    "suggested_username": "hermes_pair_restart_fails_bot",
+                    "deep_link": "https://t.me/newbot/SparkiiSetupBot/hermes_pair_restart_fails_bot",
+                    "qr_payload": "https://t.me/newbot/SparkiiSetupBot/hermes_pair_restart_fails_bot",
                     "expires_at": "2027-05-18T00:00:00.000Z",
                 }
             assert method == "GET"
@@ -1377,7 +1377,7 @@ class TestWebServerEndpoints:
             assert bearer_token == "poll-secret"
             return {
                 "status": "ready",
-                "bot_username": "sparkii_pair_restart_fails_bot",
+                "bot_username": "hermes_pair_restart_fails_bot",
                 "owner_user_id": 123456789,
                 "token": "123456:SECRET",
             }
@@ -1390,7 +1390,7 @@ class TestWebServerEndpoints:
             assert name == "gateway-restart"
             raise RuntimeError("supervisor unavailable")
 
-        monkeypatch.setattr(ws, "_spawn_sparkii_action", fail_spawn_action)
+        monkeypatch.setattr(ws, "_spawn_hermes_action", fail_spawn_action)
 
         start = self.client.post("/api/messaging/telegram/onboarding/start", json={})
         assert start.status_code == 200
@@ -1577,6 +1577,57 @@ class TestWebServerEndpoints:
         assert not model_cfg.get("provider")
         assert not get_env_value(env_var), "deleted endpoint's key still in .env"
 
+
+    def test_custom_endpoint_save_scopes_to_the_requested_profile(self):
+        """``?profile=<name>`` must write into that profile's config.yaml.
+
+        The desktop settings UI targets the active profile, so a custom
+        endpoint saved while a non-default profile is selected has to land in
+        that profile's config — not the dashboard process's default home.
+        Before this fix the handlers ran bare ``load_config``/``save_config``,
+        so every custom provider silently landed in the default profile and
+        never appeared for the profile the user was actually configuring.
+        """
+        from sparkii_cli import profiles as profiles_mod
+        from sparkii_cli.config import custom_endpoint_key_env
+        from sparkii_constants import get_sparkii_home
+
+        default_home = get_sparkii_home()
+        worker_home = profiles_mod.get_profile_dir("worker")
+        worker_home.mkdir(parents=True)
+
+        assert self.client.post(
+            "/api/providers/custom-endpoints?profile=worker",
+            json={
+                "id": "worker-proxy",
+                "name": "Worker Proxy",
+                "base_url": "https://llm.worker.example/v1",
+                "model": "worker/model-1",
+                "api_key": "sk-worker-secret",
+            },
+        ).status_code == 200
+
+        # Assert against the files on disk rather than load_config()/
+        # get_env_value(): save_env_value also mirrors the key into the shared
+        # os.environ, so a reader-based check can't tell WHICH profile's store
+        # actually received the write.
+        env_var = custom_endpoint_key_env("worker-proxy")
+
+        worker_cfg = (worker_home / "config.yaml").read_text()
+        assert "worker-proxy" in worker_cfg
+        assert env_var in worker_cfg
+        assert "sk-worker-secret" in (worker_home / ".env").read_text()
+
+        for leaked in (default_home / "config.yaml", default_home / ".env"):
+            text = leaked.read_text() if leaked.exists() else ""
+            assert "worker-proxy" not in text, f"endpoint leaked into default profile ({leaked.name})"
+            assert "sk-worker-secret" not in text, f"credential leaked into default profile ({leaked.name})"
+
+        # And it comes back through the scoped GET, not the unscoped one.
+        scoped = self.client.get("/api/providers/custom-endpoints?profile=worker").json()
+        assert any(e["id"] == "worker-proxy" for e in scoped["endpoints"])
+        default_list = self.client.get("/api/providers/custom-endpoints").json()
+        assert not any(e["id"] == "worker-proxy" for e in default_list["endpoints"])
 
 
     def test_custom_endpoint_save_keeps_the_api_key_out_of_config(self):
@@ -3117,8 +3168,8 @@ class TestThemeBootstrapCSS:
     the default-teal first-paint flash for user YAML themes."""
 
     @staticmethod
-    def _write_theme(sparkii_home, name="ocean"):
-        themes_dir = sparkii_home / "dashboard-themes"
+    def _write_theme(hermes_home, name="ocean"):
+        themes_dir = hermes_home / "dashboard-themes"
         themes_dir.mkdir(exist_ok=True)
         (themes_dir / f"{name}.yaml").write_text(
             f"name: {name}\n"

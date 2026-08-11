@@ -55,7 +55,7 @@ _FALLBACK_PATTERNS = re.compile(
 )
 _ACCESS_DENIED_PATTERN = re.compile(r"(access is denied|acceso denegado)", re.IGNORECASE)
 
-_TASK_NAME_DEFAULT = "Sparkii_Gateway"
+_TASK_NAME_DEFAULT = "Hermes_Gateway"
 _TASK_DESCRIPTION = "Sparkii Agent Gateway - Messaging Platform Integration"
 _TASK_LOGON_DELAY = "PT30S"
 _TASK_RESTART_INTERVAL = "PT1M"
@@ -290,8 +290,8 @@ def _launch_elevated_uninstall() -> bool:
 def get_task_name() -> str:
     """Scheduled Task name, scoped per profile.
 
-    Default profile: ``Sparkii_Gateway``
-    Named profile X: ``Sparkii_Gateway_<X>``
+    Default profile: ``Hermes_Gateway``
+    Named profile X: ``Hermes_Gateway_<X>``
     """
     _assert_windows()
     # Local import to avoid circular module initialization during sparkii_cli boot.
@@ -386,7 +386,7 @@ def _stable_gateway_working_dir(project_root: Path) -> str:
 def _build_gateway_cmd_script(
     python_path: str,
     working_dir: str,
-    sparkii_home: str,
+    hermes_home: str,
     profile_arg: str,
 ) -> str:
     """Build the ``gateway.cmd`` wrapper content (CRLF-terminated).
@@ -408,7 +408,7 @@ def _build_gateway_cmd_script(
     """
     lines = ["@echo off", f"rem {_TASK_DESCRIPTION}"]
     lines.append(f"cd /d {_quote_cmd_script_arg(working_dir)}")
-    lines.append(f'set "SPARKII_HOME={sparkii_home}"')
+    lines.append(f'set "SPARKII_HOME={hermes_home}"')
     lines.append('set "PYTHONIOENCODING=utf-8"')
     lines.append('set "SPARKII_GATEWAY_DETACHED=1"')
     python_exe_path, venv_dir, extra_pythonpath = _resolve_detached_python(python_path)
@@ -448,7 +448,7 @@ def _quote_vbs_string(value: str) -> str:
 def _build_gateway_vbs_script(
     python_path: str,
     working_dir: str,
-    sparkii_home: str,
+    hermes_home: str,
     profile_arg: str,
 ) -> str:
     """Build a hidden-console ``gateway.vbs`` launcher (CRLF-terminated).
@@ -493,7 +493,7 @@ def _build_gateway_vbs_script(
         "Dim sh, env, existing_pp",
         'Set sh = CreateObject("WScript.Shell")',
         'Set env = sh.Environment("PROCESS")',
-        f"env.Item({_quote_vbs_string('SPARKII_HOME')}) = {_quote_vbs_string(sparkii_home)}",
+        f"env.Item({_quote_vbs_string('SPARKII_HOME')}) = {_quote_vbs_string(hermes_home)}",
         f"env.Item({_quote_vbs_string('PYTHONIOENCODING')}) = {_quote_vbs_string('utf-8')}",
         f"env.Item({_quote_vbs_string('SPARKII_GATEWAY_DETACHED')}) = {_quote_vbs_string('1')}",
         f"env.Item({_quote_vbs_string('VIRTUAL_ENV')}) = {_quote_vbs_string(_preserve_sparkii_home_path(venv_dir))}",
@@ -551,10 +551,10 @@ def _write_task_script() -> Path:
 
     python_path = _preserve_sparkii_home_path(get_python_path())
     working_dir = _stable_gateway_working_dir(PROJECT_ROOT)
-    sparkii_home = str(Path(get_sparkii_home()))
-    profile_arg = _profile_arg(sparkii_home)
+    hermes_home = str(Path(get_sparkii_home()))
+    profile_arg = _profile_arg(hermes_home)
 
-    content = _build_gateway_cmd_script(python_path, working_dir, sparkii_home, profile_arg)
+    content = _build_gateway_cmd_script(python_path, working_dir, hermes_home, profile_arg)
     script_path = get_task_script_path()
     tmp = script_path.with_suffix(".tmp")
     tmp.write_text(content, encoding="utf-8", newline="")
@@ -563,7 +563,7 @@ def _write_task_script() -> Path:
     # Also render the console-less .vbs launcher used by Scheduled Task and the
     # Startup-folder fallback via wscript.exe (issue #45599 fix A). The .cmd
     # wrapper stays as a generated helper/compatibility artifact.
-    vbs_content = _build_gateway_vbs_script(python_path, working_dir, sparkii_home, profile_arg)
+    vbs_content = _build_gateway_vbs_script(python_path, working_dir, hermes_home, profile_arg)
     vbs_path = script_path.with_suffix(".vbs")
     vbs_tmp = vbs_path.with_name(vbs_path.name + ".tmp")
     vbs_tmp.write_text(vbs_content, encoding="utf-8", newline="")
@@ -798,8 +798,8 @@ def _build_gateway_argv() -> tuple[list[str], str, dict[str, str]]:
     )
     project_root = _preserve_sparkii_home_path(PROJECT_ROOT)
     working_dir = _stable_gateway_working_dir(PROJECT_ROOT)
-    sparkii_home = str(Path(get_sparkii_home()))
-    profile_arg = _profile_arg(sparkii_home)
+    hermes_home = str(Path(get_sparkii_home()))
+    profile_arg = _profile_arg(hermes_home)
 
     argv = [python_exe, "-m", "sparkii_cli.main"]
     if profile_arg:
@@ -807,7 +807,7 @@ def _build_gateway_argv() -> tuple[list[str], str, dict[str, str]]:
     argv.extend(["gateway", "run"])
 
     env_overlay = {
-        "SPARKII_HOME": sparkii_home,
+        "SPARKII_HOME": hermes_home,
         "PYTHONIOENCODING": "utf-8",
         "SPARKII_GATEWAY_DETACHED": "1",
         "VIRTUAL_ENV": _preserve_sparkii_home_path(venv_dir),
@@ -870,17 +870,17 @@ def windowless_gateway_restart_spec(
     working_dir = _stable_gateway_working_dir(PROJECT_ROOT)
     project_root = str(PROJECT_ROOT)
     try:
-        sparkii_home = str(Path(get_sparkii_home()).resolve())
+        hermes_home = str(Path(get_sparkii_home()).resolve())
     except Exception:
-        sparkii_home = ""
+        hermes_home = ""
 
     env_overlay: dict[str, str] = {
         "PYTHONIOENCODING": "utf-8",
         "SPARKII_GATEWAY_DETACHED": "1",
         "VIRTUAL_ENV": str(venv_dir),
     }
-    if sparkii_home:
-        env_overlay["SPARKII_HOME"] = sparkii_home
+    if hermes_home:
+        env_overlay["SPARKII_HOME"] = hermes_home
     _prepend_pythonpath(
         env_overlay,
         [project_root, *extra_pythonpath] if extra_pythonpath else [project_root],
@@ -1193,11 +1193,11 @@ def _report_gateway_start(via: str) -> None:
 def _print_next_steps() -> None:
     from sparkii_cli.config import get_sparkii_home
 
-    sparkii_home = Path(get_sparkii_home())
+    hermes_home = Path(get_sparkii_home())
     print()
     print("Next steps:")
     print("  sparkii gateway status                      # Check status")
-    print(f"  type {sparkii_home}\\logs\\gateway.log       # View logs")
+    print(f"  type {hermes_home}\\logs\\gateway.log       # View logs")
 
 
 def uninstall() -> None:

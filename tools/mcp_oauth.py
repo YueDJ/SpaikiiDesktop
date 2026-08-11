@@ -173,7 +173,7 @@ _SKIP_TOKENS = frozenset({"skip", "cancel", "s", "n", "no", "q", "quit"})
 # _wait_for_callback maps this to OAuthNonInteractiveError ("user_skipped")
 # so the MCP setup path treats it as a non-fatal "continue without this
 # server" rather than a hard failure.
-_USER_SKIPPED_SENTINEL = "__sparkii_user_skipped__"
+_USER_SKIPPED_SENTINEL = "__hermes_user_skipped__"
 
 
 # ---------------------------------------------------------------------------
@@ -181,7 +181,7 @@ _USER_SKIPPED_SENTINEL = "__sparkii_user_skipped__"
 # ---------------------------------------------------------------------------
 
 
-def _get_token_dir(sparkii_home: str | Path | None = None) -> Path:
+def _get_token_dir(hermes_home: str | Path | None = None) -> Path:
     """Return the directory for MCP OAuth token files.
 
     Uses SPARKII_HOME so each profile gets its own OAuth tokens.
@@ -189,7 +189,7 @@ def _get_token_dir(sparkii_home: str | Path | None = None) -> Path:
     """
     from sparkii_constants import get_sparkii_home
 
-    base = Path(sparkii_home) if sparkii_home is not None else Path(get_sparkii_home())
+    base = Path(hermes_home) if hermes_home is not None else Path(get_sparkii_home())
     return base / "mcp-tokens"
 
 
@@ -436,9 +436,9 @@ class SparkiiTokenStorage:
         SPARKII_HOME/mcp-tokens/<server_name>.meta.json     -- oauth server metadata
     """
 
-    def __init__(self, server_name: str, *, sparkii_home: str | Path | None = None):
+    def __init__(self, server_name: str, *, hermes_home: str | Path | None = None):
         self._server_name = _safe_filename(server_name)
-        self._sparkii_home = Path(sparkii_home) if sparkii_home is not None else None
+        self._sparkii_home = Path(hermes_home) if hermes_home is not None else None
 
     def _tokens_path(self) -> Path:
         return _get_token_dir(self._sparkii_home) / f"{self._server_name}.json"
@@ -1032,10 +1032,10 @@ def _paste_callback_reader(result: dict) -> None:
 def remove_oauth_tokens(
     server_name: str,
     *,
-    sparkii_home: str | Path | None = None,
+    hermes_home: str | Path | None = None,
 ) -> None:
     """Delete stored OAuth tokens and client info for a server."""
-    storage = SparkiiTokenStorage(server_name, sparkii_home=sparkii_home)
+    storage = SparkiiTokenStorage(server_name, hermes_home=hermes_home)
     storage.remove()
     logger.info("OAuth tokens removed for '%s'", server_name)
 

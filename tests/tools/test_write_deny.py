@@ -32,7 +32,7 @@ class TestWriteDenyExactPaths:
         could be silently overwritten by ``write_file`` while a profile was
         active.
         """
-        root = tmp_path / "sparkii_root"
+        root = tmp_path / "hermes_root"
         profile_home = root / "profiles" / "coder"
         profile_home.mkdir(parents=True)
         global_env = root / ".env"
@@ -41,9 +41,9 @@ class TestWriteDenyExactPaths:
         monkeypatch.setenv("SPARKII_HOME", str(profile_home))
 
         # Sanity check: SPARKII_HOME does point to the profile dir, not the root.
-        from sparkii_constants import get_sparkii_home, get_default_sparkii_root
+        from sparkii_constants import get_sparkii_home, get_default_hermes_root
         assert get_sparkii_home() == profile_home
-        assert get_default_sparkii_root() == root
+        assert get_default_hermes_root() == root
 
         assert _is_write_denied(str(global_env)) is True
 

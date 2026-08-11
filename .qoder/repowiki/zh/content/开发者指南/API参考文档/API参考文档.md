@@ -38,7 +38,7 @@
 - OpenAI 兼容 HTTP API 服务：位于 gateway/platforms/api_server.py，提供 /v1/* 和 /api/* 端点，支持 SSE 流式输出、会话持久化、运行任务（runs）等。
 - Web UI 与 Dashboard API：位于 sparkii_cli/web_server.py，基于 FastAPI，提供配置、环境、会话管理等 REST 接口，并承载前端静态资源。
 - WebSocket 传输层：位于 tui_gateway/ws.py，提供 JSON-RPC over WebSocket 的实时通道，用于 TUI/Desktop/Web 客户端。
-- ACP 适配器：位于 acp_adapter/server.py，将 Hermes Agent 以 ACP 协议暴露给编辑器/IDE 客户端；工具映射与格式化在 acp_adapter/tools.py。
+- ACP 适配器：位于 acp_adapter/server.py，将 Sparkii Agent 以 ACP 协议暴露给编辑器/IDE 客户端；工具映射与格式化在 acp_adapter/tools.py。
 - TUI Gateway 服务端：位于 tui_gateway/server.py，负责 RPC 分发、会话生命周期、子进程管理与事件广播。
 
 ```mermaid
@@ -82,7 +82,7 @@ F --> E
 - OpenAI 兼容 API 服务器：提供聊天补全、响应式接口、模型列表、能力探测、会话管理、运行任务（runs）、健康检查等。支持 SSE 流式输出、请求体规范化、多模态内容处理、运行时代理参数覆盖。
 - Web UI/Dashboard API：FastAPI 后端，提供配置与环境变量管理、会话操作、插件路由、CORS 限制、Host 头校验、令牌认证等。
 - WebSocket 传输层：JSON-RPC over WebSocket，连接后发送 gateway.ready，支持高吞吐 token 合并与顺序保证，自动关闭与清理。
-- ACP 适配器：将 Hermes Agent 暴露为 ACP 协议，支持模型选择、会话模式、工具调用、资源附件、文本/图片等内容转换。
+- ACP 适配器：将 Sparkii Agent 暴露为 ACP 协议，支持模型选择、会话模式、工具调用、资源附件、文本/图片等内容转换。
 - TUI Gateway 服务端：RPC 分发、长耗时任务线程池、会话槽位管理、子进程 Slash Worker、事件广播与崩溃日志。
 
 章节来源
@@ -136,7 +136,7 @@ GW-->>ACP : "结果/进度"
   - /health、/health/detailed：健康检查。
 - 认证方式
   - 通过 API_SERVER_KEY 进行鉴权（见模块注释说明）。
-  - 支持 X-Hermes-Session-Id 与 X-Hermes-Session-Key 进行会话上下文与长期记忆作用域。
+  - 支持 X-Sparkii-Session-Id 与 X-Sparkii-Session-Key 进行会话上下文与长期记忆作用域。
 - 请求/响应模式
   - 支持 stream=true 时返回 Server-Sent Events（SSE），帧序列化统一封装。
   - 多模态内容规范化：文本与图片 URL/data:image 支持，非法类型抛出 OpenAI 风格错误。
@@ -245,7 +245,7 @@ ACP_Server --> Tools : "使用工具映射与格式化"
 ### Web UI/Dashboard API
 - 功能范围
   - 配置与环境变量管理、会话操作、插件路由、CORS 限制、Host 头校验。
-  - 令牌认证：X-Hermes-Session-Token 或 Bearer Token。
+  - 令牌认证：X-Sparkii-Session-Token 或 Bearer Token。
   - 健康自检：周期性内省受保护路由，记录组件健康。
 - 安全策略
   - 仅允许 localhost/127.0.0.1 同源访问（CORS）。
@@ -312,7 +312,7 @@ Srv --> Proc["子进程/会话管理"]
 - Web UI/Dashboard
   - CORS 限制为 localhost/127.0.0.1。
   - Host 头校验防 DNS Rebinding。
-  - 令牌认证：X-Hermes-Session-Token 或 Bearer Token。
+  - 令牌认证：X-Sparkii-Session-Token 或 Bearer Token。
   - 非环回绑定强制启用 OAuth/密码门控。
 - WebSocket
   - 连接后发送 ready，后续所有请求需遵循 JSON-RPC 协议。
@@ -345,7 +345,7 @@ Srv --> Proc["子进程/会话管理"]
 - OpenAI 兼容客户端
   - 指向 http://localhost:8642/v1，使用 API_SERVER_KEY 鉴权。
   - 支持 stream=true 获取 SSE 增量消息。
-  - 使用 X-Hermes-Session-Id 与 X-Hermes-Session-Key 维持会话上下文。
+  - 使用 X-Sparkii-Session-Id 与 X-Sparkii-Session-Key 维持会话上下文。
 - WebSocket 客户端
   - 连接 /api/ws，接收 gateway.ready，随后发送 JSON-RPC 请求。
   - 处理 message.delta/reasoning.delta/thinking.delta 等高频事件。

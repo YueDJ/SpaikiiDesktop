@@ -45,7 +45,7 @@ source_files:
 
 ### 3.1 Python 依赖分层
 
-- **核心依赖**（`dependencies`）：仅包含“每个 hermes 会话都会用到”的包，全部 `==X.Y.Z` 精确 pin。注释明确说明：范围依赖会允许 PyPI 在任何时候推送新版本而不经过代码审查，因此被禁止。
+- **核心依赖**（`dependencies`）：仅包含“每个 sparkii 会话都会用到”的包，全部 `==X.Y.Z` 精确 pin。注释明确说明：范围依赖会允许 PyPI 在任何时候推送新版本而不经过代码审查，因此被禁止。
 - **可选依赖**（`[project.optional-dependencies]`）：按功能域拆分为 `anthropic`、`messaging`、`voice`、`wake`、`google`、`web`、`mcp`、`acp`、`bedrock`、`vertex`、`azure-identity`、`termux`、`all` 等 extra，按需安装。
 - **懒加载依赖**：大量 provider/skill 依赖（如 `mistralai`、`honcho`、`supermemory`、`mem0ai`、`opentelemetry-*`）不在 `[all]` 中，而是由 `tools/lazy_deps.py` 在首次使用时动态安装，避免上游污染破坏 fresh install。
 - **平台标记**：大量依赖使用 `sys_platform == 'win32'`、`platform_system == 'Darwin'` 等平台条件限定安装范围。
@@ -64,7 +64,7 @@ source_files:
 
 - `flake.nix` 引入 `pyproject-nix`、`uv2nix`、`pyproject-build-systems`，将 `uv.lock` 翻译为 Nix 包集合。
 - `nix/python.nix` 使用 `sourcePreference = "wheel"` 优先使用二进制 wheel，并在 aarch64-darwin 上对 `numpy`、`onnxruntime`、`ctranslate2`、`faster-whisper` 等替换为 nixpkgs 预构建包。
-- 通过 `HERMES_NIX_BUILD=1` 环境变量阻止在非 Nix 环境中构建 wheel。
+- 通过 `SPARKII_NIX_BUILD=1` 环境变量阻止在非 Nix 环境中构建 wheel。
 
 ### 3.4 安装路径
 
@@ -86,7 +86,7 @@ source_files:
 | Node 包 `install` 脚本默认禁止，需显式 `allowScripts` | `package.json`：`allowScripts` 仅放行少数包 |
 | Python 解释器版本限制在 3.11–3.13 | `pyproject.toml`：`requires-python = ">=3.11,<3.14"` |
 | Nix 构建优先 wheel，必要时回退到 nixpkgs 预构建 | `nix/python.nix`：`sourcePreference = "wheel"` + aarch64-darwin override |
-| 禁止在非 Nix 环境构建 hermes-agent wheel | `nix/python.nix`：`HERMES_NIX_BUILD = "1"` 检查 |
+| 禁止在非 Nix 环境构建 sparkii-agent wheel | `nix/python.nix`：`SPARKII_NIX_BUILD = "1"` 检查 |
 | 安装脚本忽略继承的 `PYTHONPATH`/`PYTHONHOME` 防止模块遮蔽 | `scripts/install.sh`：`unset PYTHONPATH` / `PYTHONHOME` |
 | Termux 使用独立约束文件 | `constraints-termux.txt` |
 

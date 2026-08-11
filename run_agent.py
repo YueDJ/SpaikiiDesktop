@@ -118,7 +118,7 @@ from agent.iteration_budget import IterationBudget
 from agent.interrupt_compat import request_hard_interrupt
 
 
-from sparkii_cli.env_loader import load_sparkii_dotenv
+from sparkii_cli.env_loader import load_hermes_dotenv
 from sparkii_cli.timeouts import (
     get_provider_request_timeout,
     get_provider_stale_timeout,
@@ -126,7 +126,7 @@ from sparkii_cli.timeouts import (
 
 _sparkii_home = get_sparkii_home()
 _project_env = Path(__file__).parent / '.env'
-_loaded_env_paths = load_sparkii_dotenv(sparkii_home=_sparkii_home, project_env=_project_env)
+_loaded_env_paths = load_hermes_dotenv(hermes_home=_sparkii_home, project_env=_project_env)
 if _loaded_env_paths:
     for _env_path in _loaded_env_paths:
         logger.info("Loaded environment variables from %s", _env_path)
@@ -4626,6 +4626,10 @@ class AIAgent:
             return False
         if msg.get("tool_calls"):
             return False
+        # Prefill stubs are thinking-only by construction; check before content
+        # inspection since repair_empty_non_final_messages may have healed content.
+        if msg.get("_thinking_prefill"):
+            return True
         # Does it have any actual output?
         content = msg.get("content")
         if isinstance(content, str):
@@ -4649,7 +4653,6 @@ class AIAgent:
                 return False
         elif content is not None and content != "":
             return False
-        # Content is empty-ish. Is there reasoning to make it thinking-only?
         reasoning = msg.get("reasoning_content") or msg.get("reasoning")
         if isinstance(reasoning, str) and reasoning.strip():
             return True
@@ -5943,9 +5946,9 @@ class AIAgent:
             )
         elif base_url_host_matches(base_url, "x.ai"):
             # Cover both provider=xai and provider=xai-oauth (api.x.ai).
-            from tools.xai_http import sparkii_xai_default_headers
+            from tools.xai_http import hermes_xai_default_headers
 
-            self._client_kwargs["default_headers"] = sparkii_xai_default_headers()
+            self._client_kwargs["default_headers"] = hermes_xai_default_headers()
         else:
             # No URL-specific headers — check profile.default_headers before clearing.
             _ph_headers = None

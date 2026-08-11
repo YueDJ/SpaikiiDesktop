@@ -17,7 +17,7 @@
 ## 简介
 创建HTTP/StreamableHTTP传输方式的详细文档。详细说明基于HTTP协议的远程连接机制，包括连接建立、请求响应模式和流式处理。解释Streamable HTTP的会话管理、状态保持和长连接优化。包含认证机制、SSL/TLS配置和网络安全考虑。提供配置示例，包括URL设置、请求头配置、超时参数和重试策略。说明性能优化技巧，如连接池管理、请求批处理和缓存策略。包含错误处理、异常恢复和监控...
 
-本模块是 Sparkii/Hermes Agent 系统的重要组成部分，负责HTTP/StreamableHTTP传输的核心功能实现。
+本模块是 Sparkii/Sparkii Agent 系统的重要组成部分，负责HTTP/StreamableHTTP传输的核心功能实现。
 
 ## 核心概念
 

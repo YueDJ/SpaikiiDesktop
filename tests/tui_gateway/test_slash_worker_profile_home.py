@@ -11,7 +11,7 @@ import pytest
 def test_slash_worker_accepts_profile_home():
     """_SlashWorker.__init__ accepts profile_home parameter."""
     with patch.dict("sys.modules", {
-        "sparkii_constants": MagicMock(get_sparkii_home=MagicMock(return_value="/tmp/sparkii_test")),
+        "sparkii_constants": MagicMock(get_sparkii_home=MagicMock(return_value="/tmp/hermes_test")),
     }):
         with patch("subprocess.Popen") as mock_popen:
             mock_popen.return_value.stdout = MagicMock()

@@ -1,6 +1,6 @@
 schema_version: 1
 module_path: gateway/core_runtime
-title: Hermes Gateway 多平台消息网关核心运行时
+title: Sparkii Gateway 多平台消息网关核心运行时
 scope:
     - gateway/
 source_files: []

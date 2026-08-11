@@ -8,11 +8,11 @@ import pytest
 @pytest.fixture(autouse=True)
 def _isolate(tmp_path, monkeypatch):
     """Redirect SPARKII_HOME and clear module caches."""
-    sparkii_home = tmp_path / ".sparkii"
-    sparkii_home.mkdir()
-    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
+    hermes_home = tmp_path / ".sparkii"
+    hermes_home.mkdir()
+    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
     # Write a minimal config so load_config doesn't fail
-    (sparkii_home / "config.yaml").write_text("model:\n  default: test-model\n")
+    (hermes_home / "config.yaml").write_text("model:\n  default: test-model\n")
 
 
 def _write_config(tmp_path, config_dict):

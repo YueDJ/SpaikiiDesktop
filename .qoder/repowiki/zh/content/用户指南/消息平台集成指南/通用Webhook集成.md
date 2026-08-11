@@ -196,7 +196,7 @@ class WebhookRouteProcessor {
 - 功能概述
   - 将Agent内部事件（如会话结束、工具调用前后）以HTTP POST发送到外部系统
   - 载荷包含事件名、工具名、会话ID、工作目录、额外字段、投递ID和时间戳
-  - 可选HMAC-SHA256签名（X-Hermes-Signature-256）
+  - 可选HMAC-SHA256签名（X-Sparkii-Signature-256）
   - 队列+单线程worker模型，保证非阻塞
   - 最多2次重试，指数退避；4xx不重试，3xx拒绝跟随
 - 配置要点

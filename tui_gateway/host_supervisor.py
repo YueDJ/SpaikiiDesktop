@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 
 from sparkii_constants import get_sparkii_home
-from tools.environments.local import sparkii_subprocess_env
+from tools.environments.local import hermes_subprocess_env
 
 logger = logging.getLogger(__name__)
 _Thread = threading.Thread
@@ -315,7 +315,7 @@ class HostSupervisor:
             raise RuntimeError("compute host respawn disabled after crash loop")
         self._hello_event.clear()
         self._hello = {}
-        env = sparkii_subprocess_env(inherit_credentials=True)
+        env = hermes_subprocess_env(inherit_credentials=True)
         env.update(os.environ)
         if self.env:
             env.update(self.env)
@@ -357,7 +357,7 @@ class HostSupervisor:
         hello = self._hello
         if not hello:
             raise RuntimeError("compute host missing hello")
-        got_home = str(hello.get("sparkii_home") or "")
+        got_home = str(hello.get("hermes_home") or "")
         if got_home and got_home != self.expected_sparkii_home:
             raise RuntimeError(f"compute host SPARKII_HOME mismatch: {got_home} != {self.expected_sparkii_home}")
         got_sha = str(hello.get("build_sha") or "")

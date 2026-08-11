@@ -125,7 +125,7 @@ export const en: Translations = {
     backendOutOfDateMessage:
       'Your Sparkii backend is older than this desktop build and may not work correctly. Update to align them.',
     installMethodUnsupportedTitle: 'Unsupported install method',
-    updateSparkii: 'Update Sparkii',
+    updateHermes: 'Update Sparkii',
     updateReadyTitle: 'Update ready',
     updateReadyMessage: count => `${count} new change${count === 1 ? '' : 's'} available.`,
     seeWhatsNew: "See what's new",
@@ -263,6 +263,7 @@ export const en: Translations = {
       'view.toggleStatusbar': 'Toggle status bar',
       'view.showFiles': 'Show file browser',
       'view.toggleHud': 'Toggle HUD mode',
+      'hud.snapToPointer': 'Move HUD to pointer (global, while HUD is open)',
       'view.showTerminal': 'Toggle terminal',
       'view.newTerminal': 'New terminal',
       'view.nextTerminal': 'Next terminal',
@@ -376,6 +377,7 @@ export const en: Translations = {
         search: 'Search plugins…',
         noMatches: 'No plugins match your search.',
         toggleFailed: (name: string) => `Could not toggle ${name}`,
+        updateBackendToManage: 'Update the Sparkii backend to manage this plugin from Desktop.',
         sources: { bundled: 'bundled', user: 'user', git: 'git', project: 'project', entrypoint: 'pip' }
       }
     },
@@ -1278,7 +1280,7 @@ export const en: Translations = {
     sparkiiActiveSessions: (version, count) => `Sparkii ${version} · Active sessions ${count}`,
     restartGateway: 'Restart gateway',
     gatewayRestartFailed: 'Gateway restart failed.',
-    updateSparkii: 'Update Sparkii',
+    updateHermes: 'Update Sparkii',
     actionRunning: 'running',
     actionDone: 'done',
     actionFailed: 'failed',

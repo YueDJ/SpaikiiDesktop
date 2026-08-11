@@ -1,6 +1,6 @@
 schema_version: 1
 module_path: optional_skills
-title: Hermes Agent 可选技能集（Optional Skills）
+title: Sparkii Agent 可选技能集（Optional Skills）
 scope:
     - optional-skills/
 source_files: []
