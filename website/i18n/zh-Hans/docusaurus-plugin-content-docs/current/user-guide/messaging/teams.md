@@ -252,4 +252,4 @@ teams app update --id <teamsAppId> --endpoint "https://your-domain.com/api/messa
 ## 相关文档
 
 - [Teams 会议](/user-guide/messaging/teams-meetings)
-- [运营 Teams 会议 Pipeline](/guides/operate-teams-meeting-pipeline)
+

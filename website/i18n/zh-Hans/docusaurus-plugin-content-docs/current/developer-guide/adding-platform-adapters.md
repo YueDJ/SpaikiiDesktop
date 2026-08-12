@@ -568,7 +568,6 @@ await self.handle_message(event)
 ### 8. Toolset
 
 1. **`toolsets.py`** — 添加带 `_SPARKII_CORE_TOOLS` 的 `"sparkii-newplat"` toolset 定义
-2. **`toolsets.py`** — 将 `"sparkii-newplat"` 添加到 `"sparkii-gateway"` 的 includes 列表
 
 ### 9. 可选：平台提示
 

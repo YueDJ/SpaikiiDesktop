@@ -18,7 +18,7 @@ This page focuses on setup and enablement:
 - Teams delivery modes
 - pipeline config shape
 
-For day-2 operations, go-live checks, and the operator worksheet, use the dedicated guide: [Operate the Teams Meeting Pipeline](/guides/operate-teams-meeting-pipeline).
+For day-2 operations, go-live checks, and the operator worksheet, use the dedicated guide: Operate the Teams Meeting Pipeline.
 
 ## What This Feature Does
 
@@ -205,11 +205,11 @@ sparkii teams-pipeline subscribe \
 
 :::warning Graph subscriptions expire in 72 hours
 
-Microsoft Graph caps webhook subscriptions at 72 hours and will not auto-renew them. You MUST schedule `sparkii teams-pipeline maintain-subscriptions` before going live, or notifications will silently stop three days after any manual subscription creation. See [Automating subscription renewal](/guides/operate-teams-meeting-pipeline#automating-subscription-renewal-required-for-production) in the operator runbook — three options (Sparkii cron, systemd timer, plain crontab).
+Microsoft Graph caps webhook subscriptions at 72 hours and will not auto-renew them. You MUST schedule `sparkii teams-pipeline maintain-subscriptions` before going live, or notifications will silently stop three days after any manual subscription creation. See "Automating subscription renewal" in the operator runbook — three options (Sparkii cron, systemd timer, plain crontab).
 
 :::
 
-For subscription maintenance and day-2 operator flows, continue with the guide: [Operate the Teams Meeting Pipeline](/guides/operate-teams-meeting-pipeline).
+For subscription maintenance and day-2 operator flows, continue with the guide: Operate the Teams Meeting Pipeline.
 
 ## Validation
 
@@ -239,4 +239,3 @@ sparkii teams-pipeline subscriptions
 ## Related Docs
 
 - [Microsoft Teams bot setup](/user-guide/messaging/teams)
-- [Operate the Teams Meeting Pipeline](/guides/operate-teams-meeting-pipeline)

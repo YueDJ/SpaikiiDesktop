@@ -285,4 +285,4 @@ Treat `TEAMS_CLIENT_SECRET` like a password — rotate it periodically via the A
 ## Related Docs
 
 - [Teams Meetings](/user-guide/messaging/teams-meetings)
-- [Operate the Teams Meeting Pipeline](/guides/operate-teams-meeting-pipeline)
+

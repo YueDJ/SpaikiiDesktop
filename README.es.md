@@ -4,25 +4,23 @@
 
 # Sparkii Agent ☤
 <p align="center">
-  <a href="https://sparkii-agent.nousresearch.com/">Sparkii Agent</a> | <a href="https://sparkii-agent.nousresearch.com/">Sparkii Desktop</a>
+  <a href="https://github.com/YueDJ/SpaikiiDesktop">Sparkii Agent</a> | <a href="https://github.com/YueDJ/SpaikiiDesktop">Sparkii Desktop</a>
 </p>
 <p align="center">
-  <a href="https://sparkii-agent.nousresearch.com/docs/"><img src="https://img.shields.io/badge/Docs-sparkii--agent.nousresearch.com-FFD700?style=for-the-badge" alt="Documentación"></a>
-  <a href="https://discord.gg/NousResearch"><img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
-  <a href="https://github.com/NousResearch/sparkii-agent/blob/main/LICENSE"><img src="https://img.shields.io/badge/Licencia-MIT-green?style=for-the-badge" alt="Licencia: MIT"></a>
-  <a href="https://nousresearch.com"><img src="https://img.shields.io/badge/Creado%20por-Nous%20Research-blueviolet?style=for-the-badge" alt="Creado por Nous Research"></a>
+  <a href="https://github.com/YueDJ/SpaikiiDesktop"><img src="https://img.shields.io/badge/Repo-YueDJ%2FSpaikiiDesktop-FFD700?style=for-the-badge" alt="Repository"></a>
+  <a href="https://github.com/YueDJ/SpaikiiDesktop/blob/main/LICENSE"><img src="https://img.shields.io/badge/Licencia-MIT-green?style=for-the-badge" alt="Licencia: MIT"></a>
+  <a href="https://github.com/NousResearch/sparkii-agent"><img src="https://img.shields.io/badge/Upstream-Nous%20Research%20Sparkii-blueviolet?style=for-the-badge" alt="Upstream"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/Lang-English-blue?style=for-the-badge" alt="English"></a>
   <a href="README.zh-CN.md"><img src="https://img.shields.io/badge/Lang-中文-red?style=for-the-badge" alt="中文"></a>
   <a href="README.ur-pk.md"><img src="https://img.shields.io/badge/Lang-اردو-green?style=for-the-badge" alt="اردو"></a>
 </p>
 
-**El agente de IA con mejora continua creado por [Nous Research](https://nousresearch.com).** Es el único agente con un bucle de aprendizaje integrado: crea habilidades a partir de la experiencia, las mejora durante el uso, se impulsa a sí mismo a persistir el conocimiento, busca en sus propias conversaciones pasadas y construye un modelo cada vez más profundo de quién eres a lo largo de las sesiones. Ejecútalo en un VPS de $5, un clúster de GPUs o infraestructura sin servidor que cuesta casi nada cuando está inactivo. No está atado a tu laptop — habla con él desde Telegram mientras trabaja en una VM en la nube.
+**El agente de IA con mejora continua — un fork personal del agente Sparkii de [Nous Research](https://github.com/NousResearch/sparkii-agent).** Es el único agente con un bucle de aprendizaje integrado: crea habilidades a partir de la experiencia, las mejora durante el uso, se impulsa a sí mismo a persistir el conocimiento, busca en sus propias conversaciones pasadas y construye un modelo cada vez más profundo de quién eres a lo largo de las sesiones. Ejecútalo en un VPS de $5, un clúster de GPUs o infraestructura sin servidor que cuesta casi nada cuando está inactivo. En este fork se han eliminado los gateways de plataformas de mensajería; la CLI, la TUI y la aplicación de escritorio son las superficies compatibles.
 
 Usa cualquier modelo que quieras — [Nous Portal](https://portal.nousresearch.com), [OpenRouter](https://openrouter.ai) (más de 200 modelos), [NovitaAI](https://novita.ai), [NVIDIA NIM](https://build.nvidia.com) (Nemotron), [Xiaomi MiMo](https://platform.xiaomimimo.com), [z.ai/GLM](https://z.ai), [Kimi/Moonshot](https://platform.moonshot.ai), [MiniMax](https://www.minimax.io), [Hugging Face](https://huggingface.co), OpenAI, o tu propio endpoint. Cambia con `sparkii model` — sin cambios de código, sin dependencias.
 
 <table>
 <tr><td><b>Una interfaz de terminal real</b></td><td>TUI completa con edición multilínea, autocompletado de comandos, historial de conversaciones, interrupción y redirección, y salida de herramientas en streaming.</td></tr>
-<tr><td><b>Vive donde tú vives</b></td><td>Telegram, Discord, Slack, WhatsApp, Signal y CLI — todo desde un único proceso gateway. Transcripción de notas de voz, continuidad de conversación entre plataformas.</td></tr>
 <tr><td><b>Un bucle de aprendizaje cerrado</b></td><td>Memoria curada por el agente con recordatorios periódicos. Creación autónoma de habilidades tras tareas complejas. Las habilidades mejoran solas durante el uso. Búsqueda FTS5 de sesiones con resumención por LLM para recuperación entre sesiones. Modelado de usuario dialéctico <a href="https://github.com/plastic-labs/honcho">Honcho</a>. Compatible con el estándar abierto de <a href="https://agentskills.io">agentskills.io</a>.</td></tr>
 <tr><td><b>Automatizaciones programadas</b></td><td>Planificador cron integrado con entrega a cualquier plataforma. Informes diarios, copias de seguridad nocturnas, auditorías semanales — todo en lenguaje natural, ejecutándose de forma autónoma.</td></tr>
 <tr><td><b>Delega y paraleliza</b></td><td>Lanza subagentes aislados para flujos de trabajo paralelos. Escribe scripts de Python que llaman a herramientas vía RPC, convirtiendo pipelines de múltiples pasos en turnos de coste cero de contexto.</td></tr>
@@ -37,24 +35,24 @@ Usa cualquier modelo que quieras — [Nous Portal](https://portal.nousresearch.c
 ### Linux, macOS, WSL2, Termux
 
 ```bash
-curl -fsSL https://sparkii-agent.nousresearch.com/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/YueDJ/SpaikiiDesktop/main/scripts/install.sh | bash
 ```
 
 ### Windows (nativo, PowerShell)
 
-> **Nota:** En Windows nativo, Sparkii funciona sin WSL — la CLI, el gateway, la TUI y las herramientas funcionan de forma nativa. Si prefieres usar WSL2, el comando de Linux/macOS de arriba también funciona allí. ¿Encontraste un error? Por favor [crea un issue](https://github.com/NousResearch/sparkii-agent/issues).
+> **Nota:** En Windows nativo, Sparkii funciona sin WSL — la CLI, el gateway, la TUI y las herramientas funcionan de forma nativa. Si prefieres usar WSL2, el comando de Linux/macOS de arriba también funciona allí. ¿Encontraste un error? Por favor [crea un issue](https://github.com/YueDJ/SpaikiiDesktop/issues).
 
 Ejecuta esto en PowerShell:
 
 ```powershell
-iex (irm https://sparkii-agent.nousresearch.com/install.ps1)
+iex (irm https://raw.githubusercontent.com/YueDJ/SpaikiiDesktop/main/scripts/install.ps1)
 ```
 
 El instalador se encarga de todo: uv, Python 3.11, Node.js, ripgrep, ffmpeg, **y un Git Bash portátil** (MinGit, descomprimido en `%LOCALAPPDATA%\sparkii\git` — no requiere administrador, completamente aislado de cualquier instalación de Git del sistema). Sparkii usa este Git Bash incluido para ejecutar comandos de shell.
 
 Si ya tienes Git instalado, el instalador lo detecta y lo usa en su lugar. De lo contrario, una descarga de ~45MB de MinGit es todo lo que necesitas — no tocará ni interferirá con ningún Git del sistema.
 
-> **Android / Termux:** La ruta manual probada está documentada en la [guía de Termux](https://sparkii-agent.nousresearch.com/docs/getting-started/termux). En Termux, Sparkii instala el extra `.[termux]` curado porque el extra completo `.[all]` actualmente incluye dependencias de voz incompatibles con Android.
+> **Android / Termux:** La ruta manual probada está documentada en la [guía de Termux](website/docs/getting-started/termux.md). En Termux, Sparkii instala el extra `.[termux]` curado porque el extra completo `.[all]` actualmente incluye dependencias de voz incompatibles con Android.
 >
 > **Windows:** Windows nativo es totalmente compatible — el comando de PowerShell de arriba instala todo. Si prefieres usar WSL2, el comando de Linux también funciona allí. La instalación nativa de Windows se encuentra en `%LOCALAPPDATA%\sparkii`; WSL2 instala en `~/.sparkii` como en Linux.
 
@@ -74,14 +72,14 @@ sparkii              # CLI interactiva — inicia una conversación
 sparkii model        # Elige tu proveedor y modelo LLM
 sparkii tools        # Configura qué herramientas están habilitadas
 sparkii config set   # Establece valores de configuración individuales
-sparkii gateway      # Inicia el gateway de mensajería (Telegram, Discord, etc.)
+sparkii gateway      # Inicia el gateway (webhook / API server)
 sparkii setup        # Ejecuta el asistente de configuración completo
 sparkii claw migrate # Migra desde OpenClaw (si vienes de OpenClaw)
 sparkii update       # Actualiza a la última versión
 sparkii doctor       # Diagnostica cualquier problema
 ```
 
-📖 **[Documentación completa →](https://sparkii-agent.nousresearch.com/docs/)**
+📖 **[Documentación completa →](website/docs/)**
 
 ---
 
@@ -98,53 +96,51 @@ Un comando desde una instalación nueva:
 sparkii setup --portal
 ```
 
-Esto te autentica vía OAuth, establece Nous como tu proveedor y activa el Tool Gateway. Comprueba qué está conectado en cualquier momento con `sparkii portal info`. Detalles completos en la [página de documentación del Tool Gateway](https://sparkii-agent.nousresearch.com/docs/user-guide/features/tool-gateway).
+Esto te autentica vía OAuth, establece Nous como tu proveedor y activa el Tool Gateway. Comprueba qué está conectado en cualquier momento con `sparkii portal info`. Detalles completos en la [página de documentación del Tool Gateway](website/docs/user-guide/features/tool-gateway.md).
 
 Puedes seguir usando tus propias claves por herramienta cuando quieras — el gateway es por backend, no todo o nada.
 
 ---
 
-## Referencia rápida: CLI vs Mensajería
+## Referencia rápida de CLI
 
-Sparkii tiene dos puntos de entrada: inicia la interfaz de terminal con `sparkii`, o ejecuta el gateway y habla con él desde Telegram, Discord, Slack, WhatsApp, Signal o Email. Una vez en una conversación, muchos comandos de barra son compartidos entre ambas interfaces.
+Inicia la interfaz de terminal con `sparkii` — la CLI, la TUI y la aplicación de escritorio comparten los mismos comandos de barra.
 
-| Acción                              | CLI                                           | Plataformas de mensajería                                                         |
-| ----------------------------------- | --------------------------------------------- | --------------------------------------------------------------------------------- |
-| Empezar a chatear                   | `sparkii`                                      | Ejecuta `sparkii gateway setup` + `sparkii gateway start`, luego envía un mensaje al bot |
-| Nueva conversación                  | `/new` o `/reset`                             | `/new` o `/reset`                                                                 |
-| Cambiar modelo                      | `/model [proveedor:modelo]`                   | `/model [proveedor:modelo]`                                                       |
-| Establecer personalidad             | `/personality [nombre]`                       | `/personality [nombre]`                                                           |
-| Reintentar o deshacer último turno  | `/retry`, `/undo`                             | `/retry`, `/undo`                                                                 |
-| Comprimir contexto / ver uso        | `/compress`, `/usage`, `/insights [--days N]` | `/compress`, `/usage`, `/insights [days]`                                         |
-| Explorar habilidades                | `/skills` o `/<nombre-habilidad>`             | `/<nombre-habilidad>`                                                             |
-| Interrumpir trabajo actual          | `Ctrl+C` o enviar un nuevo mensaje            | `/stop` o enviar un nuevo mensaje                                                 |
-| Estado específico de plataforma     | `/platforms`                                  | `/status`, `/sethome`                                                             |
+| Acción                              | CLI                                           |
+| ----------------------------------- | --------------------------------------------- |
+| Empezar a chatear                   | `sparkii`                                     |
+| Nueva conversación                  | `/new` o `/reset`                             |
+| Cambiar modelo                      | `/model [proveedor:modelo]`                   |
+| Establecer personalidad             | `/personality [nombre]`                       |
+| Reintentar o deshacer último turno  | `/retry`, `/undo`                             |
+| Comprimir contexto / ver uso        | `/compress`, `/usage`, `/insights [--days N]` |
+| Explorar habilidades                | `/skills` o `/<nombre-habilidad>`             |
+| Interrumpir trabajo actual          | `Ctrl+C` o enviar un nuevo mensaje            |
 
-Para las listas de comandos completas, consulta la [guía de CLI](https://sparkii-agent.nousresearch.com/docs/user-guide/cli) y la [guía del Gateway de Mensajería](https://sparkii-agent.nousresearch.com/docs/user-guide/messaging).
+Para la lista de comandos completa, consulta la [guía de CLI](website/docs/user-guide/cli.md).
 
 ---
 
 ## Documentación
 
-Toda la documentación está en **[sparkii-agent.nousresearch.com/docs](https://sparkii-agent.nousresearch.com/docs/)**:
+Toda la documentación está en el directorio [website/docs](website/docs/) de este repositorio:
 
 | Sección                                                                                             | Contenido                                                    |
 | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| [Inicio rápido](https://sparkii-agent.nousresearch.com/docs/getting-started/quickstart)              | Instalar → configurar → primera conversación en 2 minutos   |
-| [Uso de CLI](https://sparkii-agent.nousresearch.com/docs/user-guide/cli)                             | Comandos, atajos de teclado, personalidades, sesiones        |
-| [Configuración](https://sparkii-agent.nousresearch.com/docs/user-guide/configuration)               | Archivo de configuración, proveedores, modelos, todas las opciones |
-| [Gateway de Mensajería](https://sparkii-agent.nousresearch.com/docs/user-guide/messaging)           | Telegram, Discord, Slack, WhatsApp, Signal, Home Assistant   |
-| [Seguridad](https://sparkii-agent.nousresearch.com/docs/user-guide/security)                        | Aprobación de comandos, emparejamiento por DM, aislamiento en contenedor |
-| [Herramientas y Toolsets](https://sparkii-agent.nousresearch.com/docs/user-guide/features/tools)   | Más de 40 herramientas, sistema de toolsets, backends de terminal |
-| [Sistema de Habilidades](https://sparkii-agent.nousresearch.com/docs/user-guide/features/skills)   | Memoria procedimental, Skills Hub, creación de habilidades   |
-| [Memoria](https://sparkii-agent.nousresearch.com/docs/user-guide/features/memory)                   | Memoria persistente, perfiles de usuario, mejores prácticas  |
-| [Integración MCP](https://sparkii-agent.nousresearch.com/docs/user-guide/features/mcp)              | Conecta cualquier servidor MCP para capacidades extendidas   |
-| [Programación Cron](https://sparkii-agent.nousresearch.com/docs/user-guide/features/cron)           | Tareas programadas con entrega a plataforma                  |
-| [Archivos de Contexto](https://sparkii-agent.nousresearch.com/docs/user-guide/features/context-files) | Contexto de proyecto que da forma a cada conversación      |
-| [Arquitectura](https://sparkii-agent.nousresearch.com/docs/developer-guide/architecture)            | Estructura del proyecto, bucle del agente, clases principales |
-| [Contribuir](https://sparkii-agent.nousresearch.com/docs/developer-guide/contributing)              | Configuración de desarrollo, proceso de PR, estilo de código |
-| [Referencia de CLI](https://sparkii-agent.nousresearch.com/docs/reference/cli-commands)             | Todos los comandos y flags                                   |
-| [Variables de Entorno](https://sparkii-agent.nousresearch.com/docs/reference/environment-variables) | Referencia completa de variables de entorno                  |
+| [Inicio rápido](website/docs/getting-started/quickstart.md)              | Instalar → configurar → primera conversación en 2 minutos   |
+| [Uso de CLI](website/docs/user-guide/cli.md)                             | Comandos, atajos de teclado, personalidades, sesiones        |
+| [Configuración](website/docs/user-guide/configuration.md)               | Archivo de configuración, proveedores, modelos, todas las opciones |
+| [Seguridad](website/docs/user-guide/security.md)                        | Aprobación de comandos, aislamiento en contenedor            |
+| [Herramientas y Toolsets](website/docs/user-guide/features/tools.md)   | Más de 40 herramientas, sistema de toolsets, backends de terminal |
+| [Sistema de Habilidades](website/docs/user-guide/features/skills.md)   | Memoria procedimental, Skills Hub, creación de habilidades   |
+| [Memoria](website/docs/user-guide/features/memory.md)                   | Memoria persistente, perfiles de usuario, mejores prácticas  |
+| [Integración MCP](website/docs/user-guide/features/mcp.md)              | Conecta cualquier servidor MCP para capacidades extendidas   |
+| [Programación Cron](website/docs/user-guide/features/cron.md)           | Tareas programadas con entrega a plataforma                  |
+| [Archivos de Contexto](website/docs/user-guide/features/context-files.md) | Contexto de proyecto que da forma a cada conversación      |
+| [Arquitectura](website/docs/developer-guide/architecture.md)            | Estructura del proyecto, bucle del agente, clases principales |
+| [Contribuir](website/docs/developer-guide/contributing.md)              | Configuración de desarrollo, proceso de PR, estilo de código |
+| [Referencia de CLI](website/docs/reference/cli-commands.md)             | Todos los comandos y flags                                   |
+| [Variables de Entorno](website/docs/reference/environment-variables.md) | Referencia completa de variables de entorno                  |
 
 ---
 
@@ -170,7 +166,7 @@ Qué se importa:
 - **Habilidades** — habilidades creadas por el usuario → `~/.sparkii/skills/openclaw-imports/`
 - **Lista de comandos permitidos** — patrones de aprobación
 - **Configuración de mensajería** — configuración de plataformas, usuarios permitidos, directorio de trabajo
-- **Claves API** — secretos en lista de permitidos (Telegram, OpenRouter, OpenAI, Anthropic, ElevenLabs)
+- **Claves API** — secretos en lista de permitidos (OpenRouter, OpenAI, Anthropic, ElevenLabs)
 - **Assets de TTS** — archivos de audio del espacio de trabajo
 - **Instrucciones del espacio de trabajo** — AGENTS.md (con `--workspace-target`)
 
@@ -185,7 +181,7 @@ Consulta `sparkii claw migrate --help` para todas las opciones, o usa la habilid
 Inicio rápido para colaboradores — clona y comienza con `setup-sparkii.sh`:
 
 ```bash
-git clone https://github.com/NousResearch/sparkii-agent.git
+git clone https://github.com/YueDJ/SpaikiiDesktop.git
 cd sparkii-agent
 ./setup-sparkii.sh     # instala uv, crea venv, instala .[all], enlaza ~/.local/bin/sparkii
 ./sparkii              # detecta automáticamente el venv, no necesitas hacer `source` primero
@@ -205,9 +201,8 @@ scripts/run_tests.sh
 
 ## Comunidad
 
-- 💬 [Discord](https://discord.gg/NousResearch)
 - 📚 [Skills Hub](https://agentskills.io)
-- 🐛 [Issues](https://github.com/NousResearch/sparkii-agent/issues)
+- 🐛 [Issues](https://github.com/YueDJ/SpaikiiDesktop/issues)
 - 🔌 [computer-use-linux](https://github.com/avifenesh/computer-use-linux) — Servidor MCP de control de escritorio Linux para Sparkii y otros hosts MCP, con árboles de accesibilidad AT-SPI, entrada Wayland/X11, capturas de pantalla y targeting de ventanas del compositor.
 - 🔌 [HermesClaw](https://github.com/AaronWong1999/hermesclaw) — Puente WeChat comunitario: Ejecuta Sparkii Agent y OpenClaw en la misma cuenta de WeChat.
 
@@ -217,4 +212,4 @@ scripts/run_tests.sh
 
 MIT — ver [LICENSE](LICENSE).
 
-Creado por [Nous Research](https://nousresearch.com).
+Desarrollado por [Nous Research](https://github.com/NousResearch/sparkii-agent), fork personal mantenido por [YueDJ](https://github.com/YueDJ).

@@ -1,95 +1,53 @@
 # Rebrand 完成报告
 
 ## 概述
-成功完成将代码库中所有 "sparkii/Sparkii/Sparkii Desktop" 相关字段替换为 "sparkii/Sparkii/Sparkii Desktop" 的 rebrand 任务。
+
+本次 rebrand 将代码库从上游 **Hermes（NousResearch/hermes-agent）** 品牌机械替换为 **Sparkii** 品牌，并保留了后续 upstream-sync 使用的 rebrand 辅助脚本。
+
+> 注：本报告最初由机械替换脚本生成时，源词 “Hermes” 也被一并替换，导致内容写成 “Sparkii → Sparkii”。现已人工修正为准确的 “Hermes → Sparkii” 描述。
 
 ## 完成的工作
 
 ### 1. 代码中的字符串替换
-- **修改文件数**: 2758 个文件
-- **替换规则**: 包括基本替换、特定组合替换、环境变量替换、路径替换、配置键替换等
-- **覆盖范围**: 所有 Python、JavaScript、TypeScript、JSON、YAML、Markdown、Shell 脚本等文件
+- **修改文件数**: 2758
+- **覆盖范围**: Python、JavaScript、TypeScript、JSON、YAML、Markdown、Shell 脚本等
+- **规则**: 基本替换、特定组合替换、环境变量替换、路径替换、配置键替换等
 
 ### 2. 文件名和目录名替换
-- **重命名数量**: 103 个文件和目录
-- **排除目录**: `.git`, `node_modules`, `.venv-sparkii`, `__pycache__`, `.qoder` 等
-- **替换示例**:
-  - `hermes_agent` → `sparkii_agent`
-  - `hermes_cli` → `sparkii_cli`
-  - `sparkii-achievements` → `sparkii-achievements`
-  - `sparkii-ink` → `sparkii-ink`
-  - `sparkii.shared_metrics` → `sparkii.shared_metrics`
+- **重命名数量**: 103
+- **排除目录**: `.git`、`node_modules`、`.venv`、`__pycache__`、`.qoder` 等
+- **示例**: `hermes_agent` → `sparkii_agent`、`hermes_cli` → `sparkii_cli`、`hermes-ink` → `sparkii-ink`
 
 ### 3. 环境变量和配置路径替换
-- **修改文件数**: 65 个文件
-- **替换规则**: 所有 `SPARKII_` 前缀的环境变量替换为 `SPARKII_`
-- **示例**:
-  - `SPARKII_HOME` → `SPARKII_HOME`
-  - `SPARKII_UID` → `SPARKII_UID`
-  - `SPARKII_DESKTOP` → `SPARKII_DESKTOP`
+- **修改文件数**: 65
+- **规则**: `HERMES_*` 前缀环境变量 → `SPARKII_*`、`~/.hermes/` → `~/.sparkii/` 等
 
 ### 4. 文档和注释更新
-- **修改文件数**: 239 个文件
-- **更新内容**: README、AGENTS.md、CONTRIBUTING.md、环境变量文档、CLI 命令文档等
-- **更新示例**:
-  - "Sparkii Agent" → "Sparkii Agent"
-  - "Sparkii CLI" → "Sparkii CLI"
-  - "Sparkii Gateway" → "Sparkii Gateway"
-  - `sparkii update` → `sparkii update`
-  - `sparkii skills` → `sparkii skills`
+- **修改文件数**: 239
+- **内容**: README、AGENTS.md、CONTRIBUTING.md、环境变量文档、CLI 命令文档等
 
 ## 统计数据
 
-| 任务 | 修改文件数 | 说明 |
-|------|------------|------|
-| 代码字符串替换 | 2758 | 基本字符串替换 |
-| 文件名/目录名替换 | 103 | 重命名文件和目录 |
-| 环境变量替换 | 65 | 环境变量路径替换 |
-| 文档注释更新 | 239 | 文档和注释中的术语更新 |
-| **总计** | **3165** | 不重复的文件修改总数 |
+| 任务 | 修改文件数 |
+|------|-----------|
+| 代码字符串替换 | 2758 |
+| 文件名/目录名替换 | 103 |
+| 环境变量替换 | 65 |
+| 文档注释更新 | 239 |
+| **总计（去重）** | **3165** |
 
 ## 验证结果
 
-### 残留检查
-- 搜索结果：仅剩 25 处 "sparkii" 引用
-- **原因分析**:
-  1. 示例中的特定术语（如 "SparkiiCLI"、"SparkiiTokenStorage"）
-  2. 用户名示例（如 "my_hermes_bot"）
-  3. 服务器路径示例（如 "%40hermes%3Ayour-server"）
-  4. 配置键示例（如 "hermes_home"）
-  5. 文档中的特殊术语（如 "SparkiiSweEnv"）
-
-这些残留的引用是合理的，因为它们是：
-- 示例中的特定术语，不是实际的变量名
-- 用户名示例，不需要替换
-- 配置键示例，已经正确显示
-- 特殊环境名称，不需要替换
-
-### 功能验证
-- ✅ 所有 Python 代码中的 `sparkii` 引用已替换为 `sparkii`
-- ✅ 所有 JavaScript/TypeScript 代码中的 `sparkii` 引用已替换为 `sparkii`
-- ✅ 所有环境变量 `SPARKII_*` 已替换为 `SPARKII_*`
-- ✅ 所有配置路径 `~/.sparkii/` 已替换为 `~/.sparkii/`
-- ✅ 所有文档中的 "Sparkii" 已替换为 "Sparkii"
-- ✅ 所有文件名和目录名中的 "sparkii" 已替换为 "sparkii"
-
-## 脚本工具
-
-创建了以下脚本来完成 rebrand 任务（已完成任务后删除）：
-
-1. **`scripts/replace_sparkii.py`** - 基本字符串替换脚本
-2. **`scripts/rename_sparkii.py`** - 文件名和目录名重命名脚本
-3. **`scripts/replace_env_vars.py`** - 环境变量替换脚本
-4. **`scripts/complete_replacement.py`** - 完整替换脚本
+- 代码与文档内容中已无 `Hermes` 残留（`rg -i hermes` 除 `.qoder` 路径与保留的第三方 `HermesClaw` 链接外为 0）。
+- 有意保留：
+  - `scripts/_rebrand_hermes_to_sparkii.py` —— 供下一次 upstream sync 使用
+  - README 中的第三方 **HermesClaw** 链接（第三方产品名不改名）
+  - `.qoder` 知识库（rebrand 时排除，后续已单独做路径重命名）
+- 功能验证：rebr 后需按 `.plans/sync-hermes-upstream-2026-08-11.md` 的验证清单运行定向测试。
 
 ## 注意事项
 
-1. **备份建议**: 在执行任何大规模替换之前，建议先备份代码库
-2. **测试验证**: 替换后需要运行测试套件来验证功能正常
-3. **配置文件**: 检查 `config.yaml` 和 `.env` 文件是否需要更新
-4. **依赖关系**: 检查第三方依赖是否需要更新
-5. **Git 历史**: 考虑是否需要更新 Git 历史记录
-
-## 总结
-
-rebrand 任务已成功完成，共修改了 3165 个文件，将整个代码库从 "Sparkii" 品牌切换到 "Sparkii" 品牌。所有关键的代码、配置、文档和文件名都已更新，残留的引用是合理的示例或特殊术语，不影响实际功能。
+1. 大规模机械替换前应先备份仓库。
+2. 替换后需要运行测试套件验证功能正常。
+3. 检查 `config.yaml` / `.env` 中是否仍有旧品牌路径需要迁移。
+4. Git 历史保留上游作者信息（通过 rebase-merge 保留署名）。

@@ -8,6 +8,10 @@ description: "Chat with Sparkii from Telegram, Discord, Slack, WhatsApp, Signal,
 
 Chat with Sparkii from Telegram, Discord, Slack, WhatsApp, Signal, SMS, Email, Home Assistant, Mattermost, Matrix, DingTalk, Feishu/Lark, WeCom, Weixin, BlueBubbles (iMessage), QQ, Yuanbao, Microsoft Teams, LINE, ntfy, or your browser. The gateway is a single background process that connects to all your configured platforms, handles sessions, runs cron jobs, and delivers voice messages.
 
+:::caution Removed in this fork
+Messaging-platform gateways have been removed from this fork. These pages are kept only as an upstream reference; the supported surfaces are the CLI, TUI, and the desktop app.
+:::
+
 For the full voice feature set — including CLI microphone mode, spoken replies in messaging, and Discord voice-channel conversations — see [Voice Mode](/user-guide/features/voice-mode) and [Use Voice Mode with Sparkii](/guides/use-voice-mode-with-sparkii).
 
 :::tip

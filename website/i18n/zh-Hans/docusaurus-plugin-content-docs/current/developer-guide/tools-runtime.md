@@ -99,7 +99,7 @@ if entry.check_fn:
 Toolset 是工具的命名集合。Sparkii 通过以下方式解析它们：
 
 - 显式启用/禁用的 toolset 列表
-- 平台预设（`sparkii-cli`、`sparkii-telegram` 等）
+- 平台预设（`sparkii-cli`、`sparkii-webhook` 等）
 - 动态 MCP toolset
 - 精选的特殊用途集合，如 `sparkii-acp`
 

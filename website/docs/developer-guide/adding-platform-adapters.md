@@ -580,7 +580,6 @@ Six touchpoints:
 ### 8. Toolsets
 
 1. **`toolsets.py`** — Add `"sparkii-newplat"` toolset definition with `_SPARKII_CORE_TOOLS`
-2. **`toolsets.py`** — Add `"sparkii-newplat"` to the `"sparkii-gateway"` includes list
 
 ### 9. Optional: Platform Hints
 

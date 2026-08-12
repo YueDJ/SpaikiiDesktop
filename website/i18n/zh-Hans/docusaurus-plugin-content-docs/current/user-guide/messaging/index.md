@@ -8,6 +8,10 @@ description: "通过 Telegram、Discord、Slack、WhatsApp、Signal、SMS、Emai
 
 通过 Telegram、Discord、Slack、WhatsApp、Signal、SMS、Email、Home Assistant、Mattermost、Matrix、DingTalk、Feishu/Lark、WeCom、Weixin、BlueBubbles（iMessage）、QQ、Yuanbao、Microsoft Teams、LINE、ntfy 或浏览器与 Sparkii 对话。网关是一个单一后台进程，连接所有已配置的平台，管理会话，运行 cron 任务，并传递语音消息。
 
+:::caution 本分支已移除
+消息平台网关已从本分支移除。这些页面仅作为上游参考保留；受支持的界面是 CLI、TUI 和桌面应用。
+:::
+
 完整的语音功能集——包括 CLI 麦克风模式、消息中的语音回复以及 Discord 语音频道对话——请参阅 [Voice Mode](/user-guide/features/voice-mode) 和 [Use Voice Mode with Sparkii](/guides/use-voice-mode-with-sparkii)。
 
 ## 平台对比

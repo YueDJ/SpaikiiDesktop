@@ -51,7 +51,7 @@ sparkii tools
 
 常用工具集包括 `web`、`search`、`terminal`、`file`、`browser`、`vision`、`image_gen`、`moa`、`skills`、`tts`、`todo`、`memory`、`session_search`、`cronjob`、`code_execution`、`delegation`、`clarify`、`homeassistant`、`messaging`、`spotify`、`discord`、`discord_admin`、`debugging` 和 `safe`。
 
-完整列表（包括 `sparkii-cli`、`sparkii-telegram` 等平台预设以及 `mcp-<server>` 等动态 MCP 工具集）请参阅 [工具集参考](/reference/toolsets-reference)。
+完整列表（包括 `sparkii-cli`、`sparkii-webhook` 等平台预设以及 `mcp-<server>` 等动态 MCP 工具集）请参阅 [工具集参考](/reference/toolsets-reference)。
 
 ## 终端后端
 

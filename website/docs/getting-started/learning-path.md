@@ -49,23 +49,6 @@ Use Sparkii Agent as an interactive terminal assistant for writing, reviewing, a
 Pass files directly into your conversation with context files. Sparkii Agent can read, edit, and run code in your projects.
 :::
 
-### "I want a Telegram/Discord bot"
-
-Deploy Sparkii Agent as a bot on your favorite messaging platform.
-
-1. [Installation](/getting-started/installation)
-2. [Configuration](/user-guide/configuration)
-3. [Messaging Overview](/user-guide/messaging)
-4. [Telegram Setup](/user-guide/messaging/telegram)
-5. [Discord Setup](/user-guide/messaging/discord)
-6. [Voice Mode](/user-guide/features/voice-mode)
-7. [Use Voice Mode with Sparkii](/guides/use-voice-mode-with-sparkii)
-8. [Security](/user-guide/security)
-
-For full project examples, see:
-- [Daily Briefing Bot](/guides/daily-briefing-bot)
-- [Team Telegram Assistant](/guides/team-telegram-assistant)
-
 ### "I want to automate tasks"
 
 Schedule recurring tasks, run batch jobs, or chain agent actions together.

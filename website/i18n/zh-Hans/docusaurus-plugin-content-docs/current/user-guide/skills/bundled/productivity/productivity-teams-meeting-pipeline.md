@@ -110,7 +110,7 @@ Microsoft Graph 将 webhook 订阅上限设为 72 小时，且**不会自动续�
 当用户反馈"昨天流水线还正常，今天没有任何内容进来"时：
 1. 执行 `sparkii teams-pipeline subscriptions` — 如果结果为空，或所有条目的 `expirationDateTime` 均已过期，即为原因所在。
 2. 按上方示例使用 `subscribe` 重新创建订阅。
-3. **立即设置自动续期**，可通过 `sparkii cron add`、systemd timer 或普通 crontab 实现。运维手册 `/docs/guides/operate-teams-meeting-pipeline#automating-subscription-renewal-required-for-production` 提供了三种方案的完整说明。12 小时间隔是安全的（相对 72 小时上限有 6 倍余量）。
+3. **立即设置自动续期**，可通过 `sparkii cron add`、systemd timer 或普通 crontab 实现。运维手册提供了三种方案的完整说明。12 小时间隔是安全的（相对 72 小时上限有 6 倍余量）。
 
 ## 其他注意事项
 
@@ -123,5 +123,5 @@ Microsoft Graph 将 webhook 订阅上限设为 72 小时，且**不会自动续�
 当用户需要比本 skill 更深入的内容时，请将其引导至以下资源：
 - Azure 应用注册操作指南：`/docs/guides/microsoft-graph-app-registration`
 - 完整流水线设置：`/docs/user-guide/messaging/teams-meetings`
-- 运维手册（续期自动化、故障排查、上线检查清单）：`/docs/guides/operate-teams-meeting-pipeline`
+- 运维手册（续期自动化、故障排查、上线检查清单）
 - Webhook 监听器设置：`/docs/user-guide/messaging/msgraph-webhook`

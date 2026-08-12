@@ -111,7 +111,6 @@ Each platform's setup page walks through what to do once you're there.
 
 ## Collaboration Workspaces
 
-- **[Buzz](/integrations/buzz)** — Block's Nostr-based human+agent workspace. Three integration paths: Buzz Desktop spawns Sparkii as a managed ACP runtime, the `buzz-acp` relay bridge hosts a Sparkii identity server-side, or the native gateway platform joins Buzz channels with full Sparkii memory/skills/approvals/cron. The overview page compares all three.
 
 ## Home Automation
 

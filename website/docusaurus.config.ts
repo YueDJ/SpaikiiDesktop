@@ -7,7 +7,7 @@ const config: Config = {
   tagline: 'The self-improving AI agent',
   favicon: 'img/favicon.ico',
 
-  url: 'https://sparkii-agent.nousresearch.com',
+  url: 'https://github.com/YueDJ/SpaikiiDesktop',
   baseUrl: '/docs/',
 
   organizationName: 'NousResearch',
@@ -135,7 +135,7 @@ const config: Config = {
           position: 'left',
         },
         {
-          href: 'https://sparkii-agent.nousresearch.com/',
+          href: 'https://github.com/YueDJ/SpaikiiDesktop/releases',
           label: 'Download',
           position: 'left',
         },
@@ -144,20 +144,16 @@ const config: Config = {
           position: 'right',
         },
         {
-          href: 'https://sparkii-agent.nousresearch.com',
+          href: 'https://github.com/YueDJ/SpaikiiDesktop',
           label: 'Home',
           position: 'right',
         },
         {
-          href: 'https://github.com/NousResearch/sparkii-agent',
+          href: 'https://github.com/YueDJ/SpaikiiDesktop',
           label: 'GitHub',
           position: 'right',
         },
         {
-          href: 'https://discord.gg/NousResearch',
-          label: 'Discord',
-          position: 'right',
-        },
       ],
     },
     footer: {
@@ -175,21 +171,20 @@ const config: Config = {
         {
           title: 'Community',
           items: [
-            { label: 'Discord', href: 'https://discord.gg/NousResearch' },
-            { label: 'GitHub Issues', href: 'https://github.com/NousResearch/sparkii-agent/issues' },
+            { label: 'GitHub Issues', href: 'https://github.com/YueDJ/SpaikiiDesktop/issues' },
             { label: 'Skills Hub', href: 'https://agentskills.io' },
           ],
         },
         {
           title: 'More',
           items: [
-            { label: 'Desktop Download', href: 'https://sparkii-agent.nousresearch.com/' },
-            { label: 'GitHub', href: 'https://github.com/NousResearch/sparkii-agent' },
-            { label: 'Nous Research', href: 'https://nousresearch.com' },
+            { label: 'Desktop Download', href: 'https://github.com/YueDJ/SpaikiiDesktop/releases' },
+            { label: 'GitHub', href: 'https://github.com/YueDJ/SpaikiiDesktop' },
+            { label: 'Upstream', href: 'https://github.com/NousResearch/sparkii-agent' },
           ],
         },
       ],
-      copyright: `Built by <a href="https://nousresearch.com">Nous Research</a> · MIT License · ${new Date().getFullYear()}`,
+      copyright: `Fork of <a href="https://github.com/NousResearch/sparkii-agent">Nous Research's Sparkii</a> · MIT License · ${new Date().getFullYear()}`,
     },
     prism: {
       theme: prismThemes.github,

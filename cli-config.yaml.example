@@ -980,54 +980,30 @@ agent:
 # If a platform isn't listed here, its built-in default is used.
 #
 # You can use EITHER:
-#   - A preset like "sparkii-cli" or "sparkii-telegram" (curated tool set)
+#   - A preset like "sparkii-cli" or "sparkii-webhook" (curated tool set)
 #   - A list of individual toolsets to compose your own (see list below)
 #
-# Supported platform keys: cli, telegram, discord, whatsapp, slack, qqbot, teams, google_chat
+# Supported platform keys: cli, webhook, api_server, cron
 #
 # Examples:
 #
 #   # Use presets (same as defaults):
 #   platform_toolsets:
 #     cli: [sparkii-cli]
-#     telegram: [sparkii-telegram]
-#
-#   # Custom: give Telegram only web + terminal + file + planning:
-#   platform_toolsets:
-#     telegram: [web, terminal, file, todo]
+#     webhook: [sparkii-webhook]
 #
 #   # Custom: CLI without browser or image gen:
 #   platform_toolsets:
 #     cli: [web, terminal, file, skills, todo, tts, cronjob]
 #
-#   # Restrictive: Discord gets read-only tools only:
-#   platform_toolsets:
-#     discord: [web, vision, skills, todo]
-#
 # If not set, defaults are:
 #   cli:           sparkii-cli            (everything + cronjob management)
-#   telegram:      sparkii-telegram       (terminal, file, web, vision, image, tts, browser, skills, todo, cronjob, messaging)
-#   discord:       sparkii-discord        (same as telegram)
-#   whatsapp:      sparkii-whatsapp       (same as telegram)
-#   slack:         sparkii-slack          (same as telegram)
-#   signal:        sparkii-signal         (same as telegram)
-#   homeassistant: sparkii-homeassistant  (same as telegram)
-#   qqbot:            sparkii-qqbot            (same as telegram)
-#   teams:            sparkii-teams            (same as telegram)
-#   google_chat:      sparkii-google_chat      (same as telegram)
+#   webhook:       sparkii-webhook        (restricted safe subset)
+#   api_server:    sparkii-api-server     (full agent tools over HTTP)
+#   cron:          sparkii-cron           (same as cli)
 #
 platform_toolsets:
   cli: [sparkii-cli]
-  telegram: [sparkii-telegram]
-  discord: [sparkii-discord]
-  whatsapp: [sparkii-whatsapp]
-  slack: [sparkii-slack]
-  signal: [sparkii-signal]
-  homeassistant: [sparkii-homeassistant]
-  qqbot: [sparkii-qqbot]
-  yuanbao: [sparkii-yuanbao]
-  teams: [sparkii-teams]
-  google_chat: [sparkii-google_chat]
 
 # =============================================================================
 # Gateway Platform Settings
@@ -1097,12 +1073,10 @@ platform_toolsets:
 #   cronjob      - cronjob (create/list/update/pause/resume/run/remove scheduled tasks)
 #
 # PRESETS (curated bundles):
-#   sparkii-cli       - All of the above except send_message
-#   sparkii-telegram  - terminal, file, web, vision, image_gen, tts, browser,
-#                      skills, todo, cronjob, send_message
-#   sparkii-discord   - Same as sparkii-telegram
-#   sparkii-whatsapp  - Same as sparkii-telegram
-#   sparkii-slack     - Same as sparkii-telegram
+#   sparkii-cli       - All of the above
+#   sparkii-webhook   - Restricted safe subset (web_search, web_extract,
+#                       vision_analyze, clarify)
+#   sparkii-api-server - Full agent tools over HTTP (no interactive UI tools)
 #
 # COMPOSITE:
 #   debugging    - terminal + web + file
@@ -1721,7 +1695,7 @@ updates:
 #     are skipped with a startup warning (never a silent clobber)
 #   - a source's override_existing lets it beat .env/shell values, but
 #     never another secret source's claim
-# Docs: https://sparkii-agent.nousresearch.com/docs/user-guide/secrets/
+# Docs: https://github.com/YueDJ/SpaikiiDesktop/tree/main/website/docs/user-guide/secrets
 #
 # secrets:
 #   # Optional explicit ordering of enabled sources.

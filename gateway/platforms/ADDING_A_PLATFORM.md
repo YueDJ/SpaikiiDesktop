@@ -243,14 +243,6 @@ Add a named toolset for your platform:
 },
 ```
 
-And add it to the `sparkii-gateway` composite:
-
-```python
-"sparkii-gateway": {
-    "includes": [..., "sparkii-your-platform"]
-}
-```
-
 ---
 
 ## 8. Cron Delivery (`cron/scheduler.py`)

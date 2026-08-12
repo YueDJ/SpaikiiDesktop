@@ -1,8 +1,8 @@
-# Upstream Sync Plan — NousResearch/sparkii-agent → Sparkii
+# Upstream Sync Plan — NousResearch/hermes-agent → Sparkii
 
 **Date:** 2026-08-11  
 **Base:** `YueDJ/SpaikiiDesktop` `main` @ `e69aafb7a`  
-**Upstream tip:** `NousResearch/sparkii-agent` `main` @ `a31be4803`  
+**Upstream tip:** `NousResearch/hermes-agent` `main` @ `a31be4803`  
 **Last synced upstream:** `8359e760b` (via PR #1 / `0ee1e6181`)  
 **Delta:** **163 commits**, ~319 files, +22808 / -3563 lines
 
@@ -13,7 +13,7 @@ Direct merge of upstream into Sparkii conflicts on nearly every renamed path
 
 1. Branch from current Sparkii `main`: `cursor/sync-sparkii-upstream-7bdc`
 2. Detached worktree / temp branch at `upstream/main`
-3. Mechanical Sparkii→Sparkii rebrand commit on that tip
+3. Mechanical Hermes→Sparkii rebrand commit on that tip
 4. Merge rebranded tip into the Sparkii feature branch
 5. Resolve conflicts + re-apply Sparkii-only invariants
 6. Targeted tests → commit → push → draft PR
@@ -79,5 +79,5 @@ HUD-related upstream fixes still apply to remaining HUD code paths; do **not** r
 ## Out of scope
 
 - Re-adding intentionally removed messaging platforms or web dashboard
-- Changing Sparkii product branding back toward Sparkii
+- Changing Sparkii product branding back toward Hermes
 - Full CI suite green gate (run targeted high-signal tests; note remaining risk)

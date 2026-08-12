@@ -1167,7 +1167,7 @@ describe('branchStoredSession desktop source tagging', () => {
     )
     await waitFor(() => expect(branchCurrentSession).not.toBeNull())
 
-    // Branch from the FIRST assistant reply ("a1"), not the last message �
+    // Branch from the FIRST assistant reply ("a1"), not the last message —
     // this is exactly the scenario that used to drop the question (bug #1):
     // only the clicked message survived instead of everything up to it.
     await expect(branchCurrentSession!('a1')).resolves.toBe(true)

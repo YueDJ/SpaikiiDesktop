@@ -99,7 +99,7 @@ Key behaviors:
 Toolsets are named bundles of tools. Sparkii resolves them through:
 
 - explicit enabled/disabled toolset lists
-- platform presets (`sparkii-cli`, `sparkii-telegram`, etc.)
+- platform presets (`sparkii-cli`, `sparkii-webhook`, etc.)
 - dynamic MCP toolsets
 - curated special-purpose sets like `sparkii-acp`
 

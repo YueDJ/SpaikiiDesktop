@@ -51,7 +51,7 @@ sparkii tools
 
 Common toolsets include `web`, `search`, `terminal`, `file`, `browser`, `vision`, `image_gen`, `skills`, `tts`, `todo`, `memory`, `session_search`, `cronjob`, `code_execution`, `delegation`, `clarify`, `homeassistant`, `messaging`, `spotify`, `discord`, `discord_admin`, `debugging`, and `safe`.
 
-See [Toolsets Reference](/reference/toolsets-reference) for the full set, including platform presets such as `sparkii-cli`, `sparkii-telegram`, and dynamic MCP toolsets like `mcp-<server>`.
+See [Toolsets Reference](/reference/toolsets-reference) for the full set, including platform presets such as `sparkii-cli` and `sparkii-webhook`, and dynamic MCP toolsets like `mcp-<server>`.
 
 ## Terminal Backends
 

@@ -45,23 +45,6 @@ Sparkii Agent 功能丰富——CLI 助手、Telegram/Discord 机器人、任务
 通过上下文文件将文件直接传入对话。Sparkii Agent 可以读取、编辑并运行您项目中的代码。
 :::
 
-### "我想要一个 Telegram/Discord 机器人"
-
-将 Sparkii Agent 部署为您常用消息平台上的机器人。
-
-1. [安装](/getting-started/installation)
-2. [配置](/user-guide/configuration)
-3. [消息概览](/user-guide/messaging)
-4. [Telegram 配置](/user-guide/messaging/telegram)
-5. [Discord 配置](/user-guide/messaging/discord)
-6. [语音模式](/user-guide/features/voice-mode)
-7. [在 Sparkii 中使用语音模式](/guides/use-voice-mode-with-sparkii)
-8. [安全](/user-guide/security)
-
-完整项目示例请参阅：
-- [每日简报机器人](/guides/daily-briefing-bot)
-- [团队 Telegram 助手](/guides/team-telegram-assistant)
-
 ### "我想自动化任务"
 
 调度周期性任务、运行批处理作业，或将多个 agent 动作串联起来。

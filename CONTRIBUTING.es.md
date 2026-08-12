@@ -81,7 +81,7 @@ Esto no es una barra de calidad — es una decisión de acoplamiento y mantenimi
 ### Clonar e instalar
 
 ```bash
-git clone https://github.com/NousResearch/sparkii-agent.git
+git clone https://github.com/YueDJ/SpaikiiDesktop.git
 cd sparkii-agent
 
 # Crear venv con Python 3.11
@@ -138,7 +138,7 @@ sparkii-agent/
 ├── run_agent.py              # Clase AIAgent — bucle de conversación central, despacho de herramientas, persistencia de sesión
 ├── cli.py                    # Clase SparkiiCLI — TUI interactiva, integración prompt_toolkit
 ├── model_tools.py            # Orquestación de herramientas (capa delgada sobre tools/registry.py)
-├── toolsets.py               # Agrupaciones y presets de herramientas (sparkii-cli, sparkii-telegram, etc.)
+├── toolsets.py               # Agrupaciones y presets de herramientas (sparkii-cli, sparkii-webhook, etc.)
 ├── sparkii_state.py           # Base de datos de sesiones SQLite con búsqueda de texto completo FTS5, títulos de sesión
 ├── batch_runner.py           # Procesamiento en lote paralelo para generación de trayectorias
 │
@@ -194,7 +194,7 @@ sparkii-agent/
 ├── skills/                   # Habilidades incluidas (copiadas a ~/.sparkii/skills/ en la instalación)
 ├── optional-skills/          # Habilidades opcionales oficiales (descubribles vía hub, no activadas por defecto)
 ├── tests/                    # Suite de tests
-├── website/                  # Sitio de documentación (sparkii-agent.nousresearch.com)
+├── website/                  # Sitio de documentación (Docusaurus en el repo)
 │
 ├── cli-config.yaml.example   # Configuración de ejemplo (copiada a ~/.sparkii/config.yaml)
 └── AGENTS.md                 # Guía de desarrollo para asistentes de codificación IA
@@ -581,7 +581,7 @@ test(tools): añadir tests unitarios para file_operations
 
 ## Reportar Issues
 
-- Usa [GitHub Issues](https://github.com/NousResearch/sparkii-agent/issues)
+- Usa [GitHub Issues](https://github.com/YueDJ/SpaikiiDesktop/issues)
 - Incluye: SO, versión de Python, versión de Sparkii (`sparkii version`), traza de error completa
 - Incluye pasos para reproducir
 - Verifica los issues existentes antes de crear duplicados

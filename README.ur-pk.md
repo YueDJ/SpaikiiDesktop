@@ -4,24 +4,22 @@
   <img src="assets/banner.png" alt="Sparkii Agent" width="100%">
 </p>
 
-# ہرمیس ایجنٹ ☤ (Sparkii Agent)
+# سپارکی ایجنٹ ☤ (Sparkii Agent)
 
 <p align="center">
-  <a href="https://sparkii-agent.nousresearch.com/docs/"><img src="https://img.shields.io/badge/Docs-sparkii--agent.nousresearch.com-FFD700?style=for-the-badge" alt="Documentation"></a>
-  <a href="https://discord.gg/NousResearch"><img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
-  <a href="https://github.com/NousResearch/sparkii-agent/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
-  <a href="https://nousresearch.com"><img src="https://img.shields.io/badge/Built%20by-Nous%20Research-blueviolet?style=for-the-badge" alt="Built by Nous Research"></a>
+  <a href="https://github.com/YueDJ/SpaikiiDesktop"><img src="https://img.shields.io/badge/Repo-YueDJ%2FSpaikiiDesktop-FFD700?style=for-the-badge" alt="Repository"></a>
+  <a href="https://github.com/YueDJ/SpaikiiDesktop/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
+  <a href="https://github.com/NousResearch/sparkii-agent"><img src="https://img.shields.io/badge/Upstream-Nous%20Research%20Sparkii-blueviolet?style=for-the-badge" alt="Upstream"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/Lang-English-lightgrey?style=for-the-badge" alt="English"></a>
   <a href="README.zh-CN.md"><img src="https://img.shields.io/badge/Lang-中文-red?style=for-the-badge" alt="中文"></a>
 </p>
 
-**[نوس ریسرچ (Nous Research)](https://nousresearch.com) کا تیار کردہ خود کو بہتر بنانے والا اے آئی (AI) ایجنٹ۔** یہ واحد ایجنٹ ہے جس میں سیکھنے کا عمل (learning loop) پہلے سے موجود ہے — یہ اپنے تجربات سے نئی مہارتیں (skills) بناتا ہے، استعمال کے دوران ان کو بہتر کرتا ہے، معلومات کو محفوظ رکھنے کے لیے خود کو یاد دہانی کرواتا ہے، اپنی پرانی بات چیت کو تلاش کر سکتا ہے، اور مختلف سیشنز کے دوران آپ کے بارے میں ایک گہری سمجھ پیدا کرتا ہے۔ اسے $5 والے VPS پر چلائیں، GPU کلسٹر پر، یا سرور لیس (serverless) انفراسٹرکچر پر جس کی قیمت استعمال نہ ہونے پر تقریباً صفر ہے۔ یہ آپ کے لیپ ٹاپ تک محدود نہیں ہے — آپ ٹیلی گرام (Telegram) سے اس کے ساتھ بات چیت کر سکتے ہیں جبکہ یہ کلاؤڈ VM پر کام کر رہا ہو۔
+**خود کو بہتر بنانے والا اے آئی (AI) ایجنٹ — [نوس ریسرچ (Nous Research)](https://github.com/NousResearch/sparkii-agent) کے سپارکی ایجنٹ کا ذاتی فورک (fork)۔** یہ واحد ایجنٹ ہے جس میں سیکھنے کا عمل (learning loop) پہلے سے موجود ہے — یہ اپنے تجربات سے نئی مہارتیں (skills) بناتا ہے، استعمال کے دوران ان کو بہتر کرتا ہے، معلومات کو محفوظ رکھنے کے لیے خود کو یاد دہانی کرواتا ہے، اپنی پرانی بات چیت کو تلاش کر سکتا ہے، اور مختلف سیشنز کے دوران آپ کے بارے میں ایک گہری سمجھ پیدا کرتا ہے۔ اسے $5 والے VPS پر چلائیں، GPU کلسٹر پر، یا سرور لیس (serverless) انفراسٹرکچر پر جس کی قیمت استعمال نہ ہونے پر تقریباً صفر ہے۔ اس فورک میں میسجنگ پلیٹ فارم گیٹ ویز کو ہٹا دیا گیا ہے؛ CLI، TUI اور ڈیسک ٹاپ ایپ معاون انٹرفیس ہیں۔
 
 آپ اپنی مرضی کا کوئی بھی ماڈل استعمال کر سکتے ہیں — [Nous Portal](https://portal.nousresearch.com)، [OpenRouter](https://openrouter.ai) (200 سے زائد ماڈلز)، [NovitaAI](https://novita.ai) (ماڈل API، ایجنٹ سینڈ باکس، اور GPU کلاؤڈ کے لیے اے آئی مقامی کلاؤڈ)، [NVIDIA NIM](https://build.nvidia.com) (Nemotron)، [Xiaomi MiMo](https://platform.xiaomimimo.com)، [z.ai/GLM](https://z.ai)، [Kimi/Moonshot](https://platform.moonshot.ai)، [MiniMax](https://www.minimax.io)، [Hugging Face](https://huggingface.co)، OpenAI، یا اپنا حسب ضرورت اینڈ پوائنٹ (endpoint) استعمال کریں۔ ماڈل تبدیل کرنے کے لیے صرف `sparkii model` استعمال کریں — کسی کوڈ کو تبدیل کرنے کی ضرورت نہیں، کوئی پابندی نہیں۔
 
 <table>
 <tr><td><b>حقیقی ٹرمینل انٹرفیس</b></td><td>مکمل TUI جس میں ملٹی لائن ایڈیٹنگ، سلیش-کمانڈ آٹو کمپلیٹ، بات چیت کی ہسٹری، انٹرپٹ اور ری ڈائریکٹ، اور سٹریمنگ ٹول آؤٹ پٹ شامل ہے۔</td></tr>
-<tr><td><b>یہ وہاں موجود ہے جہاں آپ ہیں</b></td><td>ٹیلی گرام، ڈسکارڈ (Discord)، سلیک (Slack)، واٹس ایپ (WhatsApp)، سگنل (Signal)، اور CLI — سب ایک ہی گیٹ وے پروسیس سے کام کرتے ہیں۔ وائس میمو (Voice memo) ٹرانسکرپشن، کراس پلیٹ فارم بات چیت کا تسلسل۔</td></tr>
 <tr><td><b>سیکھنے کا ایک مکمل عمل</b></td><td>ایجنٹ کی اپنی ترتیب دی گئی میموری، جس میں وہ خود کو وقتاً فوقتاً یاد دہانی کرواتا ہے۔ پیچیدہ کاموں کے بعد خود کار طریقے سے مہارت (skill) کی تخلیق۔ استعمال کے دوران مہارتوں میں بہتری۔ LLM سمرائزیشن کے ساتھ FTS5 سیشن سرچ تاکہ پرانے سیشنز کی یاددہانی کی جا سکے۔ <a href="https://github.com/plastic-labs/honcho">Honcho</a> کے ذریعے صارف کی ماڈلنگ۔ <a href="https://agentskills.io">agentskills.io</a> اوپن سٹینڈرڈ کے ساتھ مکمل مطابقت۔</td></tr>
 <tr><td><b>شیڈول کی گئی خودکار کارروائیاں</b></td><td>بلٹ ان (Built-in) کرون (cron) شیڈیولر جو کسی بھی پلیٹ فارم پر ڈیلیوری کے لیے استعمال ہو سکتا ہے۔ روزانہ کی رپورٹس، رات کے بیک اپس، ہفتہ وار آڈٹس — یہ سب کچھ قدرتی زبان (natural language) میں اور بغیر کسی نگرانی کے کام کرتا ہے۔</td></tr>
 <tr><td><b>کام کی تقسیم اور متوازی عمل</b></td><td>متوازی (parallel) کاموں کے لیے الگ سے ذیلی ایجنٹس (subagents) بنائیں۔ پائتھون (Python) سکرپٹس لکھیں جو RPC کے ذریعے ٹولز کو استعمال کریں، تاکہ کئی مراحل پر مشتمل کاموں کو بغیر کسی سیاق و سباق (context) کے خرچ کے، ایک ہی باری میں انجام دیا جا سکے۔</td></tr>
@@ -38,32 +36,32 @@
 <div dir="ltr">
 
 ```bash
-curl -fsSL https://sparkii-agent.nousresearch.com/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/YueDJ/SpaikiiDesktop/main/scripts/install.sh | bash
 ```
 
 </div>
 
 ### ونڈوز (نیٹو، پاور شیل)
 
-> **توجہ فرمائیں:** مقامی ونڈوز (Native Windows) پر ہرمیس بغیر WSL کے چلتا ہے — CLI، گیٹ وے، TUI، اور ٹولز سب مقامی طور پر کام کرتے ہیں۔ اگر آپ WSL2 استعمال کرنا پسند کرتے ہیں، تو اوپر دی گئی لینکس/میک او ایس کی کمانڈ وہاں بھی کام کرے گی۔ کوئی مسئلہ نظر آیا؟ براہ کرم [مسائل (issues) درج کریں](https://github.com/NousResearch/sparkii-agent/issues)۔
+> **توجہ فرمائیں:** مقامی ونڈوز (Native Windows) پر سپارکی بغیر WSL کے چلتا ہے — CLI، گیٹ وے، TUI، اور ٹولز سب مقامی طور پر کام کرتے ہیں۔ اگر آپ WSL2 استعمال کرنا پسند کرتے ہیں، تو اوپر دی گئی لینکس/میک او ایس کی کمانڈ وہاں بھی کام کرے گی۔ کوئی مسئلہ نظر آیا؟ براہ کرم [مسائل (issues) درج کریں](https://github.com/YueDJ/SpaikiiDesktop/issues)۔
 
 اسے پاور شیل (PowerShell) میں چلائیں:
 
 <div dir="ltr">
 
 ```powershell
-iex (irm https://sparkii-agent.nousresearch.com/install.ps1)
+iex (irm https://raw.githubusercontent.com/YueDJ/SpaikiiDesktop/main/scripts/install.ps1)
 ```
 
 </div>
 
-انسٹالر سب کچھ خود سنبھالتا ہے: uv، Python 3.11، Node.js، ripgrep، ffmpeg، **اور ایک پورٹ ایبل (portable) گٹ بیش (Git Bash)** (یعنی MinGit، جو `%LOCALAPPDATA%\sparkii\git` میں ان پیک ہوتا ہے — اس کے لیے ایڈمن کی اجازت درکار نہیں، اور یہ سسٹم کے کسی بھی گٹ انسٹال سے بالکل الگ ہے)۔ ہرمیس اس بنڈل شدہ گٹ بیش کو شیل کمانڈز چلانے کے لیے استعمال کرتا ہے۔
+انسٹالر سب کچھ خود سنبھالتا ہے: uv، Python 3.11، Node.js، ripgrep، ffmpeg، **اور ایک پورٹ ایبل (portable) گٹ بیش (Git Bash)** (یعنی MinGit، جو `%LOCALAPPDATA%\sparkii\git` میں ان پیک ہوتا ہے — اس کے لیے ایڈمن کی اجازت درکار نہیں، اور یہ سسٹم کے کسی بھی گٹ انسٹال سے بالکل الگ ہے)۔ سپارکی اس بنڈل شدہ گٹ بیش کو شیل کمانڈز چلانے کے لیے استعمال کرتا ہے۔
 
 اگر آپ کے پاس پہلے سے گٹ (Git) انسٹال ہے، تو انسٹالر اسے شناخت کر لیتا ہے اور اسے ہی استعمال کرتا ہے۔ بصورت دیگر آپ کو صرف ~45MB کے MinGit ڈاؤنلوڈ کی ضرورت ہوگی — یہ آپ کے سسٹم کے گٹ پر کوئی اثر نہیں ڈالے گا۔
 
-> **اینڈرائیڈ (Android) / ٹرمکس (Termux):** ٹیسٹ کیا گیا مینوئل طریقہ [Termux گائیڈ](https://sparkii-agent.nousresearch.com/docs/getting-started/termux) میں موجود ہے۔ ٹرمکس پر ہرمیس ایک مخصوص `.[termux]` ایکسٹرا انسٹال کرتا ہے کیونکہ مکمل `.[all]` ایکسٹرا میں ایسی وائس ڈیپینڈینسیز شامل ہیں جو اینڈرائیڈ کے ساتھ مطابقت نہیں رکھتیں۔
+> **اینڈرائیڈ (Android) / ٹرمکس (Termux):** ٹیسٹ کیا گیا مینوئل طریقہ [Termux گائیڈ](website/docs/getting-started/termux.md) میں موجود ہے۔ ٹرمکس پر سپارکی ایک مخصوص `.[termux]` ایکسٹرا انسٹال کرتا ہے کیونکہ مکمل `.[all]` ایکسٹرا میں ایسی وائس ڈیپینڈینسیز شامل ہیں جو اینڈرائیڈ کے ساتھ مطابقت نہیں رکھتیں۔
 >
-> **ونڈوز (Windows):** مقامی ونڈوز کی مکمل سپورٹ موجود ہے — اوپر دی گئی پاور شیل کی کمانڈ سب کچھ انسٹال کر دیتی ہے۔ اگر آپ WSL2 استعمال کرنا چاہتے ہیں، تو لینکس کی کمانڈ وہاں کام کرتی ہے۔ مقامی ونڈوز میں انسٹالیشن `%LOCALAPPDATA%\sparkii` میں ہوتی ہے؛ جبکہ WSL2 میں لینکس کی طرح `~/.sparkii` میں ہوتی ہے۔ ہرمیس کا وہ واحد فیچر جسے فی الحال خاص طور پر WSL2 کی ضرورت ہے وہ براؤزر پر مبنی ڈیش بورڈ چیٹ پین ہے (یہ POSIX PTY استعمال کرتا ہے — کلاسک CLI اور گیٹ وے دونوں مقامی طور پر چلتے ہیں)۔
+> **ونڈوز (Windows):** مقامی ونڈوز کی مکمل سپورٹ موجود ہے — اوپر دی گئی پاور شیل کی کمانڈ سب کچھ انسٹال کر دیتی ہے۔ اگر آپ WSL2 استعمال کرنا چاہتے ہیں، تو لینکس کی کمانڈ وہاں کام کرتی ہے۔ مقامی ونڈوز میں انسٹالیشن `%LOCALAPPDATA%\sparkii` میں ہوتی ہے؛ جبکہ WSL2 میں لینکس کی طرح `~/.sparkii` میں ہوتی ہے۔ سپارکی کا وہ واحد فیچر جسے فی الحال خاص طور پر WSL2 کی ضرورت ہے وہ براؤزر پر مبنی ڈیش بورڈ چیٹ پین ہے (یہ POSIX PTY استعمال کرتا ہے — کلاسک CLI اور گیٹ وے دونوں مقامی طور پر چلتے ہیں)۔
 
 انسٹالیشن کے بعد:
 
@@ -87,7 +85,7 @@ sparkii              # انٹرایکٹو CLI — بات چیت شروع کری�
 sparkii model        # اپنا LLM پرووائیڈر اور ماڈل منتخب کریں
 sparkii tools        # کنفیگر کریں کہ کون سے ٹولز ایکٹو ہیں
 sparkii config set   # انفرادی کنفگ (config) ویلیوز سیٹ کریں
-sparkii gateway      # میسجنگ گیٹ وے شروع کریں (ٹیلی گرام، ڈسکارڈ، وغیرہ)
+sparkii gateway      # گیٹ وے شروع کریں (webhook / API server)
 sparkii setup        # مکمل سیٹ اپ وزرڈ چلائیں (یہ سب کچھ ایک ساتھ کنفیگر کر دے گا)
 sparkii claw migrate # OpenClaw سے مائیگریٹ کریں (اگر آپ OpenClaw سے آ رہے ہیں)
 sparkii update       # لیٹسٹ ورژن پر اپ ڈیٹ کریں
@@ -96,13 +94,13 @@ sparkii doctor       # کسی بھی مسئلے کی تشخیص کریں
 
 </div>
 
-📖 **[مکمل دستاویزات →](https://sparkii-agent.nousresearch.com/docs/)**
+📖 **[مکمل دستاویزات →](website/docs/)**
 
 ---
 
 ## API-کیز اکٹھی کرنے سے بچیں — Nous Portal
 
-ہرمیس آپ کے پسندیدہ پرووائیڈر کے ساتھ کام کرتا ہے — یہ چیز تبدیل نہیں ہو رہی۔ لیکن اگر آپ ماڈل، ویب سرچ، امیج جنریشن، TTS، اور کلاؤڈ براؤزر کے لیے پانچ الگ الگ API کیز جمع نہیں کرنا چاہتے، تو **[Nous Portal](https://portal.nousresearch.com)** ان سب کو ایک ہی سبسکرپشن کے تحت کور کرتا ہے:
+سپارکی آپ کے پسندیدہ پرووائیڈر کے ساتھ کام کرتا ہے — یہ چیز تبدیل نہیں ہو رہی۔ لیکن اگر آپ ماڈل، ویب سرچ، امیج جنریشن، TTS، اور کلاؤڈ براؤزر کے لیے پانچ الگ الگ API کیز جمع نہیں کرنا چاہتے، تو **[Nous Portal](https://portal.nousresearch.com)** ان سب کو ایک ہی سبسکرپشن کے تحت کور کرتا ہے:
 
 - **300+ ماڈلز** — ان میں سے کوئی بھی ماڈل `/model <name>` کے ذریعے منتخب کریں
 - **ٹول گیٹ وے (Tool Gateway)** — ویب سرچ (Firecrawl)، امیج جنریشن (FAL)، ٹیکسٹ ٹو سپیچ (OpenAI)، کلاؤڈ براؤزر (Browser Use)، یہ سب آپ کی سبسکرپشن کے ذریعے چلتے ہیں۔ کسی اضافی اکاؤنٹ کی ضرورت نہیں۔
@@ -117,7 +115,7 @@ sparkii setup --portal
 
 </div>
 
-یہ آپ کو OAuth کے ذریعے لاگ ان کرواتا ہے، Nous کو آپ کا پرووائیڈر مقرر کرتا ہے، اور ٹول گیٹ وے کو آن کر دیتا ہے۔ `sparkii portal info` کمانڈ استعمال کر کے آپ کسی بھی وقت چیک کر سکتے ہیں کہ کون کون سی سروسز منسلک ہیں۔ مکمل تفصیلات [Tool Gateway دستاویزات کے صفحے](https://sparkii-agent.nousresearch.com/docs/user-guide/features/tool-gateway) پر موجود ہیں۔
+یہ آپ کو OAuth کے ذریعے لاگ ان کرواتا ہے، Nous کو آپ کا پرووائیڈر مقرر کرتا ہے، اور ٹول گیٹ وے کو آن کر دیتا ہے۔ `sparkii portal info` کمانڈ استعمال کر کے آپ کسی بھی وقت چیک کر سکتے ہیں کہ کون کون سی سروسز منسلک ہیں۔ مکمل تفصیلات [Tool Gateway دستاویزات کے صفحے](website/docs/user-guide/features/tool-gateway.md) پر موجود ہیں۔
 
 آپ اب بھی کسی بھی ٹول کے لیے اپنی مرضی کی API کیز استعمال کر سکتے ہیں — گیٹ وے ہر سروس کے لیے الگ الگ کام کرتا ہے، ایسا نہیں کہ یا تو سب کچھ استعمال کریں یا کچھ بھی نہیں۔
 
@@ -125,51 +123,49 @@ sparkii setup --portal
 
 ## CLI بمقابلہ میسجنگ فوری حوالہ
 
-ہرمیس کے دو بنیادی انٹر فیس ہیں: آپ ٹرمینل UI کو `sparkii` کے ساتھ شروع کریں، یا گیٹ وے چلا کر اس کے ساتھ ٹیلی گرام، ڈسکارڈ، سلیک، واٹس ایپ، سگنل، یا ای میل کے ذریعے بات کریں۔ جب آپ کسی بات چیت میں ہوتے ہیں، تو بہت سی سلیش (slash) کمانڈز دونوں انٹرفیسز میں ایک جیسی ہوتی ہیں۔
+ٹرمینل UI کو `sparkii` کے ساتھ شروع کریں — CLI، TUI اور ڈیسک ٹاپ ایپ ایک ہی سلیش (slash) کمانڈز شیئر کرتے ہیں۔
 
 <div dir="ltr">
 
-| کارروائی (Action)                         | سی ایل آئی (CLI)                              | میسجنگ پلیٹ فارمز (Messaging platforms)                                          |
-| --------------------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------- |
-| بات چیت شروع کریں                       | `sparkii`                                      | `sparkii gateway setup` اور `sparkii gateway start` چلائیں، پھر بوٹ کو میسج بھیجیں |
-| نئی بات چیت شروع کریں                   | `/new` یا `/reset`                            | `/new` یا `/reset`                                                               |
-| ماڈل تبدیل کریں                         | `/model [provider:model]`                     | `/model [provider:model]`                                                        |
-| پرسنلٹی (Personality) سیٹ کریں           | `/personality [name]`                         | `/personality [name]`                                                            |
-| پچھلی باری کو دوبارہ یا منسوخ (undo) کریں | `/retry`، `/undo`                             | `/retry`، `/undo`                                                                |
-| کانٹیکسٹ (context) کمپریس کریں / استعمال چیک کریں | `/compress`، `/usage`، `/insights [--days N]` | `/compress`، `/usage`، `/insights [days]`                                        |
-| مہارتیں (Skills) براؤز کریں             | `/skills` یا `/<skill-name>`                  | `/<skill-name>`                                                                  |
-| موجودہ کام کو روکیں                     | `Ctrl+C` دبائیں یا نیا میسج بھیجیں            | `/stop` یا نیا میسج بھیجیں                                                       |
-| پلیٹ فارم کے لحاظ سے سٹیٹس              | `/platforms`                                  | `/status`، `/sethome`                                                            |
+| کارروائی (Action)                         | سی ایل آئی (CLI)                              |
+| --------------------------------------- | --------------------------------------------- |
+| بات چیت شروع کریں                       | `sparkii`                                     |
+| نئی بات چیت شروع کریں                   | `/new` یا `/reset`                            |
+| ماڈل تبدیل کریں                         | `/model [provider:model]`                     |
+| پرسنلٹی (Personality) سیٹ کریں           | `/personality [name]`                         |
+| پچھلی باری کو دوبارہ یا منسوخ (undo) کریں | `/retry`، `/undo`                             |
+| کانٹیکسٹ (context) کمپریس کریں / استعمال چیک کریں | `/compress`، `/usage`، `/insights [--days N]` |
+| مہارتیں (Skills) براؤز کریں             | `/skills` یا `/<skill-name>`                  |
+| موجودہ کام کو روکیں                     | `Ctrl+C` دبائیں یا نیا میسج بھیجیں            |
 
 </div>
 
-مکمل کمانڈ لسٹ کے لیے، [CLI گائیڈ](https://sparkii-agent.nousresearch.com/docs/user-guide/cli) اور [میسجنگ گیٹ وے گائیڈ](https://sparkii-agent.nousresearch.com/docs/user-guide/messaging) دیکھیں۔
+مکمل کمانڈ لسٹ کے لیے، [CLI گائیڈ](website/docs/user-guide/cli.md) دیکھیں۔
 
 ---
 
 ## دستاویزات (Documentation)
 
-تمام دستاویزات **[sparkii-agent.nousresearch.com/docs](https://sparkii-agent.nousresearch.com/docs/)** پر موجود ہیں:
+تمام دستاویزات اس ریپوزٹری کے [website/docs](website/docs/) ڈائریکٹری میں موجود ہیں:
 
 <div dir="ltr">
 
 | سیکشن (Section)                                                                                     | تفصیل (What's Covered)                                     |
 | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| [فوری آغاز (Quickstart)](https://sparkii-agent.nousresearch.com/docs/getting-started/quickstart)     | انسٹالیشن → سیٹ اپ → 2 منٹ میں پہلی بات چیت شروع کریں       |
-| [CLI کا استعمال](https://sparkii-agent.nousresearch.com/docs/user-guide/cli)                         | کمانڈز، کی بائنڈنگز (keybindings)، پرسنلٹیز (personalities)، سیشنز |
-| [کنفیگریشن (Configuration)](https://sparkii-agent.nousresearch.com/docs/user-guide/configuration)    | کنفگ فائل، پرووائیڈرز، ماڈلز، اور تمام آپشنز               |
-| [میسجنگ گیٹ وے](https://sparkii-agent.nousresearch.com/docs/user-guide/messaging)                    | ٹیلی گرام، ڈسکارڈ، سلیک، واٹس ایپ، سگنل، ہوم اسسٹنٹ         |
-| [سیکیورٹی (Security)](https://sparkii-agent.nousresearch.com/docs/user-guide/security)              | کمانڈ کی منظوری، DM پیئرنگ (pairing)، کنٹینر آئسولیشن       |
-| [ٹولز اور ٹول سیٹس](https://sparkii-agent.nousresearch.com/docs/user-guide/features/tools)          | 40 سے زائد ٹولز، ٹول سیٹ سسٹم، ٹرمینل بیک اینڈز             |
-| [مہارتوں کا سسٹم (Skills System)](https://sparkii-agent.nousresearch.com/docs/user-guide/features/skills)| پروسیجرل (Procedural) میموری، سکلز ہب، نئی مہارتیں بنانا    |
-| [میموری (Memory)](https://sparkii-agent.nousresearch.com/docs/user-guide/features/memory)            | مستقل میموری، یوزر پروفائلز، بہترین طریقہ کار              |
-| [MCP انضمام (Integration)](https://sparkii-agent.nousresearch.com/docs/user-guide/features/mcp)      | صلاحیتوں کو بڑھانے کے لیے کسی بھی MCP سرور کو جوڑیں        |
-| [کرون (Cron) شیڈیولنگ](https://sparkii-agent.nousresearch.com/docs/user-guide/features/cron)         | پلیٹ فارم ڈیلیوری کے ساتھ شیڈول کیے گئے کام                 |
-| [کانٹیکسٹ (Context) فائلز](https://sparkii-agent.nousresearch.com/docs/user-guide/features/context-files)| پروجیکٹ کا سیاق و سباق (context) جو ہر بات چیت پر اثر انداز ہوتا ہے |
-| [آرکیٹیکچر (Architecture)](https://sparkii-agent.nousresearch.com/docs/developer-guide/architecture) | پروجیکٹ کا ڈھانچہ، ایجنٹ لوپ، اہم کلاسز                    |
-| [تعاون (Contributing)](https://sparkii-agent.nousresearch.com/docs/developer-guide/contributing)     | ڈیویلپمنٹ سیٹ اپ، PR کا طریقہ کار، کوڈنگ کا انداز          |
-| [CLI حوالہ جات (Reference)](https://sparkii-agent.nousresearch.com/docs/reference/cli-commands)      | تمام کمانڈز اور فلیگز (flags)                              |
-| [انوائرمنٹ ویری ایبلز](https://sparkii-agent.nousresearch.com/docs/reference/environment-variables)  | مکمل انوائرمنٹ ویری ایبل حوالہ جات                         |
+| [فوری آغاز (Quickstart)](website/docs/getting-started/quickstart.md)     | انسٹالیشن → سیٹ اپ → 2 منٹ میں پہلی بات چیت شروع کریں       |
+| [CLI کا استعمال](website/docs/user-guide/cli.md)                         | کمانڈز، کی بائنڈنگز (keybindings)، پرسنلٹیز (personalities)، سیشنز |
+| [کنفیگریشن (Configuration)](website/docs/user-guide/configuration.md)    | کنفگ فائل، پرووائیڈرز، ماڈلز، اور تمام آپشنز               |
+| [سیکیورٹی (Security)](website/docs/user-guide/security.md)              | کمانڈ کی منظوری، کنٹینر آئسولیشن                           |
+| [ٹولز اور ٹول سیٹس](website/docs/user-guide/features/tools.md)          | 40 سے زائد ٹولز، ٹول سیٹ سسٹم، ٹرمینل بیک اینڈز             |
+| [مہارتوں کا سسٹم (Skills System)](website/docs/user-guide/features/skills.md)| پروسیجرل (Procedural) میموری، سکلز ہب، نئی مہارتیں بنانا    |
+| [میموری (Memory)](website/docs/user-guide/features/memory.md)            | مستقل میموری، یوزر پروفائلز، بہترین طریقہ کار              |
+| [MCP انضمام (Integration)](website/docs/user-guide/features/mcp.md)      | صلاحیتوں کو بڑھانے کے لیے کسی بھی MCP سرور کو جوڑیں        |
+| [کرون (Cron) شیڈیولنگ](website/docs/user-guide/features/cron.md)         | پلیٹ فارم ڈیلیوری کے ساتھ شیڈول کیے گئے کام                 |
+| [کانٹیکسٹ (Context) فائلز](website/docs/user-guide/features/context-files.md)| پروجیکٹ کا سیاق و سباق (context) جو ہر بات چیت پر اثر انداز ہوتا ہے |
+| [آرکیٹیکچر (Architecture)](website/docs/developer-guide/architecture.md) | پروجیکٹ کا ڈھانچہ، ایجنٹ لوپ، اہم کلاسز                    |
+| [تعاون (Contributing)](website/docs/developer-guide/contributing.md)     | ڈیویلپمنٹ سیٹ اپ، PR کا طریقہ کار، کوڈنگ کا انداز          |
+| [CLI حوالہ جات (Reference)](website/docs/reference/cli-commands.md)      | تمام کمانڈز اور فلیگز (flags)                              |
+| [انوائرمنٹ ویری ایبلز](website/docs/reference/environment-variables.md)  | مکمل انوائرمنٹ ویری ایبل حوالہ جات                         |
 
 </div>
 
@@ -177,7 +173,7 @@ sparkii setup --portal
 
 ## OpenClaw سے منتقلی
 
-اگر آپ OpenClaw سے منتقل ہو رہے ہیں، تو ہرمیس آپ کی سیٹنگز، یادیں (memories)، مہارتیں (skills)، اور API کیز کو خود بخود امپورٹ کر سکتا ہے۔
+اگر آپ OpenClaw سے منتقل ہو رہے ہیں، تو سپارکی آپ کی سیٹنگز، یادیں (memories)، مہارتیں (skills)، اور API کیز کو خود بخود امپورٹ کر سکتا ہے۔
 
 **پہلی بار سیٹ اپ کے دوران:** سیٹ اپ وزرڈ (`sparkii setup`) خود بخود `~/.openclaw` کو پہچان لیتا ہے اور کنفیگریشن شروع ہونے سے پہلے مائیگریٹ (migrate) کرنے کا آپشن دیتا ہے۔
 
@@ -211,14 +207,14 @@ sparkii claw migrate --overwrite  # موجودہ متصادم فائلوں کو 
 
 ## تعاون کریں (Contributing)
 
-ہم آپ کے تعاون کا خیرمقدم کرتے ہیں! ڈیویلپمنٹ سیٹ اپ، کوڈ کے انداز اور PR کے طریقہ کار کے لیے براہ کرم ہماری [Contributing گائیڈ](https://sparkii-agent.nousresearch.com/docs/developer-guide/contributing) دیکھیں۔
+ہم آپ کے تعاون کا خیرمقدم کرتے ہیں! ڈیویلپمنٹ سیٹ اپ، کوڈ کے انداز اور PR کے طریقہ کار کے لیے براہ کرم ہماری [Contributing گائیڈ](website/docs/developer-guide/contributing.md) دیکھیں۔
 
 معاونین (contributors) کے لیے فوری آغاز — کلون (clone) کریں اور `setup-sparkii.sh` چلائیں:
 
 <div dir="ltr">
 
 ```bash
-git clone https://github.com/NousResearch/sparkii-agent.git
+git clone https://github.com/YueDJ/SpaikiiDesktop.git
 cd sparkii-agent
 ./setup-sparkii.sh     # uv کو انسٹال کرتا ہے، venv بناتا ہے، .[all] کو انسٹال کرتا ہے، اور ~/.local/bin/sparkii کا سیم لنک (symlink) بناتا ہے
 ./sparkii              # خود بخود venv کی شناخت کرتا ہے، پہلے `source` کرنے کی ضرورت نہیں
@@ -244,11 +240,10 @@ scripts/run_tests.sh
 
 ## کمیونٹی (Community)
 
-- 💬 [ڈسکارڈ (Discord)](https://discord.gg/NousResearch)
 - 📚 [سکلز ہب (Skills Hub)](https://agentskills.io)
-- 🐛 [مسائل (Issues)](https://github.com/NousResearch/sparkii-agent/issues)
-- 🔌 [computer-use-linux](https://github.com/avifenesh/computer-use-linux) — ہرمیس اور دیگر MCP ہوسٹس کے لیے لینکس (Linux) ڈیسک ٹاپ کنٹرول MCP سرور، جس میں AT-SPI ایکسیسیبلٹی ٹریز، Wayland/X11 ان پٹ، سکرین شاٹس، اور کمپوزیٹر ونڈو ٹارگیٹنگ شامل ہے۔
-- 🔌 [HermesClaw](https://github.com/AaronWong1999/hermesclaw) — کمیونٹی وی چیٹ (WeChat) برج: ہرمیس ایجنٹ اور OpenClaw کو ایک ہی وی چیٹ اکاؤنٹ پر چلائیں۔
+- 🐛 [مسائل (Issues)](https://github.com/YueDJ/SpaikiiDesktop/issues)
+- 🔌 [computer-use-linux](https://github.com/avifenesh/computer-use-linux) — سپارکی اور دیگر MCP ہوسٹس کے لیے لینکس (Linux) ڈیسک ٹاپ کنٹرول MCP سرور، جس میں AT-SPI ایکسیسیبلٹی ٹریز، Wayland/X11 ان پٹ، سکرین شاٹس، اور کمپوزیٹر ونڈو ٹارگیٹنگ شامل ہے۔
+- 🔌 [HermesClaw](https://github.com/AaronWong1999/hermesclaw) — کمیونٹی وی چیٹ (WeChat) برج: سپارکی ایجنٹ اور OpenClaw کو ایک ہی وی چیٹ اکاؤنٹ پر چلائیں۔
 
 ---
 
@@ -256,6 +251,6 @@ scripts/run_tests.sh
 
 MIT — تفصیلات کے لیے [LICENSE](LICENSE) دیکھیں۔
 
-[نوس ریسرچ (Nous Research)](https://nousresearch.com) کی جانب سے تیار کردہ۔
+[نوس ریسرچ (Nous Research)](https://github.com/NousResearch/sparkii-agent) کی جانب سے تیار کردہ، [YueDJ](https://github.com/YueDJ) کے ذریعے برقرار رکھا جانے والا ذاتی فورک۔
 
 </div>

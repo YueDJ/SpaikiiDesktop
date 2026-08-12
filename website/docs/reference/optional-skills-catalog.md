@@ -243,7 +243,6 @@ sparkii skills uninstall <skill-name>
 
 | Skill | Description |
 |-------|-------------|
-| [**yuanbao**](/docs/user-guide/skills/optional/yuanbao/yuanbao-yuanbao) | Yuanbao (元宝) groups: @mention users, query info/members. |
 
 ---
 
