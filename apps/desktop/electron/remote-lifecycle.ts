@@ -200,7 +200,7 @@ async function locateSparkii(ssh, remoteSparkiiPath) {
 
   const err: any = new Error(
     'Sparkii is not installed on the remote host (could not find a `sparkii` executable). ' +
-      'Install it on the remote with:  curl -fsSL https://raw.githubusercontent.com/YueDJ/SpaikiiDesktop/main/scripts/install.sh | sh  ' +
+      'Install it on the remote with:  curl -fsSL https://raw.githubusercontent.com/YueDJ/SparkiiDesktop/main/scripts/install.sh | sh  ' +
       '— or set the Sparkii path explicitly in the SSH connection settings.'
   )
 

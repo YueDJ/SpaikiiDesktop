@@ -23,13 +23,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/YueDJ/SpaikiiDesktop.git"
+    "url": "git+https://github.com/YueDJ/SparkiiDesktop.git"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/YueDJ/SpaikiiDesktop/issues"
+    "url": "https://github.com/YueDJ/SparkiiDesktop/issues"
   },
-  "homepage": "https://github.com/YueDJ/SpaikiiDesktop#readme",
+  "homepage": "https://github.com/YueDJ/SparkiiDesktop#readme",
   "dependencies": {
     "@streamdown/math": "1.0.2",
     "agent-browser": "0.26.0",

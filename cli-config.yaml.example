@@ -1695,7 +1695,7 @@ updates:
 #     are skipped with a startup warning (never a silent clobber)
 #   - a source's override_existing lets it beat .env/shell values, but
 #     never another secret source's claim
-# Docs: https://github.com/YueDJ/SpaikiiDesktop/tree/main/website/docs/user-guide/secrets
+# Docs: https://github.com/YueDJ/SparkiiDesktop/tree/main/website/docs/user-guide/secrets
 #
 # secrets:
 #   # Optional explicit ordering of enabled sources.

@@ -4,11 +4,11 @@
 
 # Sparkii Agent ☤
 <p align="center">
-  <a href="https://github.com/YueDJ/SpaikiiDesktop">Sparkii Agent</a> | <a href="https://github.com/YueDJ/SpaikiiDesktop">Sparkii Desktop</a>
+  <a href="https://github.com/YueDJ/SparkiiDesktop">Sparkii Agent</a> | <a href="https://github.com/YueDJ/SparkiiDesktop">Sparkii Desktop</a>
 </p>
 <p align="center">
-  <a href="https://github.com/YueDJ/SpaikiiDesktop"><img src="https://img.shields.io/badge/Repo-YueDJ%2FSpaikiiDesktop-FFD700?style=for-the-badge" alt="Repository"></a>
-  <a href="https://github.com/YueDJ/SpaikiiDesktop/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
+  <a href="https://github.com/YueDJ/SparkiiDesktop"><img src="https://img.shields.io/badge/Repo-YueDJ%2FSparkiiDesktop-FFD700?style=for-the-badge" alt="Repository"></a>
+  <a href="https://github.com/YueDJ/SparkiiDesktop/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
   <a href="https://github.com/NousResearch/sparkii-agent"><img src="https://img.shields.io/badge/Upstream-Nous%20Research%20Sparkii-blueviolet?style=for-the-badge" alt="Upstream"></a>
   <a href="README.zh-CN.md"><img src="https://img.shields.io/badge/Lang-中文-red?style=for-the-badge" alt="中文"></a>
   <a href="README.ur-pk.md"><img src="https://img.shields.io/badge/Lang-اردو-green?style=for-the-badge" alt="اردو"></a>
@@ -17,7 +17,7 @@
 
 **The self-improving AI agent — a personal fork of [Nous Research](https://github.com/NousResearch/sparkii-agent)'s Sparkii agent.** It creates skills from experience, improves them during use, nudges itself to persist knowledge, searches its own past conversations, and builds a deepening model of who you are across sessions. Run it on a $5 VPS, a GPU cluster, or serverless infrastructure that costs nearly nothing when idle. Messaging-platform gateways have been removed from this fork; the CLI, TUI, and desktop app are the supported surfaces.
 
-Use any model you want — [Nous Portal](https://portal.nousresearch.com), OpenRouter, OpenAI, your own endpoint, and [many others](https://github.com/YueDJ/SpaikiiDesktop/tree/main/website/docs/integrations). Switch with `sparkii model` — no code changes, no lock-in.
+Use any model you want — [Nous Portal](https://portal.nousresearch.com), OpenRouter, OpenAI, your own endpoint, and [many others](https://github.com/YueDJ/SparkiiDesktop/tree/main/website/docs/integrations). Switch with `sparkii model` — no code changes, no lock-in.
 
 <table>
 <tr><td><b>A real terminal interface</b></td><td>Full TUI with multiline editing, slash-command autocomplete, conversation history, interrupt-and-redirect, and streaming tool output.</td></tr>
@@ -35,17 +35,17 @@ Use any model you want — [Nous Portal](https://portal.nousresearch.com), OpenR
 ### Linux, macOS, WSL2, Termux
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YueDJ/SpaikiiDesktop/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/YueDJ/SparkiiDesktop/main/scripts/install.sh | bash
 ```
 
 ### Windows (native, PowerShell)
 
-> **Heads up:** Native Windows runs Sparkii without WSL — CLI, gateway, TUI, and tools all work natively. If you'd rather use WSL2, the Linux/macOS one-liner above works there too. Found a bug? Please [file issues](https://github.com/YueDJ/SpaikiiDesktop/issues).
+> **Heads up:** Native Windows runs Sparkii without WSL — CLI, gateway, TUI, and tools all work natively. If you'd rather use WSL2, the Linux/macOS one-liner above works there too. Found a bug? Please [file issues](https://github.com/YueDJ/SparkiiDesktop/issues).
 
 Run this in PowerShell:
 
 ```powershell
-iex (irm https://raw.githubusercontent.com/YueDJ/SpaikiiDesktop/main/scripts/install.ps1)
+iex (irm https://raw.githubusercontent.com/YueDJ/SparkiiDesktop/main/scripts/install.ps1)
 ```
 
 The installer handles everything: uv, Python 3.11, Node.js, ripgrep, ffmpeg, **and a portable Git Bash** (MinGit, unpacked to `%LOCALAPPDATA%\sparkii\git` — no admin required, completely isolated from any system Git install). Sparkii uses this bundled Git Bash to run shell commands.
@@ -220,7 +220,7 @@ full git checkout it creates at `$SPARKII_HOME/sparkii-agent` (usually
 managed venv, lazy dependencies, gateway, and docs tooling.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YueDJ/SpaikiiDesktop/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/YueDJ/SparkiiDesktop/main/scripts/install.sh | bash
 cd "${SPARKII_HOME:-$HOME/.sparkii}/sparkii-agent"
 uv pip install -e ".[all,dev]"
 scripts/run_tests.sh
@@ -246,7 +246,7 @@ scripts/run_tests.sh
 ## Community
 
 - 📚 [Skills Hub](https://agentskills.io)
-- 🐛 [Issues](https://github.com/YueDJ/SpaikiiDesktop/issues)
+- 🐛 [Issues](https://github.com/YueDJ/SparkiiDesktop/issues)
 - 🔌 [computer-use-linux](https://github.com/avifenesh/computer-use-linux) — Linux desktop-control MCP server for Sparkii and other MCP hosts, with AT-SPI accessibility trees, Wayland/X11 input, screenshots, and compositor window targeting.
 - 🔌 [___SPARKIICLAW_PRESERVE___](https://github.com/AaronWong1999/___SPARKIICLAW_URL_PRESERVE___) — Community WeChat bridge: Run Sparkii Agent and OpenClaw on the same WeChat account.
 

@@ -7,7 +7,7 @@ const config: Config = {
   tagline: 'The self-improving AI agent',
   favicon: 'img/favicon.ico',
 
-  url: 'https://github.com/YueDJ/SpaikiiDesktop',
+  url: 'https://github.com/YueDJ/SparkiiDesktop',
   baseUrl: '/docs/',
 
   organizationName: 'NousResearch',
@@ -135,7 +135,7 @@ const config: Config = {
           position: 'left',
         },
         {
-          href: 'https://github.com/YueDJ/SpaikiiDesktop/releases',
+          href: 'https://github.com/YueDJ/SparkiiDesktop/releases',
           label: 'Download',
           position: 'left',
         },
@@ -144,12 +144,12 @@ const config: Config = {
           position: 'right',
         },
         {
-          href: 'https://github.com/YueDJ/SpaikiiDesktop',
+          href: 'https://github.com/YueDJ/SparkiiDesktop',
           label: 'Home',
           position: 'right',
         },
         {
-          href: 'https://github.com/YueDJ/SpaikiiDesktop',
+          href: 'https://github.com/YueDJ/SparkiiDesktop',
           label: 'GitHub',
           position: 'right',
         },
@@ -171,15 +171,15 @@ const config: Config = {
         {
           title: 'Community',
           items: [
-            { label: 'GitHub Issues', href: 'https://github.com/YueDJ/SpaikiiDesktop/issues' },
+            { label: 'GitHub Issues', href: 'https://github.com/YueDJ/SparkiiDesktop/issues' },
             { label: 'Skills Hub', href: 'https://agentskills.io' },
           ],
         },
         {
           title: 'More',
           items: [
-            { label: 'Desktop Download', href: 'https://github.com/YueDJ/SpaikiiDesktop/releases' },
-            { label: 'GitHub', href: 'https://github.com/YueDJ/SpaikiiDesktop' },
+            { label: 'Desktop Download', href: 'https://github.com/YueDJ/SparkiiDesktop/releases' },
+            { label: 'GitHub', href: 'https://github.com/YueDJ/SparkiiDesktop' },
             { label: 'Upstream', href: 'https://github.com/NousResearch/sparkii-agent' },
           ],
         },

@@ -1,9 +1,9 @@
 # Sparkii Desktop ☤
 
 <p align="center">
-  <a href="https://github.com/YueDJ/SpaikiiDesktop/releases"><img src="https://img.shields.io/badge/Download-macOS%20%C2%B7%20Windows%20%C2%B7%20Linux-FFD700?style=for-the-badge" alt="Download"></a>
-  <a href="https://github.com/YueDJ/SpaikiiDesktop/tree/main/website/docs"><img src="https://img.shields.io/badge/Docs-in--repo-FFD700?style=for-the-badge" alt="Documentation"></a>
-  <a href="https://github.com/YueDJ/SpaikiiDesktop/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
+  <a href="https://github.com/YueDJ/SparkiiDesktop/releases"><img src="https://img.shields.io/badge/Download-macOS%20%C2%B7%20Windows%20%C2%B7%20Linux-FFD700?style=for-the-badge" alt="Download"></a>
+  <a href="https://github.com/YueDJ/SparkiiDesktop/tree/main/website/docs"><img src="https://img.shields.io/badge/Docs-in--repo-FFD700?style=for-the-badge" alt="Documentation"></a>
+  <a href="https://github.com/YueDJ/SparkiiDesktop/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
 </p>
 
 **The native desktop app for [Sparkii Agent](../../README.md) — a personal fork of the self-improving AI agent from [Nous Research](https://github.com/NousResearch/sparkii-agent).** Same agent, same skills, same memory as the CLI and gateway, in a polished native window — chat with streaming tool output, side-by-side previews, a file browser, voice, and settings, no terminal required. Available for **macOS, Windows, and Linux**.
@@ -33,7 +33,7 @@ It builds and launches the GUI against your existing install — same config, ke
 
 ### Prebuilt installers
 
-Prebuilt installers are built and distributed via [the fork's GitHub releases.](https://github.com/YueDJ/SpaikiiDesktop/releases)
+Prebuilt installers are built and distributed via [the fork's GitHub releases.](https://github.com/YueDJ/SparkiiDesktop/releases)
 
 ---
 
@@ -184,7 +184,7 @@ rm "$HOME/.sparkii/sparkii-agent/.sparkii-bootstrap-complete"
 # Rebuild a broken Python venv
 rm -rf "$HOME/.sparkii/sparkii-agent/venv"
 # Reset a stuck macOS microphone prompt (macOS only)
-tccutil reset Microphone com.nousresearch.sparkii
+tccutil reset Microphone com.yuedj.sparkiidesktop
 ```
 
 **Windows (PowerShell):**
@@ -203,7 +203,7 @@ Remove-Item -Recurse -Force "$env:LOCALAPPDATA\sparkii\sparkii-agent\venv"
 ## Community
 
 - 📖 [Documentation](../../website/docs/)
-- 🐛 [Issues](https://github.com/YueDJ/SpaikiiDesktop/issues)
+- 🐛 [Issues](https://github.com/YueDJ/SparkiiDesktop/issues)
 
 ---
 

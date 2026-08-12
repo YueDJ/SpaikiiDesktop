@@ -4,11 +4,11 @@
 
 # Sparkii Agent ☤
 <p align="center">
-  <a href="https://github.com/YueDJ/SpaikiiDesktop">Sparkii Agent</a> | <a href="https://github.com/YueDJ/SpaikiiDesktop">Sparkii Desktop</a>
+  <a href="https://github.com/YueDJ/SparkiiDesktop">Sparkii Agent</a> | <a href="https://github.com/YueDJ/SparkiiDesktop">Sparkii Desktop</a>
 </p>
 <p align="center">
-  <a href="https://github.com/YueDJ/SpaikiiDesktop"><img src="https://img.shields.io/badge/Repo-YueDJ%2FSpaikiiDesktop-FFD700?style=for-the-badge" alt="Repository"></a>
-  <a href="https://github.com/YueDJ/SpaikiiDesktop/blob/main/LICENSE"><img src="https://img.shields.io/badge/Licencia-MIT-green?style=for-the-badge" alt="Licencia: MIT"></a>
+  <a href="https://github.com/YueDJ/SparkiiDesktop"><img src="https://img.shields.io/badge/Repo-YueDJ%2FSparkiiDesktop-FFD700?style=for-the-badge" alt="Repository"></a>
+  <a href="https://github.com/YueDJ/SparkiiDesktop/blob/main/LICENSE"><img src="https://img.shields.io/badge/Licencia-MIT-green?style=for-the-badge" alt="Licencia: MIT"></a>
   <a href="https://github.com/NousResearch/sparkii-agent"><img src="https://img.shields.io/badge/Upstream-Nous%20Research%20Sparkii-blueviolet?style=for-the-badge" alt="Upstream"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/Lang-English-blue?style=for-the-badge" alt="English"></a>
   <a href="README.zh-CN.md"><img src="https://img.shields.io/badge/Lang-中文-red?style=for-the-badge" alt="中文"></a>
@@ -35,17 +35,17 @@ Usa cualquier modelo que quieras — [Nous Portal](https://portal.nousresearch.c
 ### Linux, macOS, WSL2, Termux
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YueDJ/SpaikiiDesktop/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/YueDJ/SparkiiDesktop/main/scripts/install.sh | bash
 ```
 
 ### Windows (nativo, PowerShell)
 
-> **Nota:** En Windows nativo, Sparkii funciona sin WSL — la CLI, el gateway, la TUI y las herramientas funcionan de forma nativa. Si prefieres usar WSL2, el comando de Linux/macOS de arriba también funciona allí. ¿Encontraste un error? Por favor [crea un issue](https://github.com/YueDJ/SpaikiiDesktop/issues).
+> **Nota:** En Windows nativo, Sparkii funciona sin WSL — la CLI, el gateway, la TUI y las herramientas funcionan de forma nativa. Si prefieres usar WSL2, el comando de Linux/macOS de arriba también funciona allí. ¿Encontraste un error? Por favor [crea un issue](https://github.com/YueDJ/SparkiiDesktop/issues).
 
 Ejecuta esto en PowerShell:
 
 ```powershell
-iex (irm https://raw.githubusercontent.com/YueDJ/SpaikiiDesktop/main/scripts/install.ps1)
+iex (irm https://raw.githubusercontent.com/YueDJ/SparkiiDesktop/main/scripts/install.ps1)
 ```
 
 El instalador se encarga de todo: uv, Python 3.11, Node.js, ripgrep, ffmpeg, **y un Git Bash portátil** (MinGit, descomprimido en `%LOCALAPPDATA%\sparkii\git` — no requiere administrador, completamente aislado de cualquier instalación de Git del sistema). Sparkii usa este Git Bash incluido para ejecutar comandos de shell.
@@ -181,7 +181,7 @@ Consulta `sparkii claw migrate --help` para todas las opciones, o usa la habilid
 Inicio rápido para colaboradores — clona y comienza con `setup-sparkii.sh`:
 
 ```bash
-git clone https://github.com/YueDJ/SpaikiiDesktop.git
+git clone https://github.com/YueDJ/SparkiiDesktop.git
 cd sparkii-agent
 ./setup-sparkii.sh     # instala uv, crea venv, instala .[all], enlaza ~/.local/bin/sparkii
 ./sparkii              # detecta automáticamente el venv, no necesitas hacer `source` primero
@@ -202,7 +202,7 @@ scripts/run_tests.sh
 ## Comunidad
 
 - 📚 [Skills Hub](https://agentskills.io)
-- 🐛 [Issues](https://github.com/YueDJ/SpaikiiDesktop/issues)
+- 🐛 [Issues](https://github.com/YueDJ/SparkiiDesktop/issues)
 - 🔌 [computer-use-linux](https://github.com/avifenesh/computer-use-linux) — Servidor MCP de control de escritorio Linux para Sparkii y otros hosts MCP, con árboles de accesibilidad AT-SPI, entrada Wayland/X11, capturas de pantalla y targeting de ventanas del compositor.
 - 🔌 [___SPARKIICLAW_PRESERVE___](https://github.com/AaronWong1999/___SPARKIICLAW_URL_PRESERVE___) — Puente WeChat comunitario: Ejecuta Sparkii Agent y OpenClaw en la misma cuenta de WeChat.
 

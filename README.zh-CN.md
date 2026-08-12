@@ -5,8 +5,8 @@
 # Sparkii Agent ☤
 
 <p align="center">
-  <a href="https://github.com/YueDJ/SpaikiiDesktop"><img src="https://img.shields.io/badge/Repo-YueDJ%2FSpaikiiDesktop-FFD700?style=for-the-badge" alt="Repository"></a>
-  <a href="https://github.com/YueDJ/SpaikiiDesktop/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
+  <a href="https://github.com/YueDJ/SparkiiDesktop"><img src="https://img.shields.io/badge/Repo-YueDJ%2FSparkiiDesktop-FFD700?style=for-the-badge" alt="Repository"></a>
+  <a href="https://github.com/YueDJ/SparkiiDesktop/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
   <a href="https://github.com/NousResearch/sparkii-agent"><img src="https://img.shields.io/badge/Upstream-Nous%20Research%20Sparkii-blueviolet?style=for-the-badge" alt="Upstream"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/Lang-English-lightgrey?style=for-the-badge" alt="English"></a>
   <a href="README.ur-pk.md"><img src="https://img.shields.io/badge/Lang-اردو-green?style=for-the-badge" alt="اردو"></a>
@@ -30,7 +30,7 @@
 ## 快速安装
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YueDJ/SpaikiiDesktop/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/YueDJ/SparkiiDesktop/main/scripts/install.sh | bash
 ```
 
 支持 Linux、macOS、WSL2 和 Android (Termux)。安装程序会自动处理平台特定的配置。
@@ -39,7 +39,7 @@ curl -fsSL https://raw.githubusercontent.com/YueDJ/SpaikiiDesktop/main/scripts/i
 >
 > **Windows：** 在 PowerShell 中运行：
 > ```powershell
-> iex (irm https://raw.githubusercontent.com/YueDJ/SpaikiiDesktop/main/scripts/install.ps1)
+> iex (irm https://raw.githubusercontent.com/YueDJ/SparkiiDesktop/main/scripts/install.ps1)
 > ```
 > 安装完成后，可能需要重启终端，然后运行 `sparkii` 开始对话。
 
@@ -169,7 +169,7 @@ sparkii claw migrate --overwrite  # 覆盖已有冲突
 `sparkii update`、托管 venv、lazy dependencies、gateway 和 docs tooling 使用的布局。
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YueDJ/SpaikiiDesktop/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/YueDJ/SparkiiDesktop/main/scripts/install.sh | bash
 cd "${SPARKII_HOME:-$HOME/.sparkii}/sparkii-agent"
 uv pip install -e ".[all,dev]"
 scripts/run_tests.sh
@@ -190,8 +190,8 @@ python -m pytest tests/ -q
 ## 社区
 
 - 📚 [技能中心](https://agentskills.io)
-- 🐛 [问题反馈](https://github.com/YueDJ/SpaikiiDesktop/issues)
-- 💡 [讨论区](https://github.com/YueDJ/SpaikiiDesktop/discussions)
+- 🐛 [问题反馈](https://github.com/YueDJ/SparkiiDesktop/issues)
+- 💡 [讨论区](https://github.com/YueDJ/SparkiiDesktop/discussions)
 - 🔌 [___SPARKIICLAW_PRESERVE___](https://github.com/AaronWong1999/___SPARKIICLAW_URL_PRESERVE___) — 社区微信桥接：在同一微信账号上运行 Sparkii Agent 和 OpenClaw。
 
 ---
