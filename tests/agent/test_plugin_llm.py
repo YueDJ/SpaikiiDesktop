@@ -436,9 +436,9 @@ class TestConfigDrivenPolicy:
     def test_policy_loaded_from_yaml(self, tmp_path, monkeypatch):
         from agent.plugin_llm import _resolve_trust_policy
 
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        (hermes_home / "config.yaml").write_text(
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        (sparkii_home / "config.yaml").write_text(
             """
 plugins:
   entries:
@@ -454,7 +454,7 @@ plugins:
 """,
             encoding="utf-8",
         )
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
         from sparkii_cli import config as _config_mod
         _config_mod._config_cache = None  # type: ignore[attr-defined]
 
@@ -470,10 +470,10 @@ plugins:
     def test_missing_plugin_entry_yields_default_deny(self, tmp_path, monkeypatch):
         from agent.plugin_llm import _resolve_trust_policy
 
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        (hermes_home / "config.yaml").write_text("plugins: {}\n", encoding="utf-8")
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        (sparkii_home / "config.yaml").write_text("plugins: {}\n", encoding="utf-8")
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
         from sparkii_cli import config as _config_mod
         _config_mod._config_cache = None  # type: ignore[attr-defined]
 

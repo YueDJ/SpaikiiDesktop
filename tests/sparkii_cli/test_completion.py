@@ -80,8 +80,8 @@ class TestWalk:
 class TestGenerateBash:
     def test_contains_completion_function_and_register(self):
         out = generate_bash(_make_parser())
-        assert "_hermes_completion()" in out
-        assert "complete -F _hermes_completion sparkii" in out
+        assert "_sparkii_completion()" in out
+        assert "complete -F _sparkii_completion sparkii" in out
 
 
     def test_valid_bash_syntax(self):

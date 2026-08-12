@@ -1498,7 +1498,7 @@ def _generate_pkce() -> tuple:
     return verifier, challenge
 
 
-def run_hermes_oauth_login_pure() -> Optional[Dict[str, Any]]:
+def run_sparkii_oauth_login_pure() -> Optional[Dict[str, Any]]:
     """Run Sparkii-native OAuth PKCE flow and return credential state."""
     import secrets
     import time

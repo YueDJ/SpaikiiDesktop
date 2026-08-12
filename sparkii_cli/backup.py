@@ -23,7 +23,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from sparkii_constants import get_default_hermes_root, get_sparkii_home, display_sparkii_home
+from sparkii_constants import get_default_sparkii_root, get_sparkii_home, display_sparkii_home
 
 # Shared formatter; the private alias is kept because claw.py and the backup
 # tests import ``_format_size`` from this module.
@@ -148,9 +148,9 @@ class _SQLiteSnapshotError(RuntimeError):
 
 
 @contextmanager
-def _backup_operation_lock(hermes_home: Path, timeout_seconds: float = 0.25):
+def _backup_operation_lock(sparkii_home: Path, timeout_seconds: float = 0.25):
     """Acquire one cross-process backup slot for full and quick snapshots."""
-    lock_path = hermes_home / ".backup.lock"
+    lock_path = sparkii_home / ".backup.lock"
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     handle = lock_path.open("a+b")
     acquired = False
@@ -580,21 +580,21 @@ def copy_db_and_verify(src: Path, dst: Path) -> bool:
 
 def run_backup(args) -> None:
     """Create a zip backup of the Sparkii home directory."""
-    hermes_root = get_default_hermes_root()
+    sparkii_root = get_default_sparkii_root()
 
-    if not hermes_root.is_dir():
-        print(f"Error: Sparkii home directory not found at {hermes_root}")
+    if not sparkii_root.is_dir():
+        print(f"Error: Sparkii home directory not found at {sparkii_root}")
         sys.exit(1)
 
     try:
-        with _backup_operation_lock(hermes_root):
-            _run_backup_locked(args, hermes_root)
+        with _backup_operation_lock(sparkii_root):
+            _run_backup_locked(args, sparkii_root)
     except BackupInProgressError as exc:
         print(f"Error: {exc}")
         raise SystemExit(2) from exc
 
 
-def _run_backup_locked(args, hermes_root: Path) -> None:
+def _run_backup_locked(args, sparkii_root: Path) -> None:
     """Write a full backup while the cross-process backup slot is held."""
 
     # Determine output path
@@ -622,9 +622,9 @@ def _run_backup_locked(args, hermes_root: Path) -> None:
     files_to_add: list[tuple[Path, Path]] = []  # (absolute, relative)
     skipped_dirs = set()
 
-    for dirpath, dirnames, filenames in os.walk(hermes_root, followlinks=False):
+    for dirpath, dirnames, filenames in os.walk(sparkii_root, followlinks=False):
         dp = Path(dirpath)
-        rel_dir = dp.relative_to(hermes_root)
+        rel_dir = dp.relative_to(sparkii_root)
 
         # Prune excluded directories in-place so os.walk doesn't descend
         # ``sparkii-agent`` is only pruned at the root level; nested dirs
@@ -640,7 +640,7 @@ def _run_backup_locked(args, hermes_root: Path) -> None:
 
         for fname in filenames:
             fpath = dp / fname
-            rel = fpath.relative_to(hermes_root)
+            rel = fpath.relative_to(sparkii_root)
 
             if _should_skip_backup_file(fpath, rel, out_path):
                 continue
@@ -861,7 +861,7 @@ def run_import(args) -> None:
         print(f"Error: Not a valid zip file: {zip_path}")
         sys.exit(1)
 
-    hermes_root = get_default_hermes_root()
+    sparkii_root = get_default_sparkii_root()
 
     with zipfile.ZipFile(zip_path, "r") as zf:
         # Validate
@@ -881,8 +881,8 @@ def run_import(args) -> None:
             print(f"Detected archive prefix: {prefix!r} (will be stripped)")
 
         # Check for existing installation
-        has_config = (hermes_root / "config.yaml").exists()
-        has_env = (hermes_root / ".env").exists()
+        has_config = (sparkii_root / "config.yaml").exists()
+        has_env = (sparkii_root / ".env").exists()
 
         if (has_config or has_env) and not args.force:
             print()
@@ -900,7 +900,7 @@ def run_import(args) -> None:
 
         # Extract
         print(f"\nImporting {file_count} files ...")
-        hermes_root.mkdir(parents=True, exist_ok=True)
+        sparkii_root.mkdir(parents=True, exist_ok=True)
 
         errors = []
         restored = 0
@@ -961,11 +961,11 @@ def run_import(args) -> None:
                 skipped_runtime.append(rel)
                 continue
 
-            target = hermes_root / rel
+            target = sparkii_root / rel
 
             # Security: reject absolute paths and traversals
             try:
-                target.resolve().relative_to(hermes_root.resolve())
+                target.resolve().relative_to(sparkii_root.resolve())
             except ValueError:
                 errors.append(f"  {rel}: path traversal blocked")
                 continue
@@ -1014,7 +1014,7 @@ def run_import(args) -> None:
                 print(f"    ... and {len(skipped_runtime) - 10} more")
 
         # Post-import: restore profile wrapper scripts
-        profiles_dir = hermes_root / "profiles"
+        profiles_dir = sparkii_root / "profiles"
         restored_profiles = []
         if profiles_dir.is_dir():
             try:
@@ -1056,7 +1056,7 @@ def run_import(args) -> None:
 
         # Guidance
         print()
-        if not (hermes_root / "sparkii-agent").is_dir():
+        if not (sparkii_root / "sparkii-agent").is_dir():
             print("Note: The sparkii-agent codebase was not included in the backup.")
             print("  If this is a fresh install, run: sparkii update")
 
@@ -1117,23 +1117,23 @@ _QUICK_SNAPSHOTS_DIR = "state-snapshots"
 _QUICK_DEFAULT_KEEP = 20
 
 
-def _quick_snapshot_root(hermes_home: Optional[Path] = None) -> Path:
-    home = hermes_home or get_sparkii_home()
+def _quick_snapshot_root(sparkii_home: Optional[Path] = None) -> Path:
+    home = sparkii_home or get_sparkii_home()
     return home / _QUICK_SNAPSHOTS_DIR
 
 
 def create_quick_snapshot(
     label: Optional[str] = None,
-    hermes_home: Optional[Path] = None,
+    sparkii_home: Optional[Path] = None,
     keep: Optional[int] = None,
     max_file_size: Optional[int] = None,
 ) -> Optional[str]:
     """Create one atomic quick snapshot while holding the shared backup slot."""
-    home = hermes_home or get_sparkii_home()
+    home = sparkii_home or get_sparkii_home()
     with _backup_operation_lock(home):
         return _create_quick_snapshot_locked(
             label=label,
-            hermes_home=home,
+            sparkii_home=home,
             keep=keep,
             max_file_size=max_file_size,
         )
@@ -1141,7 +1141,7 @@ def create_quick_snapshot(
 
 def _create_quick_snapshot_locked(
     label: Optional[str] = None,
-    hermes_home: Optional[Path] = None,
+    sparkii_home: Optional[Path] = None,
     keep: Optional[int] = None,
     max_file_size: Optional[int] = None,
 ) -> Optional[str]:
@@ -1163,7 +1163,7 @@ def _create_quick_snapshot_locked(
     Returns:
         Snapshot ID (timestamp-based), or None if no files found.
     """
-    home = hermes_home or get_sparkii_home()
+    home = sparkii_home or get_sparkii_home()
     root = _quick_snapshot_root(home)
 
     def _too_large(path: Path, rel_name: str) -> bool:
@@ -1368,10 +1368,10 @@ def _create_quick_snapshot_locked(
 
 def list_quick_snapshots(
     limit: int = 20,
-    hermes_home: Optional[Path] = None,
+    sparkii_home: Optional[Path] = None,
 ) -> List[Dict[str, Any]]:
     """List existing quick state snapshots, most recent first."""
-    root = _quick_snapshot_root(hermes_home)
+    root = _quick_snapshot_root(sparkii_home)
     if not root.exists():
         return []
 
@@ -1394,14 +1394,14 @@ def list_quick_snapshots(
 
 def restore_quick_snapshot(
     snapshot_id: str,
-    hermes_home: Optional[Path] = None,
+    sparkii_home: Optional[Path] = None,
 ) -> bool:
     """Restore state from a quick snapshot.
 
     Overwrites current state files with the snapshot's copies.
     Returns True if at least one file was restored.
     """
-    home = hermes_home or get_sparkii_home()
+    home = sparkii_home or get_sparkii_home()
     root = _quick_snapshot_root(home)
 
     # Security: reject snapshot_id values that contain path separators or
@@ -1506,7 +1506,7 @@ def _count_cron_jobs(path: Path) -> Optional[int]:
 
 def restore_cron_jobs_if_emptied(
     snapshot_id: str,
-    hermes_home: Optional[Path] = None,
+    sparkii_home: Optional[Path] = None,
 ) -> Optional[Dict[str, Any]]:
     """Safety net for silent cron-job loss across ``sparkii update``.
 
@@ -1529,7 +1529,7 @@ def restore_cron_jobs_if_emptied(
     Args:
         snapshot_id: The pre-update quick-snapshot id (from
             :func:`create_quick_snapshot`).
-        hermes_home: Override for the Sparkii home directory (tests).
+        sparkii_home: Override for the Sparkii home directory (tests).
 
     Returns:
         ``None`` when no action was taken (the common, healthy path). On a
@@ -1539,7 +1539,7 @@ def restore_cron_jobs_if_emptied(
     if not snapshot_id:
         return None
 
-    home = hermes_home or get_sparkii_home()
+    home = sparkii_home or get_sparkii_home()
     live_path = home / _CRON_JOBS_REL
 
     live_count = _count_cron_jobs(live_path)
@@ -1608,10 +1608,10 @@ def _prune_quick_snapshots(root: Path, keep: int = _QUICK_DEFAULT_KEEP) -> int:
 
 def prune_quick_snapshots(
     keep: int = _QUICK_DEFAULT_KEEP,
-    hermes_home: Optional[Path] = None,
+    sparkii_home: Optional[Path] = None,
 ) -> int:
     """Manually prune quick snapshots. Returns count deleted."""
-    return _prune_quick_snapshots(_quick_snapshot_root(hermes_home), keep=keep)
+    return _prune_quick_snapshots(_quick_snapshot_root(sparkii_home), keep=keep)
 
 
 def run_quick_backup(args) -> None:
@@ -1631,18 +1631,18 @@ def run_quick_backup(args) -> None:
 # Shared full-zip backup helper
 # ---------------------------------------------------------------------------
 
-def _write_full_zip_backup(out_path: Path, hermes_root: Path) -> Optional[Path]:
+def _write_full_zip_backup(out_path: Path, sparkii_root: Path) -> Optional[Path]:
     """Single-flight wrapper for automatic full zip backups."""
     try:
-        with _backup_operation_lock(hermes_root):
-            return _write_full_zip_backup_locked(out_path, hermes_root)
+        with _backup_operation_lock(sparkii_root):
+            return _write_full_zip_backup_locked(out_path, sparkii_root)
     except BackupInProgressError as exc:
         logger.warning("Full-zip backup skipped: %s", exc)
         return None
 
 
-def _write_full_zip_backup_locked(out_path: Path, hermes_root: Path) -> Optional[Path]:
-    """Write a full zip snapshot of ``hermes_root`` to ``out_path``.
+def _write_full_zip_backup_locked(out_path: Path, sparkii_root: Path) -> Optional[Path]:
+    """Write a full zip snapshot of ``sparkii_root`` to ``out_path``.
 
     Uses the same exclusion rules and SQLite safe-copy as :func:`run_backup`.
     Returns the output path on success, None on failure (nothing to back up,
@@ -1652,7 +1652,7 @@ def _write_full_zip_backup_locked(out_path: Path, hermes_root: Path) -> Optional
     logger.info("automatic backup phase=scan status=started")
     files_to_add: list[tuple[Path, Path]] = []
     try:
-        for dirpath, dirnames, filenames in os.walk(hermes_root, followlinks=False):
+        for dirpath, dirnames, filenames in os.walk(sparkii_root, followlinks=False):
             dp = Path(dirpath)
             # Prune excluded directories in-place so os.walk doesn't descend
             dirnames[:] = [d for d in dirnames if d not in _EXCLUDED_DIRS]
@@ -1660,7 +1660,7 @@ def _write_full_zip_backup_locked(out_path: Path, hermes_root: Path) -> Optional
             for fname in filenames:
                 fpath = dp / fname
                 try:
-                    rel = fpath.relative_to(hermes_root)
+                    rel = fpath.relative_to(sparkii_root)
                 except ValueError:
                     continue
 
@@ -1744,8 +1744,8 @@ _PRE_UPDATE_PREFIX = "pre-update-"
 _PRE_UPDATE_DEFAULT_KEEP = 5
 
 
-def _pre_update_backup_dir(hermes_home: Optional[Path] = None) -> Path:
-    home = hermes_home or get_sparkii_home()
+def _pre_update_backup_dir(sparkii_home: Optional[Path] = None) -> Path:
+    home = sparkii_home or get_sparkii_home()
     return home / _PRE_UPDATE_BACKUPS_DIR
 
 
@@ -1787,7 +1787,7 @@ def _prune_pre_update_backups(backup_dir: Path, keep: int) -> int:
 
 
 def create_pre_update_backup(
-    hermes_home: Optional[Path] = None,
+    sparkii_home: Optional[Path] = None,
     keep: int = _PRE_UPDATE_DEFAULT_KEEP,
 ) -> Optional[Path]:
     """Create a full zip backup of SPARKII_HOME under ``backups/``.
@@ -1800,11 +1800,11 @@ def create_pre_update_backup(
     found or the backup could not be created.  Never raises — the caller
     (``sparkii update``) should continue even if the backup fails.
     """
-    hermes_root = hermes_home or get_default_hermes_root()
-    if not hermes_root.is_dir():
+    sparkii_root = sparkii_home or get_default_sparkii_root()
+    if not sparkii_root.is_dir():
         return None
 
-    backup_dir = _pre_update_backup_dir(hermes_root)
+    backup_dir = _pre_update_backup_dir(sparkii_root)
     try:
         backup_dir.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
@@ -1814,7 +1814,7 @@ def create_pre_update_backup(
     stamp = datetime.now().strftime("%Y-%m-%d-%H%M%S")
     out_path = backup_dir / f"{_PRE_UPDATE_PREFIX}{stamp}.zip"
 
-    result = _write_full_zip_backup(out_path, hermes_root)
+    result = _write_full_zip_backup(out_path, sparkii_root)
     if result is None:
         return None
 
@@ -1859,7 +1859,7 @@ def _prune_pre_migration_backups(backup_dir: Path, keep: int) -> int:
 
 
 def create_pre_migration_backup(
-    hermes_home: Optional[Path] = None,
+    sparkii_home: Optional[Path] = None,
     keep: int = _PRE_MIGRATION_DEFAULT_KEEP,
 ) -> Optional[Path]:
     """Create a full zip backup of SPARKII_HOME under ``backups/`` before a
@@ -1875,13 +1875,13 @@ def create_pre_migration_backup(
     to back up (fresh install) or the write failed.  Never raises — the
     caller decides whether to abort or proceed.
     """
-    hermes_root = hermes_home or get_default_hermes_root()
-    if not hermes_root.is_dir():
+    sparkii_root = sparkii_home or get_default_sparkii_root()
+    if not sparkii_root.is_dir():
         return None
 
     # Reuses the shared backups/ directory so `sparkii import` and the
     # update-backup listing pick up pre-migration archives too.
-    backup_dir = _pre_update_backup_dir(hermes_root)
+    backup_dir = _pre_update_backup_dir(sparkii_root)
     try:
         backup_dir.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
@@ -1891,7 +1891,7 @@ def create_pre_migration_backup(
     stamp = datetime.now().strftime("%Y-%m-%d-%H%M%S")
     out_path = backup_dir / f"{_PRE_MIGRATION_PREFIX}{stamp}.zip"
 
-    result = _write_full_zip_backup(out_path, hermes_root)
+    result = _write_full_zip_backup(out_path, sparkii_root)
     if result is None:
         return None
 

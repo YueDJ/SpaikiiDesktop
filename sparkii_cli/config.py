@@ -641,7 +641,7 @@ def managed_error(action: str = "modify configuration"):
 def get_container_exec_info() -> Optional[dict]:
     """Read container mode metadata from SPARKII_HOME/.container-mode.
 
-    Returns a dict with keys: backend, container_name, exec_user, hermes_bin
+    Returns a dict with keys: backend, container_name, exec_user, sparkii_bin
     or None if container mode is not active, we're already inside the
     container, or SPARKII_DEV=1 is set.
 
@@ -673,13 +673,13 @@ def get_container_exec_info() -> Optional[dict]:
     backend = info.get("backend", "docker")
     container_name = info.get("container_name", "sparkii-agent")
     exec_user = info.get("exec_user", "sparkii")
-    hermes_bin = info.get("hermes_bin", "/data/current-package/bin/sparkii")
+    sparkii_bin = info.get("sparkii_bin", "/data/current-package/bin/sparkii")
 
     return {
         "backend": backend,
         "container_name": container_name,
         "exec_user": exec_user,
-        "hermes_bin": hermes_bin,
+        "sparkii_bin": sparkii_bin,
     }
 
 
@@ -703,7 +703,7 @@ def get_project_root() -> Path:
     """Get the project installation directory."""
     return Path(__file__).parent.parent.resolve()
 
-def _resolve_hermes_uid_gid() -> tuple[Optional[int], Optional[int]]:
+def _resolve_sparkii_uid_gid() -> tuple[Optional[int], Optional[int]]:
     """Read the SPARKII_UID / SPARKII_GID env vars set by Docker deployments.
 
     Docker containers running Sparkii commonly set these to map the in-container
@@ -733,7 +733,7 @@ def _resolve_hermes_uid_gid() -> tuple[Optional[int], Optional[int]]:
     return uid, gid
 
 
-def _chown_to_hermes_uid(path) -> None:
+def _chown_to_sparkii_uid(path) -> None:
     """Chown ``path`` to ``SPARKII_UID:SPARKII_GID`` if those env vars are set.
 
     No-op when:
@@ -745,7 +745,7 @@ def _chown_to_hermes_uid(path) -> None:
     directories created by :func:`ensure_sparkii_home` on Docker deployments.
     See #34107.
     """
-    uid, gid = _resolve_hermes_uid_gid()
+    uid, gid = _resolve_sparkii_uid_gid()
     if uid is None and gid is None:
         return
     try:
@@ -791,7 +791,7 @@ def _secure_dir(path):
         os.chmod(path, mode)
     except (OSError, NotImplementedError):
         pass
-    _chown_to_hermes_uid(path)
+    _chown_to_sparkii_uid(path)
 
 
 def _is_container() -> bool:
@@ -2567,7 +2567,7 @@ def _env_ref_snapshot(obj, snapshot=None):
     Stored alongside cached ``load_config()`` results so a cache hit can
     detect that the cached expansion was made against a *different*
     environment — e.g. a ``load_config()`` that ran before
-    ``load_hermes_dotenv()`` populated the process env, or an env var
+    ``load_sparkii_dotenv()`` populated the process env, or an env var
     rotated in-process after the first load. File mtime/size alone cannot
     see either case (#58514).
 
@@ -3382,7 +3382,7 @@ def _load_config_impl(*, want_deepcopy: bool) -> Dict[str, Any]:
         if cached is not None and cache_sig is not None and cached[:4] == cache_sig:
             # File signatures match, but the cached expansion is only valid if
             # every ${VAR} it was expanded against still has the same value.
-            # Without this, a load_config() that ran before load_hermes_dotenv()
+            # Without this, a load_config() that ran before load_sparkii_dotenv()
             # pins unexpanded literals (e.g. auxiliary.<task>.api_key) for the
             # life of the process (#58514).
             env_snapshot = cached[5] if len(cached) > 5 else {}

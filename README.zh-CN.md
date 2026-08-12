@@ -192,7 +192,7 @@ python -m pytest tests/ -q
 - 📚 [技能中心](https://agentskills.io)
 - 🐛 [问题反馈](https://github.com/YueDJ/SpaikiiDesktop/issues)
 - 💡 [讨论区](https://github.com/YueDJ/SpaikiiDesktop/discussions)
-- 🔌 [HermesClaw](https://github.com/AaronWong1999/hermesclaw) — 社区微信桥接：在同一微信账号上运行 Sparkii Agent 和 OpenClaw。
+- 🔌 [___SPARKIICLAW_PRESERVE___](https://github.com/AaronWong1999/___SPARKIICLAW_URL_PRESERVE___) — 社区微信桥接：在同一微信账号上运行 Sparkii Agent 和 OpenClaw。
 
 ---
 

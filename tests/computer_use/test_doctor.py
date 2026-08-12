@@ -259,13 +259,13 @@ class TestJsonOutput:
              patch("sys.stdout", new_callable=StringIO) as out:
             doctor.run_doctor(json_output=True)
         # Verify the captured text round-trips through json.loads. Upstream
-        # health_report keys are preserved; Sparkii adds hermes_identity.
+        # health_report keys are preserved; Sparkii adds sparkii_identity.
         parsed = json.loads(out.getvalue())
         report = _ok_report()
         for key, value in report.items():
             assert parsed[key] == value
-        assert "hermes_identity" in parsed
-        assert parsed["hermes_identity"]["resolved_binary"]
+        assert "sparkii_identity" in parsed
+        assert parsed["sparkii_identity"]["resolved_binary"]
 
 
 # ── SPARKII_CUA_DRIVER_CMD resolution ───────────────────────────────────────
@@ -427,5 +427,5 @@ class TestDoctorVersionIdentity:
             code = doctor.run_doctor(json_output=True)
         assert code == 0
         payload = json.loads(out.getvalue())
-        assert payload["hermes_identity"]["version_mismatch"] is False
+        assert payload["sparkii_identity"]["version_mismatch"] is False
 

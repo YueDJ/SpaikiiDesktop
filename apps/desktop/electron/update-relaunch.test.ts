@@ -58,7 +58,7 @@ test('resolveUnpackedRelease returns the dir for a binary UNDER release/<plat>-u
 
 test('resolveUnpackedRelease is null for AppImage / .deb / .rpm / dev / unresolved paths', () => {
   // AppImage mount
-  assert.equal(resolveUnpackedRelease('/tmp/.mount_Hermes12345/AppRun', ROOT, 'linux'), null)
+  assert.equal(resolveUnpackedRelease('/tmp/.mount_Sparkii12345/AppRun', ROOT, 'linux'), null)
   // .deb / .rpm system install
   assert.equal(resolveUnpackedRelease('/usr/lib/sparkii/sparkii', ROOT, 'linux'), null)
   assert.equal(resolveUnpackedRelease('/opt/Sparkii/sparkii', ROOT, 'linux'), null)

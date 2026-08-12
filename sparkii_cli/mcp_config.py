@@ -268,8 +268,8 @@ def _resolve_mcp_server_config(config: dict) -> dict:
 
     if current_secret_scope() is None:
         try:
-            from sparkii_cli.env_loader import load_hermes_dotenv
-            load_hermes_dotenv()
+            from sparkii_cli.env_loader import load_sparkii_dotenv
+            load_sparkii_dotenv()
         except Exception:  # pragma: no cover — defensive
             pass
     return _interpolate_env_vars(config)

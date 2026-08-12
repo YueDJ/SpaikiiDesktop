@@ -806,7 +806,7 @@ holographic, openviking, retaindb**.
 Each provider implements the `MemoryProvider` ABC (see `agent/memory_provider.py`)
 and is orchestrated by `agent/memory_manager.py`. Lifecycle hooks include
 `sync_turn(turn_messages)`, `prefetch(query)`, `shutdown()`, and optional
-`post_setup(hermes_home, config)` for setup-wizard integration.
+`post_setup(sparkii_home, config)` for setup-wizard integration.
 
 **CLI commands via `plugins/memory/<name>/cli.py`:** if a memory plugin
 defines `register_cli(subparser)`, `discover_plugin_cli_commands()` finds

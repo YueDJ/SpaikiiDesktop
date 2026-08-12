@@ -128,9 +128,9 @@ def test_probe_sends_chatgpt_account_id_from_jwt(monkeypatch):
 # ---------------------------------------------------------------------------
 
 
-def _write_auth_store(hermes_home, payload):
-    hermes_home.mkdir(parents=True, exist_ok=True)
-    (hermes_home / "auth.json").write_text(json.dumps(payload, indent=2))
+def _write_auth_store(sparkii_home, payload):
+    sparkii_home.mkdir(parents=True, exist_ok=True)
+    (sparkii_home / "auth.json").write_text(json.dumps(payload, indent=2))
 
 
 def _exhausted_pool_store(now=None):
@@ -222,9 +222,9 @@ def test_resolver_recovers_when_probe_confirms_reset(tmp_path, monkeypatch):
     """The screenshot bug: pool-only cooldown raises `quota exhausted (429);
     retry after Ns` even though the upstream window already reset.  A positive
     probe must clear the cooldown and return the pool credential."""
-    hermes_home = tmp_path / "sparkii"
-    _write_auth_store(hermes_home, _pool_only_rate_limited_store())
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    sparkii_home = tmp_path / "sparkii"
+    _write_auth_store(sparkii_home, _pool_only_rate_limited_store())
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
     monkeypatch.setattr(
         auth_mod, "_probe_codex_quota_restored", lambda token, **kw: True
@@ -234,7 +234,7 @@ def test_resolver_recovers_when_probe_confirms_reset(tmp_path, monkeypatch):
     assert resolved["api_key"] == "tok-quota"
     assert resolved["source"] == "credential_pool"
 
-    store = json.loads((hermes_home / "auth.json").read_text())
+    store = json.loads((sparkii_home / "auth.json").read_text())
     entry = store["credential_pool"]["openai-codex"][0]
     assert entry["last_status"] is None
     assert entry["last_error_reset_at"] is None

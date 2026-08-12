@@ -66,9 +66,9 @@ class TestMcpEndpoints:
         assert response.json()["auth"] == "header"
         assert "bearer_token" not in response.json()
 
-        hermes_home = get_sparkii_home()
-        config_text = (hermes_home / "config.yaml").read_text()
-        env_text = (hermes_home / ".env").read_text()
+        sparkii_home = get_sparkii_home()
+        config_text = (sparkii_home / "config.yaml").read_text()
+        env_text = (sparkii_home / ".env").read_text()
         assert secret not in config_text
         assert "Bearer ${MCP_BEARER_SERVER_API_KEY}" in config_text
         assert f"MCP_BEARER_SERVER_API_KEY={secret}" in env_text
@@ -361,7 +361,7 @@ class TestWebhookEndpoints:
             restart_calls.append((subcommand, name))
             return FakeRestartProc()
 
-        monkeypatch.setattr(ws, "_spawn_hermes_action", fake_spawn_action)
+        monkeypatch.setattr(ws, "_spawn_sparkii_action", fake_spawn_action)
 
         r = self.client.post("/api/webhooks/enable")
 
@@ -397,7 +397,7 @@ class TestWebhookEndpoints:
         def fail_spawn_action(subcommand, name):
             raise AssertionError("must not spawn a second concurrent restart")
 
-        monkeypatch.setattr(ws, "_spawn_hermes_action", fail_spawn_action)
+        monkeypatch.setattr(ws, "_spawn_sparkii_action", fail_spawn_action)
 
         r = self.client.post("/api/webhooks/enable")
 
@@ -475,7 +475,7 @@ class TestSystemStatsEndpoint:
         assert r.status_code == 200
         s = r.json()
         # Identity fields always present (stdlib-sourced).
-        for key in ("os", "arch", "hostname", "python_version", "hermes_version"):
+        for key in ("os", "arch", "hostname", "python_version", "sparkii_version"):
             assert key in s and s[key]
         # psutil flag tells the UI whether the richer metrics are populated.
         assert "psutil" in s
@@ -938,10 +938,10 @@ class TestToolsConfigEndpoints:
 
 
 # ---------------------------------------------------------------------------
-# _spawn_hermes_action env scrubbing (#52470)
+# _spawn_sparkii_action env scrubbing (#52470)
 # ---------------------------------------------------------------------------
 
-def test_spawn_hermes_action_scrubs_gateway_loop_guard_env(monkeypatch, tmp_path):
+def test_spawn_sparkii_action_scrubs_gateway_loop_guard_env(monkeypatch, tmp_path):
     """The dashboard runs inside the gateway, so os.environ has
     _SPARKII_GATEWAY=1. Spawned actions (e.g. `gateway restart`) must NOT inherit
     it, or the in-process restart-loop guard rejects the restart and it silently
@@ -951,7 +951,7 @@ def test_spawn_hermes_action_scrubs_gateway_loop_guard_env(monkeypatch, tmp_path
 
     monkeypatch.setenv("_SPARKII_GATEWAY", "1")
     monkeypatch.setattr(ws, "_ACTION_LOG_DIR", tmp_path)
-    # Isolate the module-global proc registry: _spawn_hermes_action stores
+    # Isolate the module-global proc registry: _spawn_sparkii_action stores
     # _FakeProc (no poll()) in _ACTION_PROCS, and later tests' lifespan
     # shutdown (_terminate_desktop_managed_gateway) would trip over it.
     monkeypatch.setattr(ws, "_ACTION_PROCS", {})
@@ -967,7 +967,7 @@ def test_spawn_hermes_action_scrubs_gateway_loop_guard_env(monkeypatch, tmp_path
 
     monkeypatch.setattr(ws.subprocess, "Popen", _fake_popen)
 
-    ws._spawn_hermes_action(["gateway", "restart"], "gateway-restart")
+    ws._spawn_sparkii_action(["gateway", "restart"], "gateway-restart")
 
     assert "_SPARKII_GATEWAY" not in captured["env"]
     assert captured["env"]["SPARKII_NONINTERACTIVE"] == "1"

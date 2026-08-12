@@ -106,7 +106,7 @@ Backend resolution is an ordered ladder:
 1. `SPARKII_DESKTOP_SPARKII_ROOT`
 2. the current source checkout during development
 3. a completed managed install
-4. `SPARKII_DESKTOP_HERMES`, or `sparkii` on `PATH`
+4. `SPARKII_DESKTOP_SPARKII`, or `sparkii` on `PATH`
 5. a system Python that can import the Sparkii runtime
 6. the first-launch bootstrap installer
 

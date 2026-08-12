@@ -12,7 +12,7 @@ code has two failure modes:
   keep resolving it across reboots.
 
 The fix per call site is one of ``find_node_executable()``,
-``iter_hermes_node_dirs()``, ``resolve_uv()``, or ``ensure_uv()``. This test is
+``iter_sparkii_node_dirs()``, ``resolve_uv()``, or ``ensure_uv()``. This test is
 the ratchet that stops a new bare lookup from being added back.
 
 Reading source is normally banned (see AGENTS.md). It is the right tool here and
@@ -76,7 +76,7 @@ _ALLOWED: dict[tuple[str, str], str] = {
     ),
     ("sparkii_cli/gateway.py", "node"): (
         "Fallback rung of _append_node_dir_for_service(), after the managed "
-        "dirs from iter_hermes_node_dirs() are already appended."
+        "dirs from iter_sparkii_node_dirs() are already appended."
     ),
     ("sparkii_cli/main.py", "node"): (
         "_ensure_tui_node()'s idempotence gate: the question really is 'is "
@@ -161,7 +161,7 @@ def test_no_unreviewed_bare_managed_runtime_lookups():
         "Use instead:\n"
         "  uv       -> managed_uv.resolve_uv() (lookup) or ensure_uv() (may install)\n"
         "  node/npm -> sparkii_constants.find_node_executable()\n"
-        "  PATH env -> sparkii_constants.iter_hermes_node_dirs()\n"
+        "  PATH env -> sparkii_constants.iter_sparkii_node_dirs()\n"
         "If PATH really is the right question, add the site to _ALLOWED with a "
         "reason."
     )
@@ -183,9 +183,9 @@ def test_allowlist_has_no_stale_entries():
     "helper",
     [
         "find_node_executable",
-        "find_hermes_node_executable",
-        "iter_hermes_node_dirs",
-        "with_hermes_node_path",
+        "find_sparkii_node_executable",
+        "iter_sparkii_node_dirs",
+        "with_sparkii_node_path",
     ],
 )
 def test_managed_node_helpers_exist(helper):

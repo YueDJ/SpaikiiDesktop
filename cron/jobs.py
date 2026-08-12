@@ -70,7 +70,7 @@ def _ensure_croniter() -> bool:
 # profile's jobs under that same SPARKII_HOME — so a job authored in profile
 # `coder` lives in `~/.sparkii/profiles/coder/cron/jobs.json` and executes with
 # `coder`'s `.env`, `config.yaml`, and skills. We deliberately anchor on
-# `get_sparkii_home()` (the active profile home), NOT `get_default_hermes_root()`
+# `get_sparkii_home()` (the active profile home), NOT `get_default_sparkii_root()`
 # (the shared root). Anchoring at the root would funnel every profile's jobs
 # into one shared `jobs.json` and run them under whatever SPARKII_HOME the
 # ticker process happens to have — leaking config/credentials/skills across

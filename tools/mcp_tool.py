@@ -797,13 +797,13 @@ def _resolve_stdio_command(command: str, env: dict) -> tuple[str, dict]:
         if which_hit:
             resolved_command = which_hit
         elif resolved_command in {"npx", "npm", "node"}:
-            hermes_home = os.path.expanduser(
+            sparkii_home = os.path.expanduser(
                 os.getenv(
                     "SPARKII_HOME", os.path.join(os.path.expanduser("~"), ".sparkii")
                 )
             )
             candidates = [
-                os.path.join(hermes_home, "node", "bin", resolved_command),
+                os.path.join(sparkii_home, "node", "bin", resolved_command),
                 os.path.join(os.path.expanduser("~"), ".local", "bin", resolved_command),
                 # /usr/local/bin is the canonical install location for Node on
                 # Linux from-source builds, the upstream node:bookworm-slim
@@ -5094,8 +5094,8 @@ def _load_mcp_config() -> Dict[str, dict]:
             servers = {}
         # Ensure .env vars are available for interpolation
         try:
-            from sparkii_cli.env_loader import load_hermes_dotenv
-            load_hermes_dotenv()
+            from sparkii_cli.env_loader import load_sparkii_dotenv
+            load_sparkii_dotenv()
         except Exception:
             pass
         safe_servers: Dict[str, dict] = {}

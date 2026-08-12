@@ -92,11 +92,11 @@ def _find_git_root(start: Path) -> Optional[Path]:
     return None
 
 
-_SPARKII_MD_NAMES = (".sparkii.md", "HERMES.md")
+_SPARKII_MD_NAMES = (".sparkii.md", "SPARKII.md")
 
 
-def _find_hermes_md(cwd: Path) -> Optional[Path]:
-    """Discover the nearest ``.sparkii.md`` or ``HERMES.md``.
+def _find_sparkii_md(cwd: Path) -> Optional[Path]:
+    """Discover the nearest ``.sparkii.md`` or ``SPARKII.md``.
 
     Search order: *cwd* first, then each parent directory up to (and
     including) the git repository root.  Returns the first match, or
@@ -2110,29 +2110,29 @@ def load_soul_md(context_length: Optional[int] = None) -> Optional[str]:
         return None
 
 
-def _load_hermes_md(cwd_path: Path, context_length: Optional[int] = None) -> str:
-    """.sparkii.md / HERMES.md — walk to git root."""
-    hermes_md_path = _find_hermes_md(cwd_path)
-    if not hermes_md_path:
+def _load_sparkii_md(cwd_path: Path, context_length: Optional[int] = None) -> str:
+    """.sparkii.md / SPARKII.md — walk to git root."""
+    sparkii_md_path = _find_sparkii_md(cwd_path)
+    if not sparkii_md_path:
         return ""
     try:
-        content = hermes_md_path.read_text(encoding="utf-8").strip()
+        content = sparkii_md_path.read_text(encoding="utf-8").strip()
         if not content:
             return ""
         content = _strip_yaml_frontmatter(content)
-        rel = hermes_md_path.name
+        rel = sparkii_md_path.name
         try:
-            rel = str(hermes_md_path.relative_to(cwd_path))
+            rel = str(sparkii_md_path.relative_to(cwd_path))
         except ValueError:
             pass
         content = _scan_context_content(content, rel)
         result = f"## {rel}\n\n{content}"
         return _truncate_content(
             result, ".sparkii.md", context_length=context_length,
-            read_path=str(hermes_md_path),
+            read_path=str(sparkii_md_path),
         )
     except Exception as e:
-        logger.debug("Could not read %s: %s", hermes_md_path, e)
+        logger.debug("Could not read %s: %s", sparkii_md_path, e)
         return ""
 
 
@@ -2279,7 +2279,7 @@ def build_context_files_prompt(
     """Discover and load context files for the system prompt.
 
     Priority (first found wins — only ONE project context type is loaded):
-      1. .sparkii.md / HERMES.md  (walk to git root)
+      1. .sparkii.md / SPARKII.md  (walk to git root)
       2. AGENTS.md / agents.md   (merged chain: git root → cwd)
       3. CLAUDE.md / claude.md   (cwd only)
       4. .cursorrules / .cursor/rules/*.mdc  (cwd only)
@@ -2328,7 +2328,7 @@ def build_context_files_prompt(
     else:
         # Priority-based project context: first match wins
         project_context = (
-            _load_hermes_md(cwd_path, context_length)
+            _load_sparkii_md(cwd_path, context_length)
             or _load_agents_md(cwd_path, context_length)
             or _load_claude_md(cwd_path, context_length)
             or _load_cursorrules(cwd_path, context_length)

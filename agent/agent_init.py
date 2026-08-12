@@ -955,7 +955,7 @@ def init_agent(
     # both live under ~/.sparkii/logs/.  Idempotent, so gateway mode
     # (which creates a new AIAgent per message) won't duplicate handlers.
     from sparkii_logging import setup_logging, setup_verbose_logging
-    setup_logging(hermes_home=_ra()._sparkii_home)
+    setup_logging(sparkii_home=_ra()._sparkii_home)
 
     if agent.verbose_logging:
         setup_verbose_logging()
@@ -1540,8 +1540,8 @@ def init_agent(
             os.environ["SPARKII_SESSION_ID"] = agent.session_id
 
     # Session logs go into ~/.sparkii/sessions/ alongside gateway sessions
-    hermes_home = get_sparkii_home()
-    agent.logs_dir = hermes_home / "sessions"
+    sparkii_home = get_sparkii_home()
+    agent.logs_dir = sparkii_home / "sessions"
     agent.logs_dir.mkdir(parents=True, exist_ok=True)
     # Per-session JSON snapshot writer (~/.sparkii/sessions/session_{sid}.json)
     # is opt-in via sessions.write_json_snapshots (default False).  state.db
@@ -1741,7 +1741,7 @@ def init_agent(
                     _init_kwargs = {
                         "session_id": agent.session_id,
                         "platform": platform or "cli",
-                        "hermes_home": str(get_sparkii_home()),
+                        "sparkii_home": str(get_sparkii_home()),
                         "agent_context": "primary",
                     }
                     if _init_kwargs["platform"] == "cli":
@@ -2603,10 +2603,10 @@ def init_agent(
     # non-CLI surface to still surface the warning.)
     if not agent.quiet_mode and (agent.platform or "cli") != "cli":
         try:
-            from sparkii_cli.model_switch import _check_hermes_model_warning
+            from sparkii_cli.model_switch import _check_sparkii_model_warning
 
-            _hermes_warn = _check_hermes_model_warning(agent.model or "")
-            if _hermes_warn:
+            _sparkii_warn = _check_sparkii_model_warning(agent.model or "")
+            if _sparkii_warn:
                 _user_msg = (
                     "⚠ Nous Research Sparkii 3 & 4 models are NOT agentic — they "
                     "lack reliable tool-calling for agent workflows (delegation, "
@@ -2617,7 +2617,7 @@ def init_agent(
                     agent._emit_warning(_user_msg)
                 else:
                     print(f"\n{_user_msg}\n", file=sys.stderr)
-                _ra().logger.warning(_hermes_warn)
+                _ra().logger.warning(_sparkii_warn)
         except Exception:
             pass
 
@@ -2677,7 +2677,7 @@ def init_agent(
         try:
             agent.context_compressor.on_session_start(
                 agent.session_id,
-                hermes_home=str(get_sparkii_home()),
+                sparkii_home=str(get_sparkii_home()),
                 platform=agent.platform or "cli",
                 model=agent.model,
                 context_length=getattr(agent.context_compressor, "context_length", 0),

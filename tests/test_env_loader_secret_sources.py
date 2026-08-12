@@ -177,7 +177,7 @@ def test_cold_profile_bitwarden_uses_profile_bootstrap_without_global_env(
 def test_cold_profile_hydration_seeds_op_env_bootstrap(tmp_path, monkeypatch):
     """The .op.env bootstrap file must feed cold-profile hydration.
 
-    load_hermes_dotenv() reads <home>/.op.env for OP_SERVICE_ACCOUNT_TOKEN
+    load_sparkii_dotenv() reads <home>/.op.env for OP_SERVICE_ACCOUNT_TOKEN
     (the documented gitignored 1Password bootstrap); hydration must mirror
     that or a cold profile using the supported .op.env flow fails 1Password
     resolution (sweeper review on #74549). .env wins on conflict.
@@ -264,7 +264,7 @@ def test_apply_external_secret_sources_noop_when_disabled(tmp_path, monkeypatch)
 
 
 def test_apply_external_secret_sources_dedupes_within_process(tmp_path, monkeypatch):
-    """``load_hermes_dotenv()`` is called at module-import time from several
+    """``load_sparkii_dotenv()`` is called at module-import time from several
     hot modules (cli.py, sparkii_cli/main.py, run_agent.py, ...).  The
     Bitwarden status line previously printed once per call — 3-5x per
     startup.  The applied-home guard must short-circuit subsequent calls
@@ -473,7 +473,7 @@ def test_apply_external_secret_sources_survives_non_dict_section(tmp_path, monke
 
     Both `onepassword: true` (non-dict) and a bad bitwarden section must be
     coerced to empty config instead of raising AttributeError up through
-    load_hermes_dotenv().
+    load_sparkii_dotenv().
     """
 
     monkeypatch.setenv("SPARKII_HOME", str(tmp_path))

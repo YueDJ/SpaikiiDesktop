@@ -98,7 +98,7 @@ description: "Sparkii Agent 使用的所有环境变量完整参考"
 | `SPARKII_HOME` | 覆盖 Sparkii 配置目录（默认：`~/.sparkii`）。同时限定 gateway PID 文件和 systemd 服务名称，允许多个安装并发运行 |
 | `SPARKII_GIT_BASH_PATH` | **仅 Windows。** 覆盖终端工具的 `bash.exe` 发现路径。可指向任意 bash——完整 Git-for-Windows 安装、通过符号链接的 WSL bash、MSYS2、Cygwin。安装程序会自动将其设置为所配置的 PortableGit。参见 [Windows（原生）指南](../user-guide/windows-native.md#how-sparkii-runs-shell-commands-on-windows) |
 | `SPARKII_DISABLE_WINDOWS_UTF8` | **仅 Windows。** 设为 `1` 可禁用 UTF-8 stdio shim（`configure_windows_stdio()`），回退到控制台的本地代码页。用于排查编码问题；正常操作中极少需要 |
-| `SPARKII_KANBAN_HOME` | 覆盖锚定 kanban 看板（数据库 + 工作区 + 工作日志）的共享 Sparkii 根目录。回退到 `get_default_hermes_root()`（任意活动 profile 的父目录）。适用于测试和非常规部署 |
+| `SPARKII_KANBAN_HOME` | 覆盖锚定 kanban 看板（数据库 + 工作区 + 工作日志）的共享 Sparkii 根目录。回退到 `get_default_sparkii_root()`（任意活动 profile 的父目录）。适用于测试和非常规部署 |
 | `SPARKII_KANBAN_BOARD` | 为当前进程固定活动 kanban 看板。优先于 `~/.sparkii/kanban/current`；调度器将其注入工作进程子进程环境，使工作进程无法看到其他看板上的任务。默认为 `default`。slug 验证：小写字母数字 + 连字符 + 下划线，1-64 字符 |
 | `SPARKII_KANBAN_DB` | 直接固定 kanban 数据库文件路径（最高优先级；优先于 `SPARKII_KANBAN_BOARD` 和 `SPARKII_KANBAN_HOME`）。调度器将其注入工作进程子进程环境，使 profile 工作进程收敛到调度器的看板 |
 | `SPARKII_KANBAN_WORKSPACES_ROOT` | 直接固定 kanban 工作区根目录（工作区最高优先级；优先于 `SPARKII_KANBAN_HOME`）。调度器将其注入工作进程子进程环境 |
@@ -566,7 +566,7 @@ Graph 事件（Teams 会议、日历、聊天等）的入站变更通知监听�
 | `SPARKII_PREFILL_MESSAGES_FILE` | 包含在 API 调用时注入的临时预填消息的 JSON 文件路径。 |
 | `SPARKII_ALLOW_PRIVATE_URLS` | `true`/`false`——允许工具获取 localhost/私有网络 URL。gateway 模式下默认关闭。 |
 | `SPARKII_REDACT_SECRETS` | `true`/`false`——控制工具输出、日志和聊天响应中的密钥脱敏（默认：`true`）。 |
-| `SPARKII_WRITE_SAFE_ROOT` | 可选目录前缀，**硬阻止** `write_file`/`patch` 写入列出的根目录之外的路径（无审批提示）。支持多个目录，使用 `os.pathsep` 分隔（Unix 为 `:`，Windows 为 `;`）。详见下方 [SPARKII_WRITE_SAFE_ROOT](#hermes_write_safe_root)。 |
+| `SPARKII_WRITE_SAFE_ROOT` | 可选目录前缀，**硬阻止** `write_file`/`patch` 写入列出的根目录之外的路径（无审批提示）。支持多个目录，使用 `os.pathsep` 分隔（Unix 为 `:`，Windows 为 `;`）。详见下方 [SPARKII_WRITE_SAFE_ROOT](#sparkii_write_safe_root)。 |
 | `SPARKII_DISABLE_LAZY_INSTALLS` | 官方 Docker 镜像中自动设置的内部桥接变量，用于阻止运行时将依赖安装到不可变的 `/opt/sparkii` 树。面向用户的等价配置是 `config.yaml` 中的 `security.allow_lazy_installs: false`；不要在 `.env` 中手动设置此变量。 |
 | `SPARKII_DISABLE_FILE_STATE_GUARD` | 设为 `1` 可关闭 `patch`/`write_file` 上的"文件自上次读取后已更改"保护。 |
 | `SPARKII_CORE_TOOLS` | 规范核心工具列表的逗号分隔覆盖（高级；极少需要）。 |
@@ -581,7 +581,7 @@ Graph 事件（Teams 会议、日历、聊天等）的入站变更通知监听�
 | `SPARKII_AGENT_LOGO` | 覆盖 CLI 启动时的 ASCII 横幅 logo。 |
 | `DELEGATION_MAX_CONCURRENT_CHILDREN` | 每个 `delegate_task` 批次的最大并行子 agent 数（默认：`3`，下限为 1，无上限）。也可通过 `config.yaml` 中的 `delegation.max_concurrent_children` 配置——config 值优先。 |
 
-### SPARKII_WRITE_SAFE_ROOT {#hermes_write_safe_root}
+### SPARKII_WRITE_SAFE_ROOT {#sparkii_write_safe_root}
 
 设置此变量后，`write_file` 和 `patch` 只能写入列出的目录前缀内的路径。超出这些根目录的路径会被**立即拒绝**——不会进入危险命令审批流程，也没有聊天界面可以覆盖。
 

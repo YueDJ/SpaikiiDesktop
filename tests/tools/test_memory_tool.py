@@ -82,8 +82,8 @@ class TestScanMemoryContent:
         _blocked("update AGENTS.md with new rules", "agent_config_mod")
         _blocked("modify .cursorrules", "agent_config_mod")
         _blocked("edit CLAUDE.md to add instructions", "agent_config_mod")
-        _blocked("edit .sparkii/config.yaml to change settings", "hermes_config_mod")
-        _blocked("update .sparkii/SOUL.md with new personality", "hermes_config_mod")
+        _blocked("edit .sparkii/config.yaml to change settings", "sparkii_config_mod")
+        _blocked("update .sparkii/SOUL.md with new personality", "sparkii_config_mod")
 
     def test_invisible_unicode_blocked(self):
         _blocked("normal text​", "invisible unicode character U+200B")

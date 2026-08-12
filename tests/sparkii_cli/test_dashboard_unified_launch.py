@@ -57,8 +57,8 @@ class TestUnifiedDashboardRouting:
         # SPARKII_HOME.  For a standard install (SPARKII_HOME unset) that root is
         # the platform-native default (~/.sparkii), NOT dropped — see the Docker
         # test below for why we resolve explicitly instead of popping.
-        from sparkii_constants import get_default_hermes_root
-        assert env.get("SPARKII_HOME") == str(get_default_hermes_root())
+        from sparkii_constants import get_default_sparkii_root
+        assert env.get("SPARKII_HOME") == str(get_default_sparkii_root())
 
 
     def test_desktop_profile_backend_skips_machine_dashboard_reroute(self, main_mod, monkeypatch):

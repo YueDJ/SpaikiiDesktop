@@ -1551,14 +1551,14 @@ def skill_view(
 
         # Read tags/related_skills with backward compat:
         # Check metadata.sparkii.* first (agentskills.io convention), fall back to top-level
-        hermes_meta = {}
+        sparkii_meta = {}
         metadata = frontmatter.get("metadata")
         if isinstance(metadata, dict):
-            hermes_meta = metadata.get("sparkii", {}) or {}
+            sparkii_meta = metadata.get("sparkii", {}) or {}
 
-        tags = _parse_tags(hermes_meta.get("tags") or frontmatter.get("tags", ""))
+        tags = _parse_tags(sparkii_meta.get("tags") or frontmatter.get("tags", ""))
         related_skills = _parse_tags(
-            hermes_meta.get("related_skills") or frontmatter.get("related_skills", "")
+            sparkii_meta.get("related_skills") or frontmatter.get("related_skills", "")
         )
 
         # Build linked files structure for clear discovery

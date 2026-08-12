@@ -27,12 +27,12 @@ SKILL_CANARY = "relay-smoke-private-agent-skill"
 INSTALLED_SKILL_CANARY = "relay-smoke-private-installed-skill"
 
 
-def _resolve_sparkii_executable(hermes_repo: Path) -> Path:
+def _resolve_sparkii_executable(sparkii_repo: Path) -> Path:
     for relative_path in (
         Path(".venv") / "bin" / "sparkii",
         Path(".venv") / "Scripts" / "sparkii.exe",
     ):
-        candidate = hermes_repo / relative_path
+        candidate = sparkii_repo / relative_path
         if candidate.is_file():
             return candidate
     discovered = shutil.which("sparkii")
@@ -443,7 +443,7 @@ def _validate_packages(
         jsonschema.validate(package, schema)
         if set(package["resource"]) != {
             "architecture",
-            "hermes_version",
+            "sparkii_version",
             "install_method",
             "os_family",
         }:
@@ -553,9 +553,9 @@ def _validate_packages(
 
 def main() -> int:
     args = _arguments()
-    hermes_repo = args.hermes_repo.resolve()
+    sparkii_repo = args.sparkii_repo.resolve()
     relay_python = args.relay_python.resolve() if args.relay_python else None
-    sparkii = _resolve_sparkii_executable(hermes_repo)
+    sparkii = _resolve_sparkii_executable(sparkii_repo)
     if relay_python is not None and not any(
         (relay_python / "nemo_relay").glob("_native.*")
     ):
@@ -609,7 +609,7 @@ def main() -> int:
         _write_config(home, server.server_port)
         env = os.environ.copy()
         env["SPARKII_HOME"] = str(home)
-        python_paths = [str(hermes_repo)]
+        python_paths = [str(sparkii_repo)]
         if relay_python is not None:
             python_paths.append(str(relay_python))
         python_paths.append(env.get("PYTHONPATH", ""))
@@ -719,7 +719,7 @@ def main() -> int:
     counters = _validate_store(telemetry / "metrics.sqlite3")
     package_paths, packages = _validate_packages(
         telemetry / "outbox",
-        hermes_repo
+        sparkii_repo
         / "sparkii_cli"
         / "observability"
         / "schemas"

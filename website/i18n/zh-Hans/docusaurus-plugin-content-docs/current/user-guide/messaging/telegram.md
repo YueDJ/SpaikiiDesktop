@@ -15,7 +15,7 @@ Sparkii Agent 与 Telegram 集成，作为功能完整的对话机器人。连�
 1. 打开 Telegram，搜索 **@BotFather**，或访问 [t.me/BotFather](https://t.me/BotFather)
 2. 发送 `/newbot`
 3. 选择一个**显示名称**（例如 "Sparkii Agent"）——可以是任意名称
-4. 选择一个**用户名**——必须唯一且以 `bot` 结尾（例如 `my_hermes_bot`）
+4. 选择一个**用户名**——必须唯一且以 `bot` 结尾（例如 `my_sparkii_bot`）
 5. BotFather 会回复你的 **API token**，格式如下：
 
 ```

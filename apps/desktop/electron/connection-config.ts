@@ -24,18 +24,18 @@
 // sparkii_cli/dashboard_auth/cookies.py.
 //
 // Two cookies are in play (see that module):
-//   - hermes_session_at: the OAuth access token. Short-lived (~15 min); its
+//   - sparkii_session_at: the OAuth access token. Short-lived (~15 min); its
 //     Max-Age tracks the access-token TTL, so the cookie jar drops it the
 //     instant the AT expires.
-//   - hermes_session_rt: the OAuth refresh token. Long-lived (24h rotating,
+//   - sparkii_session_rt: the OAuth refresh token. Long-lived (24h rotating,
 //     reuse-detected — Portal NAS #293 / sparkii #37247). When the AT cookie
 //     has lapsed but the RT cookie is still present, the gateway middleware
 //     transparently rotates a fresh AT on the next authenticated request
 //     (POST /api/auth/ws-ticket), so the session is still LIVE even with no
 //     AT cookie. A liveness check that looked only at the AT cookie would
 //     force a needless full re-login every ~15 min — hence cookiesHaveLiveSession.
-const AT_COOKIE_VARIANTS = ['__Host-hermes_session_at', '__Secure-hermes_session_at', 'hermes_session_at']
-const RT_COOKIE_VARIANTS = ['__Host-hermes_session_rt', '__Secure-hermes_session_rt', 'hermes_session_rt']
+const AT_COOKIE_VARIANTS = ['__Host-sparkii_session_at', '__Secure-sparkii_session_at', 'sparkii_session_at']
+const RT_COOKIE_VARIANTS = ['__Host-sparkii_session_rt', '__Secure-sparkii_session_rt', 'sparkii_session_rt']
 
 // The Nous portal (NAS) does NOT use Sparkii gateway session cookies — it is a
 // Privy-authed Next.js app. NAS `auth()` (src/server/auth/session.ts) reads the

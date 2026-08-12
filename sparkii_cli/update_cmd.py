@@ -260,7 +260,7 @@ def _validate_critical_modules_import(root) -> tuple[bool, str | None, str | Non
         # The root set is injected from sparkii_constants so this can't drift
         # from the hint the user is shown (they disagreed once already).
         "        missing = (getattr(exc, 'name', '') or '').split('.')[0]\n"
-        "        if missing in %r or missing.startswith('hermes_'):\n"
+        "        if missing in %r or missing.startswith('sparkii_'):\n"
         "            sys.stdout.write(name + '\\n' + str(exc))\n"
         "            raise SystemExit(3)\n"
         "    except ImportError as exc:\n"
@@ -1704,9 +1704,9 @@ def _invalidate_update_cache():
     """
     homes = []
     # Default profile home (Docker-aware — uses /opt/data in Docker)
-    from sparkii_constants import get_default_hermes_root
+    from sparkii_constants import get_default_sparkii_root
 
-    default_home = get_default_hermes_root()
+    default_home = get_default_sparkii_root()
     homes.append(default_home)
     # Named profiles under <root>/profiles/
     profiles_root = default_home / "profiles"
@@ -2063,7 +2063,7 @@ def _npm_manifests_digest() -> str | None:
             h.update(b"<missing>")
     return h.hexdigest()
 
-def _npm_lockfile_changed(hermes_root: Path) -> bool:
+def _npm_lockfile_changed(sparkii_root: Path) -> bool:
     current = _npm_manifests_digest()
     if current is None:
         return True
@@ -2083,20 +2083,20 @@ def _npm_lockfile_changed(hermes_root: Path) -> bool:
     try:
         # Key the cache by PROJECT_ROOT so parallel worktrees don't collide.
         cache_key = hashlib.sha256(str(_m().PROJECT_ROOT).encode()).hexdigest()[:12]
-        cache_file = hermes_root / f".npm_lock_hash_{cache_key}"
+        cache_file = sparkii_root / f".npm_lock_hash_{cache_key}"
         if not cache_file.exists():
             return True
         return cache_file.read_text(encoding="utf-8").strip() != current
     except OSError:
         return True
 
-def _record_npm_lockfile_hash(hermes_root: Path) -> None:
+def _record_npm_lockfile_hash(sparkii_root: Path) -> None:
     digest = _npm_manifests_digest()
     if digest is None:
         return
     try:
         cache_key = hashlib.sha256(str(_m().PROJECT_ROOT).encode()).hexdigest()[:12]
-        cache_file = hermes_root / f".npm_lock_hash_{cache_key}"
+        cache_file = sparkii_root / f".npm_lock_hash_{cache_key}"
         cache_file.write_text(digest, encoding="utf-8")
     except OSError:
         logger.debug("Could not write npm lockfile hash cache")
@@ -2133,13 +2133,13 @@ def _update_node_dependencies() -> list[str]:
             return failed
         return []
 
-    from sparkii_constants import get_default_hermes_root
+    from sparkii_constants import get_default_sparkii_root
 
     # This cache describes PROJECT_ROOT/node_modules, which is shared by every
     # Sparkii profile using this checkout. Keep one per-checkout cache under the
     # shared Sparkii root rather than rerunning npm once per named profile.
-    shared_hermes_root = get_default_hermes_root()
-    if not _m()._npm_lockfile_changed(shared_hermes_root):
+    shared_sparkii_root = get_default_sparkii_root()
+    if not _m()._npm_lockfile_changed(shared_sparkii_root):
         logger.info("npm lockfile unchanged, skipping npm install")
         return []
 
@@ -2161,9 +2161,9 @@ def _update_node_dependencies() -> list[str]:
 
     extra_args = ["--no-fund", "--no-audit", "--prefer-offline", "--progress=false"]
 
-    from sparkii_constants import with_hermes_node_path
+    from sparkii_constants import with_sparkii_node_path
 
-    nixos_env = with_hermes_node_path(_m()._nixos_build_env())
+    nixos_env = with_sparkii_node_path(_m()._nixos_build_env())
 
     # Step 1: root install (no workspace recursion).
     # NOTE: capture_output=False here is deliberate (#18840) — optional
@@ -2197,7 +2197,7 @@ def _update_node_dependencies() -> list[str]:
         env=nixos_env,
     )
     if ws_result.returncode == 0:
-        _record_npm_lockfile_hash(shared_hermes_root)
+        _record_npm_lockfile_hash(shared_sparkii_root)
         print("  ✓ repo root + ui-tui, web workspaces (desktop skipped)")
         return []
 
@@ -2530,10 +2530,10 @@ def _ensure_acp_launcher() -> None:
     if _m().sys.platform == "win32":
         return
     for bin_dir in (Path.home() / ".local" / "bin", Path("/usr/local/bin")):
-        hermes_cmd = bin_dir / "sparkii"
+        sparkii_cmd = bin_dir / "sparkii"
         acp_cmd = bin_dir / "sparkii-acp"
         try:
-            if not (hermes_cmd.is_file() or hermes_cmd.is_symlink()):
+            if not (sparkii_cmd.is_file() or sparkii_cmd.is_symlink()):
                 continue
             # Already present — a console script (pip/pipx install), an
             # earlier shim, or a symlink. is_symlink() catches broken
@@ -2546,7 +2546,7 @@ def _ensure_acp_launcher() -> None:
                 "# Sparkii Agent — ACP launcher (written by `sparkii update`).\n"
                 "# ACP hosts (Zed, JetBrains, Buzz) resolve the agent by this\n"
                 "# command name on the login-shell PATH.\n"
-                f'exec "{hermes_cmd}" acp "$@"\n'
+                f'exec "{sparkii_cmd}" acp "$@"\n'
             )
             acp_cmd.write_text(shim, encoding="utf-8")
             acp_cmd.chmod(acp_cmd.stat().st_mode | 0o755)
@@ -3872,7 +3872,7 @@ def _cmd_update_impl(args, gateway_mode: bool):
     if _m()._is_windows() and not getattr(args, "force", False):
         scripts_dir = _m()._venv_scripts_dir()
         if scripts_dir is not None:
-            concurrent = _m()._detect_concurrent_hermes_instances(scripts_dir)
+            concurrent = _m()._detect_concurrent_sparkii_instances(scripts_dir)
             if concurrent:
                 print(_format_concurrent_instances_message(concurrent, scripts_dir))
                 sys.exit(2)
@@ -4532,9 +4532,9 @@ def _cmd_update_impl(args, gateway_mode: bool):
                 # (Desktop → sparkii-setup → sparkii update), the shell PATH
                 # customizations are lost, so a bare-PATH child would fail with
                 # `node: not found` before cmd_gui can self-heal.
-                from sparkii_constants import with_hermes_node_path
+                from sparkii_constants import with_sparkii_node_path
 
-                _build_env = with_hermes_node_path()
+                _build_env = with_sparkii_node_path()
                 build_result = _m()._run_logged_subprocess(_desktop_build_cmd, cwd=_m().PROJECT_ROOT, env=_build_env)
                 if build_result.returncode != 0:
                     build_result = _m()._run_logged_subprocess(_desktop_build_cmd, cwd=_m().PROJECT_ROOT, env=_build_env)
@@ -5701,15 +5701,15 @@ def _cmd_update_impl(args, gateway_mode: bool):
         # every `sparkii update` surfaces the issue until the user migrates.
         try:
             from sparkii_cli.gateway import (
-                has_legacy_hermes_units,
-                _find_legacy_hermes_units,
+                has_legacy_sparkii_units,
+                _find_legacy_sparkii_units,
                 supports_systemd_services,
             )
 
-            if supports_systemd_services() and has_legacy_hermes_units():
+            if supports_systemd_services() and has_legacy_sparkii_units():
                 print()
                 print("⚠ Legacy Sparkii gateway unit(s) detected:")
-                for name, path, is_sys in _find_legacy_hermes_units():
+                for name, path, is_sys in _find_legacy_sparkii_units():
                     scope = "system" if is_sys else "user"
                     print(f"    {path}  ({scope} scope)")
                 print()

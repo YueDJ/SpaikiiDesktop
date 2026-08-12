@@ -13,7 +13,7 @@ from agent.prompt_builder import (
     _truncate_content,
     _parse_skill_file,
     _skill_should_show,
-    _find_hermes_md,
+    _find_sparkii_md,
     _find_git_root,
     _strip_yaml_frontmatter,
     build_skills_system_prompt,
@@ -535,17 +535,17 @@ class TestBuildContextFilesPrompt:
 
 
     def test_empty_soul_md_adds_nothing(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "hermes_home"))
-        hermes_home = tmp_path / "hermes_home"
-        hermes_home.mkdir()
-        (hermes_home / "SOUL.md").write_text("\n\n", encoding="utf-8")
+        monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "sparkii_home"))
+        sparkii_home = tmp_path / "sparkii_home"
+        sparkii_home.mkdir()
+        (sparkii_home / "SOUL.md").write_text("\n\n", encoding="utf-8")
         result = build_context_files_prompt(cwd=str(tmp_path))
         assert result == ""
 
 
 
 
-    # --- .sparkii.md / HERMES.md discovery ---
+    # --- .sparkii.md / SPARKII.md discovery ---
 
 
 
@@ -592,7 +592,7 @@ class TestBuildContextFilesPrompt:
 class TestFindSparkiiMd:
     def test_finds_in_cwd(self, tmp_path):
         (tmp_path / ".sparkii.md").write_text("rules")
-        assert _find_hermes_md(tmp_path) == tmp_path / ".sparkii.md"
+        assert _find_sparkii_md(tmp_path) == tmp_path / ".sparkii.md"
 
 
 
@@ -601,7 +601,7 @@ class TestFindSparkiiMd:
         (tmp_path / ".sparkii.md").write_text("root rules")
         sub = tmp_path / "a" / "b"
         sub.mkdir(parents=True)
-        assert _find_hermes_md(sub) == tmp_path / ".sparkii.md"
+        assert _find_sparkii_md(sub) == tmp_path / ".sparkii.md"
 
 
 
@@ -621,7 +621,7 @@ class TestFindSparkiiMd:
         cwd.mkdir()
         # No git root anywhere up the tree.
         with patch("agent.prompt_builder._find_git_root", return_value=None):
-            assert _find_hermes_md(cwd) is None
+            assert _find_sparkii_md(cwd) is None
 
 
 

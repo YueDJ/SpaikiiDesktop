@@ -31,7 +31,7 @@ from sparkii_constants import (
     reset_sparkii_home_override,
     set_sparkii_home_override,
 )
-from sparkii_cli.env_loader import load_hermes_dotenv
+from sparkii_cli.env_loader import load_sparkii_dotenv
 from utils import is_truthy_value
 from tools.environments.local import sparkii_subprocess_env
 from agent.replay_cleanup import sanitize_replay_history
@@ -54,8 +54,8 @@ from tui_gateway.transport import (
 logger = logging.getLogger(__name__)
 
 _sparkii_home = get_sparkii_home()
-load_hermes_dotenv(
-    hermes_home=_sparkii_home, project_env=Path(__file__).parent.parent / ".env"
+load_sparkii_dotenv(
+    sparkii_home=_sparkii_home, project_env=Path(__file__).parent.parent / ".env"
 )
 
 
@@ -11728,12 +11728,12 @@ def _is_repo_junk(root: str) -> bool:
     from sparkii_constants import get_sparkii_home
 
     real = os.path.realpath(root)
-    hermes_home = os.path.realpath(str(get_sparkii_home()))
+    sparkii_home = os.path.realpath(str(get_sparkii_home()))
 
     return (
         os.path.normcase(real) in _non_workspace_dirs()
-        or real == hermes_home
-        or real.startswith(hermes_home + os.sep)
+        or real == sparkii_home
+        or real.startswith(sparkii_home + os.sep)
     )
 
 
@@ -11752,8 +11752,8 @@ def _is_session_cwd_junk(cwd: str) -> bool:
     from sparkii_constants import get_sparkii_home
 
     real = os.path.normcase(os.path.realpath(cwd))
-    hermes_home = os.path.normcase(os.path.realpath(str(get_sparkii_home())))
-    return real in _non_workspace_dirs() or real == hermes_home
+    sparkii_home = os.path.normcase(os.path.realpath(str(get_sparkii_home())))
+    return real in _non_workspace_dirs() or real == sparkii_home
 
 
 def _repo_discovery_policy(raw: dict | None = None) -> dict:

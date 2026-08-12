@@ -14,21 +14,21 @@ import pytest
 @pytest.fixture
 def memory_env(tmp_path, monkeypatch):
     """Set up a fake SPARKII_HOME with memory files."""
-    hermes_home = tmp_path / ".sparkii"
-    memories = hermes_home / "memories"
+    sparkii_home = tmp_path / ".sparkii"
+    memories = sparkii_home / "memories"
     memories.mkdir(parents=True)
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
     # Create sample memory files
     (memories / "MEMORY.md").write_text(
-        "§\nHermes repo is at ~/.sparkii/sparkii-agent\n§\nUser prefers dark themes",
+        "§\nSparkii repo is at ~/.sparkii/sparkii-agent\n§\nUser prefers dark themes",
         encoding="utf-8",
     )
     (memories / "USER.md").write_text(
         "§\nUser is Teknium\n§\nTimezone: US Pacific",
         encoding="utf-8",
     )
-    return hermes_home, memories
+    return sparkii_home, memories
 
 
 def _run_memory_reset(target="all", yes=False, monkeypatch=None, confirm_input="no"):
@@ -64,7 +64,7 @@ class TestMemoryReset:
 
     def test_reset_all_with_yes_flag(self, memory_env):
         """--yes flag should skip confirmation and delete both files."""
-        hermes_home, memories = memory_env
+        sparkii_home, memories = memory_env
         assert (memories / "MEMORY.md").exists()
         assert (memories / "USER.md").exists()
 
@@ -76,9 +76,9 @@ class TestMemoryReset:
 
     def test_reset_no_files_exist(self, tmp_path, monkeypatch):
         """Should return 'nothing' when no memory files exist."""
-        hermes_home = tmp_path / ".sparkii"
-        (hermes_home / "memories").mkdir(parents=True)
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        sparkii_home = tmp_path / ".sparkii"
+        (sparkii_home / "memories").mkdir(parents=True)
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         result = _run_memory_reset(target="all", yes=True)
         assert result == "nothing"
@@ -86,7 +86,7 @@ class TestMemoryReset:
 
     def test_reset_partial_files(self, memory_env):
         """Reset should work when only one memory file exists."""
-        hermes_home, memories = memory_env
+        sparkii_home, memories = memory_env
         (memories / "USER.md").unlink()
 
         result = _run_memory_reset(target="all", yes=True)

@@ -38,15 +38,15 @@ def _run_block(tmp_path: Path, use_venv: str) -> Path:
     """Execute the extracted block with the env vars setup_path() sets."""
     command_link_dir = tmp_path / "local_bin"
     command_link_dir.mkdir()
-    hermes_bin = tmp_path / "venv" / "bin" / "python"
-    hermes_bin.parent.mkdir(parents=True)
-    hermes_bin.write_text("#!/bin/sh\n", encoding="utf-8")
+    sparkii_bin = tmp_path / "venv" / "bin" / "python"
+    sparkii_bin.parent.mkdir(parents=True)
+    sparkii_bin.write_text("#!/bin/sh\n", encoding="utf-8")
     entrypoint = tmp_path / "sparkii"
     entrypoint.write_text("#!/bin/sh\n", encoding="utf-8")
 
     script = (
         "set -e\n"
-        f"SPARKII_BIN={hermes_bin}\n"
+        f"SPARKII_BIN={sparkii_bin}\n"
         f"SPARKII_ENTRYPOINT={entrypoint}\n"
         f"command_link_dir={command_link_dir}\n"
         f"command_link_display_dir={command_link_dir}\n"
@@ -102,14 +102,14 @@ def test_acp_launcher_does_not_follow_a_symlink_into_the_venv(tmp_path):
     shim_path.symlink_to(console_script)
     assert shim_path.is_symlink()
 
-    hermes_bin = tmp_path / "venv" / "bin" / "python"
-    hermes_bin.write_text("#!/bin/sh\n", encoding="utf-8")
+    sparkii_bin = tmp_path / "venv" / "bin" / "python"
+    sparkii_bin.write_text("#!/bin/sh\n", encoding="utf-8")
     entrypoint = tmp_path / "sparkii"
     entrypoint.write_text("#!/bin/sh\n", encoding="utf-8")
 
     script = (
         "set -e\n"
-        f"SPARKII_BIN={hermes_bin}\n"
+        f"SPARKII_BIN={sparkii_bin}\n"
         f"SPARKII_ENTRYPOINT={entrypoint}\n"
         f"command_link_dir={command_link_dir}\n"
         f"command_link_display_dir={command_link_dir}\n"
@@ -158,15 +158,15 @@ def _run_sparkii_agent_block(tmp_path: Path, use_venv: str) -> Path | None:
 
     command_link_dir = tmp_path / "local_bin"
     command_link_dir.mkdir()
-    hermes_bin = tmp_path / "venv" / "bin" / "python"
-    hermes_bin.parent.mkdir(parents=True)
-    hermes_bin.write_text("#!/bin/sh\n", encoding="utf-8")
+    sparkii_bin = tmp_path / "venv" / "bin" / "python"
+    sparkii_bin.parent.mkdir(parents=True)
+    sparkii_bin.write_text("#!/bin/sh\n", encoding="utf-8")
     install_dir = tmp_path / "install"
     install_dir.mkdir()
 
     script = (
         "set -e\n"
-        f"SPARKII_BIN={hermes_bin}\n"
+        f"SPARKII_BIN={sparkii_bin}\n"
         f"INSTALL_DIR={install_dir}\n"
         f"command_link_dir={command_link_dir}\n"
         f"command_link_display_dir={command_link_dir}\n"

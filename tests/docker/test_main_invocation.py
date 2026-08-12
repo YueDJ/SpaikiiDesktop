@@ -12,7 +12,7 @@ from __future__ import annotations
 import subprocess
 
 
-def test_no_args_starts_hermes(built_image: str) -> None:
+def test_no_args_starts_sparkii(built_image: str) -> None:
     """``docker run <image>`` should start sparkii cleanly.
 
     We invoke ``--version`` so the call exits without needing a configured

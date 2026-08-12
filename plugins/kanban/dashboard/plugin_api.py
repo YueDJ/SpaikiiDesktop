@@ -665,7 +665,7 @@ def create_task(payload: CreateTaskBody, board: Optional[str] = Query(None)):
                 # profile this board belongs to, which otherwise warned "no
                 # gateway is running" against a live profile gateway (#71211).
                 running, message = _check_dispatcher_presence(
-                    hermes_home=get_sparkii_home()
+                    sparkii_home=get_sparkii_home()
                 )
                 if not running and message:
                     body["warning"] = message

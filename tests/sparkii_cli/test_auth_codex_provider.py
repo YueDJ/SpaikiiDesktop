@@ -22,9 +22,9 @@ from sparkii_cli.auth import (
 )
 
 
-def _setup_sparkii_auth(hermes_home: Path, *, access_token: str = "access", refresh_token: str = "refresh"):
+def _setup_sparkii_auth(sparkii_home: Path, *, access_token: str = "access", refresh_token: str = "refresh"):
     """Write Codex tokens into the Sparkii auth store."""
-    hermes_home.mkdir(parents=True, exist_ok=True)
+    sparkii_home.mkdir(parents=True, exist_ok=True)
     auth_store = {
         "version": 1,
         "active_provider": "openai-codex",
@@ -39,7 +39,7 @@ def _setup_sparkii_auth(hermes_home: Path, *, access_token: str = "access", refr
             },
         },
     }
-    auth_file = hermes_home / "auth.json"
+    auth_file = sparkii_home / "auth.json"
     auth_file.write_text(json.dumps(auth_store, indent=2))
     return auth_file
 
@@ -55,9 +55,9 @@ def _jwt_with_exp(exp_epoch: int) -> str:
 
 
 def test_resolve_codex_runtime_credentials_missing_access_token(tmp_path, monkeypatch):
-    hermes_home = tmp_path / "sparkii"
-    _setup_sparkii_auth(hermes_home, access_token="")
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    sparkii_home = tmp_path / "sparkii"
+    _setup_sparkii_auth(sparkii_home, access_token="")
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
     monkeypatch.setenv("CODEX_HOME", str(tmp_path / "missing-codex"))
 
     with pytest.raises(AuthError) as exc:
@@ -76,8 +76,8 @@ def test_resolve_codex_runtime_credentials_falls_back_to_pool_when_singleton_emp
     re-auth, restore from backup) hit a bare HTTP 401 on chat but worked fine on
     auxiliary calls.  The fallback closes that divergence.
     """
-    hermes_home = tmp_path / "sparkii"
-    hermes_home.mkdir(parents=True, exist_ok=True)
+    sparkii_home = tmp_path / "sparkii"
+    sparkii_home.mkdir(parents=True, exist_ok=True)
     # Singleton: empty tokens (would normally raise AuthError).
     # Pool: valid access_token.
     auth_store = {
@@ -95,8 +95,8 @@ def test_resolve_codex_runtime_credentials_falls_back_to_pool_when_singleton_emp
             ],
         },
     }
-    (hermes_home / "auth.json").write_text(json.dumps(auth_store))
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    (sparkii_home / "auth.json").write_text(json.dumps(auth_store))
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
     resolved = resolve_codex_runtime_credentials()
     assert resolved["api_key"] == "pool-fallback-token"
@@ -114,9 +114,9 @@ def test_save_codex_tokens_syncs_credential_pool(tmp_path, monkeypatch):
     holding a consumed refresh token and stale error markers, causing an
     immediate 401 token_invalidated on the next request.
     """
-    hermes_home = tmp_path / "sparkii"
-    hermes_home.mkdir(parents=True, exist_ok=True)
-    (hermes_home / "auth.json").write_text(json.dumps({
+    sparkii_home = tmp_path / "sparkii"
+    sparkii_home.mkdir(parents=True, exist_ok=True)
+    (sparkii_home / "auth.json").write_text(json.dumps({
         "version": 1,
         "providers": {
             "openai-codex": {
@@ -148,12 +148,12 @@ def test_save_codex_tokens_syncs_credential_pool(tmp_path, monkeypatch):
             ],
         },
     }))
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
     _save_codex_tokens({"access_token": "new-at", "refresh_token": "new-rt"},
                        last_refresh="2026-05-27T00:00:00Z")
 
-    auth = json.loads((hermes_home / "auth.json").read_text())
+    auth = json.loads((sparkii_home / "auth.json").read_text())
     pool = auth["credential_pool"]["openai-codex"]
     seeded = next(e for e in pool if e["source"] == "device_code")
     assert seeded["access_token"] == "new-at"
@@ -192,9 +192,9 @@ def test_save_codex_tokens_syncs_manual_device_code_entries(tmp_path, monkeypatc
     the *previous* singleton access_token (true legacy aliases), and leaves
     distinct-token entries alone (independent accounts).
     """
-    hermes_home = tmp_path / "sparkii"
-    hermes_home.mkdir(parents=True, exist_ok=True)
-    (hermes_home / "auth.json").write_text(json.dumps({
+    sparkii_home = tmp_path / "sparkii"
+    sparkii_home.mkdir(parents=True, exist_ok=True)
+    (sparkii_home / "auth.json").write_text(json.dumps({
         "version": 1,
         "providers": {
             "openai-codex": {
@@ -245,12 +245,12 @@ def test_save_codex_tokens_syncs_manual_device_code_entries(tmp_path, monkeypatc
             ],
         },
     }))
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
     _save_codex_tokens({"access_token": "fresh-at", "refresh_token": "fresh-rt"},
                        last_refresh="2026-05-28T00:00:00Z")
 
-    auth = json.loads((hermes_home / "auth.json").read_text())
+    auth = json.loads((sparkii_home / "auth.json").read_text())
     pool = auth["credential_pool"]["openai-codex"]
 
     # Singleton-seeded device_code entry: refreshed and error markers cleared.
@@ -295,9 +295,9 @@ def test_save_codex_tokens_does_not_overwrite_independent_manual_entries(tmp_pat
     entries whose tokens never matched the singleton are independent accounts
     and must be left alone.
     """
-    hermes_home = tmp_path / "sparkii"
-    hermes_home.mkdir(parents=True, exist_ok=True)
-    (hermes_home / "auth.json").write_text(json.dumps({
+    sparkii_home = tmp_path / "sparkii"
+    sparkii_home.mkdir(parents=True, exist_ok=True)
+    (sparkii_home / "auth.json").write_text(json.dumps({
         "version": 1,
         "providers": {
             "openai-codex": {
@@ -343,7 +343,7 @@ def test_save_codex_tokens_does_not_overwrite_independent_manual_entries(tmp_pat
             ],
         },
     }))
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
     # User re-authenticates account A — fresh device-code login produces new
     # tokens.  The legitimate update is the seeded singleton mirror; the
@@ -353,7 +353,7 @@ def test_save_codex_tokens_does_not_overwrite_independent_manual_entries(tmp_pat
         last_refresh="2026-06-05T00:00:00Z",
     )
 
-    auth = json.loads((hermes_home / "auth.json").read_text())
+    auth = json.loads((sparkii_home / "auth.json").read_text())
     pool = auth["credential_pool"]["openai-codex"]
 
     # Singleton-seeded entry: refreshed (legitimate sync).
@@ -383,9 +383,9 @@ def test_save_codex_tokens_clears_error_markers_only_on_refreshed_entries(tmp_pa
     with their own stale-error markers must be left alone (their stale state
     is not the current re-auth's business).
     """
-    hermes_home = tmp_path / "sparkii"
-    hermes_home.mkdir(parents=True, exist_ok=True)
-    (hermes_home / "auth.json").write_text(json.dumps({
+    sparkii_home = tmp_path / "sparkii"
+    sparkii_home.mkdir(parents=True, exist_ok=True)
+    (sparkii_home / "auth.json").write_text(json.dumps({
         "version": 1,
         "providers": {
             "openai-codex": {
@@ -417,14 +417,14 @@ def test_save_codex_tokens_clears_error_markers_only_on_refreshed_entries(tmp_pa
             ],
         },
     }))
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
     _save_codex_tokens(
         {"access_token": "fresh-at", "refresh_token": "fresh-rt"},
         last_refresh="2026-06-05T00:00:00Z",
     )
 
-    auth = json.loads((hermes_home / "auth.json").read_text())
+    auth = json.loads((sparkii_home / "auth.json").read_text())
     pool = auth["credential_pool"]["openai-codex"]
 
     # Singleton: refreshed AND error markers cleared.
@@ -446,13 +446,13 @@ def test_save_codex_tokens_clears_error_markers_only_on_refreshed_entries(tmp_pa
 
 def test_codex_tokens_not_written_to_shared_file(tmp_path, monkeypatch):
     """Verify _save_codex_tokens writes only to Sparkii auth store, not ~/.codex/."""
-    hermes_home = tmp_path / "sparkii"
+    sparkii_home = tmp_path / "sparkii"
     codex_home = tmp_path / "codex-cli"
-    hermes_home.mkdir(parents=True, exist_ok=True)
+    sparkii_home.mkdir(parents=True, exist_ok=True)
     codex_home.mkdir(parents=True, exist_ok=True)
 
-    (hermes_home / "auth.json").write_text(json.dumps({"version": 1, "providers": {}}))
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    (sparkii_home / "auth.json").write_text(json.dumps({"version": 1, "providers": {}}))
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
     monkeypatch.setenv("CODEX_HOME", str(codex_home))
 
     _save_codex_tokens({"access_token": "sparkii-at", "refresh_token": "sparkii-rt"})
@@ -465,10 +465,10 @@ def test_codex_tokens_not_written_to_shared_file(tmp_path, monkeypatch):
     assert data["tokens"]["access_token"] == "sparkii-at"
 
 
-def test_resolve_returns_hermes_auth_store_source(tmp_path, monkeypatch):
-    hermes_home = tmp_path / "sparkii"
-    _setup_sparkii_auth(hermes_home)
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+def test_resolve_returns_sparkii_auth_store_source(tmp_path, monkeypatch):
+    sparkii_home = tmp_path / "sparkii"
+    _setup_sparkii_auth(sparkii_home)
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
     creds = resolve_codex_runtime_credentials()
     assert creds["source"] == "sparkii-auth-store"

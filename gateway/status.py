@@ -519,7 +519,7 @@ def _command_line_belongs_to_profile(command: str, profile_home: Path) -> bool:
         return (
             f"--profile {profile_lc}" in command_lc
             or f"-p {profile_lc}" in command_lc
-            or f"hermes_home={home_lc}" in command_lc
+            or f"sparkii_home={home_lc}" in command_lc
         )
 
     # Default/root profile: the gateway runs with no profile flag. Accept unless
@@ -529,7 +529,7 @@ def _command_line_belongs_to_profile(command: str, profile_home: Path) -> bool:
     # absence is not disqualifying — only a conflicting explicit value is.
     if "--profile " in command_lc or " -p " in command_lc:
         return False
-    if "hermes_home=" in command_lc and f"hermes_home={home_lc}" not in command_lc:
+    if "sparkii_home=" in command_lc and f"sparkii_home={home_lc}" not in command_lc:
         return False
     return True
 
@@ -576,7 +576,7 @@ def _build_pid_record() -> dict:
         # SPARKII_HOME-local.  Persist the owning gateway's process home so an
         # explicit cross-profile --replace can place its planned-takeover
         # marker where the target process will actually read it.
-        "hermes_home": str(_canonical_sparkii_home(_get_process_sparkii_home())),
+        "sparkii_home": str(_canonical_sparkii_home(_get_process_sparkii_home())),
     }
 
 
@@ -1591,13 +1591,13 @@ _PLANNED_STOP_MARKER_FILENAME = ".gateway-planned-stop.json"
 _PLANNED_STOP_MARKER_TTL_S = 60
 
 
-def _get_takeover_marker_path(hermes_home: Optional[Path] = None) -> Path:
+def _get_takeover_marker_path(sparkii_home: Optional[Path] = None) -> Path:
     """Return the path to the --replace takeover marker file.
 
-    ``hermes_home`` is supplied only for a verified cross-home handoff.  The
+    ``sparkii_home`` is supplied only for a verified cross-home handoff.  The
     target process always consumes the marker from its own process-level home.
     """
-    home = hermes_home or _get_process_sparkii_home()
+    home = sparkii_home or _get_process_sparkii_home()
     return _canonical_sparkii_home(home) / _TAKEOVER_MARKER_FILENAME
 
 
@@ -1790,7 +1790,7 @@ def _validated_scoped_lock_gateway_owner(
     if not isinstance(owner_start_time, int) or isinstance(owner_start_time, bool):
         return None
 
-    raw_home = record.get("hermes_home")
+    raw_home = record.get("sparkii_home")
     if not isinstance(raw_home, str) or not raw_home.strip():
         return None
     if not Path(raw_home).expanduser().is_absolute():
@@ -1819,7 +1819,7 @@ def _validated_scoped_lock_gateway_owner(
     if pid_record_pid != owner_pid or pid_record.get("start_time") != owner_start_time:
         return None
 
-    pid_record_home = pid_record.get("hermes_home")
+    pid_record_home = pid_record.get("sparkii_home")
     if not isinstance(pid_record_home, str) or not _same_sparkii_home(
         pid_record_home, target_home
     ):

@@ -727,8 +727,8 @@ def _get_sparkii_home() -> Path:
 
 def _get_lock_paths() -> tuple[Path, Path]:
     """Resolve cron lock paths at call time so profile/env changes are honored."""
-    hermes_home = _get_sparkii_home()
-    lock_dir = hermes_home / "cron"
+    sparkii_home = _get_sparkii_home()
+    lock_dir = sparkii_home / "cron"
     return lock_dir, lock_dir / ".tick.lock"
 
 
@@ -3216,12 +3216,12 @@ def run_job(
         # TELEGRAM_HOME_CHANNEL/DISCORD_HOME_CHANNEL in its environment, and
         # the agent path's per-run dotenv reload below never executes for
         # no_agent jobs — every deliver=telegram/all script job failed with
-        # "no delivery target resolved". load_hermes_dotenv does not override
+        # "no delivery target resolved". load_sparkii_dotenv does not override
         # already-set vars, so the gateway's in-process tick is unaffected.
         try:
-            from sparkii_cli.env_loader import load_hermes_dotenv
+            from sparkii_cli.env_loader import load_sparkii_dotenv
 
-            load_hermes_dotenv(hermes_home=_get_sparkii_home())
+            load_sparkii_dotenv(sparkii_home=_get_sparkii_home())
         except Exception:
             logger.debug(
                 "Job '%s': no_agent .env reload failed", job_id, exc_info=True
@@ -3658,7 +3658,7 @@ def run_job(
 
         # Re-read .env and config.yaml fresh every run so provider/key
         # changes take effect without a gateway restart. Route through
-        # load_hermes_dotenv (not a bare load_dotenv) and reset the secret-
+        # load_sparkii_dotenv (not a bare load_dotenv) and reset the secret-
         # source cache first: startup already applied external secrets and
         # recorded this SPARKII_HOME in _APPLIED_HOMES, so a naive reload would
         # re-apply only the .env placeholder and never re-resolve a Bitwarden/
@@ -3666,14 +3666,14 @@ def run_job(
         # (#33465). Clearing the cache forces the re-pull; the resolved secret
         # overrides the placeholder only when secrets.bitwarden.override_existing
         # is set (mirrors startup), and the Bitwarden value-cache keeps the
-        # forced re-pull off the network. load_hermes_dotenv also handles the
+        # forced re-pull off the network. load_sparkii_dotenv also handles the
         # utf-8/latin-1 encoding fallback internally.
         from sparkii_cli.env_loader import (
-            load_hermes_dotenv,
+            load_sparkii_dotenv,
             reset_secret_source_cache,
         )
         reset_secret_source_cache()
-        load_hermes_dotenv(hermes_home=_get_sparkii_home())
+        load_sparkii_dotenv(sparkii_home=_get_sparkii_home())
 
         delivery_target = _resolve_delivery_target(job)
         if delivery_target:

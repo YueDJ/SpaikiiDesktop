@@ -104,7 +104,7 @@ class MemoryProvider(ABC):
         establish connections, start background threads, etc.
 
         kwargs always include:
-          - hermes_home (str): The active SPARKII_HOME directory path. Use this
+          - sparkii_home (str): The active SPARKII_HOME directory path. Use this
             for profile-scoped storage instead of hardcoding ``~/.sparkii``.
           - platform (str): "cli", "telegram", "discord", "cron", etc.
 
@@ -302,12 +302,12 @@ class MemoryProvider(ABC):
         """
         return []
 
-    def save_config(self, values: Dict[str, Any], hermes_home: str) -> None:
+    def save_config(self, values: Dict[str, Any], sparkii_home: str) -> None:
         """Write non-secret config to the provider's native location.
 
         Called by 'sparkii memory setup' after collecting user inputs.
         ``values`` contains only non-secret fields (secrets go to .env).
-        ``hermes_home`` is the active SPARKII_HOME directory path.
+        ``sparkii_home`` is the active SPARKII_HOME directory path.
 
         Providers with native config files (JSON, YAML) should override
         this to write to their expected location. Providers that use only

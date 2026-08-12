@@ -35,7 +35,7 @@ class FakeAgent:
 
 @pytest.fixture
 def worker_home(tmp_path, monkeypatch):
-    home = tmp_path / "hermes_home"
+    home = tmp_path / "sparkii_home"
     home.mkdir()
     monkeypatch.setenv("SPARKII_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
@@ -43,7 +43,7 @@ def worker_home(tmp_path, monkeypatch):
         monkeypatch.delenv(var, raising=False)
     try:
         import sparkii_constants
-        sparkii_constants._cached_default_hermes_root = None  # type: ignore[attr-defined]
+        sparkii_constants._cached_default_sparkii_root = None  # type: ignore[attr-defined]
     except Exception:
         pass
     kb._INITIALIZED_PATHS.clear()

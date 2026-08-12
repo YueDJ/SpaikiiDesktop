@@ -75,7 +75,7 @@ class TestWrapCommandAdvertisesHarness:
 
     def test_shell_sets_default_and_preserves_outer(self):
         """Run the wrapped script through real bash both ways."""
-        wrapped = self._wrap('echo "AI=$AI_AGENT HERMES=$SPARKII_AGENT"')
+        wrapped = self._wrap('echo "AI=$AI_AGENT SPARKII=$SPARKII_AGENT"')
 
         clean_env = {k: v for k, v in os.environ.items()
                      if k not in ("AI_AGENT", "SPARKII_AGENT")}
@@ -83,11 +83,11 @@ class TestWrapCommandAdvertisesHarness:
             ["bash", "-c", wrapped], capture_output=True, text=True,
             env=clean_env, timeout=30,
         )
-        assert f"AI={HARNESS_ID} HERMES=true" in out.stdout
+        assert f"AI={HARNESS_ID} SPARKII=true" in out.stdout
 
         outer_env = dict(clean_env, AI_AGENT="pi", SPARKII_AGENT="false")
         out = subprocess.run(
             ["bash", "-c", wrapped], capture_output=True, text=True,
             env=outer_env, timeout=30,
         )
-        assert "AI=pi HERMES=false" in out.stdout
+        assert "AI=pi SPARKII=false" in out.stdout

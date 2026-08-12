@@ -148,7 +148,7 @@ def _reply_anchor_for_event(event) -> str | None:
     if (
         platform == "slack"
         and isinstance(raw_message, dict)
-        and raw_message.get("_hermes_no_thread_response")
+        and raw_message.get("_sparkii_no_thread_response")
     ):
         # Slack reaction handoffs into a configured target channel are meant
         # to create a new top-level message there. Returning the synthetic
@@ -209,7 +209,7 @@ def build_auto_tts_output_path(platform) -> str:
     ext = "ogg" if _platform_name(platform) in OPUS_VOICE_PLATFORMS else "mp3"
     audio_path = os.path.join(
         tempfile.gettempdir(),
-        "hermes_voice",
+        "sparkii_voice",
         f"tts_reply_{uuid.uuid4().hex[:12]}.{ext}",
     )
     os.makedirs(os.path.dirname(audio_path), exist_ok=True)
@@ -578,7 +578,7 @@ sys.path.insert(0, str(_Path(__file__).resolve().parents[2]))
 
 from gateway.config import Platform, PlatformConfig
 from gateway.session import SessionSource, build_session_key
-from sparkii_constants import get_default_hermes_root, get_hermes_dir, get_sparkii_home
+from sparkii_constants import get_default_sparkii_root, get_sparkii_dir, get_sparkii_home
 
 if TYPE_CHECKING:
     from agent.display import ToolPreview
@@ -723,13 +723,13 @@ async def _ssrf_redirect_guard(response):
 
 # Import-time default. Tests monkeypatch this; the get_*_cache_dir() getters
 # re-resolve per call so the active profile override is honored.
-IMAGE_CACHE_DIR = get_hermes_dir("cache/images", "image_cache")
+IMAGE_CACHE_DIR = get_sparkii_dir("cache/images", "image_cache")
 
 
 def _resolve_cache_dir(constant_name: str, new_subpath: str, old_name: str) -> Path:
-    """Resolve fresh via get_hermes_dir (active profile), unless a test has
+    """Resolve fresh via get_sparkii_dir (active profile), unless a test has
     monkeypatched the constant away from its import-time default."""
-    fresh = get_hermes_dir(new_subpath, old_name)
+    fresh = get_sparkii_dir(new_subpath, old_name)
     current = globals().get(constant_name)
     default = _CACHE_DIR_IMPORT_DEFAULTS.get(constant_name)
     if current is not None and default is not None and current != default:
@@ -980,7 +980,7 @@ def cleanup_image_cache(max_age_hours: int = 24) -> int:
 # here so the STT tool (OpenAI Whisper) can transcribe them from local files.
 # ---------------------------------------------------------------------------
 
-AUDIO_CACHE_DIR = get_hermes_dir("cache/audio", "audio_cache")
+AUDIO_CACHE_DIR = get_sparkii_dir("cache/audio", "audio_cache")
 
 
 def get_audio_cache_dir() -> Path:
@@ -1101,7 +1101,7 @@ def cleanup_audio_cache(max_age_hours: int = 24) -> int:
 # here so the agent can reference them by local file path.
 # ---------------------------------------------------------------------------
 
-VIDEO_CACHE_DIR = get_hermes_dir("cache/videos", "video_cache")
+VIDEO_CACHE_DIR = get_sparkii_dir("cache/videos", "video_cache")
 
 SUPPORTED_VIDEO_TYPES = {
     ".mp4": "video/mp4",
@@ -1145,8 +1145,8 @@ def cleanup_video_cache(max_age_hours: int = 24) -> int:
 # here so the agent can reference them by local file path.
 # ---------------------------------------------------------------------------
 
-DOCUMENT_CACHE_DIR = get_hermes_dir("cache/documents", "document_cache")
-SCREENSHOT_CACHE_DIR = get_hermes_dir("cache/screenshots", "browser_screenshots")
+DOCUMENT_CACHE_DIR = get_sparkii_dir("cache/documents", "document_cache")
+SCREENSHOT_CACHE_DIR = get_sparkii_dir("cache/screenshots", "browser_screenshots")
 
 
 def get_screenshot_cache_dir() -> Path:
@@ -1176,7 +1176,7 @@ _CACHE_DIR_IMPORT_DEFAULTS = {
 }
 
 _SPARKII_HOME = get_sparkii_home()
-_SPARKII_ROOT = get_default_hermes_root()
+_SPARKII_ROOT = get_default_sparkii_root()
 MEDIA_DELIVERY_ALLOW_DIRS_ENV = "SPARKII_MEDIA_ALLOW_DIRS"
 MEDIA_DELIVERY_TRUST_RECENT_ENV = "SPARKII_MEDIA_TRUST_RECENT_FILES"
 MEDIA_DELIVERY_TRUST_RECENT_SECONDS_ENV = "SPARKII_MEDIA_TRUST_RECENT_SECONDS"
@@ -1411,11 +1411,11 @@ def _media_delivery_denied_paths() -> List[Path]:
         "pairing",
         "mcp-tokens",
     )
-    for hermes_root in (_SPARKII_HOME, _SPARKII_ROOT):
+    for sparkii_root in (_SPARKII_HOME, _SPARKII_ROOT):
         for rel in _ROOT_CREDENTIAL_FILES:
-            denied.append(hermes_root / rel)
+            denied.append(sparkii_root / rel)
         for rel in _ROOT_CREDENTIAL_DIRS:
-            denied.append(hermes_root / rel)
+            denied.append(sparkii_root / rel)
     return denied
 
 
@@ -6345,7 +6345,7 @@ class BasePlatformAdapter(ABC):
                         and not media_files
                         and not self._streaming_tts_turn_completed(
                             session_key,
-                            getattr(interrupt_event, "_hermes_run_generation", None),
+                            getattr(interrupt_event, "_sparkii_run_generation", None),
                             event=event,
                         )):
                     try:
@@ -6682,7 +6682,7 @@ class BasePlatformAdapter(ABC):
             self._streaming_tts_completed_turns.discard(
                 self._streaming_tts_turn_key(
                     session_key,
-                    getattr(interrupt_event, "_hermes_run_generation", None),
+                    getattr(interrupt_event, "_sparkii_run_generation", None),
                     event=event,
                 )
                 or ""
@@ -6775,7 +6775,7 @@ class BasePlatformAdapter(ABC):
             # session (e.g. deferred background-review notifications).
             #
             # Snapshot the callback generation HERE (after the agent has run),
-            # not at the top of this task.  _hermes_run_generation is set on
+            # not at the top of this task.  _sparkii_run_generation is set on
             # the interrupt event by GatewayRunner._bind_adapter_run_generation
             # during _handle_message_with_agent — which happens DURING the
             # self._message_handler(event) await above.  Snapshotting earlier
@@ -6784,7 +6784,7 @@ class BasePlatformAdapter(ABC):
             # fresher run's callbacks.
             _callback_generation = getattr(
                 interrupt_event,
-                "_hermes_run_generation",
+                "_sparkii_run_generation",
                 None,
             )
             if hasattr(self, "pop_post_delivery_callback"):

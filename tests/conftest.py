@@ -460,7 +460,7 @@ def _hermetic_environment(tmp_path, monkeypatch):
     #    fixture. Any code in the codebase reading ``~/.sparkii/*`` via
     #    ``Path.home() / ".sparkii"`` instead of ``get_sparkii_home()``
     #    is a bug to fix at the callsite.
-    fake_sparkii_home = tmp_path / "hermes_test"
+    fake_sparkii_home = tmp_path / "sparkii_test"
     fake_sparkii_home.mkdir()
     (fake_sparkii_home / "sessions").mkdir()
     (fake_sparkii_home / "cron").mkdir()
@@ -614,8 +614,8 @@ def _capture_real_kanban_root() -> Path:
         # the env still holds the tempdir and the resolver would be wrong) —
         # honor it via the normal resolver (it may be a profile dir whose
         # root matters).
-        from sparkii_constants import get_default_hermes_root
-        return get_default_hermes_root().resolve()
+        from sparkii_constants import get_default_sparkii_root
+        return get_default_sparkii_root().resolve()
     # No pre-existing SPARKII_HOME: the real root is the platform default,
     # NOT the sandbox tempdir now sitting in the env.
     return (Path.home() / ".sparkii").resolve()

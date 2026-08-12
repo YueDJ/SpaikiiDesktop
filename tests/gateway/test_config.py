@@ -294,12 +294,12 @@ class TestLoadGatewayConfig:
         template = (
             Path(__file__).resolve().parents[2] / "cli-config.yaml.example"
         )
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        (hermes_home / "config.yaml").write_text(
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        (sparkii_home / "config.yaml").write_text(
             template.read_text(encoding="utf-8"), encoding="utf-8"
         )
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         config = load_gateway_config()
 
@@ -307,9 +307,9 @@ class TestLoadGatewayConfig:
 
     def test_no_config_yaml_means_no_auto_reset(self, tmp_path, monkeypatch):
         """With no config.yaml at all, sessions must never auto-reset."""
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         config = load_gateway_config()
 
@@ -318,13 +318,13 @@ class TestLoadGatewayConfig:
 
     def test_explicit_session_reset_opt_in_is_honored(self, tmp_path, monkeypatch):
         """Users who explicitly opt in to auto-reset keep their policy."""
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        (hermes_home / "config.yaml").write_text(
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        (sparkii_home / "config.yaml").write_text(
             "session_reset:\n  mode: idle\n  idle_minutes: 30\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         config = load_gateway_config()
 
@@ -333,9 +333,9 @@ class TestLoadGatewayConfig:
 
 
     def test_slack_ignored_channels_config_sets_env_bridge(self, tmp_path, monkeypatch):
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        (hermes_home / "config.yaml").write_text(
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        (sparkii_home / "config.yaml").write_text(
             "slack:\n"
             "  ignored_channels:\n"
             "    - C0123456789\n"
@@ -343,7 +343,7 @@ class TestLoadGatewayConfig:
             encoding="utf-8",
         )
 
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
         monkeypatch.delenv("SLACK_IGNORED_CHANNELS", raising=False)
 
         load_gateway_config()
@@ -354,16 +354,16 @@ class TestLoadGatewayConfig:
     def test_typing_status_text_from_nested_platforms_block(self, tmp_path, monkeypatch):
         """``platforms.slack.typing_status_text`` reaches PlatformConfig via
         _merge_platform_map + the from_dict top-level read."""
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        (hermes_home / "config.yaml").write_text(
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        (sparkii_home / "config.yaml").write_text(
             "platforms:\n"
             "  slack:\n"
             "    enabled: true\n"
             '    typing_status_text: "chasing yarn…"\n',
             encoding="utf-8",
         )
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         config = load_gateway_config()
 
@@ -383,24 +383,24 @@ class TestLoadGatewayConfig:
         load_gateway_config builds gw_data from the top-level keys before
         calling from_dict, so the nested value never reached it.)
         """
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        config_path = hermes_home / "config.yaml"
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        config_path = sparkii_home / "config.yaml"
         config_path.write_text(
             "gateway:\n  multiplex_profiles: true\n",
             encoding="utf-8",
         )
 
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         config = load_gateway_config()
 
         assert config.multiplex_profiles is True
 
     def test_discord_websocket_health_settings_seed_platform_extra(self, tmp_path, monkeypatch):
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        (hermes_home / "config.yaml").write_text(
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        (sparkii_home / "config.yaml").write_text(
             "discord:\n"
             "  websocket_liveness_interval_seconds: 17\n"
             "  websocket_liveness_failure_threshold: 4\n"
@@ -408,7 +408,7 @@ class TestLoadGatewayConfig:
             "  websocket_max_latency_seconds: 30\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
         for key in (
             "SPARKII_DISCORD_LIVENESS_INTERVAL_SECONDS",
             "SPARKII_DISCORD_LIVENESS_FAILURE_THRESHOLD",
@@ -426,14 +426,14 @@ class TestLoadGatewayConfig:
     def test_session_reset_from_nested_gateway_section(self, tmp_path, monkeypatch):
         """``gateway.session_reset`` (nested form) must reach default_reset_policy,
         mirroring the gateway.multiplex_profiles precedent."""
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        config_path = hermes_home / "config.yaml"
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        config_path = sparkii_home / "config.yaml"
         config_path.write_text(
             "gateway:\n  session_reset:\n    mode: idle\n    idle_minutes: 30\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         config = load_gateway_config()
 
@@ -441,14 +441,14 @@ class TestLoadGatewayConfig:
         assert config.default_reset_policy.idle_minutes == 30
 
     def test_quick_commands_from_nested_gateway_section(self, tmp_path, monkeypatch):
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        config_path = hermes_home / "config.yaml"
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        config_path = sparkii_home / "config.yaml"
         config_path.write_text(
             "gateway:\n  quick_commands:\n    limits:\n      type: exec\n      command: echo ok\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         config = load_gateway_config()
 
@@ -458,14 +458,14 @@ class TestLoadGatewayConfig:
         """Asserts False (not the True default) so the test fails if the
         nested gateway.stt value never reaches from_dict() and silently
         falls back to the class default instead."""
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        config_path = hermes_home / "config.yaml"
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        config_path = sparkii_home / "config.yaml"
         config_path.write_text(
             "gateway:\n  stt:\n    enabled: false\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         config = load_gateway_config()
 
@@ -495,13 +495,13 @@ class TestLoadGatewayConfig:
         server unless API_SERVER_* env vars were also set.
         """
         self._clear_api_server_env(monkeypatch)
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        (hermes_home / "config.yaml").write_text(
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        (sparkii_home / "config.yaml").write_text(
             "gateway:\n  api_server:\n    enabled: true\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         config = load_gateway_config()
 
@@ -514,9 +514,9 @@ class TestLoadGatewayConfig:
         (gateway/platforms/api_server.py), and from_dict discards unknown
         top-level keys, so without the bridge the port is silently lost."""
         self._clear_api_server_env(monkeypatch)
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        (hermes_home / "config.yaml").write_text(
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        (sparkii_home / "config.yaml").write_text(
             "gateway:\n"
             "  api_server:\n"
             "    enabled: true\n"
@@ -526,7 +526,7 @@ class TestLoadGatewayConfig:
             "    model_name: my-sparkii\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         config = load_gateway_config()
 
@@ -542,9 +542,9 @@ class TestLoadGatewayConfig:
         Platform enum: ``gateway.streaming`` / ``gateway.timeout`` must not
         be turned into phantom platform entries or break loading."""
         self._clear_api_server_env(monkeypatch)
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        (hermes_home / "config.yaml").write_text(
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        (sparkii_home / "config.yaml").write_text(
             "gateway:\n"
             "  streaming:\n"
             "    enabled: false\n"
@@ -553,7 +553,7 @@ class TestLoadGatewayConfig:
             "    enabled: true\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         config = load_gateway_config()
 
@@ -565,14 +565,14 @@ class TestLoadGatewayConfig:
 
 
     def test_group_sessions_per_user_from_nested_gateway_section(self, tmp_path, monkeypatch):
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        config_path = hermes_home / "config.yaml"
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        config_path = sparkii_home / "config.yaml"
         config_path.write_text(
             "gateway:\n  group_sessions_per_user: false\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         config = load_gateway_config()
 
@@ -580,28 +580,28 @@ class TestLoadGatewayConfig:
 
 
     def test_reset_triggers_from_nested_gateway_section(self, tmp_path, monkeypatch):
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        config_path = hermes_home / "config.yaml"
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        config_path = sparkii_home / "config.yaml"
         config_path.write_text(
             "gateway:\n  reset_triggers:\n    - /new\n    - /clear\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         config = load_gateway_config()
 
         assert config.reset_triggers == ["/new", "/clear"]
 
     def test_always_log_local_from_nested_gateway_section(self, tmp_path, monkeypatch):
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        config_path = hermes_home / "config.yaml"
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        config_path = sparkii_home / "config.yaml"
         config_path.write_text(
             "gateway:\n  always_log_local: false\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         config = load_gateway_config()
 
@@ -609,14 +609,14 @@ class TestLoadGatewayConfig:
 
 
     def test_unauthorized_dm_behavior_from_nested_gateway_section(self, tmp_path, monkeypatch):
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        config_path = hermes_home / "config.yaml"
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        config_path = sparkii_home / "config.yaml"
         config_path.write_text(
             "gateway:\n  unauthorized_dm_behavior: ignore\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         config = load_gateway_config()
 
@@ -627,9 +627,9 @@ class TestLoadGatewayConfig:
         """Key-presence precedence: a present (even empty) top-level
         session_reset must NOT be replaced by gateway.session_reset —
         the fallback fires only when the top-level key is absent."""
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        config_path = hermes_home / "config.yaml"
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        config_path = sparkii_home / "config.yaml"
         config_path.write_text(
             "session_reset: {}\n"
             "gateway:\n"
@@ -638,7 +638,7 @@ class TestLoadGatewayConfig:
             "    idle_minutes: 30\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         config = load_gateway_config()
 
@@ -652,9 +652,9 @@ class TestLoadGatewayConfig:
         the adapter in the platform_registry is NOT enough — the connect loop
         iterates config.platforms, so an un-enabled RELAY never connects (the
         'relay registered but no inbound' bug)."""
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
         monkeypatch.setenv("GATEWAY_RELAY_URL", "https://connector.example/relay/")
 
         config = load_gateway_config()
@@ -669,16 +669,16 @@ class TestLoadGatewayConfig:
 
     def test_thread_require_mention_yaml_does_not_overwrite_env(self, tmp_path, monkeypatch):
         """Explicit env var should win over config.yaml (env > yaml precedence)."""
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        config_path = hermes_home / "config.yaml"
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        config_path = sparkii_home / "config.yaml"
         config_path.write_text(
             "discord:\n"
             "  thread_require_mention: false\n",
             encoding="utf-8",
         )
 
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
         monkeypatch.setenv("DISCORD_THREAD_REQUIRE_MENTION", "true")  # user override
 
         load_gateway_config()
@@ -694,9 +694,9 @@ class TestLoadGatewayConfig:
         adapter reads it from PlatformConfig.extra, but gateway auth
         (_is_user_authorized) only consults the env var.
         """
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        config_path = hermes_home / "config.yaml"
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        config_path = sparkii_home / "config.yaml"
         config_path.write_text(
             "gateway:\n"
             "  platforms:\n"
@@ -709,7 +709,7 @@ class TestLoadGatewayConfig:
             encoding="utf-8",
         )
 
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
         monkeypatch.delenv("DINGTALK_ALLOWED_USERS", raising=False)
 
         config = load_gateway_config()
@@ -722,9 +722,9 @@ class TestLoadGatewayConfig:
 
 
     def test_top_level_platforms_override_nested_gateway_platforms(self, tmp_path, monkeypatch):
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        config_path = hermes_home / "config.yaml"
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        config_path = sparkii_home / "config.yaml"
         config_path.write_text(
             "gateway:\n"
             "  platforms:\n"
@@ -742,7 +742,7 @@ class TestLoadGatewayConfig:
             encoding="utf-8",
         )
 
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         config = load_gateway_config()
 
@@ -761,9 +761,9 @@ class TestLoadGatewayConfig:
         and allow_from was silently ignored.  The apply_yaml_config_fn dispatch
         received the same fix in #44f3e51; the shared-key loop now mirrors it.
         """
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        config_path = hermes_home / "config.yaml"
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        config_path = sparkii_home / "config.yaml"
         config_path.write_text(
             "platforms:\n"
             "  telegram:\n"
@@ -774,7 +774,7 @@ class TestLoadGatewayConfig:
             encoding="utf-8",
         )
 
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         config = load_gateway_config()
 
@@ -790,9 +790,9 @@ class TestLoadGatewayConfig:
 
 
     def test_bridges_unauthorized_dm_behavior_from_config_yaml(self, tmp_path, monkeypatch):
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        config_path = hermes_home / "config.yaml"
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        config_path = sparkii_home / "config.yaml"
         config_path.write_text(
             "unauthorized_dm_behavior: ignore\n"
             "whatsapp:\n"
@@ -800,7 +800,7 @@ class TestLoadGatewayConfig:
             encoding="utf-8",
         )
 
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         config = load_gateway_config()
 
@@ -809,9 +809,9 @@ class TestLoadGatewayConfig:
 
 
     def test_loads_telegram_rich_messages_from_gateway_platform_extra(self, tmp_path, monkeypatch):
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        config_path = hermes_home / "config.yaml"
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        config_path = sparkii_home / "config.yaml"
         config_path.write_text(
             "gateway:\n"
             "  platforms:\n"
@@ -821,7 +821,7 @@ class TestLoadGatewayConfig:
             encoding="utf-8",
         )
 
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         config = load_gateway_config()
 
@@ -829,16 +829,16 @@ class TestLoadGatewayConfig:
 
 
     def test_telegram_proxy_env_takes_precedence_over_config(self, tmp_path, monkeypatch):
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        config_path = hermes_home / "config.yaml"
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        config_path = sparkii_home / "config.yaml"
         config_path.write_text(
             "telegram:\n"
             "  proxy_url: http://from-config:8080\n",
             encoding="utf-8",
         )
 
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
         monkeypatch.setenv("TELEGRAM_PROXY", "socks5://from-env:1080")
 
         load_gateway_config()
@@ -909,9 +909,9 @@ class TestWebhookPortBridging:
     causing port conflicts between profiles that configure different ports."""
 
     def test_webhook_port_bridged_from_toplevel(self, tmp_path, monkeypatch):
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        config_path = hermes_home / "config.yaml"
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        config_path = sparkii_home / "config.yaml"
         config_path.write_text(
             "platforms:\n"
             "  webhook:\n"
@@ -920,7 +920,7 @@ class TestWebhookPortBridging:
             "    port: 8649\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
         monkeypatch.delenv("WEBHOOK_ENABLED", raising=False)
         monkeypatch.delenv("WEBHOOK_PORT", raising=False)
 
@@ -936,9 +936,9 @@ class TestWebhookPortBridging:
     def test_msgraph_webhook_port_host_secret_bridged_from_toplevel(self, tmp_path, monkeypatch):
         """msgraph_webhook top-level port/host/secret must be bridged into extra,
         with an explicit extra: value still winning over the top-level one."""
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        config_path = hermes_home / "config.yaml"
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        config_path = sparkii_home / "config.yaml"
         config_path.write_text(
             "platforms:\n"
             "  msgraph_webhook:\n"
@@ -951,7 +951,7 @@ class TestWebhookPortBridging:
             "      secret: extra-secret\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
         monkeypatch.delenv("MSGRAPH_WEBHOOK_ENABLED", raising=False)
         monkeypatch.delenv("MSGRAPH_WEBHOOK_PORT", raising=False)
         monkeypatch.delenv("MSGRAPH_WEBHOOK_CLIENT_STATE", raising=False)
@@ -1059,11 +1059,11 @@ class TestMultiplexProfilesEnvOverride:
     """
 
     def _load(self, tmp_path, monkeypatch, config_text=None):
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir(exist_ok=True)
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir(exist_ok=True)
         if config_text is not None:
-            (hermes_home / "config.yaml").write_text(config_text, encoding="utf-8")
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+            (sparkii_home / "config.yaml").write_text(config_text, encoding="utf-8")
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
         return load_gateway_config()
 
     # ── Tier 1: env wins ──────────────────────────────────────────────────
@@ -1111,13 +1111,13 @@ class TestMultiplexProfilesConfig:
         the silent-fallback bug where the loader only forwarded the top-level
         key, so users who wrote it under gateway: got multiplex_profiles=False
         with no warning."""
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        (hermes_home / "config.yaml").write_text(
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        (sparkii_home / "config.yaml").write_text(
             "gateway:\n  multiplex_profiles: true\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         config = load_gateway_config()
 
@@ -1135,14 +1135,14 @@ class TestMultiplexProfilesConfig:
         nested form (so a stale `gateway.multiplex_profiles: true` cannot
         silently re-enable multiplexing). Guards against a future regression
         that flips the check to `not _mp`."""
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
-        (hermes_home / "config.yaml").write_text(
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
+        (sparkii_home / "config.yaml").write_text(
             "multiplex_profiles: false\n"
             "gateway:\n  multiplex_profiles: true\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
         config = load_gateway_config()
 

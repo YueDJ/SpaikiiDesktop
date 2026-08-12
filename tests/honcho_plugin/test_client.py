@@ -148,12 +148,12 @@ class TestResolveSessionName:
 
 class TestResolveConfigPath:
     def test_prefers_sparkii_home_when_exists(self, tmp_path):
-        hermes_home = tmp_path / "sparkii"
-        hermes_home.mkdir()
-        local_cfg = hermes_home / "honcho.json"
+        sparkii_home = tmp_path / "sparkii"
+        sparkii_home.mkdir()
+        local_cfg = sparkii_home / "honcho.json"
         local_cfg.write_text('{"apiKey": "local"}')
 
-        with patch.dict(os.environ, {"SPARKII_HOME": str(hermes_home)}):
+        with patch.dict(os.environ, {"SPARKII_HOME": str(sparkii_home)}):
             result = resolve_config_path()
         assert result == local_cfg
 
@@ -180,7 +180,7 @@ class TestResolveConfigPath:
 
 class TestResolveActiveHost:
     def test_profile_host_key_uses_honcho_safe_separator(self):
-        assert profile_host_key("coder") == "hermes_coder"
+        assert profile_host_key("coder") == "sparkii_coder"
         assert profile_host_key("default") == "sparkii"
 
 
@@ -211,10 +211,10 @@ class TestResolveActiveHost:
 class TestProfileScopedConfig:
     def test_from_env_uses_profile_host(self):
         with patch.dict(os.environ, {"HONCHO_API_KEY": "key"}):
-            config = HonchoClientConfig.from_env(host="hermes_coder")
-        assert config.host == "hermes_coder"
+            config = HonchoClientConfig.from_env(host="sparkii_coder")
+        assert config.host == "sparkii_coder"
         assert config.workspace_id == "sparkii"  # shared workspace
-        assert config.ai_peer == "hermes_coder"
+        assert config.ai_peer == "sparkii_coder"
 
 
 class TestObservationModeMigration:

@@ -483,14 +483,14 @@ class TestProtectedInstructionFiles:
         res = self._write(deep / "CLAUDE.md")
         assert res.get("error") and "BLOCKED" in res["error"]
 
-    def test_project_local_hermes_dir_is_gated(self, tmp_path, approvals):
+    def test_project_local_sparkii_dir_is_gated(self, tmp_path, approvals):
         proj = tmp_path / "proj" / ".sparkii"
         proj.mkdir(parents=True)
         approvals["answer"] = "deny"
         res = self._write(proj / "config.yaml")
         assert res.get("error") and "BLOCKED" in res["error"]
 
-    def test_checkout_nested_under_hermes_dir_not_gated(self, tmp_path, approvals):
+    def test_checkout_nested_under_sparkii_dir_not_gated(self, tmp_path, approvals):
         """A repo living UNDER a .sparkii dir (e.g. ~/.sparkii/sparkii-agent)
         must not have every write gated — only files directly inside a
         .sparkii dir count as project config."""

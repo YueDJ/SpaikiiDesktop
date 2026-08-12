@@ -474,9 +474,9 @@ class ComputeHost:
             except Exception:
                 pass
             try:
-                import hermes_undo
+                import sparkii_undo
 
-                hermes_undo.on_user_message_appended(session["session_key"])
+                sparkii_undo.on_user_message_appended(session["session_key"])
             except Exception:
                 pass
             try:
@@ -850,7 +850,7 @@ def run_host(stdin: Any = None, stdout: Any = None) -> None:
             "boot_id": host._boot_id,
             "build_sha": _build_sha(),
             "cwd": os.getcwd(),
-            "hermes_home": os.environ.get("SPARKII_HOME", ""),
+            "sparkii_home": os.environ.get("SPARKII_HOME", ""),
         }
     )
 

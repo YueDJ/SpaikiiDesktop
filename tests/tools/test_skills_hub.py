@@ -1734,7 +1734,7 @@ class TestParallelSearchSourcesTimeout:
 
 
 # ---------------------------------------------------------------------------
-# _load_hermes_index — centralized index fetch (Browse-hub landing / search)
+# _load_sparkii_index — centralized index fetch (Browse-hub landing / search)
 # ---------------------------------------------------------------------------
 
 
@@ -1755,7 +1755,7 @@ class TestLoadSparkiiIndex:
         import tools.skills_hub as hub
 
         cache_file = tmp_path / "sparkii-index.json"
-        monkeypatch.setattr(hub, "_hermes_index_cache_file", lambda: cache_file)
+        monkeypatch.setattr(hub, "_sparkii_index_cache_file", lambda: cache_file)
         return cache_file
 
     def test_fetch_does_not_request_brotli(self, monkeypatch, tmp_path):
@@ -1775,7 +1775,7 @@ class TestLoadSparkiiIndex:
 
         monkeypatch.setattr(hub.httpx, "get", fake_get)
 
-        data = hub._load_hermes_index()
+        data = hub._load_sparkii_index()
         assert data == {"skills": [{"name": "x"}]}
 
         accept = captured["headers"].get("Accept-Encoding", "")
@@ -1802,5 +1802,5 @@ class TestLoadSparkiiIndex:
 
         monkeypatch.setattr(hub.httpx, "get", fake_get)
 
-        data = hub._load_hermes_index()
+        data = hub._load_sparkii_index()
         assert data == {"skills": [{"name": "stale"}]}

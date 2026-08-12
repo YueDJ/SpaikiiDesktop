@@ -261,7 +261,7 @@ function launchFresh() {
   env.SPARKII_DESKTOP_TEST_MODE = 'fresh-install'
   env.SPARKII_DESKTOP_USER_DATA_DIR = userDataDir
   env.SPARKII_HOME = sparkiiHome
-  delete env.SPARKII_DESKTOP_HERMES
+  delete env.SPARKII_DESKTOP_SPARKII
   delete env.SPARKII_DESKTOP_SPARKII_ROOT
 
   const child = spawn(APP.binary, [], {

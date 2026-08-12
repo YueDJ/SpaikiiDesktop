@@ -103,16 +103,16 @@ def _setup_logging() -> None:
 
 def _load_env() -> None:
     """Load .env from SPARKII_HOME (default ``~/.sparkii``)."""
-    from sparkii_cli.env_loader import load_hermes_dotenv
+    from sparkii_cli.env_loader import load_sparkii_dotenv
 
-    hermes_home = get_sparkii_home()
-    loaded = load_hermes_dotenv(hermes_home=hermes_home)
+    sparkii_home = get_sparkii_home()
+    loaded = load_sparkii_dotenv(sparkii_home=sparkii_home)
     if loaded:
         for env_file in loaded:
             logging.getLogger(__name__).info("Loaded env from %s", env_file)
     else:
         logging.getLogger(__name__).info(
-            "No .env found at %s, using system env", hermes_home / ".env"
+            "No .env found at %s, using system env", sparkii_home / ".env"
         )
 
 
@@ -150,9 +150,9 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def _print_version() -> None:
-    from sparkii_cli import __version__ as hermes_version
+    from sparkii_cli import __version__ as sparkii_version
 
-    print(hermes_version)
+    print(sparkii_version)
 
 
 def _run_check() -> None:
@@ -163,12 +163,12 @@ def _run_check() -> None:
 
 
 def _run_setup() -> None:
-    from sparkii_cli.main import main as hermes_main
+    from sparkii_cli.main import main as sparkii_main
 
     old_argv = sys.argv[:]
     try:
         sys.argv = [old_argv[0] if old_argv else "sparkii", "model"]
-        hermes_main()
+        sparkii_main()
     finally:
         sys.argv = old_argv
 

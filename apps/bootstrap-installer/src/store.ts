@@ -317,7 +317,7 @@ export async function startInstall(opts?: { branch?: string }): Promise<void> {
       commit: null,
       branch: opts?.branch ?? null,
       include_desktop: true,
-      hermes_home: null
+      sparkii_home: null
     }
   })
 }
@@ -352,7 +352,7 @@ export async function launchSparkiiDesktop(): Promise<void> {
   const installRoot = $bootstrap.get().installRoot
 
   if (!installRoot) {throw new Error('no install root')}
-  await invoke('launch_hermes_desktop', { installRoot })
+  await invoke('launch_sparkii_desktop', { installRoot })
 }
 
 export async function openLogDir(): Promise<void> {

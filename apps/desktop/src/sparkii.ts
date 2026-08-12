@@ -1683,7 +1683,7 @@ export function restartGateway(): Promise<ActionResponse> {
   })
 }
 
-export function updateHermes(): Promise<ActionResponse> {
+export function updateSparkii(): Promise<ActionResponse> {
   return window.sparkiiDesktop.api<ActionResponse>({
     ...profileScoped(),
     path: '/api/sparkii/update',

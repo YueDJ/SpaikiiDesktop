@@ -347,7 +347,7 @@ export function useGatewayBoot({
     }
 
     const offBootProgress = desktop.onBootProgress(payload => {
-      // Soft switch / post-boot startHermes re-emits progress — ignore so the
+      // Soft switch / post-boot startSparkii re-emits progress — ignore so the
       // cold-boot CONNECTING overlay stays down. Errors still surface.
       if ($gatewaySwitching.get() || bootCompleted) {
         if (payload.error) {

@@ -250,7 +250,7 @@ def _scrub_child_env(source_env, is_passthrough=None, is_windows=None):
     # that imports a repo module reading one at import time would otherwise see
     # it silently unset. Surface the drop once so the behavior change is
     # diagnosable and points at the env_passthrough opt-in escape hatch.
-    _dropped_hermes = []
+    _dropped_sparkii = []
     for k, v in source_env.items():
         if is_passthrough(k):
             resolved = resolve_passthrough_value(k, v)
@@ -271,15 +271,15 @@ def _scrub_child_env(source_env, is_passthrough=None, is_windows=None):
         if k.startswith("SPARKII_"):
             # Non-secret (secrets were already dropped above) and not in any
             # allowlist — a deliberately-dropped SPARKII_* var.
-            _dropped_hermes.append(k)
-    if _dropped_hermes:
+            _dropped_sparkii.append(k)
+    if _dropped_sparkii:
         logger.debug(
             "execute_code: dropped %d non-allowlisted SPARKII_* var(s) from the "
             "sandbox child env (%s). This is intentional hardening (#27303); if "
             "a sandbox script legitimately needs one, declare it via "
             "env_passthrough in the skill/config so it passes by explicit opt-in.",
-            len(_dropped_hermes),
-            ", ".join(sorted(_dropped_hermes)),
+            len(_dropped_sparkii),
+            ", ".join(sorted(_dropped_sparkii)),
         )
 
     # delegate_task children are marked with a ContextVar, not os.environ, while
@@ -581,7 +581,7 @@ _FILE_TRANSPORT_HEADER = '''\
 """Auto-generated Sparkii tools RPC stubs (file-based transport)."""
 import json, os, shlex, tempfile, threading, time
 
-_RPC_DIR = os.environ.get("SPARKII_RPC_DIR") or os.path.join(tempfile.gettempdir(), "hermes_rpc")
+_RPC_DIR = os.environ.get("SPARKII_RPC_DIR") or os.path.join(tempfile.gettempdir(), "sparkii_rpc")
 _seq = 0
 # `_seq += 1` is not atomic (read-modify-write), so concurrent _call()
 # invocations from multiple threads could allocate the same sequence number
@@ -1338,7 +1338,7 @@ def execute_code(
         sandbox_tools = SANDBOX_ALLOWED_TOOLS
 
     # --- Set up temp directory with sparkii_tools.py and script.py ---
-    tmpdir = tempfile.mkdtemp(prefix="hermes_sandbox_")
+    tmpdir = tempfile.mkdtemp(prefix="sparkii_sandbox_")
     # Use /tmp on macOS to avoid the long /var/folders/... path that pushes
     # Unix domain socket paths past the 104-byte macOS AF_UNIX limit.
     # On Linux, tempfile.gettempdir() already returns /tmp.
@@ -1356,7 +1356,7 @@ def execute_code(
         sock_path = None  # not used on Windows; TCP endpoint stored below
         rpc_endpoint = None  # set after bind()
     else:
-        sock_path = os.path.join(_sock_tmpdir, f"hermes_rpc_{uuid.uuid4().hex}.sock")
+        sock_path = os.path.join(_sock_tmpdir, f"sparkii_rpc_{uuid.uuid4().hex}.sock")
         rpc_endpoint = sock_path
 
     tool_call_log: list = []
@@ -1455,9 +1455,9 @@ def execute_code(
         # repo-root modules are available to child scripts.  We also prepend
         # the staging tmpdir so ``from sparkii_tools import ...`` resolves even
         # when the subprocess CWD is not tmpdir (project mode).
-        _hermes_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        _sparkii_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         _existing_pp = child_env.get("PYTHONPATH", "")
-        _pp_parts = [tmpdir, _hermes_root]
+        _pp_parts = [tmpdir, _sparkii_root]
         if _existing_pp:
             _pp_parts.append(_existing_pp)
         child_env["PYTHONPATH"] = os.pathsep.join(_pp_parts)

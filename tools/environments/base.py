@@ -312,14 +312,14 @@ def _pipe_stdin(proc: subprocess.Popen, data: str) -> None:
     surrogateescape decode, so original bytes are restored.  For
     surrogate-free strings it is byte-identical to strict UTF-8.
     Surrogates outside the round-trip range U+DC80–U+DCFF raise and are
-    recorded on ``proc._hermes_stdin_errors`` while stdin is still closed
+    recorded on ``proc._sparkii_stdin_errors`` while stdin is still closed
     in ``finally`` so the child sees EOF instead of hanging;
     ``_wait_for_process`` reads the recorded error and surfaces it as
     ``stdin_error`` on the result.
     """
 
     errors: list[BaseException] = []
-    proc._hermes_stdin_errors = errors
+    proc._sparkii_stdin_errors = errors
 
     def _write():
         if proc.stdin is None:
@@ -350,7 +350,7 @@ def _pipe_stdin(proc: subprocess.Popen, data: str) -> None:
                 pass
 
     thread = threading.Thread(target=_write, daemon=True)
-    proc._hermes_stdin_thread = thread
+    proc._sparkii_stdin_thread = thread
     thread.start()
 
 
@@ -737,11 +737,11 @@ class BaseEnvironment(ABC):
         # letters, spaces) and the resulting path lives in a shell variable so
         # every later expansion is consistent.
         _snap_tmp_template = self._quote_shell_path(self._snapshot_path + ".tmp.XXXXXXXXXX")
-        _snap_tmp = '"$__hermes_snap_tmp"'
+        _snap_tmp = '"$__sparkii_snap_tmp"'
         snapshot_excluded = self._snapshot_excluded_passthrough_names()
         bootstrap = (
             f"umask 077\n"
-            f"__hermes_snap_tmp=$(mktemp {_snap_tmp_template}) || exit 1\n"
+            f"__sparkii_snap_tmp=$(mktemp {_snap_tmp_template}) || exit 1\n"
             f"{_export_dump_excluding_session_vars(_snap_tmp, snapshot_excluded)}\n"
             # Dump function definitions, filtering out private (``_``-prefixed)
             # helpers — mainly bash-completion internals (``_git``, ``_make``…)
@@ -755,8 +755,8 @@ class BaseEnvironment(ABC):
             # ``declare -f`` with no name args dumps ALL functions, so an empty
             # name list (only private funcs present) would otherwise leak the
             # very functions we meant to drop.
-            f"__hermes_fns=$(declare -F | awk '{{print $3}}' | grep -vE '^_[^_]') || true\n"
-            f"[ -n \"$__hermes_fns\" ] && declare -f $__hermes_fns "
+            f"__sparkii_fns=$(declare -F | awk '{{print $3}}' | grep -vE '^_[^_]') || true\n"
+            f"[ -n \"$__sparkii_fns\" ] && declare -f $__sparkii_fns "
             f">> {_snap_tmp} 2>/dev/null || true\n"
             f"alias -p >> {_snap_tmp}\n"
             f"echo 'shopt -s expand_aliases' >> {_snap_tmp}\n"
@@ -856,7 +856,7 @@ class BaseEnvironment(ABC):
         # is shared by ``&``-launched subshells.  Template shell-quoted
         # (Windows/spaces); the allocated path lives in a shell variable.
         _snap_tmp_template = self._quote_shell_path(self._snapshot_path + ".tmp.XXXXXXXXXX")
-        _snap_tmp = '"$__hermes_snap_tmp"'
+        _snap_tmp = '"$__sparkii_snap_tmp"'
 
         parts = []
         passthrough_names = self._snapshot_excluded_passthrough_names()
@@ -918,7 +918,7 @@ class BaseEnvironment(ABC):
 
         # Run the actual command
         parts.append(f"eval '{escaped}'")
-        parts.append("__hermes_ec=$?")
+        parts.append("__sparkii_ec=$?")
         # Restrict Sparkii metadata files without changing the user's command
         # umask. Snapshot files may contain env-carried secrets.
         parts.append("umask 077")
@@ -933,7 +933,7 @@ class BaseEnvironment(ABC):
         # that later expands the ``mv`` operand, keeping both consistent.
         if self._snapshot_ready:
             parts.append(
-                f"__hermes_snap_tmp=$(mktemp {_snap_tmp_template}) && "
+                f"__sparkii_snap_tmp=$(mktemp {_snap_tmp_template}) && "
                 f"{{ {_export_dump_excluding_session_vars(_snap_tmp, passthrough_names)} "
                 f"&& mv -f {_snap_tmp} {_quoted_snap}; }} "
                 f"2>/dev/null || rm -f {_snap_tmp} 2>/dev/null || true"
@@ -948,7 +948,7 @@ class BaseEnvironment(ABC):
         parts.append(
             f"printf '\\n{self._cwd_marker}%s{self._cwd_marker}\\n' \"$(pwd -P)\""
         )
-        parts.append("exit $__hermes_ec")
+        parts.append("exit $__sparkii_ec")
 
         return "\n".join(parts)
 
@@ -1290,12 +1290,12 @@ class BaseEnvironment(ABC):
         # recorded encode failure, silently dropping it. The thread cannot
         # block long after child exit (write raises BrokenPipeError once the
         # pipe closes); the timeout is a pure safety net.
-        stdin_thread = getattr(proc, "_hermes_stdin_thread", None)
+        stdin_thread = getattr(proc, "_sparkii_stdin_thread", None)
         if stdin_thread is not None:
             stdin_thread.join(timeout=5)
         rendered = output.render()
         result = self._finalize_wait_result(output, rendered, proc.returncode)
-        stdin_errors = getattr(proc, "_hermes_stdin_errors", None)
+        stdin_errors = getattr(proc, "_sparkii_stdin_errors", None)
         if stdin_errors:
             err = str(stdin_errors[0])
             result["stdin_error"] = err

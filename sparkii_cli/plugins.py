@@ -220,7 +220,7 @@ VALID_HOOKS: Set[str] = {
 
 ENTRY_POINTS_GROUP = "sparkii_agent.plugins"
 
-_NS_PARENT = "hermes_plugins"
+_NS_PARENT = "sparkii_plugins"
 
 
 def _env_enabled(name: str) -> bool:
@@ -852,7 +852,7 @@ class PluginContext:
 
         ``source`` must be an instance of
         :class:`agent.secret_sources.base.SecretSource`.  Registered
-        sources run during ``load_hermes_dotenv()`` startup — after
+        sources run during ``load_sparkii_dotenv()`` startup — after
         ``~/.sparkii/.env`` loads, before Sparkii reads credentials — when
         their ``secrets.<source.name>`` config section is enabled.  The
         orchestrator (``agent.secret_sources.registry.apply_all``) owns
@@ -860,7 +860,7 @@ class PluginContext:
         provenance; the source only fetches.
 
         NOTE ON TIMING: plugin discovery happens later in startup than
-        the first ``load_hermes_dotenv()`` call, so a plugin-registered
+        the first ``load_sparkii_dotenv()`` call, so a plugin-registered
         source is not consulted by the initial env load of the process
         that discovers it.  It IS consulted by every subsequently
         spawned Sparkii process (gateway children, cron sessions,
@@ -2041,11 +2041,11 @@ class PluginManager:
         self._plugins[lookup_key] = loaded
 
     def _load_directory_module(self, manifest: PluginManifest) -> types.ModuleType:
-        """Import a directory-based plugin as ``hermes_plugins.<slug>``.
+        """Import a directory-based plugin as ``sparkii_plugins.<slug>``.
 
         The module slug is derived from ``manifest.key`` so category-namespaced
         plugins (``image_gen/openai``) import as
-        ``hermes_plugins.image_gen__openai`` without colliding with any
+        ``sparkii_plugins.image_gen__openai`` without colliding with any
         future ``tts/openai``.
         """
         plugin_dir = Path(manifest.path)  # type: ignore[arg-type]

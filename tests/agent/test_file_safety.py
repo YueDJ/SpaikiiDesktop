@@ -74,24 +74,24 @@ class TestCacheFileReadBlocking:
 
     def test_hub_index_cache_blocked(self, tmp_path):
         """Hub index-cache reads are blocked."""
-        hermes_home = tmp_path / ".sparkii"
-        cache = hermes_home / "skills" / ".hub" / "index-cache" / "data.json"
+        sparkii_home = tmp_path / ".sparkii"
+        cache = sparkii_home / "skills" / ".hub" / "index-cache" / "data.json"
         cache.parent.mkdir(parents=True)
         cache.write_text("{}")
 
-        with patch("agent.file_safety._sparkii_home_path", return_value=hermes_home):
+        with patch("agent.file_safety._sparkii_home_path", return_value=sparkii_home):
             error = get_read_block_error(str(cache))
             assert error is not None
             assert "internal Sparkii cache" in error
 
     def test_hub_directory_blocked(self, tmp_path):
         """Hub directory reads are blocked."""
-        hermes_home = tmp_path / ".sparkii"
-        hub = hermes_home / "skills" / ".hub" / "metadata.json"
+        sparkii_home = tmp_path / ".sparkii"
+        hub = sparkii_home / "skills" / ".hub" / "metadata.json"
         hub.parent.mkdir(parents=True)
         hub.write_text("{}")
 
-        with patch("agent.file_safety._sparkii_home_path", return_value=hermes_home):
+        with patch("agent.file_safety._sparkii_home_path", return_value=sparkii_home):
             error = get_read_block_error(str(hub))
             assert error is not None
 
@@ -106,10 +106,10 @@ class TestCombinedGuards:
 
     def test_env_guard_works_regardless_of_sparkii_home(self, tmp_path):
         """The env basename guard does not depend on SPARKII_HOME resolution."""
-        hermes_home = tmp_path / ".sparkii"
-        hermes_home.mkdir()
+        sparkii_home = tmp_path / ".sparkii"
+        sparkii_home.mkdir()
 
-        with patch("agent.file_safety._sparkii_home_path", return_value=hermes_home):
+        with patch("agent.file_safety._sparkii_home_path", return_value=sparkii_home):
             # Regular project .env should still be blocked
             error = get_read_block_error("/workspace/.env")
             assert error is not None
@@ -120,12 +120,12 @@ class TestCombinedGuards:
 
     def test_cache_guard_still_works_with_env_guard(self, tmp_path):
         """Cache file blocking still works when env guard is active."""
-        hermes_home = tmp_path / ".sparkii"
-        cache = hermes_home / "skills" / ".hub" / "index-cache" / "x"
+        sparkii_home = tmp_path / ".sparkii"
+        cache = sparkii_home / "skills" / ".hub" / "index-cache" / "x"
         cache.parent.mkdir(parents=True)
         cache.write_text("")
 
-        with patch("agent.file_safety._sparkii_home_path", return_value=hermes_home):
+        with patch("agent.file_safety._sparkii_home_path", return_value=sparkii_home):
             error = get_read_block_error(str(cache))
             assert error is not None
             assert "internal Sparkii cache" in error

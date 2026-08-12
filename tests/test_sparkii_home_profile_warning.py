@@ -43,9 +43,9 @@ class TestGetSparkiiHomeProfileWarning:
         self, fresh_constants, tmp_path, capsys
     ):
         """active_profile=coder + SPARKII_HOME unset → warn loudly, still return fallback."""
-        hermes_dir = tmp_path / ".sparkii"
-        hermes_dir.mkdir()
-        (hermes_dir / "active_profile").write_text("coder\n")
+        sparkii_dir = tmp_path / ".sparkii"
+        sparkii_dir.mkdir()
+        (sparkii_dir / "active_profile").write_text("coder\n")
 
         result = fresh_constants.get_sparkii_home()
 
@@ -81,10 +81,10 @@ class TestGetSparkiiHomeProfileWarning:
         self, fresh_constants, tmp_path, capsys
     ):
         """active_profile that can't be decoded → fall through silently."""
-        hermes_dir = tmp_path / ".sparkii"
-        hermes_dir.mkdir()
+        sparkii_dir = tmp_path / ".sparkii"
+        sparkii_dir.mkdir()
         # Write bytes that aren't valid utf-8
-        (hermes_dir / "active_profile").write_bytes(b"\xff\xfe\x00\x00")
+        (sparkii_dir / "active_profile").write_bytes(b"\xff\xfe\x00\x00")
 
         result = fresh_constants.get_sparkii_home()
 

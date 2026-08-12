@@ -357,7 +357,7 @@ class HostSupervisor:
         hello = self._hello
         if not hello:
             raise RuntimeError("compute host missing hello")
-        got_home = str(hello.get("hermes_home") or "")
+        got_home = str(hello.get("sparkii_home") or "")
         if got_home and got_home != self.expected_sparkii_home:
             raise RuntimeError(f"compute host SPARKII_HOME mismatch: {got_home} != {self.expected_sparkii_home}")
         got_sha = str(hello.get("build_sha") or "")

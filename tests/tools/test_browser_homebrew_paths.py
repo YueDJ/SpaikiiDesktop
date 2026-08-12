@@ -151,7 +151,7 @@ class TestRunBrowserCommandPathConstruction:
         }
         fake_json = json.dumps({"success": True})
         browser_path = "/Users/test/Library/Application Support/sparkii/node_modules/.bin/agent-browser"
-        hermes_home = str(tmp_path / "sparkii-home")
+        sparkii_home = str(tmp_path / "sparkii-home")
 
         with patch("tools.browser_tool._find_agent_browser", return_value=browser_path), \
  patch("tools.browser_tool._chromium_installed", return_value=True), \
@@ -168,7 +168,7 @@ class TestRunBrowserCommandPathConstruction:
                  {
                      "PATH": "/usr/bin:/bin",
                      "HOME": "/home/test",
-                     "SPARKII_HOME": hermes_home,
+                     "SPARKII_HOME": sparkii_home,
                  },
                  clear=True,
              ):

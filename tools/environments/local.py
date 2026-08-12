@@ -745,11 +745,11 @@ def _find_bash() -> str:
     #   PortableGit: %LOCALAPPDATA%\sparkii\git\bin\bash.exe   (primary)
     #   MinGit:      %LOCALAPPDATA%\sparkii\git\usr\bin\bash.exe (legacy/32-bit fallback)
     _local_appdata = os.environ.get("LOCALAPPDATA", "")
-    _hermes_portable_git = os.path.join(_local_appdata, "sparkii", "git") if _local_appdata else ""
-    if _hermes_portable_git:
+    _sparkii_portable_git = os.path.join(_local_appdata, "sparkii", "git") if _local_appdata else ""
+    if _sparkii_portable_git:
         for candidate in (
-            os.path.join(_hermes_portable_git, "bin", "bash.exe"),        # PortableGit (primary)
-            os.path.join(_hermes_portable_git, "usr", "bin", "bash.exe"), # MinGit fallback
+            os.path.join(_sparkii_portable_git, "bin", "bash.exe"),        # PortableGit (primary)
+            os.path.join(_sparkii_portable_git, "usr", "bin", "bash.exe"), # MinGit fallback
         ):
             if os.path.isfile(candidate) and candidate not in candidates:
                 candidates.append(candidate)
@@ -1123,7 +1123,7 @@ def _resolve_sparkii_bin_dir() -> str | None:
     return candidate
 
 
-def _prepend_hermes_bin_dir(existing_path: str) -> str:
+def _prepend_sparkii_bin_dir(existing_path: str) -> str:
     """Prepend the sparkii install dir to ``existing_path`` if it's missing.
 
     Cross-platform (uses ``os.pathsep``). First-occurrence wins, so a PATH
@@ -1157,12 +1157,12 @@ def _managed_runtime_path_entries() -> list[str]:
 
     Resolved per call rather than cached in a module constant because
     ``get_sparkii_home()`` is profile-scoped and a managed tree can appear
-    mid-process (``heal_hermes_managed_node``, a first browser install).
+    mid-process (``heal_sparkii_managed_node``, a first browser install).
     """
     try:
-        from sparkii_constants import get_sparkii_home, iter_hermes_node_dirs
+        from sparkii_constants import get_sparkii_home, iter_sparkii_node_dirs
 
-        candidates = [*iter_hermes_node_dirs(), get_sparkii_home() / "bin"]
+        candidates = [*iter_sparkii_node_dirs(), get_sparkii_home() / "bin"]
         return [str(d) for d in candidates if d.is_dir()]
     except Exception:
         return []
@@ -1306,7 +1306,7 @@ def _make_run_env(env: dict) -> dict:
         # Ensure the sparkii install dir is reachable so plugins can shell out
         # to bare ``sparkii`` via the terminal tool even when the gateway was
         # launched without it on PATH (systemd, service managers, cron, etc.).
-        run_env[path_key] = _prepend_hermes_bin_dir(new_path)
+        run_env[path_key] = _prepend_sparkii_bin_dir(new_path)
 
     _inject_context_sparkii_home(run_env)
 
@@ -1455,7 +1455,7 @@ class LocalEnvironment(BaseEnvironment):
                 from sparkii_constants import get_sparkii_home
                 cache_dir = get_sparkii_home() / "cache" / "terminal"
             except Exception:
-                cache_dir = Path(tempfile.gettempdir()) / "hermes_terminal"
+                cache_dir = Path(tempfile.gettempdir()) / "sparkii_terminal"
             cache_dir.mkdir(parents=True, exist_ok=True)
             # Force forward slashes so the same string serves both contexts.
             return str(cache_dir).replace("\\", "/")
@@ -1544,7 +1544,7 @@ class LocalEnvironment(BaseEnvironment):
         )
         if not _IS_WINDOWS:
             try:
-                proc._hermes_pgid = os.getpgid(proc.pid)
+                proc._sparkii_pgid = os.getpgid(proc.pid)
             except ProcessLookupError:
                 pass
 
@@ -1601,7 +1601,7 @@ class LocalEnvironment(BaseEnvironment):
                 try:
                     pgid = os.getpgid(proc.pid)
                 except ProcessLookupError:
-                    pgid = getattr(proc, "_hermes_pgid", None)
+                    pgid = getattr(proc, "_sparkii_pgid", None)
                     if pgid is None:
                         raise
 

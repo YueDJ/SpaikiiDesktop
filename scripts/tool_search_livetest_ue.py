@@ -162,10 +162,10 @@ def run_one(scenario, mode, scale, rep, out_dir: Path):
     # 830-tool catalogs need headroom: full listing ~ names+descs won't fit 4K,
     # so give the full scale a real budget (names+descs ~ 26K est; names-only ~8K).
     lmax = int(os.environ.get("TS_UE_LISTING_MAX", "30000" if scale == "full" else "4000"))
-    hermes_home = base.setup_isolated_home(
+    sparkii_home = base.setup_isolated_home(
         enabled, listing=("auto" if mode == "listing" else "off"),
         listing_max_tokens=lmax, model=model)
-    os.environ["SPARKII_HOME"] = str(hermes_home)
+    os.environ["SPARKII_HOME"] = str(sparkii_home)
     base.reset_module_state()
     n_registered = register_epic_tools(scale)
 

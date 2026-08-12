@@ -394,7 +394,7 @@ export interface DesktopVersionInfo {
 export type DesktopUninstallMode = 'full' | 'gui' | 'lite'
 
 export interface DesktopUninstallSummary {
-  hermes_home: string
+  sparkii_home: string
   agent_installed: boolean
   gui_installed: boolean
   source_built_artifacts: string[]

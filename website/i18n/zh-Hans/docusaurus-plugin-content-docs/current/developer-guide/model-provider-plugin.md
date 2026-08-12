@@ -251,10 +251,10 @@ sparkii -z "hello" --provider my-provider -m some-model
 
 ```toml
 [project.entry-points."sparkii_agent.plugins"]
-acme-inference = "acme_hermes_plugin:register"
+acme-inference = "acme_sparkii_plugin:register"
 ```
 
-……其中 `acme_hermes_plugin:register` 是一个调用 `register_provider(profile)` 的函数。通用 PluginManager 在 `discover_and_load()` 期间会拾取入口点插件。对于 `kind: model-provider` 的 pip 插件，你仍需在 manifest 中声明 kind（或依赖源码文本启发式检测）。
+……其中 `acme_sparkii_plugin:register` 是一个调用 `register_provider(profile)` 的函数。通用 PluginManager 在 `discover_and_load()` 期间会拾取入口点插件。对于 `kind: model-provider` 的 pip 插件，你仍需在 manifest 中声明 kind（或依赖源码文本启发式检测）。
 
 完整的入口点设置请参阅 [构建 Sparkii 插件](/developer-guide/plugins#distribute-via-pip)。
 

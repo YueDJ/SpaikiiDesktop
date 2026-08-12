@@ -422,7 +422,7 @@ def kanban_home() -> Path:
 
     1. ``SPARKII_KANBAN_HOME`` env var when set and non-empty (explicit
        override for tests and unusual deployments).
-    2. ``get_default_hermes_root()``, which already returns ``<root>``
+    2. ``get_default_sparkii_root()``, which already returns ``<root>``
        when ``SPARKII_HOME`` is ``<root>/profiles/<name>``, and returns
        ``SPARKII_HOME`` directly for Docker / custom deployments.
 
@@ -434,8 +434,8 @@ def kanban_home() -> Path:
     override = os.environ.get("SPARKII_KANBAN_HOME", "").strip()
     if override:
         return Path(override).expanduser()
-    from sparkii_constants import get_default_hermes_root
-    return get_default_hermes_root()
+    from sparkii_constants import get_default_sparkii_root
+    return get_default_sparkii_root()
 
 
 def boards_root() -> Path:
@@ -2829,7 +2829,7 @@ def write_txn(conn: sqlite3.Connection, *, allow_nested: bool = False):
                 "(savepoint semantics; the inner RELEASE is not durable until "
                 "the outer transaction commits)."
             )
-        savepoint = f"hermes_nested_{secrets.token_hex(8)}"
+        savepoint = f"sparkii_nested_{secrets.token_hex(8)}"
         conn.execute(f"SAVEPOINT {savepoint}")
         try:
             yield conn
@@ -9800,7 +9800,7 @@ def _rotate_worker_log(
         pass
 
 
-def _module_hermes_argv() -> list[str]:
+def _module_sparkii_argv() -> list[str]:
     """Return the interpreter-bound Sparkii CLI invocation."""
     # ``sparkii_cli.main`` is the console-script target declared in
     # pyproject.toml, NOT a top-level ``sparkii`` package — there is no
@@ -9808,7 +9808,7 @@ def _module_hermes_argv() -> list[str]:
     return [sys.executable, "-m", "sparkii_cli.main"]
 
 
-def _absolute_hermes_path(path: str) -> str:
+def _absolute_sparkii_path(path: str) -> str:
     """Return an absolute filesystem path for a resolved Sparkii shim."""
     expanded = os.path.expanduser(path)
     return expanded if os.path.isabs(expanded) else os.path.abspath(expanded)
@@ -9862,7 +9862,7 @@ def _safe_which_no_cwd(command: str) -> Optional[str]:
     return None
 
 
-def _hermes_path_argv(path: str) -> list[str]:
+def _sparkii_path_argv(path: str) -> list[str]:
     """Return argv for a resolved Sparkii executable path.
 
     Windows batch shims (`.cmd` / `.bat`) are not safe as argv[0] for
@@ -9871,11 +9871,11 @@ def _hermes_path_argv(path: str) -> list[str]:
     executable is only a shell shim.
     """
     if _IS_WINDOWS and _is_windows_batch_shim(path):
-        return _module_hermes_argv()
-    return [_absolute_hermes_path(path)]
+        return _module_sparkii_argv()
+    return [_absolute_sparkii_path(path)]
 
 
-def _resolve_hermes_argv() -> list[str]:
+def _resolve_sparkii_argv() -> list[str]:
     """Resolve the ``sparkii`` invocation as argv parts for ``Popen``.
 
     Tries in order:
@@ -9904,16 +9904,16 @@ def _resolve_hermes_argv() -> list[str]:
     env_bin = os.environ.get("SPARKII_BIN", "").strip()
     if env_bin:
         if _looks_like_path(env_bin):
-            return _hermes_path_argv(env_bin)
+            return _sparkii_path_argv(env_bin)
         resolved_env_bin = _safe_which_no_cwd(env_bin)
         if resolved_env_bin:
-            return _hermes_path_argv(resolved_env_bin)
-        return _module_hermes_argv()
+            return _sparkii_path_argv(resolved_env_bin)
+        return _module_sparkii_argv()
 
-    hermes_bin = _safe_which_no_cwd("sparkii") if _IS_WINDOWS else shutil.which("sparkii")
-    if hermes_bin:
-        return _hermes_path_argv(hermes_bin)
-    return _module_hermes_argv()
+    sparkii_bin = _safe_which_no_cwd("sparkii") if _IS_WINDOWS else shutil.which("sparkii")
+    if sparkii_bin:
+        return _sparkii_path_argv(sparkii_bin)
+    return _module_sparkii_argv()
 
 
 def _worker_terminal_timeout_env(
@@ -9946,7 +9946,7 @@ def _worker_terminal_timeout_env(
     return str(desired)
 
 
-def _resolve_worker_cli_toolsets(hermes_home: Optional[str]) -> Optional[list[str]]:
+def _resolve_worker_cli_toolsets(sparkii_home: Optional[str]) -> Optional[list[str]]:
     """Return the assigned profile's effective CLI toolsets for a worker.
 
     Dispatcher-spawned workers are launched from a long-lived gateway process,
@@ -9957,14 +9957,14 @@ def _resolve_worker_cli_toolsets(hermes_home: Optional[str]) -> Optional[list[st
     is only the kanban orchestrator surface. ``model_tools`` still appends the
     task-scoped kanban lifecycle tools when ``SPARKII_KANBAN_TASK`` is set.
     """
-    if not hermes_home:
+    if not sparkii_home:
         return None
     try:
         from sparkii_constants import reset_sparkii_home_override, set_sparkii_home_override
         from sparkii_cli.config import load_config
         from sparkii_cli.tools_config import _get_platform_tools
 
-        token = set_sparkii_home_override(hermes_home)
+        token = set_sparkii_home_override(sparkii_home)
         try:
             cfg = load_config()
             toolsets = sorted(_get_platform_tools(cfg, "cli"))
@@ -9974,7 +9974,7 @@ def _resolve_worker_cli_toolsets(hermes_home: Optional[str]) -> Optional[list[st
     except Exception as exc:
         _log.debug(
             "kanban worker: could not resolve CLI toolsets for SPARKII_HOME=%r (%s)",
-            hermes_home,
+            sparkii_home,
             exc,
         )
         return None
@@ -10113,7 +10113,7 @@ def _default_spawn(
     # Pin the shared board + workspaces root the dispatcher resolved, so
     # that even when the worker activates a profile (`sparkii -p <name>`
     # rewrites SPARKII_HOME), its kanban paths still match the
-    # dispatcher's. Belt-and-braces with the `get_default_hermes_root()`
+    # dispatcher's. Belt-and-braces with the `get_default_sparkii_root()`
     # resolution in `kanban_home()` — symmetric resolution is the norm,
     # but unusual symlink / Docker layouts are caught here too.
     env["SPARKII_KANBAN_DB"] = str(kanban_db_path(board=board))
@@ -10139,7 +10139,7 @@ def _default_spawn(
     env.pop("SPARKII_TUI", None)
 
     cmd = [
-        *_resolve_hermes_argv(),
+        *_resolve_sparkii_argv(),
         "-p", profile_arg,
         "--cli",
         # Worker subprocesses switch to a profile-scoped SPARKII_HOME above,
@@ -11148,8 +11148,8 @@ def list_profiles_on_disk() -> list[str]:
     path).
     """
     try:
-        from sparkii_constants import get_default_hermes_root
-        default_root = get_default_hermes_root()
+        from sparkii_constants import get_default_sparkii_root
+        default_root = get_default_sparkii_root()
         profiles_dir = default_root / "profiles"
     except Exception:
         return []

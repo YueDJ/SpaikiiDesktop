@@ -84,11 +84,11 @@ def get_env_value(name: str, default=None):
     xAI credential resolver.
     """
     try:
-        from sparkii_cli.config import get_env_value as _hermes_get_env_value
+        from sparkii_cli.config import get_env_value as _sparkii_get_env_value
     except ImportError:
         return os.environ.get(name, default)
 
-    value = _hermes_get_env_value(name)
+    value = _sparkii_get_env_value(name)
     return value if value is not None else default
 
 

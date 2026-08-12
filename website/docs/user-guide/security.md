@@ -306,7 +306,7 @@ To allow both a workspace and Sparkii home:
 export SPARKII_WRITE_SAFE_ROOT=/path/to/project:/home/you/.sparkii
 ```
 
-Unset the variable to restore unrestricted writes (subject to the protected-path denylist). Full reference: [SPARKII_WRITE_SAFE_ROOT](../reference/environment-variables.md#hermes_write_safe_root).
+Unset the variable to restore unrestricted writes (subject to the protected-path denylist). Full reference: [SPARKII_WRITE_SAFE_ROOT](../reference/environment-variables.md#sparkii_write_safe_root).
 
 ### Cron and other Sparkii state
 

@@ -435,9 +435,9 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
 
           # Helper: run merge then load with Python, output merged JSON
           merge_and_load() {
-            local hermes_home="$1"
-            export SPARKII_HOME="$hermes_home"
-            ${configMergeScript} ${nixSettings} "$hermes_home/config.yaml"
+            local sparkii_home="$1"
+            export SPARKII_HOME="$sparkii_home"
+            ${configMergeScript} ${nixSettings} "$sparkii_home/config.yaml"
             ${sparkiiVenv}/bin/python3 -c '
 import json, sys
 from sparkii_cli.config import load_config

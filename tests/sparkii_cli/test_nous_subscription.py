@@ -207,7 +207,7 @@ def _stt_features_stub(*, account_info):
 
 
 
-def test_has_agent_browser_resolves_via_hermes_managed_node_path(monkeypatch, tmp_path):
+def test_has_agent_browser_resolves_via_sparkii_managed_node_path(monkeypatch, tmp_path):
     """The managed-Node rung: a runnable agent-browser under the Sparkii Node
     dir must count even when it's absent from the probe process's PATH (the
     Windows installer shape — install succeeded, GUI still said needs setup)."""
@@ -221,7 +221,7 @@ def test_has_agent_browser_resolves_via_hermes_managed_node_path(monkeypatch, tm
 
     monkeypatch.setattr(_shutil, "which", lambda cmd, path=None: str(managed_bin) if path else None)
     monkeypatch.setattr(
-        "sparkii_constants.with_hermes_node_path", lambda: {"PATH": str(managed_dir)}
+        "sparkii_constants.with_sparkii_node_path", lambda: {"PATH": str(managed_dir)}
     )
     monkeypatch.setattr(
         "sparkii_constants.agent_browser_runnable",

@@ -552,13 +552,13 @@ class VercelSandboxEnvironment(BaseEnvironment):
             )
 
     def _vercel_bulk_download(self, dest_tar_path: Path) -> None:
-        remote_hermes = (
+        remote_sparkii = (
             "/.sparkii"
             if self._remote_home == "/"
             else f"{self._remote_home.rstrip('/')}/.sparkii"
         )
-        archive_member = remote_hermes.lstrip("/")
-        remote_tar = f"/tmp/.hermes_sync.{os.getpid()}.tar"
+        archive_member = remote_sparkii.lstrip("/")
+        remote_tar = f"/tmp/.sparkii_sync.{os.getpid()}.tar"
         sandbox = self._sandbox
         if sandbox is None:
             raise RuntimeError("Vercel sandbox is not attached")

@@ -1072,7 +1072,7 @@ class TestWebServerEndpoints:
 
 
 
-    def test_update_hermes_returns_docker_guidance_without_spawning(self, monkeypatch):
+    def test_update_sparkii_returns_docker_guidance_without_spawning(self, monkeypatch):
         import sparkii_cli.web_server as web_server
 
         spawned = False
@@ -1085,7 +1085,7 @@ class TestWebServerEndpoints:
         # Bypass the managed-externally gate so we reach the docker install check.
         monkeypatch.setattr(web_server, "_dashboard_local_update_managed_externally", lambda: False)
         monkeypatch.setattr(web_server, "detect_install_method", lambda _root: "docker")
-        monkeypatch.setattr(web_server, "_spawn_hermes_action", fail_spawn)
+        monkeypatch.setattr(web_server, "_spawn_sparkii_action", fail_spawn)
         web_server._ACTION_PROCS.pop("sparkii-update", None)
         web_server._ACTION_RESULTS.pop("sparkii-update", None)
 
@@ -1108,7 +1108,7 @@ class TestWebServerEndpoints:
         assert status_data["pid"] is None
         assert any("docker pull nousresearch/sparkii-agent:latest" in line for line in status_data["lines"])
 
-    def test_update_hermes_spawns_with_action_id(self, monkeypatch):
+    def test_update_sparkii_spawns_with_action_id(self, monkeypatch):
         import sparkii_cli.web_server as web_server
 
         class Proc:
@@ -1123,7 +1123,7 @@ class TestWebServerEndpoints:
         monkeypatch.setattr(web_server, "_dashboard_local_update_managed_externally", lambda: False)
         monkeypatch.setattr(web_server, "detect_install_method", lambda _root: "git")
         monkeypatch.setattr(web_server.secrets, "token_hex", lambda _size: "a" * 32)
-        monkeypatch.setattr(web_server, "_spawn_hermes_action", fake_spawn)
+        monkeypatch.setattr(web_server, "_spawn_sparkii_action", fake_spawn)
         web_server._ACTION_PROCS.pop("sparkii-update", None)
         web_server._ACTION_RESULTS.pop("sparkii-update", None)
 
@@ -1140,7 +1140,7 @@ class TestWebServerEndpoints:
             (["update"], "sparkii-update", {"SPARKII_ACTION_ID": "a" * 32})
         ]
 
-    def test_update_hermes_reuses_running_action(self, monkeypatch):
+    def test_update_sparkii_reuses_running_action(self, monkeypatch):
         import sparkii_cli.web_server as web_server
 
         class Proc:
@@ -1153,7 +1153,7 @@ class TestWebServerEndpoints:
         monkeypatch.setattr(web_server, "detect_install_method", lambda _root: "git")
         monkeypatch.setattr(
             web_server,
-            "_spawn_hermes_action",
+            "_spawn_sparkii_action",
             lambda *_args, **_kwargs: pytest.fail("must not spawn a duplicate update"),
         )
         web_server._ACTION_PROCS["sparkii-update"] = Proc()
@@ -1367,9 +1367,9 @@ class TestWebServerEndpoints:
                 return {
                     "pairing_id": "pair-restart-fails",
                     "poll_token": "poll-secret",
-                    "suggested_username": "hermes_pair_restart_fails_bot",
-                    "deep_link": "https://t.me/newbot/SparkiiSetupBot/hermes_pair_restart_fails_bot",
-                    "qr_payload": "https://t.me/newbot/SparkiiSetupBot/hermes_pair_restart_fails_bot",
+                    "suggested_username": "sparkii_pair_restart_fails_bot",
+                    "deep_link": "https://t.me/newbot/SparkiiSetupBot/sparkii_pair_restart_fails_bot",
+                    "qr_payload": "https://t.me/newbot/SparkiiSetupBot/sparkii_pair_restart_fails_bot",
                     "expires_at": "2027-05-18T00:00:00.000Z",
                 }
             assert method == "GET"
@@ -1377,7 +1377,7 @@ class TestWebServerEndpoints:
             assert bearer_token == "poll-secret"
             return {
                 "status": "ready",
-                "bot_username": "hermes_pair_restart_fails_bot",
+                "bot_username": "sparkii_pair_restart_fails_bot",
                 "owner_user_id": 123456789,
                 "token": "123456:SECRET",
             }
@@ -1390,7 +1390,7 @@ class TestWebServerEndpoints:
             assert name == "gateway-restart"
             raise RuntimeError("supervisor unavailable")
 
-        monkeypatch.setattr(ws, "_spawn_hermes_action", fail_spawn_action)
+        monkeypatch.setattr(ws, "_spawn_sparkii_action", fail_spawn_action)
 
         start = self.client.post("/api/messaging/telegram/onboarding/start", json={})
         assert start.status_code == 200
@@ -3133,8 +3133,8 @@ class TestThemeBootstrapCSS:
     the default-teal first-paint flash for user YAML themes."""
 
     @staticmethod
-    def _write_theme(hermes_home, name="ocean"):
-        themes_dir = hermes_home / "dashboard-themes"
+    def _write_theme(sparkii_home, name="ocean"):
+        themes_dir = sparkii_home / "dashboard-themes"
         themes_dir.mkdir(exist_ok=True)
         (themes_dir / f"{name}.yaml").write_text(
             f"name: {name}\n"

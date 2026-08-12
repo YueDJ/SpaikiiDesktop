@@ -13,7 +13,7 @@ import type {
   DesktopUpdateStatus,
   DesktopVersionInfo
 } from '@/global'
-import { checkSparkiiUpdate, getActionStatus, updateHermes } from '@/sparkii'
+import { checkSparkiiUpdate, getActionStatus, updateSparkii } from '@/sparkii'
 import { translateNow } from '@/i18n'
 import { persistString, storedString } from '@/lib/storage'
 import { dismissNotification, notify } from '@/store/notifications'
@@ -159,7 +159,7 @@ export function reportBackendContract(contract: number | undefined): void {
 
   notify({
     action: {
-      label: translateNow('notifications.updateHermes'),
+      label: translateNow('notifications.updateSparkii'),
       onClick: () => {
         snoozeSkewToast()
         void applyBackendUpdate()
@@ -576,7 +576,7 @@ async function runBackendUpdate(): Promise<DesktopUpdateApplyResult> {
       ? previousStatus.targetSha.slice('backend:'.length)
       : undefined
 
-    const started = await updateHermes()
+    const started = await updateSparkii()
 
     if (!started.ok) {
       const message = (started as { message?: string }).message || translateNow('updates.applyStatus.notAvailable')

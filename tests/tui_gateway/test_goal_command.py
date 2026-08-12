@@ -20,7 +20,7 @@ import pytest
 
 
 @pytest.fixture()
-def hermes_home(tmp_path, monkeypatch):
+def sparkii_home(tmp_path, monkeypatch):
     home = tmp_path / ".sparkii"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
@@ -35,7 +35,7 @@ def hermes_home(tmp_path, monkeypatch):
 
 
 @pytest.fixture()
-def server(hermes_home, monkeypatch):
+def server(sparkii_home, monkeypatch):
     # Mocks are scoped to the initial import only (see
     # tests/tui_gateway/test_protocol.py for the rationale).
     with patch.dict(
@@ -58,7 +58,7 @@ def server(hermes_home, monkeypatch):
     # local MoA preset) instead of the one ``_write_moa_config`` writes.
     # Also reset the mtime-keyed config cache; monkeypatch restores the
     # originals on teardown so nothing leaks to later tests either.
-    monkeypatch.setattr(mod, "_sparkii_home", hermes_home)
+    monkeypatch.setattr(mod, "_sparkii_home", sparkii_home)
     monkeypatch.setattr(mod, "_cfg_cache", None)
     monkeypatch.setattr(mod, "_cfg_mtime", None)
     monkeypatch.setattr(mod, "_cfg_path", None)
@@ -398,8 +398,8 @@ def _write_moa_config(home, text):
     cfg_path.write_text(text)
 
 
-def test_moa_bare_returns_usage(server, session, hermes_home):
-    _write_moa_config(hermes_home, """
+def test_moa_bare_returns_usage(server, session, sparkii_home):
+    _write_moa_config(sparkii_home, """
 moa:
   default_preset: default
   presets:

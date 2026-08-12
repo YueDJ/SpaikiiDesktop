@@ -24,8 +24,8 @@ def main() -> None:
     parser.add_argument("--wait", type=float, default=7.0)
     args = parser.parse_args()
 
-    hermes_home = Path(tempfile.mkdtemp(prefix="sparkii-otel-smoke-"))
-    os.environ["SPARKII_HOME"] = str(hermes_home)
+    sparkii_home = Path(tempfile.mkdtemp(prefix="sparkii-otel-smoke-"))
+    os.environ["SPARKII_HOME"] = str(sparkii_home)
 
     from gateway.status import write_runtime_status
     from agent.monitoring.gateway_health_export import start_gateway_health_export
@@ -79,7 +79,7 @@ def main() -> None:
     log_path = Path(args.log)
     rows = [json.loads(line) for line in log_path.read_text(encoding="utf-8").splitlines() if line.strip()]
     paths = {row["path"] for row in rows}
-    print(json.dumps({"hermes_home": str(hermes_home), "requests": len(rows), "paths": sorted(paths)}, indent=2))
+    print(json.dumps({"sparkii_home": str(sparkii_home), "requests": len(rows), "paths": sorted(paths)}, indent=2))
     if "/v1/traces" not in paths:
         raise SystemExit("missing /v1/traces request")
     if "/v1/logs" not in paths:

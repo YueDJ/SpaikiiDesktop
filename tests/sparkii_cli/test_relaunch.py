@@ -227,7 +227,7 @@ class TestResolveSparkiiBinWindowsPyGuard:
         assert relaunch_mod.resolve_sparkii_bin() == str(script)
 
     @pytest.mark.windows_only
-    def test_windows_py_argv0_with_no_hermes_on_path_returns_none(self, monkeypatch, tmp_path):
+    def test_windows_py_argv0_with_no_sparkii_on_path_returns_none(self, monkeypatch, tmp_path):
         """Bulletproof fallback: if argv0 is .py on Windows AND sparkii.exe
         isn't on PATH, return None so the caller falls back to
         python -m sparkii_cli.main."""

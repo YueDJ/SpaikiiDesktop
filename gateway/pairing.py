@@ -34,8 +34,8 @@ from gateway.whatsapp_identity import (
     normalize_whatsapp_identifier,
 )
 from sparkii_constants import (
-    get_default_hermes_root,
-    get_hermes_dir,
+    get_default_sparkii_root,
+    get_sparkii_dir,
     get_sparkii_home,
 )
 from utils import atomic_replace
@@ -56,7 +56,7 @@ LOCKOUT_SECONDS = 3600              # Lockout duration after too many failures
 MAX_PENDING_PER_PLATFORM = 3        # Max pending codes per platform
 MAX_FAILED_ATTEMPTS = 5             # Failed approvals before lockout
 
-PAIRING_DIR = get_hermes_dir("platforms/pairing", "pairing")
+PAIRING_DIR = get_sparkii_dir("platforms/pairing", "pairing")
 
 
 # Platform value -> its per-platform allowlist env var. When an operator has
@@ -422,13 +422,13 @@ class PairingStore:
         # Resolve storage directory lazily — tests use a temp SPARKII_HOME
         # and PairingStore may be constructed before the env is set.
         if profile:
-            root = get_default_hermes_root()
+            root = get_default_sparkii_root()
             profile_home = (
                 root
                 if profile == "default"
                 else root / "profiles" / profile
             )
-            self._dir = get_hermes_dir(
+            self._dir = get_sparkii_dir(
                 "platforms/pairing",
                 "pairing",
                 home=profile_home,

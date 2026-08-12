@@ -62,9 +62,9 @@ def test_no_scrub_inherit_profile_home_bridges_context_override(tmp_path):
 def test_e2e_child_sees_sparkii_home_and_no_planted_secret(tmp_path, monkeypatch):
     """A real child spawned with a factory-built env must see SPARKII_HOME
     propagated and (with scrub on) a planted provider-style key absent."""
-    hermes_home = tmp_path / "sparkii-home"
-    hermes_home.mkdir()
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    sparkii_home = tmp_path / "sparkii-home"
+    sparkii_home.mkdir()
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-FAKE-planted")
     monkeypatch.setenv("AUXILIARY_FAKE_API_KEY", "sk-FAKE-aux")
 
@@ -83,7 +83,7 @@ def test_e2e_child_sees_sparkii_home_and_no_planted_secret(tmp_path, monkeypatch
     import json
 
     result = json.loads(out.stdout)
-    assert result["home"] == str(hermes_home)
+    assert result["home"] == str(sparkii_home)
     assert result["k1"] is False
     assert result["k2"] is False
 

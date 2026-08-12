@@ -33,9 +33,9 @@ from sparkii_cli.proxy.adapters.xai import XAIGrokAdapter
 # ---------------------------------------------------------------------------
 
 
-def _write_auth_store(hermes_home: Path, nous_state: Dict[str, Any]) -> Path:
+def _write_auth_store(sparkii_home: Path, nous_state: Dict[str, Any]) -> Path:
     """Write an auth.json with the given nous state into a hermetic SPARKII_HOME."""
-    auth_path = hermes_home / "auth.json"
+    auth_path = sparkii_home / "auth.json"
     auth_path.write_text(json.dumps({
         "version": 1,
         "providers": {"nous": nous_state},
@@ -112,7 +112,7 @@ def test_nous_adapter_concurrent_refresh_serialized(tmp_path, monkeypatch):
 
 
 def _write_xai_pool_entry(
-    hermes_home: Path,
+    sparkii_home: Path,
     *,
     access_token: str = "xai-access-token",
     refresh_token: str = "xai-refresh-token",
@@ -120,7 +120,7 @@ def _write_xai_pool_entry(
     source: str = "manual:xai_pkce",
 ) -> Path:
     """Write an xai-oauth pool entry into a hermetic SPARKII_HOME."""
-    auth_path = hermes_home / "auth.json"
+    auth_path = sparkii_home / "auth.json"
     auth_path.write_text(json.dumps({
         "version": 1,
         "providers": {},

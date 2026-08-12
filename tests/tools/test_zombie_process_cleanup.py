@@ -383,7 +383,7 @@ class TestDelegationCleanup:
         observed = {}
 
         def run_conversation(**_kwargs):
-            observed["hermes_home"] = get_sparkii_home()
+            observed["sparkii_home"] = get_sparkii_home()
             raise RuntimeError("test abort")
 
         child.run_conversation.side_effect = run_conversation
@@ -405,7 +405,7 @@ class TestDelegationCleanup:
             reset_sparkii_home_override(token)
 
         child.close.assert_called_once()
-        assert observed["hermes_home"] == profile_home
+        assert observed["sparkii_home"] == profile_home
         relay_host.unregister_subagent.assert_called_once_with(
             {"child_session_id": "child-session"}
         )

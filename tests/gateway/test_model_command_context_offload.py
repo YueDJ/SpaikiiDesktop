@@ -49,13 +49,13 @@ def _runner_with_store(tmp_path, monkeypatch):
     from gateway.run import GatewayRunner
     from sparkii_cli.model_switch import ModelSwitchResult
 
-    hermes_home = tmp_path / ".sparkii"
-    hermes_home.mkdir()
-    (hermes_home / "config.yaml").write_text(
+    sparkii_home = tmp_path / ".sparkii"
+    sparkii_home.mkdir()
+    (sparkii_home / "config.yaml").write_text(
         _yaml.safe_dump({"model": {"default": "old-model", "provider": "openrouter"}}),
         encoding="utf-8",
     )
-    monkeypatch.setattr(gateway_run, "_sparkii_home", hermes_home)
+    monkeypatch.setattr(gateway_run, "_sparkii_home", sparkii_home)
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
     monkeypatch.setattr(
         "sparkii_cli.model_switch.switch_model",
@@ -70,8 +70,8 @@ def _runner_with_store(tmp_path, monkeypatch):
             provider_label="OpenRouter",
         ),
     )
-    monkeypatch.setattr("sparkii_constants.get_sparkii_home", lambda: hermes_home)
-    monkeypatch.setattr("sparkii_cli.config.get_sparkii_home", lambda: hermes_home)
+    monkeypatch.setattr("sparkii_constants.get_sparkii_home", lambda: sparkii_home)
+    monkeypatch.setattr("sparkii_cli.config.get_sparkii_home", lambda: sparkii_home)
     # No expensive-model confirmation detour.
     monkeypatch.setattr(
         "sparkii_cli.model_cost_guard.expensive_model_warning",

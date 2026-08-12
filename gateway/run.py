@@ -1880,9 +1880,9 @@ _sparkii_home = get_sparkii_home()
 # Load environment variables from ~/.sparkii/.env first.
 # User-managed env files should override stale shell exports on restart.
 from dotenv import load_dotenv  # noqa: F401  # backward-compat for tests that monkeypatch this symbol
-from sparkii_cli.env_loader import load_hermes_dotenv
+from sparkii_cli.env_loader import load_sparkii_dotenv
 _env_path = _sparkii_home / '.env'
-load_hermes_dotenv(hermes_home=_sparkii_home, project_env=Path(__file__).resolve().parents[1] / '.env')
+load_sparkii_dotenv(sparkii_home=_sparkii_home, project_env=Path(__file__).resolve().parents[1] / '.env')
 
 
 def _reload_runtime_env_preserving_config_authority() -> None:
@@ -1907,8 +1907,8 @@ def _reload_runtime_env_preserving_config_authority() -> None:
         _bridge_max_turns_from_config(_sparkii_home)
         return
 
-    load_hermes_dotenv(
-        hermes_home=_sparkii_home,
+    load_sparkii_dotenv(
+        sparkii_home=_sparkii_home,
         project_env=Path(__file__).resolve().parents[1] / '.env',
     )
     _bridge_max_turns_from_config(_sparkii_home)
@@ -3424,9 +3424,9 @@ def _resolve_sparkii_bin() -> Optional[list[str]]:
     """
     import shutil
 
-    hermes_bin = shutil.which("sparkii")
-    if hermes_bin:
-        return [hermes_bin]
+    sparkii_bin = shutil.which("sparkii")
+    if sparkii_bin:
+        return [sparkii_bin]
 
     try:
         import importlib.util
@@ -10095,8 +10095,8 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         import shutil
         import subprocess
 
-        hermes_cmd = _resolve_sparkii_bin()
-        if not hermes_cmd:
+        sparkii_cmd = _resolve_sparkii_bin()
+        if not sparkii_cmd:
             logger.error("Could not locate sparkii binary for detached /restart")
             return
         if self._detached_restart_helper_started:
@@ -10118,7 +10118,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
                 windows_detach_popen_kwargs,
             )
 
-            cmd_argv = [*hermes_cmd, "gateway", "restart"]
+            cmd_argv = [*sparkii_cmd, "gateway", "restart"]
             watcher = textwrap.dedent(
                 """
                 import os, subprocess, sys, time
@@ -10246,7 +10246,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
                     )
             return
 
-        cmd = " ".join(shlex.quote(part) for part in hermes_cmd)
+        cmd = " ".join(shlex.quote(part) for part in sparkii_cmd)
         shell_cmd = (
             f"deadline=$(( $(date +%s) + {int(restart_after_s)} )); "
             f"while kill -0 {current_pid} 2>/dev/null && [ $(date +%s) -lt $deadline ]; do sleep 0.2; done; "
@@ -10560,7 +10560,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
             # Mark this replay so _handle_message does not queue it again while
             # the restore gate remains closed for any fresh inbound arrivals.
             try:
-                setattr(event, "_hermes_startup_restore_replay", True)
+                setattr(event, "_sparkii_startup_restore_replay", True)
             except Exception:
                 pass
             await adapter.handle_message(event)
@@ -14795,7 +14795,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         if (
             getattr(self, "_startup_restore_in_progress", False)
             and not is_internal
-            and not getattr(event, "_hermes_startup_restore_replay", False)
+            and not getattr(event, "_sparkii_startup_restore_replay", False)
         ):
             self._queue_startup_restore_event(event)
             return None
@@ -19454,7 +19454,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
                 generation = None
                 active = getattr(adapter, "_active_sessions", {}).get(session_key)
                 if active is not None:
-                    generation = getattr(active, "_hermes_run_generation", None)
+                    generation = getattr(active, "_sparkii_run_generation", None)
                 adapter.register_post_delivery_callback(
                     session_key,
                     _deliver,
@@ -23807,7 +23807,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         try:
             interrupt_event = getattr(adapter, "_active_sessions", {}).get(session_key)
             if interrupt_event is not None:
-                setattr(interrupt_event, "_hermes_run_generation", int(generation))
+                setattr(interrupt_event, "_sparkii_run_generation", int(generation))
         except Exception:
             pass
 
@@ -27454,11 +27454,11 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
             except Exception:
                 pass
         else:
-            hermes_home = str(get_sparkii_home())
+            sparkii_home = str(get_sparkii_home())
             logger.error(
                 "Another gateway instance is already running (PID %d, SPARKII_HOME=%s). "
                 "Use 'sparkii gateway restart' to replace it, or 'sparkii gateway stop' first.",
-                existing_pid, hermes_home,
+                existing_pid, sparkii_home,
             )
             print(
                 f"\n❌ Gateway already running (PID {existing_pid}).\n"
@@ -27479,7 +27479,7 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
     # and gateway.log (INFO+, gateway-component records only).
     # Idempotent, so repeated calls from AIAgent.__init__ won't duplicate.
     from sparkii_logging import setup_logging, _safe_stderr
-    setup_logging(hermes_home=_sparkii_home, mode="gateway")
+    setup_logging(sparkii_home=_sparkii_home, mode="gateway")
 
     # Startup security posture audit — warn-on-load, never blocks. Surfaces
     # root / weak-SSH / ephemeral-container / unauthenticated-listener posture
@@ -27495,7 +27495,7 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
             _audit_cfg = read_raw_config()
         except Exception:
             _audit_cfg = None
-        log_startup_security_warnings(hermes_home=_sparkii_home, config=_audit_cfg)
+        log_startup_security_warnings(sparkii_home=_sparkii_home, config=_audit_cfg)
     except Exception as _audit_exc:
         logger.debug("Startup security audit failed (non-fatal): %s", _audit_exc)
 

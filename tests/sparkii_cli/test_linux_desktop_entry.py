@@ -37,11 +37,11 @@ def _parse(entry_text: str) -> dict:
 
 def test_install_writes_entry_with_absolute_exec_and_icon(tmp_path, xdg_home, monkeypatch):
     root = _make_project(tmp_path)
-    hermes_bin = tmp_path / "bin" / "sparkii"
-    hermes_bin.parent.mkdir()
-    hermes_bin.write_text("", encoding="utf-8")
+    sparkii_bin = tmp_path / "bin" / "sparkii"
+    sparkii_bin.parent.mkdir()
+    sparkii_bin.write_text("", encoding="utf-8")
     monkeypatch.setattr(
-        "sparkii_cli.relaunch.resolve_sparkii_bin", lambda: str(hermes_bin)
+        "sparkii_cli.relaunch.resolve_sparkii_bin", lambda: str(sparkii_bin)
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -52,7 +52,7 @@ def test_install_writes_entry_with_absolute_exec_and_icon(tmp_path, xdg_home, mo
 
     # Exec must be the absolute path of the resolved binary. The launcher
     # runs with a minimal PATH, so a bare `sparkii` would not resolve.
-    assert values["Exec"] == f"{hermes_bin} desktop"
+    assert values["Exec"] == f"{sparkii_bin} desktop"
     assert Path(values["Exec"].split(" ")[0]).is_absolute()
 
     # Icon must be an absolute path to the real icon in the checkout.

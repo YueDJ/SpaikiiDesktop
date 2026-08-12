@@ -35,15 +35,15 @@ def _resolve_profile_path(path_value: Any) -> Optional[Path]:
         return None
     from sparkii_constants import get_sparkii_home
 
-    hermes_home = get_sparkii_home()
+    sparkii_home = get_sparkii_home()
     if raw == "~/.sparkii":
-        return hermes_home
+        return sparkii_home
     if raw.startswith("~/.sparkii/"):
-        return hermes_home / raw.removeprefix("~/.sparkii/")
+        return sparkii_home / raw.removeprefix("~/.sparkii/")
     path = Path(raw).expanduser()
     if path.is_absolute():
         return path
-    return hermes_home / path
+    return sparkii_home / path
 
 
 def _resolve_script_path(script_value: Any) -> tuple[Optional[Path], Optional[str]]:
@@ -296,7 +296,7 @@ class WebhookRouteProcessor:
             return False, None
         if (
             transformed.get("[SILENT]") is True
-            or transformed.get("__hermes_ignore__") is True
+            or transformed.get("__sparkii_ignore__") is True
         ):
             return False, None
         return True, transformed

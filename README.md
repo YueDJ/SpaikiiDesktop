@@ -248,7 +248,7 @@ scripts/run_tests.sh
 - 📚 [Skills Hub](https://agentskills.io)
 - 🐛 [Issues](https://github.com/YueDJ/SpaikiiDesktop/issues)
 - 🔌 [computer-use-linux](https://github.com/avifenesh/computer-use-linux) — Linux desktop-control MCP server for Sparkii and other MCP hosts, with AT-SPI accessibility trees, Wayland/X11 input, screenshots, and compositor window targeting.
-- 🔌 [HermesClaw](https://github.com/AaronWong1999/hermesclaw) — Community WeChat bridge: Run Sparkii Agent and OpenClaw on the same WeChat account.
+- 🔌 [___SPARKIICLAW_PRESERVE___](https://github.com/AaronWong1999/___SPARKIICLAW_URL_PRESERVE___) — Community WeChat bridge: Run Sparkii Agent and OpenClaw on the same WeChat account.
 
 ---
 

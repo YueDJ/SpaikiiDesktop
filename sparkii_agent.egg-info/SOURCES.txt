@@ -282,6 +282,7 @@ gateway/systemd_notify.py
 gateway/turn_context.py
 gateway/turn_lease.py
 gateway/wake.py
+gateway/whatsapp_identity.py
 gateway/assets/status_phrases.yaml
 gateway/assets/telegram-botfather-threads-settings.jpg
 gateway/builtin_hooks/__init__.py

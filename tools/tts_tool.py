@@ -260,8 +260,8 @@ TTS_RESPONSE_BODY_LIMIT_BYTES = 16 * 1024 * 1024
 TTS_RESPONSE_BODY_CHUNK_BYTES = 64 * 1024
 
 def _get_default_output_dir() -> str:
-    from sparkii_constants import get_hermes_dir
-    return str(get_hermes_dir("cache/audio", "audio_cache"))
+    from sparkii_constants import get_sparkii_dir
+    return str(get_sparkii_dir("cache/audio", "audio_cache"))
 
 DEFAULT_OUTPUT_DIR = _get_default_output_dir()
 
@@ -2665,13 +2665,13 @@ def _generate_gemini_tts(text: str, output_path: str, tts_config: Dict[str, Any]
         try:
             import sparkii_cli as _sparkii_cli
 
-            _hermes_version = str(_sparkii_cli.__version__)
+            _sparkii_version = str(_sparkii_cli.__version__)
         except Exception:
-            _hermes_version = "0.0.0"
+            _sparkii_version = "0.0.0"
         # Include Sparkii client context following Gemini's partner
         # integration guidance:
         # https://ai.google.dev/gemini-api/docs/partner-integration
-        headers["X-Goog-Api-Client"] = f"sparkii-agent/{_hermes_version}"
+        headers["X-Goog-Api-Client"] = f"sparkii-agent/{_sparkii_version}"
 
     endpoint = f"{base_url}/models/{model}:generateContent"
     response = requests.post(
@@ -2902,8 +2902,8 @@ def _get_piper_voices_dir() -> Path:
     Resolves to ``~/.sparkii/cache/piper-voices/`` under the active
     SPARKII_HOME so voice downloads follow profile boundaries.
     """
-    from sparkii_constants import get_hermes_dir
-    root = Path(get_hermes_dir("cache/piper-voices", "piper_voices_cache"))
+    from sparkii_constants import get_sparkii_dir
+    root = Path(get_sparkii_dir("cache/piper-voices", "piper_voices_cache"))
     root.mkdir(parents=True, exist_ok=True)
     return root
 

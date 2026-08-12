@@ -134,7 +134,7 @@ def _parse_branch_flag(value: Optional[str]) -> Optional[str]:
 
 
 def _check_dispatcher_presence(
-    hermes_home: Optional[Path] = None,
+    sparkii_home: Optional[Path] = None,
 ) -> tuple[bool, str]:
     """Return ``(running, message)``.
 
@@ -151,7 +151,7 @@ def _check_dispatcher_presence(
     probe itself errors, we return ``(True, "")`` so we don't spam
     false warnings (better to miss a warning than to cry wolf).
 
-    ``hermes_home`` scopes the probe to a named profile's directory. The
+    ``sparkii_home`` scopes the probe to a named profile's directory. The
     dashboard plugin API passes it because the dashboard backend process can
     be running under a different SPARKII_HOME than the profile the request
     targets, which otherwise produced a "no gateway is running" warning
@@ -169,7 +169,7 @@ def _check_dispatcher_presence(
         # CLI/create-time probe, not a polling loop, and it must observe the
         # gateway's state right now rather than a cached snapshot.
         liveness = resolve_gateway_liveness(
-            profile_dir=hermes_home, use_cache=False
+            profile_dir=sparkii_home, use_cache=False
         )
     except Exception:
         return (True, "")  # probe errored — silent

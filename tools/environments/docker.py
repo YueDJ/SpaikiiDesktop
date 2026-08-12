@@ -100,7 +100,7 @@ def _normalize_env_dict(env: dict | None) -> dict[str, str]:
     return normalized
 
 
-def _load_hermes_env_vars() -> dict[str, str]:
+def _load_sparkii_env_vars() -> dict[str, str]:
     """Load ~/.sparkii/.env values without failing Docker command execution."""
     try:
         from sparkii_cli.config import load_env
@@ -1573,10 +1573,10 @@ class DockerEnvironment(BaseEnvironment):
             k for k in passthrough_keys if not _is_sparkii_internal_secret(k)
         }
         forward_keys = explicit_forward_keys | (_implicit_forward - _SPARKII_PROVIDER_ENV_BLOCKLIST)
-        hermes_env = _load_hermes_env_vars() if forward_keys else {}
+        sparkii_env = _load_sparkii_env_vars() if forward_keys else {}
         unset_names: set[str] = set()
         for key in sorted(forward_keys):
-            value = os.getenv(key) or hermes_env.get(key)
+            value = os.getenv(key) or sparkii_env.get(key)
             if resolve_passthrough_value is not None:
                 value = resolve_passthrough_value(key, value)
             if value is not None:

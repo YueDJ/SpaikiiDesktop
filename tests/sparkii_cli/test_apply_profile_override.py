@@ -18,7 +18,7 @@ from types import SimpleNamespace
 
 
 def _run_apply_profile_override(
-    tmp_path, monkeypatch, *, hermes_home: str | None, active_profile: str | None,
+    tmp_path, monkeypatch, *, sparkii_home: str | None, active_profile: str | None,
     argv: list[str] | None = None,
 ):
     """Run _apply_profile_override in isolation.
@@ -26,18 +26,18 @@ def _run_apply_profile_override(
     Returns the value of os.environ["SPARKII_HOME"] after the call,
     or None if unset.
     """
-    hermes_root = tmp_path / ".sparkii"
-    hermes_root.mkdir(parents=True, exist_ok=True)
+    sparkii_root = tmp_path / ".sparkii"
+    sparkii_root.mkdir(parents=True, exist_ok=True)
 
     if active_profile is not None:
-        (hermes_root / "active_profile").write_text(active_profile)
+        (sparkii_root / "active_profile").write_text(active_profile)
 
     if active_profile and active_profile != "default":
-        (hermes_root / "profiles" / active_profile).mkdir(parents=True, exist_ok=True)
+        (sparkii_root / "profiles" / active_profile).mkdir(parents=True, exist_ok=True)
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    if hermes_home is not None:
-        monkeypatch.setenv("SPARKII_HOME", hermes_home)
+    if sparkii_home is not None:
+        monkeypatch.setenv("SPARKII_HOME", sparkii_home)
     else:
         monkeypatch.delenv("SPARKII_HOME", raising=False)
 
@@ -67,13 +67,13 @@ class TestApplyProfileOverrideSparkiiHomeGuard:
         and the user switches to a profile via `sparkii profile use`.
         Before the fix, the guard returned early and active_profile was ignored.
         """
-        hermes_root = tmp_path / ".sparkii"
-        hermes_root.mkdir(parents=True, exist_ok=True)
+        sparkii_root = tmp_path / ".sparkii"
+        sparkii_root.mkdir(parents=True, exist_ok=True)
 
         result = _run_apply_profile_override(
             tmp_path,
             monkeypatch,
-            hermes_home=str(hermes_root),
+            sparkii_home=str(sparkii_root),
             active_profile="coder",
         )
 
@@ -134,7 +134,7 @@ class TestSupervisedChildIgnoresStickyProfile:
         result = _run_apply_profile_override(
             tmp_path,
             monkeypatch,
-            hermes_home=None,
+            sparkii_home=None,
             active_profile="briefer",
             argv=["sparkii", "gateway", "run"],
         )
@@ -146,11 +146,11 @@ class TestSupervisedChildIgnoresStickyProfile:
         """A supervised named-profile slot passes ``-p <name>`` explicitly;
         that must still resolve (the sentinel guard only skips the sticky
         active_profile fallback, never an explicit flag)."""
-        hermes_root = tmp_path / ".sparkii"
-        hermes_root.mkdir(parents=True, exist_ok=True)
-        (hermes_root / "active_profile").write_text("briefer")
-        (hermes_root / "profiles" / "briefer").mkdir(parents=True, exist_ok=True)
-        (hermes_root / "profiles" / "coder").mkdir(parents=True, exist_ok=True)
+        sparkii_root = tmp_path / ".sparkii"
+        sparkii_root.mkdir(parents=True, exist_ok=True)
+        (sparkii_root / "active_profile").write_text("briefer")
+        (sparkii_root / "profiles" / "briefer").mkdir(parents=True, exist_ok=True)
+        (sparkii_root / "profiles" / "coder").mkdir(parents=True, exist_ok=True)
 
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
         monkeypatch.delenv("SPARKII_HOME", raising=False)

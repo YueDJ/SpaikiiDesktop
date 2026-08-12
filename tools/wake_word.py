@@ -1277,9 +1277,9 @@ _detector_lock = threading.Lock()
 
 
 def _lock_path() -> Path:
-    from sparkii_constants import get_default_hermes_root
+    from sparkii_constants import get_default_sparkii_root
 
-    return get_default_hermes_root() / "runtime" / "wake-word.lock"
+    return get_default_sparkii_root() / "runtime" / "wake-word.lock"
 
 
 def _acquire_machine_lock(path: Optional[Path] = None):

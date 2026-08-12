@@ -734,9 +734,9 @@ class GitHubSource(SkillSource):
         tags = []
         metadata = fm.get("metadata", {})
         if isinstance(metadata, dict):
-            hermes_meta = metadata.get("sparkii", {})
-            if isinstance(hermes_meta, dict):
-                tags = hermes_meta.get("tags", [])
+            sparkii_meta = metadata.get("sparkii", {})
+            if isinstance(sparkii_meta, dict):
+                tags = sparkii_meta.get("tags", [])
         if not tags:
             raw_tags = fm.get("tags", [])
             tags = raw_tags if isinstance(raw_tags, list) else []
@@ -1487,9 +1487,9 @@ class UrlSource(SkillSource):
         tags: List[str] = []
         metadata = fm.get("metadata", {})
         if isinstance(metadata, dict):
-            hermes_meta = metadata.get("sparkii", {})
-            if isinstance(hermes_meta, dict):
-                raw_tags = hermes_meta.get("tags", [])
+            sparkii_meta = metadata.get("sparkii", {})
+            if isinstance(sparkii_meta, dict):
+                raw_tags = sparkii_meta.get("tags", [])
                 if isinstance(raw_tags, list):
                     tags = [str(t) for t in raw_tags]
         return SkillMeta(
@@ -3581,9 +3581,9 @@ class OptionalSkillSource(SkillSource):
             tags = []
             meta_block = fm.get("metadata", {})
             if isinstance(meta_block, dict):
-                hermes_meta = meta_block.get("sparkii", {})
-                if isinstance(hermes_meta, dict):
-                    tags = hermes_meta.get("tags", [])
+                sparkii_meta = meta_block.get("sparkii", {})
+                if isinstance(sparkii_meta, dict):
+                    tags = sparkii_meta.get("tags", [])
 
             rel_path = parent.relative_to(self._optional_dir).as_posix()
 
@@ -4157,11 +4157,11 @@ SPARKII_INDEX_URL = "https://sparkii-agent.nousresearch.com/docs/api/skills-inde
 SPARKII_INDEX_TTL = 6 * 3600  # 6 hours
 
 
-def _hermes_index_cache_file() -> Path:
+def _sparkii_index_cache_file() -> Path:
     return _index_cache_dir() / "sparkii-index.json"
 
 
-def _load_hermes_index() -> Optional[dict]:
+def _load_sparkii_index() -> Optional[dict]:
     """Fetch the centralized skills index, with local cache.
 
     The index is a JSON file hosted on the docs site, rebuilt daily by CI.
@@ -4169,12 +4169,12 @@ def _load_hermes_index() -> Optional[dict]:
     downloads within a session.
     """
     # Check local cache
-    hermes_index_cache_file = _hermes_index_cache_file()
-    if hermes_index_cache_file.exists():
+    sparkii_index_cache_file = _sparkii_index_cache_file()
+    if sparkii_index_cache_file.exists():
         try:
-            age = time.time() - hermes_index_cache_file.stat().st_mtime
+            age = time.time() - sparkii_index_cache_file.stat().st_mtime
             if age < SPARKII_INDEX_TTL:
-                return json.loads(hermes_index_cache_file.read_text(encoding="utf-8"))
+                return json.loads(sparkii_index_cache_file.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             pass
 
@@ -4227,8 +4227,8 @@ def _load_hermes_index() -> Optional[dict]:
 
     # Cache locally
     try:
-        hermes_index_cache_file.parent.mkdir(parents=True, exist_ok=True)
-        hermes_index_cache_file.write_text(json.dumps(data), encoding="utf-8")
+        sparkii_index_cache_file.parent.mkdir(parents=True, exist_ok=True)
+        sparkii_index_cache_file.write_text(json.dumps(data), encoding="utf-8")
     except OSError:
         pass
 
@@ -4237,10 +4237,10 @@ def _load_hermes_index() -> Optional[dict]:
 
 def _load_stale_index_cache() -> Optional[dict]:
     """Fall back to stale cache when the network fetch fails."""
-    hermes_index_cache_file = _hermes_index_cache_file()
-    if hermes_index_cache_file.exists():
+    sparkii_index_cache_file = _sparkii_index_cache_file()
+    if sparkii_index_cache_file.exists():
         try:
-            return json.loads(hermes_index_cache_file.read_text(encoding="utf-8"))
+            return json.loads(sparkii_index_cache_file.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             pass
     return None
@@ -4268,7 +4268,7 @@ class SparkiiIndexSource(SkillSource):
 
     def _ensure_loaded(self) -> dict:
         if not self._loaded:
-            self._index = _load_hermes_index()
+            self._index = _load_sparkii_index()
             self._loaded = True
         return self._index or {}
 

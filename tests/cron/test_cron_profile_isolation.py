@@ -34,7 +34,7 @@ def _set_profile_env(monkeypatch, root: Path, profile_home: Path) -> None:
 def test_cron_storage_anchors_at_profile_home(tmp_path, monkeypatch):
     """Under a profile SPARKII_HOME (<root>/profiles/<name>), the cron store
     resolves to <profile>/cron, NOT the shared <root>/cron."""
-    root = tmp_path / "hermes_home"
+    root = tmp_path / "sparkii_home"
     profile_home = root / "profiles" / "coder"
     profile_home.mkdir(parents=True)
 
@@ -44,7 +44,7 @@ def test_cron_storage_anchors_at_profile_home(tmp_path, monkeypatch):
 
     # Sanity: the override is wired the way the gateway sees it.
     assert sparkii_constants.get_sparkii_home().resolve() == profile_home.resolve()
-    assert sparkii_constants.get_default_hermes_root().resolve() == root.resolve()
+    assert sparkii_constants.get_default_sparkii_root().resolve() == root.resolve()
 
     # cron/jobs.py computes SPARKII_DIR from get_sparkii_home() at import, so a
     # fresh import under this env anchors the store at <profile>/cron.

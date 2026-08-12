@@ -622,7 +622,7 @@ const DESKTOP_INSTALLATION_PATH = path.join(app.getPath('userData'), 'desktop-in
 const DESKTOP_UPDATE_CONFIG_PATH = path.join(app.getPath('userData'), 'updates.json')
 const DESKTOP_WINDOW_STATE_PATH = path.join(app.getPath('userData'), 'window-state.json')
 // active-profile.json records which Sparkii profile the desktop launches its
-// local backend as. When set, startHermes() passes `sparkii --profile <name>
+// local backend as. When set, startSparkii() passes `sparkii --profile <name>
 // dashboard …`, which deterministically pins SPARKII_HOME (see
 // _apply_profile_override in sparkii_cli/main.py) and bypasses the sticky
 // ~/.sparkii/active_profile file. Unset (null) preserves the legacy behavior:
@@ -1072,7 +1072,7 @@ const remoteRevalidation = new RemoteRevalidationCoordinator()
 let softRehomeInProgress = false
 // Additional per-profile backends, keyed by profile name. The PRIMARY backend
 // (the desktop's launch profile) stays managed by backendConnectionState +
-// startHermes(); this pool only holds EXTRA profile
+// startSparkii(); this pool only holds EXTRA profile
 // backends spawned lazily when a session belongs to a different profile. A user
 // with no named profiles never populates this map, so their experience is
 // byte-for-byte the single-backend behavior.
@@ -1098,7 +1098,7 @@ const RENDERER_RELOAD_WINDOW_MS = 60_000
 const RENDERER_RELOAD_MAX = 3
 const rendererReloadTimesRef: { current: number[] } = { current: [] }
 // Latched bootstrap failure: when the first-launch install fails, we hold
-// onto the error so subsequent startHermes() calls (e.g. the renderer's
+// onto the error so subsequent startSparkii() calls (e.g. the renderer's
 // ensureGatewayOpen retrying after the WS won't open) return the same error
 // instead of re-running install.ps1 in a hot loop. Cleared explicitly by
 // the renderer's "Reload and retry" path or by quitting the app.
@@ -1755,7 +1755,7 @@ function directoryExists(filePath) {
 // relaunches the desktop mid-update — because the window vanished with no
 // progress and looks crashed — a fresh instance must NOT spawn its own local
 // backend: that backend re-locks the venv shim, the updater's straggler cleanup
-// (`force_kill_other_hermes`, taskkill /IM sparkii.exe) kills it, the launch
+// (`force_kill_other_sparkii`, taskkill /IM sparkii.exe) kills it, the launch
 // fails with the 45s "backend didn't come up" error, and the relaunch/kill
 // cycle loops. Instead the fresh instance parks until the update finishes, then
 // brings the backend up itself (it is the surviving instance — the updater's
@@ -2977,7 +2977,7 @@ async function applyUpdates(opts = {}) {
         '(a second Sparkii window or a terminal running sparkii?). Close it and retry.'
 
       emitUpdateProgress({ stage: 'error', message, percent: null })
-      startHermes().catch(() => {})
+      startSparkii().catch(() => {})
 
       return { ok: false, error: message }
     }
@@ -2999,7 +2999,7 @@ async function applyUpdates(opts = {}) {
 
         rememberLog(`[updates] venv-blocked: ${scanOutcome.result.processes.length} process(es) hold the install`)
         emitUpdateProgress({ stage: 'error', message, percent: null })
-        startHermes().catch(() => {})
+        startSparkii().catch(() => {})
 
         return { ok: false, error: 'venv-blocked', message }
       }
@@ -3009,7 +3009,7 @@ async function applyUpdates(opts = {}) {
 
         rememberLog(`[updates] venv-blocker probe failed: ${scanOutcome.error}`)
         emitUpdateProgress({ stage: 'error', message, percent: null })
-        startHermes().catch(() => {})
+        startSparkii().catch(() => {})
 
         return { ok: false, error: 'venv-probe-failed', message }
       }
@@ -3166,7 +3166,7 @@ async function handOffWindowsBootstrapRecovery(reason) {
     : configuredBranch || DEFAULT_UPDATE_BRANCH
 
   const venvBin = path.join(updateRoot, 'venv', IS_WINDOWS ? 'Scripts' : 'bin')
-  const venvHermes = path.join(venvBin, IS_WINDOWS ? 'sparkii.exe' : 'sparkii')
+  const venvSparkii = path.join(venvBin, IS_WINDOWS ? 'sparkii.exe' : 'sparkii')
   const venvPython = path.join(venvBin, IS_WINDOWS ? 'python.exe' : 'python')
 
   // Choose the gentle in-place --update when ANY real-install signal is present,
@@ -3176,7 +3176,7 @@ async function handOffWindowsBootstrapRecovery(reason) {
   // --repair (full venv recreate) and drove reinstall loops. The venv interpreter
   // and the bootstrap-complete marker are present earlier and are better signals.
   const haveRealInstall =
-    fileExists(venvPython) || fileExists(venvHermes) || fileExists(path.join(updateRoot, '.sparkii-bootstrap-complete'))
+    fileExists(venvPython) || fileExists(venvSparkii) || fileExists(path.join(updateRoot, '.sparkii-bootstrap-complete'))
 
   const updaterArgs = chooseUpdaterArgs(haveRealInstall, branch)
 
@@ -3223,10 +3223,10 @@ async function handOffWindowsBootstrapRecovery(reason) {
 // Resolve the sparkii CLI to drive an in-app update: prefer the venv shim in
 // the install we're updating, fall back to `sparkii` on PATH.
 function resolveSparkiiCliBinary(updateRoot) {
-  const venvHermes = path.join(updateRoot, 'venv', 'bin', 'sparkii')
+  const venvSparkii = path.join(updateRoot, 'venv', 'bin', 'sparkii')
 
-  if (fileExists(venvHermes)) {
-    return venvHermes
+  if (fileExists(venvSparkii)) {
+    return venvSparkii
   }
 
   return findOnPath('sparkii') || null
@@ -4015,7 +4015,7 @@ function resolveSparkiiBackend(backendArgs) {
   //    SPARKII_DESKTOP_IGNORE_EXISTING=1 forces the bootstrap path for testing.
   if (process.env.SPARKII_DESKTOP_IGNORE_EXISTING !== '1') {
     let sparkiiCommand = null
-    const sparkiiOverride = process.env.SPARKII_DESKTOP_HERMES
+    const sparkiiOverride = process.env.SPARKII_DESKTOP_SPARKII
 
     if (sparkiiOverride) {
       const resolvedOverride = findOnPath(sparkiiOverride)
@@ -4054,7 +4054,7 @@ function resolveSparkiiBackend(backendArgs) {
       // and lets the resolver fall through to step 6 / bootstrap.
       const shellForProbe = isCommandScript(sparkiiCommand)
 
-      // SPARKII_DESKTOP_HERMES is an explicit deployment override (used by
+      // SPARKII_DESKTOP_SPARKII is an explicit deployment override (used by
       // the Nix wrapper), not a discovered PATH candidate. It must not fall
       // through to the install-script bootstrap if the optional probe times
       // out under load; the pinned backend is the only valid runtime there.
@@ -4235,7 +4235,7 @@ async function ensureRuntime(backend) {
 
       bootstrapError.isBootstrapFailure = true
       bootstrapError.failedStage = bootstrapResult.failedStage || null
-      // Latch the failure so subsequent startHermes() calls return this
+      // Latch the failure so subsequent startSparkii() calls return this
       // same error without re-running install.ps1.  Cleared by the
       // sparkii:bootstrap:reset IPC (renderer's "Reload and retry").
       bootstrapFailure = bootstrapError
@@ -5243,7 +5243,7 @@ async function buildReadinessHealthProbe(baseUrl, authMode, token) {
   return { probeHealth: fetchPublicJson, probeIsCredentialed: false }
 }
 
-async function waitForHermes(baseUrl, token, signal?, authMode?) {
+async function waitForSparkii(baseUrl, token, signal?, authMode?) {
   const { probeHealth, probeIsCredentialed } = await buildReadinessHealthProbe(baseUrl, authMode, token)
 
   return waitForSparkiiReady(baseUrl, {
@@ -5912,7 +5912,7 @@ function installMediaPermissions() {
 // Nous Research) instead of a static session token. The auth model is
 // fundamentally different from the token path:
 //
-//   * REST is authed by HttpOnly session cookies (``hermes_session_at``),
+//   * REST is authed by HttpOnly session cookies (``sparkii_session_at``),
 //     established by a browser redirect round-trip (/login → IDP →
 //     /auth/callback sets cookies). We cannot read the HttpOnly cookie value
 //     in JS — instead we let an Electron BrowserWindow complete the round
@@ -5924,8 +5924,8 @@ function installMediaPermissions() {
 //     path is unconditionally rejected by gated gateways.
 //   * Nous Portal now issues a 24h ROTATING, reuse-detected refresh token
 //     alongside the ~15-min access token (Portal NAS #293 / sparkii #37247).
-//     Both are set as HttpOnly cookies (``hermes_session_at`` ~15 min,
-//     ``hermes_session_rt`` 24h). When the AT cookie lapses but the RT cookie
+//     Both are set as HttpOnly cookies (``sparkii_session_at`` ~15 min,
+//     ``sparkii_session_rt`` 24h). When the AT cookie lapses but the RT cookie
 //     is still alive, the gateway middleware transparently rotates a fresh AT
 //     on the next authenticated request — so connectivity must NOT be gated on
 //     the AT cookie alone. We probe liveness by actually minting a ws-ticket
@@ -5951,7 +5951,7 @@ function getOauthSession() {
 // cookies.get() on a fresh cold start can resolve BEFORE the jar has finished
 // hydrating from disk and return an empty array — even though the user is
 // signed in. That false-negative used to make hasLiveOauthSession() report
-// "not signed in", which on the initial boot path (startHermes → the renderer's
+// "not signed in", which on the initial boot path (startSparkii → the renderer's
 // single-shot boot() with no retry) surfaced as the "Sparkii couldn't start"
 // OAuth overlay that vanishes the instant the user clicks Retry.
 //
@@ -6593,7 +6593,7 @@ function resolvePortalBaseUrl() {
 // credential that powers both discovery and the silent cascade. The portal
 // authenticates via PRIVY, not the Sparkii gateway session cookies, so this
 // checks for the `privy-token` cookie on the portal host (NOT
-// hasLiveOauthSession, which looks for hermes_session_at/rt that the portal
+// hasLiveOauthSession, which looks for sparkii_session_at/rt that the portal
 // never sets). See connection-config.ts cookiesHavePrivySession.
 async function hasLivePortalSession() {
   const sess = getOauthSession()
@@ -7550,7 +7550,7 @@ async function bootstrapSshConnectionInner(profile, sshConfig, reuseToken, sourc
       forward: (localPort, remotePort) => ssh.forward(localPort, remotePort),
       cancelForward: (localPort, remotePort) => ssh.cancelForward(localPort, remotePort),
       pickLocalPort,
-      waitForHermes: (baseUrl, token) => waitForHermes(baseUrl, token, lease.signal, 'token'),
+      waitForSparkii: (baseUrl, token) => waitForSparkii(baseUrl, token, lease.signal, 'token'),
       probeReuseProof: sshProbeReuseProof,
       adoptServedToken: adoptServedDashboardToken,
       rememberLog: sshRememberLog,
@@ -7752,7 +7752,7 @@ function globalRemoteActive() {
 // True when the PRIMARY profile's backend resolves to a remote/cloud host —
 // i.e. resolveRemoteBackend(primaryProfileKey()) would return a descriptor
 // rather than null. Mirrors that function's precedence (per-profile override →
-// env → global) so a startHermes() failure can be classified as remote (never
+// env → global) so a startSparkii() failure can be classified as remote (never
 // latch — transient, must stay retryable) vs local (latch to break install
 // loops) BEFORE the throwing resolve/mint runs.
 function primaryBackendIsRemote() {
@@ -7962,7 +7962,7 @@ async function testDesktopConnectionConfig(input: any = {}) {
       token = decryptDesktopSecret(block.token)
     }
   } else {
-    const remote = (await resolveRemoteBackend(key)) || (await startHermes())
+    const remote = (await resolveRemoteBackend(key)) || (await startSparkii())
     baseUrl = remote.baseUrl
     token = remote.token
     authMode = normAuthMode(remote.authMode)
@@ -8035,7 +8035,7 @@ function resetSparkiiConnection({ soft = false } = {}) {
 
 // Re-home the primary backend: reset connection state, then wait for the live
 // dashboard process to actually exit (SIGKILL after 5s) so the next
-// startHermes() spawns fresh instead of racing the dying one. Shared by the
+// startSparkii() spawns fresh instead of racing the dying one. Shared by the
 // connection-config and profile switch flows.
 async function teardownPrimaryBackendAndWait({ soft = false } = {}) {
   // Capture the reference before resetSparkiiConnection() invalidates it.
@@ -8133,7 +8133,7 @@ async function ensureBackend(profile) {
   const route = resolveProfileBackendRoute(key, profileRouteOptions(key))
 
   if (route.backend === 'primary') {
-    const connection = await startHermes()
+    const connection = await startSparkii()
 
     // A shared backend still owes the caller its profile scope, so renderer-side
     // WebSocket, filesystem, and cache routing target the selected profile.
@@ -8241,7 +8241,7 @@ function startPoolIdleReaper() {
 }
 
 // Spawn an additional dashboard backend pinned to a named profile. Mirrors the
-// local-spawn portion of startHermes() but without the boot-progress UI,
+// local-spawn portion of startSparkii() but without the boot-progress UI,
 // bootstrap, or remote handling (those belong to the primary backend only).
 async function spawnPoolBackend(profile, entry) {
   // A profile may point at its OWN remote backend (connection.json
@@ -8253,7 +8253,7 @@ async function spawnPoolBackend(profile, entry) {
   const remote = await resolveRemoteBackend(profile)
 
   if (remote) {
-    await waitForHermes(remote.baseUrl, remote.token, undefined, remote.authMode)
+    await waitForSparkii(remote.baseUrl, remote.token, undefined, remote.authMode)
 
     // Recorded on the entry so revalidation can probe this descriptor without
     // awaiting connectionPromise, which may still be pending for a sibling.
@@ -8371,7 +8371,7 @@ async function spawnPoolBackend(profile, entry) {
   entry.port = port
 
   const baseUrl = `http://127.0.0.1:${port}`
-  await Promise.race([waitForHermes(baseUrl, token), startFailed])
+  await Promise.race([waitForSparkii(baseUrl, token), startFailed])
   ready = true
 
   const authToken = await adoptServedDashboardToken(baseUrl, token, {
@@ -8471,9 +8471,9 @@ async function prepareProfileDeleteRequest(request) {
   return decision.profile
 }
 
-async function startHermes() {
+async function startSparkii() {
   // Latched-failure short-circuit: once bootstrap has failed in this
-  // process, every subsequent startHermes() call re-throws the same error
+  // process, every subsequent startSparkii() call re-throws the same error
   // without re-running install.ps1. This prevents the renderer's
   // ensureGatewayOpen retries (and any other getConnection callers) from
   // restarting a 5-10 minute install loop while the user is still reading
@@ -8519,7 +8519,7 @@ async function startHermes() {
   const connectionPromise = (async () => {
     const connectRemote = async remote => {
       await advanceBootProgress('backend.remote', `Connecting to remote Sparkii backend at ${remote.baseUrl}`, 24)
-      await waitForHermes(remote.baseUrl, remote.token, undefined, remote.authMode)
+      await waitForSparkii(remote.baseUrl, remote.token, undefined, remote.authMode)
       updateBootProgress({
         phase: 'backend.ready',
         message: 'Remote Sparkii backend is ready',
@@ -8714,7 +8714,7 @@ async function startHermes() {
 
     const baseUrl = `http://127.0.0.1:${port}`
     await advanceBootProgress('backend.wait', 'Waiting for Sparkii backend to become ready', 90)
-    await Promise.race([waitForHermes(baseUrl, token), backendStartFailed])
+    await Promise.race([waitForSparkii(baseUrl, token), backendStartFailed])
     backendReady = true
     backendStartFailure = null
 
@@ -10036,7 +10036,7 @@ function createWindow() {
   // shared (backendConnectionState), so the renderer's getConnection() joins
   // this in-flight boot instead of duplicating it; early boot-progress events
   // the renderer misses are recovered by its getBootProgress() pull on mount.
-  startHermes().catch(error => rememberLog(error.stack || error.message))
+  startSparkii().catch(error => rememberLog(error.stack || error.message))
 
   mainWindow.webContents.once('did-finish-load', () => {
     // Zoom restore is handled by wireCommonWindowHandlers (shared with session
@@ -10386,7 +10386,7 @@ ipcMain.handle('sparkii:hud:close', async () => {
 })
 ipcMain.handle('sparkii:bootstrap:reset', async () => {
   // Renderer's "Reload and retry" path. Clear the latched failure and
-  // reset connection state so the next startHermes() call restarts the
+  // reset connection state so the next startSparkii() call restarts the
   // full backend flow (including a fresh runBootstrap pass).
   rememberLog('[bootstrap] reset requested by renderer; clearing latched failure')
   await teardownPrimaryBackendAndWait()
@@ -10399,7 +10399,7 @@ ipcMain.handle('sparkii:bootstrap:reset', async () => {
   return { ok: true }
 })
 ipcMain.handle('sparkii:bootstrap:repair', async () => {
-  // Forceful repair: force the next startHermes() through the full installer
+  // Forceful repair: force the next startSparkii() through the full installer
   // (refreshing a broken/partial venv) and clear any latched failure + live
   // connection. The renderer reloads afterwards to re-drive the boot flow.
   //
@@ -10437,7 +10437,7 @@ ipcMain.handle('sparkii:bootstrap:repair', async () => {
   // The guard may decide the install is healthy enough that a restart
   // (without touching the venv) is the right answer. Translate that into
   // the existing flag: if the guard said "soft restart", we skip the
-  // "bypass active runtime" path inside startHermes() and fall through
+  // "bypass active runtime" path inside startSparkii() and fall through
   // to the normal restart branch, which just kills the current child
   // and respawns it against the same venv. See #74874 — this is what
   // breaks the infinite reinstall loop the user hit.
@@ -10555,7 +10555,7 @@ ipcMain.handle('sparkii:connection-config:oauth-login', async (_event, rawUrl) =
 
       _storeNativeTokens(baseUrl, tokens)
       // Confirmed sign-in — release the reauth latch so the next
-      // startHermes() re-dials instead of replaying the stale rejection.
+      // startSparkii() re-dials instead of replaying the stale rejection.
       remoteReauthFailure = null
 
       return { ok: true, baseUrl, connected: true }
@@ -11841,14 +11841,14 @@ ipcMain.handle('sparkii:fs:openDir', async (_event, dirPath) => {
 
 // The LOCAL Desktop runtime-plugin root: `<SPARKII_HOME>/desktop-plugins`,
 // resolved from the main-process SPARKII_HOME (see resolveSparkiiHome) — NOT from
-// the connected backend. A remote backend reports its own `hermes_home` over
+// the connected backend. A remote backend reports its own `sparkii_home` over
 // the gateway, which is a path on the REMOTE box; deriving the plugin dir from
 // it yields `undefined/desktop-plugins` (or a non-existent remote path) and the
 // on-disk plugin door silently breaks (#66899). Electron owns this resolution
 // so it stays valid in every connection mode. Created on demand, like openDir.
 ipcMain.handle('sparkii:fs:desktopPluginsRoot', async () => {
   // Profile-aware: a named Desktop profile gets its own plugin root under
-  // profiles/<name>/, matching the profile-scoped hermes_home the backend
+  // profiles/<name>/, matching the profile-scoped sparkii_home the backend
   // reported before this resolver existed. 'default'/unset pins the global root.
   const profile = readActiveDesktopProfile()
   const base = profile && profile !== 'default' ? path.join(SPARKII_HOME, 'profiles', profile) : SPARKII_HOME
@@ -12226,7 +12226,7 @@ async function getUninstallSummary() {
   // Fast JS-side fallback used when the agent venv is gone (lite client) or the
   // probe fails — the renderer still needs *something* to render options from.
   const fallback = () => ({
-    hermes_home: SPARKII_HOME,
+    sparkii_home: SPARKII_HOME,
     agent_installed: isSparkiiSourceRoot(agentRoot) && fileExists(py),
     gui_installed: true,
     source_built_artifacts: [],

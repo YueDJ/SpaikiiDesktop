@@ -198,7 +198,7 @@ class TestCronTimezone:
     def test_ensure_aware_naive_preserves_absolute_time(self):
         """_ensure_aware must preserve the absolute instant for naive datetimes.
 
-        Regression: the old code used replace(tzinfo=hermes_tz) which shifted
+        Regression: the old code used replace(tzinfo=sparkii_tz) which shifted
         absolute time when system-local tz != Sparkii tz.  The fix interprets
         naive values as system-local wall time, then converts.
         """

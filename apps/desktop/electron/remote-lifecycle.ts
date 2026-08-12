@@ -16,7 +16,7 @@
  *   - clean up a stale dashboard only when it is provably ours.
  *
  * No `import 'electron'` so it's unit-testable with `node --test`. main.ts wires
- * the real SshConnection, fetch, adoptServedDashboardToken, and waitForHermes in.
+ * the real SshConnection, fetch, adoptServedDashboardToken, and waitForSparkii in.
  *
  * The minted SPARKII_DASHBOARD_SESSION_TOKEN is the SPAWN credential. After
  * readiness the caller runs served-token adoption against the tunneled baseUrl
@@ -652,7 +652,7 @@ async function openForward(deps, remotePort, attempts = 3) {
 
 /**
  * Establish (or reuse) a remote dashboard and a tunnel to it. `deps` injects the
- * opened SshConnection, forward/pickLocalPort/waitForHermes, a token-gated
+ * opened SshConnection, forward/pickLocalPort/waitForSparkii, a token-gated
  * probeReuseProof, and adoptServedToken. Returns the connection descriptor
  * { baseUrl, token, tokenFingerprint, remotePort, localPort, pid, reused, platform }.
  */
@@ -679,7 +679,7 @@ async function connect(deps) {
     ownershipId,
     forward,
     pickLocalPort,
-    waitForHermes,
+    waitForSparkii,
     probeReuseProof,
     adoptServedToken,
     rememberLog = () => {},
@@ -829,7 +829,7 @@ async function connect(deps) {
     localPort = await openForward(deps, remotePort)
     assertNotAborted(signal)
     const baseUrl = `http://127.0.0.1:${localPort}`
-    await waitForHermes(baseUrl, spawnToken)
+    await waitForSparkii(baseUrl, spawnToken)
     assertNotAborted(signal)
 
     const token = await adoptOwnedServedToken(adoptServedToken, baseUrl, spawnToken, ssh, pid, 'remote dashboard')

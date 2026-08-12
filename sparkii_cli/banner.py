@@ -295,8 +295,8 @@ def check_for_updates() -> Optional[int]:
     if behind but the count is unknown, ``0`` if up-to-date, or ``None`` if
     the check failed or doesn't apply. Cached for 6 hours.
     """
-    hermes_home = get_sparkii_home()
-    cache_file = hermes_home / ".update_check"
+    sparkii_home = get_sparkii_home()
+    cache_file = sparkii_home / ".update_check"
     embedded_rev = os.environ.get("SPARKII_REVISION") or None
 
     # Docker images have no working tree to count commits against — the
@@ -336,7 +336,7 @@ def check_for_updates() -> Optional[int]:
         # Path(__file__) always resolves to the actual installed checkout.
         repo_dir = Path(__file__).parent.parent.resolve()
         if not (repo_dir / ".git").exists():
-            repo_dir = hermes_home / "sparkii-agent"
+            repo_dir = sparkii_home / "sparkii-agent"
         if not (repo_dir / ".git").exists():
             # No git checkout and no embedded revision — can't determine
             # update status. This is the Docker path (already short-circuited
@@ -365,8 +365,8 @@ def _resolve_repo_dir() -> Optional[Path]:
     """
     repo_dir = Path(__file__).parent.parent.resolve()
     if not (repo_dir / ".git").exists():
-        hermes_home = get_sparkii_home()
-        repo_dir = hermes_home / "sparkii-agent"
+        sparkii_home = get_sparkii_home()
+        repo_dir = sparkii_home / "sparkii-agent"
     return repo_dir if (repo_dir / ".git").exists() else None
 
 

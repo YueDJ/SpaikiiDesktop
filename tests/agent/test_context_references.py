@@ -130,13 +130,13 @@ def test_binary_reference_block_maps_host_attachment_to_container_path(tmp_path:
     """
     from agent.context_references import preprocess_context_references
 
-    hermes_home = tmp_path / ".sparkii"
-    attachments = hermes_home / "attachments"
+    sparkii_home = tmp_path / ".sparkii"
+    attachments = sparkii_home / "attachments"
     attachments.mkdir(parents=True)
     payload = attachments / "archive.zip"
     payload.write_bytes(b"PK\x03\x04binary-zip-bytes")
 
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
     monkeypatch.setenv("TERMINAL_ENV", "docker")
 
     result = preprocess_context_references(
@@ -155,13 +155,13 @@ def test_binary_reference_block_keeps_host_path_on_local_backend(tmp_path: Path,
     """Local backend: no translation — the agent's tools run on the host."""
     from agent.context_references import preprocess_context_references
 
-    hermes_home = tmp_path / ".sparkii"
-    attachments = hermes_home / "attachments"
+    sparkii_home = tmp_path / ".sparkii"
+    attachments = sparkii_home / "attachments"
     attachments.mkdir(parents=True)
     payload = attachments / "archive.zip"
     payload.write_bytes(b"PK\x03\x04binary-zip-bytes")
 
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
     monkeypatch.setenv("TERMINAL_ENV", "local")
 
     result = preprocess_context_references(
@@ -205,16 +205,16 @@ async def test_blocks_canonical_read_denylist_credential_stores(tmp_path: Path, 
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("SPARKII_HOME", str(tmp_path / ".sparkii"))
 
-    hermes_home = tmp_path / ".sparkii"
-    (hermes_home).mkdir(parents=True)
+    sparkii_home = tmp_path / ".sparkii"
+    (sparkii_home).mkdir(parents=True)
 
-    auth_json = hermes_home / "auth.json"
+    auth_json = sparkii_home / "auth.json"
     auth_json.write_text('{"openai": "sk-AUTHJSON-SECRET"}\n', encoding="utf-8")
 
-    oauth = hermes_home / ".anthropic_oauth.json"
+    oauth = sparkii_home / ".anthropic_oauth.json"
     oauth.write_text('{"access_token": "OAUTH-SECRET"}\n', encoding="utf-8")
 
-    mcp_token = hermes_home / "mcp-tokens" / "github.json"
+    mcp_token = sparkii_home / "mcp-tokens" / "github.json"
     mcp_token.parent.mkdir(parents=True)
     mcp_token.write_text('{"token": "MCP-TOKEN-SECRET"}\n', encoding="utf-8")
 
@@ -257,9 +257,9 @@ async def test_canonical_guard_fails_closed_when_lookup_raises(tmp_path: Path, m
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("SPARKII_HOME", str(tmp_path / ".sparkii"))
 
-    hermes_home = tmp_path / ".sparkii"
-    hermes_home.mkdir(parents=True)
-    auth_json = hermes_home / "auth.json"
+    sparkii_home = tmp_path / ".sparkii"
+    sparkii_home.mkdir(parents=True)
+    auth_json = sparkii_home / "auth.json"
     auth_json.write_text('{"openai": "sk-AUTHJSON-SECRET"}\n', encoding="utf-8")
 
     def _boom(_path):

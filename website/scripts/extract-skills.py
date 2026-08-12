@@ -288,9 +288,9 @@ def extract_local_skills():
             tags = []
             metadata = fm.get("metadata")
             if isinstance(metadata, dict):
-                hermes_meta = metadata.get("sparkii", {})
-                if isinstance(hermes_meta, dict):
-                    tags = hermes_meta.get("tags", [])
+                sparkii_meta = metadata.get("sparkii", {})
+                if isinstance(sparkii_meta, dict):
+                    tags = sparkii_meta.get("tags", [])
             if not tags:
                 tags = fm.get("tags", [])
             if isinstance(tags, str):

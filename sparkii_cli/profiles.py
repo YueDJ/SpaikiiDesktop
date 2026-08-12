@@ -216,7 +216,7 @@ _DEFAULT_EXPORT_EXCLUDE_ROOT = frozenset({
     ".env",                 # API keys (dotenv)
     "auth.lock", "active_profile", ".update_check",
     "errors.log",
-    ".hermes_history",
+    ".sparkii_history",
     # Caches (regenerated on use)
     "image_cache", "audio_cache", "document_cache",
     "browser_screenshots", "checkpoints",
@@ -285,8 +285,8 @@ def _get_default_sparkii_home() -> Path:
     In Docker/custom deployments where SPARKII_HOME is outside ``~/.sparkii``
     (e.g. ``/opt/data``), returns SPARKII_HOME directly.
     """
-    from sparkii_constants import get_default_hermes_root
-    return get_default_hermes_root()
+    from sparkii_constants import get_default_sparkii_root
+    return get_default_sparkii_root()
 
 
 def _get_active_profile_path() -> Path:
@@ -461,7 +461,7 @@ def create_wrapper_script(name: str, target: Optional[str] = None) -> Optional[P
     if is_windows:
         wrapper_path = wrapper_dir / f"{canon}.bat"
         try:
-            wrapper_path.write_text(f"@echo off\r\nhermes -p {profile} %*\r\n", encoding="utf-8")
+            wrapper_path.write_text(f"@echo off\r\nsparkii -p {profile} %*\r\n", encoding="utf-8")
             return wrapper_path
         except OSError as e:
             print(f"⚠ Could not create wrapper at {wrapper_path}: {e}")
@@ -469,8 +469,8 @@ def create_wrapper_script(name: str, target: Optional[str] = None) -> Optional[P
     else:
         wrapper_path = wrapper_dir / canon
         try:
-            hermes_exe = shutil.which("sparkii") or "sparkii"
-            wrapper_path.write_text(f'#!/bin/sh\nexec {shlex.quote(hermes_exe)} -p {profile} "$@"\n', encoding="utf-8")
+            sparkii_exe = shutil.which("sparkii") or "sparkii"
+            wrapper_path.write_text(f'#!/bin/sh\nexec {shlex.quote(sparkii_exe)} -p {profile} "$@"\n', encoding="utf-8")
             wrapper_path.chmod(wrapper_path.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
             return wrapper_path
         except OSError as e:
@@ -955,7 +955,7 @@ def list_profiles() -> List[ProfileInfo]:
 
 
 def profiles_to_serve(multiplex: bool) -> List[Tuple[str, Path]]:
-    """Return the ``(profile_name, hermes_home)`` pairs a gateway should serve.
+    """Return the ``(profile_name, sparkii_home)`` pairs a gateway should serve.
 
     This is the single chokepoint for "which profiles does the inbound gateway
     handle" so later multiplexing phases never re-derive the set.
@@ -971,7 +971,7 @@ def profiles_to_serve(multiplex: bool) -> List[Tuple[str, Path]]:
     per-profile config reads, gateway-running probes, or skill counts like
     :func:`list_profiles`. It runs on gateway startup and must stay cheap.
 
-    The returned ``hermes_home`` is the path to pass to
+    The returned ``sparkii_home`` is the path to pass to
     ``set_sparkii_home_override`` when scoping a turn to that profile.
     """
     active = get_active_profile_name() or "default"
@@ -1330,7 +1330,7 @@ def _profile_bound_backend_pids(canon: str, profile_dir: Path) -> list[int]:
         current_user = None
 
     backend_tokens = {"serve", "dashboard", "gateway"}
-    hermes_markers = ("sparkii_cli.main", "sparkii-gateway", "tui_gateway")
+    sparkii_markers = ("sparkii_cli.main", "sparkii-gateway", "tui_gateway")
     pids: list[int] = []
 
     for proc in psutil.process_iter(["pid", "name", "username", "cmdline"]):
@@ -1350,12 +1350,12 @@ def _profile_bound_backend_pids(canon: str, profile_dir: Path) -> list[int]:
             # a resolved executable named `sparkii`.
             joined = " ".join(argv)
             exe_name = os.path.basename(argv[0]).lower()
-            is_hermes = (
-                any(marker in joined for marker in hermes_markers)
+            is_sparkii = (
+                any(marker in joined for marker in sparkii_markers)
                 or exe_name == "sparkii"
                 or exe_name.startswith("sparkii")
             )
-            if not is_hermes:
+            if not is_sparkii:
                 continue
 
             # Restrict to backend subcommands so we never kill an interactive
@@ -1845,8 +1845,8 @@ def get_active_profile_name() -> str:
     Returns ``"custom"`` if SPARKII_HOME is set to an unrecognized path.
     """
     from sparkii_constants import get_sparkii_home
-    hermes_home = get_sparkii_home()
-    resolved = hermes_home.resolve()
+    sparkii_home = get_sparkii_home()
+    resolved = sparkii_home.resolve()
 
     default_resolved = _get_default_sparkii_home().resolve()
     if resolved == default_resolved:
@@ -2205,9 +2205,9 @@ def import_profile(archive_path: str, name: Optional[str] = None) -> Path:
 
 def _migrate_honcho_profile_host(old_name: str, new_name: str, new_dir: Path) -> None:
     """Rename Honcho host blocks for a renamed profile without changing peers."""
-    old_host = f"hermes_{old_name}"
+    old_host = f"sparkii_{old_name}"
     legacy_old_host = f"sparkii.{old_name}"
-    new_host = f"hermes_{new_name}"
+    new_host = f"sparkii_{new_name}"
 
     candidates = [
         new_dir / "honcho.json",
@@ -2243,7 +2243,7 @@ def _migrate_honcho_profile_host(old_name: str, new_name: str, new_dir: Path) ->
 
         block = hosts[source_host]
         if isinstance(block, dict) and "aiPeer" not in block:
-            if source_host.startswith("hermes_"):
+            if source_host.startswith("sparkii_"):
                 bare = source_host.split("_", 1)[1]
             else:
                 bare = source_host.split(".", 1)[1] if "." in source_host else source_host

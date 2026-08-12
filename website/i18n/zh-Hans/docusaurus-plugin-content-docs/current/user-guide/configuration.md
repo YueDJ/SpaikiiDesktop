@@ -1721,7 +1721,7 @@ Sparkii 使用两种不同的上下文范围：
 | 文件 | 用途 | 范围 |
 |------|---------|-------|
 | `SOUL.md` | **主要 agent 身份** —— 定义 agent 是谁（系统提示词第 #1 槽位） | `~/.sparkii/SOUL.md` 或 `$SPARKII_HOME/SOUL.md` |
-| `.sparkii.md` / `HERMES.md` | 项目特定指令（最高优先级） | 向上走到 git 根目录 |
+| `.sparkii.md` / `SPARKII.md` | 项目特定指令（最高优先级） | 向上走到 git 根目录 |
 | `AGENTS.md` | 项目特定指令、编码规范 | 递归目录遍历 |
 | `CLAUDE.md` | Claude Code 上下文文件（也会检测） | 仅工作目录 |
 | `.cursorrules` | Cursor IDE 规则（也会检测） | 仅工作目录 |

@@ -218,7 +218,7 @@ prefer `SPARKII_HOME` for Sparkii data and `SPARKII_REAL_HOME` for the account h
 from pathlib import Path
 import os
 
-hermes_home = Path(os.environ["SPARKII_HOME"])
+sparkii_home = Path(os.environ["SPARKII_HOME"])
 real_home = Path(os.environ.get("SPARKII_REAL_HOME", os.environ["HOME"]))
 ```
 
@@ -2369,7 +2369,7 @@ Sparkii uses two different context scopes:
 | File | Purpose | Scope |
 |------|---------|-------|
 | `SOUL.md` | **Primary agent identity** — defines who the agent is (slot #1 in the system prompt) | `~/.sparkii/SOUL.md` or `$SPARKII_HOME/SOUL.md` |
-| `.sparkii.md` / `HERMES.md` | Project-specific instructions (highest priority) | Walks to git root |
+| `.sparkii.md` / `SPARKII.md` | Project-specific instructions (highest priority) | Walks to git root |
 | `AGENTS.md` | Project-specific instructions, coding conventions | Recursive directory walk |
 | `CLAUDE.md` | Claude Code context files (also detected) | Working directory only |
 | `.cursorrules` | Cursor IDE rules (also detected) | Working directory only |

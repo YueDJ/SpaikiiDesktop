@@ -1683,7 +1683,7 @@ def _db_opens_cleanly(db_path: Path) -> Optional[str]:
         # best-effort — if the messages/sessions tables don't exist yet (brand
         # new file mid-init) the OperationalError is treated as "not yet a
         # populated DB", not corruption.
-        probe_session_id = f"_hermes_fts_health_probe_{time.time_ns()}"
+        probe_session_id = f"_sparkii_fts_health_probe_{time.time_ns()}"
         try:
             conn.execute("BEGIN IMMEDIATE")
             conn.execute(

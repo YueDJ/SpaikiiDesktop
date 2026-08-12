@@ -238,7 +238,7 @@ require_landed_on_target() {
 
 # The real smoke test: goes through the venv launcher and imports the app, so it
 # fails if the venv, dependencies, or entry point are broken.
-require_hermes_works() {
+require_sparkii_works() {
   local when="$1" out
   out="$(in_sandbox "sparkii --version" 2>&1)" \
     || { printf '%s\n' "$out" >&2; fail "sparkii --version failed $when"; }
@@ -256,7 +256,7 @@ TARGET="$(sandbox_target)"
 [ "$BASE" != "$TARGET" ] \
   || fail "install landed on the update target ($BASE); base and target must differ"
 ok "installed ${BASE:0:12}; update target is ${TARGET:0:12}"
-require_hermes_works 'after install'
+require_sparkii_works 'after install'
 
 # ── apply exactly one update route ─────────────────────────────────────────
 case "$ROUTE" in
@@ -275,7 +275,7 @@ case "$ROUTE" in
       fail "sparkii update failed ($update_cmd)"
     fi
     require_landed_on_target 'sparkii update'
-    require_hermes_works 'after sparkii update'
+    require_sparkii_works 'after sparkii update'
     ;;
   installer)
     step 'ROUTE: installer re-run over the existing checkout'
@@ -283,7 +283,7 @@ case "$ROUTE" in
     # checkout, which is what the re-run must land on.
     install_in_sandbox 'installer re-run' '' reinstall
     require_landed_on_target 'installer re-run'
-    require_hermes_works 'after installer re-run'
+    require_sparkii_works 'after installer re-run'
     ;;
 esac
 

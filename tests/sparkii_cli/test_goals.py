@@ -15,7 +15,7 @@ import pytest
 
 
 @pytest.fixture
-def hermes_home(tmp_path, monkeypatch):
+def sparkii_home(tmp_path, monkeypatch):
     """Isolated SPARKII_HOME so SessionDB.state_meta writes don't clobber the real one."""
     from pathlib import Path
 
@@ -104,7 +104,7 @@ class TestJudgeGoal:
 
 class TestGoalManager:
 
-    def test_set_then_status(self, hermes_home):
+    def test_set_then_status(self, sparkii_home):
         from sparkii_cli.goals import GoalManager
 
         mgr = GoalManager(session_id="test-sid-2", default_max_turns=5)
@@ -124,7 +124,7 @@ class TestGoalManager:
 
 
 
-    def test_continuation_prompt_shape(self, hermes_home):
+    def test_continuation_prompt_shape(self, sparkii_home):
         """The continuation prompt must include the goal text verbatim —
         and must be safe to inject as a user-role message (prompt-cache
         invariants: no system-prompt mutation)."""
@@ -189,7 +189,7 @@ class TestJudgeParseFailureAutoPause:
         assert transport_failed is True
 
 
-    def test_auto_pause_after_three_consecutive_parse_failures(self, hermes_home):
+    def test_auto_pause_after_three_consecutive_parse_failures(self, sparkii_home):
         """N=3 consecutive parse failures → auto-pause with config pointer."""
         from sparkii_cli import goals
         from sparkii_cli.goals import GoalManager, DEFAULT_MAX_CONSECUTIVE_PARSE_FAILURES
@@ -253,7 +253,7 @@ class TestMigrateGoalToSession:
     per-session lookup with no lineage walk, so without migration an active
     goal silently dies when compression rotates session_id."""
 
-    def test_migrates_active_goal_to_child(self, hermes_home):
+    def test_migrates_active_goal_to_child(self, sparkii_home):
         from sparkii_cli.goals import save_goal, load_goal, migrate_goal_to_session, GoalState
         save_goal("parent-sid", GoalState(goal="ship the feature"))
         assert migrate_goal_to_session("parent-sid", "child-sid", reason="compression") is True
@@ -264,7 +264,7 @@ class TestMigrateGoalToSession:
         assert parent is not None and parent.status == "cleared"
 
 
-    def test_does_not_clobber_existing_child_goal(self, hermes_home):
+    def test_does_not_clobber_existing_child_goal(self, sparkii_home):
         from sparkii_cli.goals import save_goal, load_goal, migrate_goal_to_session, GoalState
         save_goal("p3", GoalState(goal="parent goal"))
         save_goal("c3", GoalState(goal="child already has one"))
@@ -273,7 +273,7 @@ class TestMigrateGoalToSession:
 
 
 class TestGoalManagerSubgoals:
-    def test_add_subgoal(self, hermes_home):
+    def test_add_subgoal(self, sparkii_home):
         from sparkii_cli.goals import GoalManager
         mgr = GoalManager(session_id="sub-add")
         mgr.set("main goal")
@@ -282,7 +282,7 @@ class TestGoalManagerSubgoals:
         assert mgr.state.subgoals == ["use bullet points"]
 
 
-    def test_remove_subgoal_out_of_range(self, hermes_home):
+    def test_remove_subgoal_out_of_range(self, sparkii_home):
         import pytest
         from sparkii_cli.goals import GoalManager
         mgr = GoalManager(session_id="sub-oob")
@@ -295,7 +295,7 @@ class TestGoalManagerSubgoals:
 
 
 class TestJudgeGoalWithSubgoals:
-    def test_judge_uses_subgoals_template_when_provided(self, hermes_home):
+    def test_judge_uses_subgoals_template_when_provided(self, sparkii_home):
         """judge_goal switches templates when subgoals is non-empty.
 
         We don't actually call the model — we patch the aux client to
@@ -332,7 +332,7 @@ class TestJudgeGoalWithSubgoals:
         assert "every additional criterion" in user_msg
         assert verdict == "done"
 
-    def test_judge_uses_original_template_when_no_subgoals(self, hermes_home):
+    def test_judge_uses_original_template_when_no_subgoals(self, sparkii_home):
         from unittest.mock import patch
         from sparkii_cli import goals
 
@@ -359,7 +359,7 @@ class TestJudgeGoalWithSubgoals:
 
 class TestStatusLineSubgoalCount:
 
-    def test_status_line_with_subgoals(self, hermes_home):
+    def test_status_line_with_subgoals(self, sparkii_home):
         from sparkii_cli.goals import GoalManager
         mgr = GoalManager(session_id="sl-with")
         mgr.set("ship it")
@@ -391,7 +391,7 @@ class TestWaitBarrier:
         return 2_000_000_000
 
 
-    def test_parked_on_live_pid_does_not_continue_or_judge(self, hermes_home):
+    def test_parked_on_live_pid_does_not_continue_or_judge(self, sparkii_home):
         from sparkii_cli import goals
         from sparkii_cli.goals import GoalManager
 
@@ -419,7 +419,7 @@ class TestWaitBarrier:
             proc.wait(timeout=10)
 
 
-    def test_stop_waiting_clears_barrier(self, hermes_home):
+    def test_stop_waiting_clears_barrier(self, sparkii_home):
         from sparkii_cli.goals import GoalManager
 
         proc = self._spawn_sleeper()
@@ -451,7 +451,7 @@ class TestJudgeDrivenWait:
         import subprocess, sys
         return subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)"])
 
-    def test_judge_wait_pid_parks_loop(self, hermes_home):
+    def test_judge_wait_pid_parks_loop(self, sparkii_home):
         from sparkii_cli import goals
         from sparkii_cli.goals import GoalManager
 
@@ -489,7 +489,7 @@ class TestJudgeDrivenWait:
             proc.wait(timeout=10)
 
 
-    def test_time_barrier_clears_after_deadline(self, hermes_home):
+    def test_time_barrier_clears_after_deadline(self, sparkii_home):
         from sparkii_cli.goals import GoalManager
 
         mgr = GoalManager(session_id="jw-deadline")
@@ -501,7 +501,7 @@ class TestJudgeDrivenWait:
         assert mgr.is_waiting() is False
         assert mgr.state.waiting_until == 0.0
 
-    def test_continue_verdict_still_continues_with_background(self, hermes_home):
+    def test_continue_verdict_still_continues_with_background(self, sparkii_home):
         """A running process present but judge says continue → normal loop."""
         from sparkii_cli import goals
         from sparkii_cli.goals import GoalManager
@@ -548,7 +548,7 @@ class TestSessionTriggerBarrier:
         return s, process_registry
 
 
-    def test_registry_releases_on_watch_match_while_alive(self, hermes_home):
+    def test_registry_releases_on_watch_match_while_alive(self, sparkii_home):
         s, reg = self._inject("proc_t2", watch_patterns=["READY"])
         assert reg.is_session_waiting("proc_t2") is True
         s._watch_hits = 1  # what _check_watch_patterns sets on a match
@@ -557,7 +557,7 @@ class TestSessionTriggerBarrier:
         assert reg.is_session_waiting("proc_t2") is False
 
 
-    def test_wait_on_session_validation(self, hermes_home):
+    def test_wait_on_session_validation(self, sparkii_home):
         from sparkii_cli.goals import GoalManager
         mgr = GoalManager(session_id="st-val")
         # No active goal → RuntimeError
@@ -651,7 +651,7 @@ class TestGoalManagerContract:
 
 
 
-    def test_set_contract_after_the_fact(self, hermes_home):
+    def test_set_contract_after_the_fact(self, sparkii_home):
         from sparkii_cli.goals import GoalManager, GoalContract
 
         mgr = GoalManager(session_id="c-after")
@@ -663,7 +663,7 @@ class TestGoalManagerContract:
         from sparkii_cli.goals import GoalManager as GM2
         assert GM2(session_id="c-after").has_contract()
 
-    def test_persistence_roundtrip(self, hermes_home):
+    def test_persistence_roundtrip(self, sparkii_home):
         from sparkii_cli.goals import GoalManager, GoalContract
 
         GoalManager(session_id="c-persist").set(
@@ -690,7 +690,7 @@ class TestJudgeWithContract:
             return _FakeResp()
         return _fake
 
-    def test_judge_uses_contract_template(self, hermes_home):
+    def test_judge_uses_contract_template(self, sparkii_home):
         from unittest.mock import patch
         from sparkii_cli import goals
         from sparkii_cli.goals import GoalContract
@@ -711,7 +711,7 @@ class TestJudgeWithContract:
 
 
 class TestDraftContract:
-    def test_draft_parses_json(self, hermes_home):
+    def test_draft_parses_json(self, sparkii_home):
         from unittest.mock import patch
         from sparkii_cli import goals
 
@@ -734,7 +734,7 @@ class TestDraftContract:
         assert not contract.is_empty()
 
 
-    def test_draft_returns_none_when_no_client(self, hermes_home):
+    def test_draft_returns_none_when_no_client(self, sparkii_home):
         from unittest.mock import patch
         from sparkii_cli import goals
 
@@ -768,7 +768,7 @@ class TestContractAndBackgroundCompose:
             return _FakeResp()
         return _fake
 
-    def test_judge_prompt_carries_contract_and_background(self, hermes_home):
+    def test_judge_prompt_carries_contract_and_background(self, sparkii_home):
         from unittest.mock import patch
         from sparkii_cli import goals
         from sparkii_cli.goals import GoalContract

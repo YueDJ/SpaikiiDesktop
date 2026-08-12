@@ -386,8 +386,8 @@ async def test_profile_command_reports_source_stamped_profile(monkeypatch, tmp_p
     source (source.profile — URL prefix / per-credential adapter / room map),
     not the multiplexer's active profile, which is always the default and
     made /profile answer "default" in every persona chat."""
-    hermes_home = tmp_path / ".sparkii"
-    profile_home = hermes_home / "profiles" / "milo"
+    sparkii_home = tmp_path / ".sparkii"
+    profile_home = sparkii_home / "profiles" / "milo"
     profile_home.mkdir(parents=True)
 
     session_entry = SessionEntry(
@@ -400,7 +400,7 @@ async def test_profile_command_reports_source_stamped_profile(monkeypatch, tmp_p
     )
     runner = _make_runner(session_entry)
     runner.config.multiplex_profiles = True
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
     event = _make_event("/profile")
     event.source.profile = "milo"

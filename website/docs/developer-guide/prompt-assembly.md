@@ -194,7 +194,7 @@ def build_context_files_prompt(cwd=None, skip_soul=False):
 
     # Priority: first match wins — only ONE project context loaded
     project_context = (
-        _load_hermes_md(cwd_path)       # 1. .sparkii.md / HERMES.md (walks to git root)
+        _load_sparkii_md(cwd_path)       # 1. .sparkii.md / SPARKII.md (walks to git root)
         or _load_agents_md(cwd_path)    # 2. AGENTS.md (cwd only)
         or _load_claude_md(cwd_path)    # 3. CLAUDE.md (cwd only)
         or _load_cursorrules(cwd_path)  # 4. .cursorrules / .cursor/rules/*.mdc
@@ -225,7 +225,7 @@ def build_context_files_prompt(cwd=None, skip_soul=False):
 
 | Priority | Files | Search scope | Notes |
 |----------|-------|-------------|-------|
-| 1 | `.sparkii.md`, `HERMES.md` | CWD up to git root | Sparkii-native project config |
+| 1 | `.sparkii.md`, `SPARKII.md` | CWD up to git root | Sparkii-native project config |
 | 2 | `AGENTS.md` | CWD only | Common agent instruction file |
 | 3 | `CLAUDE.md` | CWD only | Claude Code compatibility |
 | 4 | `.cursorrules`, `.cursor/rules/*.mdc` | CWD only | Cursor compatibility |
@@ -256,7 +256,7 @@ Local memory and user profile data are captured in the system prompt's **volatil
 
 `agent/prompt_builder.py` scans and sanitizes project context files using a **priority system** — only one type is loaded (first match wins):
 
-1. `.sparkii.md` / `HERMES.md` (walks to git root)
+1. `.sparkii.md` / `SPARKII.md` (walks to git root)
 2. `AGENTS.md` (CWD at startup; subdirectories discovered progressively during the session via `agent/subdirectory_hints.py`)
 3. `CLAUDE.md` (CWD only)
 4. `.cursorrules` / `.cursor/rules/*.mdc` (CWD only)
@@ -277,7 +277,7 @@ Most users should treat `agent/prompt_builder.py` as implementation code, not a 
 
 - `~/.sparkii/SOUL.md` — replace the built-in default identity block with your own agent persona and standing behavior.
 - `~/.sparkii/MEMORY.md` and `~/.sparkii/USER.md` — provide durable cross-session facts and user profile data that should be snapshotted into new sessions.
-- Project context files such as `.sparkii.md`, `HERMES.md`, `AGENTS.md`, `CLAUDE.md`, or `.cursorrules` — inject repo-specific working rules.
+- Project context files such as `.sparkii.md`, `SPARKII.md`, `AGENTS.md`, `CLAUDE.md`, or `.cursorrules` — inject repo-specific working rules.
 - Skills — package reusable workflows and references without editing core prompt code.
 - Optional system prompt config / API overrides — add deployment-specific instruction text without forking Sparkii.
 - Ephemeral overlays such as `SPARKII_EPHEMERAL_SYSTEM_PROMPT` or prefill messages — add turn-scoped guidance that should not become part of the cached prompt prefix.

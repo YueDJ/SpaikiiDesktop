@@ -47,7 +47,7 @@ def _get_allowed() -> set[str]:
 _config_passthrough: frozenset[str] | None = None
 
 
-def _is_hermes_provider_credential(name: str) -> bool:
+def _is_sparkii_provider_credential(name: str) -> bool:
     """True if ``name`` is a Sparkii-managed provider credential (API key,
     token, or similar) per ``_SPARKII_PROVIDER_ENV_BLOCKLIST``.
 
@@ -110,7 +110,7 @@ def register_env_passthrough(var_names: Iterable[str]) -> None:
         name = name.strip()
         if not name:
             continue
-        if _is_hermes_provider_credential(name):
+        if _is_sparkii_provider_credential(name):
             logger.warning(
                 "env passthrough: refusing to register Sparkii provider "
                 "credential %r (blocked by _SPARKII_PROVIDER_ENV_BLOCKLIST). "
@@ -144,7 +144,7 @@ def _load_config_passthrough() -> frozenset[str]:
                 # through to execute_code / terminal children, regardless of
                 # whether the request came from a skill or from config.yaml.
                 # See GHSA-rhgp-j443-p4rf.
-                if _is_hermes_provider_credential(name):
+                if _is_sparkii_provider_credential(name):
                     logger.warning(
                         "env passthrough: refusing to register Sparkii "
                         "provider credential %r from config.yaml (blocked "

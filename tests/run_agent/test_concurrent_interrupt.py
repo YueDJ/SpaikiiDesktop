@@ -8,7 +8,7 @@ import pytest
 
 
 @pytest.fixture(autouse=True)
-def _isolate_hermes(tmp_path, monkeypatch):
+def _isolate_sparkii(tmp_path, monkeypatch):
     monkeypatch.setenv("SPARKII_HOME", str(tmp_path / ".sparkii"))
     (tmp_path / ".sparkii").mkdir(exist_ok=True)
 

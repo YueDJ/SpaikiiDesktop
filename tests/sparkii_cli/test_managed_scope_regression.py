@@ -10,8 +10,8 @@ import pytest
 
 
 @pytest.fixture
-def hermes_home(tmp_path, monkeypatch):
-    home = tmp_path / "hermes_home"
+def sparkii_home(tmp_path, monkeypatch):
+    home = tmp_path / "sparkii_home"
     home.mkdir()
     monkeypatch.setenv("SPARKII_HOME", str(home))
     # No managed dir: point the override at a guaranteed-absent path so a real
@@ -34,11 +34,11 @@ def _write_user_config(home, body: str):
     cfg._RAW_CONFIG_CACHE.clear()
 
 
-def test_user_config_overrides_default(hermes_home, monkeypatch):
+def test_user_config_overrides_default(sparkii_home, monkeypatch):
     from sparkii_cli.config import load_config, cfg_get
 
     _write_user_config(
-        hermes_home,
+        sparkii_home,
         """
         model:
           default: user/model-x
@@ -48,12 +48,12 @@ def test_user_config_overrides_default(hermes_home, monkeypatch):
     assert cfg_get(cfg, "model", "default") == "user/model-x"
 
 
-def test_env_expansion_in_user_config(hermes_home, monkeypatch):
+def test_env_expansion_in_user_config(sparkii_home, monkeypatch):
     from sparkii_cli.config import load_config, cfg_get
 
     monkeypatch.setenv("MY_BASE", "https://example.test")
     _write_user_config(
-        hermes_home,
+        sparkii_home,
         """
         providers:
           custom:
@@ -65,13 +65,13 @@ def test_env_expansion_in_user_config(hermes_home, monkeypatch):
 
 
 def test_user_env_overrides_shell(tmp_path, monkeypatch):
-    from sparkii_cli.env_loader import load_hermes_dotenv
+    from sparkii_cli.env_loader import load_sparkii_dotenv
 
     home = tmp_path / "home"
     home.mkdir()
     (home / ".env").write_text("FOO_TOKEN=from_user_env\n", encoding="utf-8")
     monkeypatch.setenv("FOO_TOKEN", "from_shell")
-    load_hermes_dotenv(hermes_home=str(home))
+    load_sparkii_dotenv(sparkii_home=str(home))
     assert os.environ["FOO_TOKEN"] == "from_user_env"
 
 

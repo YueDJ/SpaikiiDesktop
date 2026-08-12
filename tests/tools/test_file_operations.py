@@ -55,8 +55,8 @@ class TestIsWriteDenied:
     def test_oauth_traversal_denied(self, path):
         """Path traversal attempts to protected OAuth files must be blocked."""
         from sparkii_constants import get_sparkii_home
-        hermes_home = get_sparkii_home()
-        full_path = str(hermes_home / path)
+        sparkii_home = get_sparkii_home()
+        full_path = str(sparkii_home / path)
         assert _is_write_denied(full_path) is True
 
 
@@ -327,7 +327,7 @@ class TestShellFileOpsHelpers:
             "if [ -f '/c/Users/alice/notes.txt' ]; "
             "then wc -c < '/c/Users/alice/notes.txt' 2>/dev/null; "
             "elif [ -e '/c/Users/alice/notes.txt' ]; "
-            "then echo __hermes_not_regular__; "
+            "then echo __sparkii_not_regular__; "
             "else exit 1; fi"
         )
         assert commands[1] == "head -c 1000 '/c/Users/alice/notes.txt' 2>/dev/null | base64"

@@ -868,7 +868,7 @@ function CommandPaletteBody({ onExited }: { onExited: () => void }) {
             icon: Download,
             id: 'cc-update-sparkii',
             keywords: ['update', 'upgrade', 'sparkii', 'version', 'system', 'restart'],
-            label: cc.updateHermes,
+            label: cc.updateSparkii,
             run: () => requestActiveUpdate()
           }
         ]

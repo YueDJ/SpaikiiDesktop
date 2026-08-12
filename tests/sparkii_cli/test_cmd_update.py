@@ -73,9 +73,9 @@ def _patch_managed_uv(request):
 
 class TestCmdUpdateNpmLockfileCache:
     @staticmethod
-    def _cache_file(hermes_root, project_root):
+    def _cache_file(sparkii_root, project_root):
         cache_key = hashlib.sha256(str(project_root).encode()).hexdigest()[:12]
-        return hermes_root / f".npm_lock_hash_{cache_key}"
+        return sparkii_root / f".npm_lock_hash_{cache_key}"
 
 
 

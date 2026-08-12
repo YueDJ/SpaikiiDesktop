@@ -74,12 +74,12 @@ def _count_metrics(messages: list) -> dict:
 def run_task(task, model: str, provider: str, timeout_mult: float,
              toolsets: list[str]) -> dict:
     ws = Path(tempfile.mkdtemp(prefix=f"readtool-{task.task_id}-"))
-    hermes_home = Path(tempfile.mkdtemp(prefix="readtool-home-")) / ".sparkii"
-    hermes_home.mkdir(parents=True)
+    sparkii_home = Path(tempfile.mkdtemp(prefix="readtool-home-")) / ".sparkii"
+    sparkii_home.mkdir(parents=True)
     build_workspace(ws)
 
     old_env = dict(os.environ)
-    os.environ["SPARKII_HOME"] = str(hermes_home)
+    os.environ["SPARKII_HOME"] = str(sparkii_home)
     os.environ["TERMINAL_CWD"] = str(ws)
     # Keep only the API key the run needs; hide the rest so provider
     # auto-detection can't wander (mirrors run_tests.sh hermeticity).
@@ -136,7 +136,7 @@ def run_task(task, model: str, provider: str, timeout_mult: float,
         os.environ.clear()
         os.environ.update(old_env)
         shutil.rmtree(ws, ignore_errors=True)
-        shutil.rmtree(hermes_home.parent, ignore_errors=True)
+        shutil.rmtree(sparkii_home.parent, ignore_errors=True)
     return result
 
 

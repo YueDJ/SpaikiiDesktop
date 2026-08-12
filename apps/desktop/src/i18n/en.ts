@@ -125,7 +125,7 @@ export const en: Translations = {
     backendOutOfDateMessage:
       'Your Sparkii backend is older than this desktop build and may not work correctly. Update to align them.',
     installMethodUnsupportedTitle: 'Unsupported install method',
-    updateHermes: 'Update Sparkii',
+    updateSparkii: 'Update Sparkii',
     updateReadyTitle: 'Update ready',
     updateReadyMessage: count => `${count} new change${count === 1 ? '' : 's'} available.`,
     seeWhatsNew: "See what's new",
@@ -1280,7 +1280,7 @@ export const en: Translations = {
     sparkiiActiveSessions: (version, count) => `Sparkii ${version} · Active sessions ${count}`,
     restartGateway: 'Restart gateway',
     gatewayRestartFailed: 'Gateway restart failed.',
-    updateHermes: 'Update Sparkii',
+    updateSparkii: 'Update Sparkii',
     actionRunning: 'running',
     actionDone: 'done',
     actionFailed: 'failed',

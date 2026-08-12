@@ -11,7 +11,7 @@ import {
   setApiRequestProfile,
   speakText,
   transcribeAudio,
-  updateHermes
+  updateSparkii
 } from './sparkii'
 
 // Contract: every backend-targeted action helper must carry the active gateway
@@ -54,7 +54,7 @@ describe('backend action helpers are profile-scoped', () => {
 
     void getStatus()
     void restartGateway()
-    void updateHermes()
+    void updateSparkii()
     void checkSparkiiUpdate()
     void getActionStatus('gateway-restart')
 

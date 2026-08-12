@@ -226,16 +226,16 @@ check_key() {
     local var="$1"
     local kc_account="$2"
     local kc_service="$3"
-    local _hermes_env="${SPARKII_HOME:-$HOME/.sparkii}/.env"
-    if grep -q "^${var}=" "$_hermes_env" 2>/dev/null && \
-       [ -n "$(grep "^${var}=" "$_hermes_env" | cut -d= -f2-)" ]; then
+    local _sparkii_env="${SPARKII_HOME:-$HOME/.sparkii}/.env"
+    if grep -q "^${var}=" "$_sparkii_env" 2>/dev/null && \
+       [ -n "$(grep "^${var}=" "$_sparkii_env" | cut -d= -f2-)" ]; then
         return 0
     fi
     if command -v security >/dev/null 2>&1 && \
        security find-generic-password -a "${kc_account}" -s "${kc_service}" -w >/dev/null 2>&1; then
         return 0
     fi
-    echo "ERROR: ${var} not set in ${_hermes_env} or Keychain (${kc_account}/${kc_service})"
+    echo "ERROR: ${var} not set in ${_sparkii_env} or Keychain (${kc_account}/${kc_service})"
     return 1
 }
 

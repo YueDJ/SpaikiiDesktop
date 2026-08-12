@@ -39,7 +39,7 @@ def _ns(**kw):
         source=False,
         fake_boot=False,
         ignore_existing=False,
-        hermes_root=None,
+        sparkii_root=None,
         cwd=None,
     )
     defaults.update(kw)
@@ -124,13 +124,13 @@ def test_gui_install_env_prepends_managed_node_on_bare_path(tmp_path, monkeypatc
     """
     import os
 
-    from sparkii_constants import iter_hermes_node_dirs
+    from sparkii_constants import iter_sparkii_node_dirs
 
     root = _make_desktop_tree(tmp_path)
     monkeypatch.setattr(cli_main, "PROJECT_ROOT", root)
     _make_packaged_executable(root, monkeypatch)
 
-    # A managed Node tree on disk so with_hermes_node_path() actually prepends it.
+    # A managed Node tree on disk so with_sparkii_node_path() actually prepends it.
     home = tmp_path / "sparkii-home"
     (home / "node" / "bin").mkdir(parents=True)
     monkeypatch.setenv("SPARKII_HOME", str(home))
@@ -156,7 +156,7 @@ def test_gui_install_env_prepends_managed_node_on_bare_path(tmp_path, monkeypatc
          pytest.raises(SystemExit):
         cli_main.cmd_gui(_ns(skip_build=False))
 
-    managed_dirs = [str(p) for p in iter_hermes_node_dirs() if p.is_dir()]
+    managed_dirs = [str(p) for p in iter_sparkii_node_dirs() if p.is_dir()]
     assert managed_dirs, "managed node tree not discovered"
     install_env = mock_install.call_args.kwargs["env"]
     path_parts = install_env["PATH"].split(os.pathsep)

@@ -194,7 +194,7 @@ def _install_session_record_factory() -> None:
     the module is reloaded.
     """
     current_factory = logging.getLogRecordFactory()
-    if getattr(current_factory, "_hermes_session_injector", False):
+    if getattr(current_factory, "_sparkii_session_injector", False):
         return  # already installed
 
     def _session_record_factory(*args, **kwargs):
@@ -203,7 +203,7 @@ def _install_session_record_factory() -> None:
         record.session_tag = f" [{sid}]" if sid else ""  # type: ignore[attr-defined]
         return record
 
-    _session_record_factory._hermes_session_injector = True  # type: ignore[attr-defined]
+    _session_record_factory._sparkii_session_injector = True  # type: ignore[attr-defined]
     logging.setLogRecordFactory(_session_record_factory)
 
 
@@ -238,7 +238,7 @@ COMPONENT_PREFIXES = {
     # out of ``gateway/platforms/`` into bundled plugins (#41112) — they are
     # still gateway components and their logs belong in gateway.log / match
     # ``sparkii logs --component gateway``.
-    "gateway": ("gateway", "hermes_plugins", "plugins.platforms"),
+    "gateway": ("gateway", "sparkii_plugins", "plugins.platforms"),
     "agent": ("agent", "run_agent", "model_tools", "batch_runner"),
     "tools": ("tools",),
     "cli": ("sparkii_cli", "cli"),
@@ -258,7 +258,7 @@ COMPONENT_PREFIXES = {
 
 def setup_logging(
     *,
-    hermes_home: Optional[Path] = None,
+    sparkii_home: Optional[Path] = None,
     log_level: Optional[str] = None,
     max_size_mb: Optional[int] = None,
     backup_count: Optional[int] = None,
@@ -272,7 +272,7 @@ def setup_logging(
 
     Parameters
     ----------
-    hermes_home
+    sparkii_home
         Override for the Sparkii home directory.  Falls back to
         ``get_sparkii_home()`` (profile-aware).
     log_level
@@ -300,7 +300,7 @@ def setup_logging(
         The ``logs/`` directory where files are written.
     """
     global _logging_initialized
-    home = hermes_home or get_sparkii_home()
+    home = sparkii_home or get_sparkii_home()
     log_dir = home / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
 
@@ -388,13 +388,13 @@ def setup_verbose_logging() -> None:
     # Avoid adding duplicate stream handlers.
     for h in root.handlers:
         if isinstance(h, logging.StreamHandler) and not isinstance(h, RotatingFileHandler):
-            if getattr(h, "_hermes_verbose", False):
+            if getattr(h, "_sparkii_verbose", False):
                 return
 
     handler = logging.StreamHandler(_safe_stderr())
     handler.setLevel(logging.DEBUG)
     handler.setFormatter(RedactingFormatter(_LOG_FORMAT_VERBOSE, datefmt="%H:%M:%S"))
-    handler._hermes_verbose = True  # type: ignore[attr-defined]
+    handler._sparkii_verbose = True  # type: ignore[attr-defined]
     root.addHandler(handler)
 
     # Lower root logger level so DEBUG records reach all handlers.
@@ -622,7 +622,7 @@ def _register_queued_handler(handler: logging.Handler) -> None:
         if _log_queue is None:
             _log_queue = queue.SimpleQueue()
             qh = _NonFormattingQueueHandler(_log_queue)
-            qh._hermes_queue = True  # type: ignore[attr-defined]
+            qh._sparkii_queue = True  # type: ignore[attr-defined]
             # Always funnel through the root logger so records from any logger
             # (production passes root here; callers may pass a child) reach the
             # queue via propagation.
@@ -707,7 +707,7 @@ def _reset_queued_handlers() -> None:
         _stop_queue_listener_locked()
         root = logging.getLogger()
         for h in list(root.handlers):
-            if getattr(h, "_hermes_queue", False):
+            if getattr(h, "_sparkii_queue", False):
                 root.removeHandler(h)
         for h in list(_queued_file_handlers):
             try:

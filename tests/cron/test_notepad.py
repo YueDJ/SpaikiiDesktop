@@ -29,19 +29,19 @@ def notepad(monkeypatch, tmp_path):
 @pytest.fixture
 def cron_env(tmp_path, monkeypatch, notepad):
     """Isolated cron environment with temp SPARKII_HOME (mirrors test_cron_context_from)."""
-    hermes_home = tmp_path / ".sparkii"
-    hermes_home.mkdir()
-    (hermes_home / "cron").mkdir()
-    (hermes_home / "cron" / "output").mkdir()
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    sparkii_home = tmp_path / ".sparkii"
+    sparkii_home.mkdir()
+    (sparkii_home / "cron").mkdir()
+    (sparkii_home / "cron" / "output").mkdir()
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
     import cron.jobs as jobs_mod
 
-    monkeypatch.setattr(jobs_mod, "SPARKII_DIR", hermes_home)
-    monkeypatch.setattr(jobs_mod, "CRON_DIR", hermes_home / "cron")
-    monkeypatch.setattr(jobs_mod, "JOBS_FILE", hermes_home / "cron" / "jobs.json")
-    monkeypatch.setattr(jobs_mod, "OUTPUT_DIR", hermes_home / "cron" / "output")
-    return hermes_home
+    monkeypatch.setattr(jobs_mod, "SPARKII_DIR", sparkii_home)
+    monkeypatch.setattr(jobs_mod, "CRON_DIR", sparkii_home / "cron")
+    monkeypatch.setattr(jobs_mod, "JOBS_FILE", sparkii_home / "cron" / "jobs.json")
+    monkeypatch.setattr(jobs_mod, "OUTPUT_DIR", sparkii_home / "cron" / "output")
+    return sparkii_home
 
 
 class TestNotepadCrud:

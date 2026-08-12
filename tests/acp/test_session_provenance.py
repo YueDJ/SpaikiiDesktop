@@ -43,7 +43,7 @@ def test_compression_split_continuation(db):
     _mk(db, "new", parent="old")
 
     prov = build_session_provenance(
-        db, "acp-1", "new", previous_hermes_session_id="old"
+        db, "acp-1", "new", previous_sparkii_session_id="old"
     )
     assert prov["sessionKind"] == "continuation"
     assert prov["parentSparkiiSessionId"] == "old"

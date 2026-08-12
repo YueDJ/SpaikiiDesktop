@@ -951,19 +951,19 @@ class TestSlackProxyBehavior:
         assert adapter._handler is not None
         assert adapter._handler.proxy == "http://proxy.example.com:3128"
         assert adapter._handler.client.proxy == "http://proxy.example.com:3128"
-        assert "hermes_feedback" in created_apps[0].registered_actions
-        assert "hermes_clarify_other" in created_apps[0].registered_actions
+        assert "sparkii_feedback" in created_apps[0].registered_actions
+        assert "sparkii_clarify_other" in created_apps[0].registered_actions
         clarify_choice_patterns = [
             action_id
             for action_id in created_apps[0].registered_actions
             if hasattr(action_id, "fullmatch")
         ]
         assert any(
-            pattern.fullmatch("hermes_clarify_choice_0")
+            pattern.fullmatch("sparkii_clarify_choice_0")
             for pattern in clarify_choice_patterns
         )
         assert not any(
-            pattern.fullmatch("hermes_clarify_choice")
+            pattern.fullmatch("sparkii_clarify_choice")
             for pattern in clarify_choice_patterns
         )
 
@@ -3137,7 +3137,7 @@ class TestSlashCommands:
 
 
     @pytest.mark.asyncio
-    async def test_legacy_hermes_prefix_still_works(self, adapter):
+    async def test_legacy_sparkii_prefix_still_works(self, adapter):
         """Backward compat: /sparkii btw foo must still route to /btw foo.
 
         Old workspace manifests only declared /sparkii as the single slash.
@@ -4098,7 +4098,7 @@ class TestTrackingStructureBounds:
     @pytest.mark.asyncio
     async def test_slash_command_contexts_bounded(self, adapter):
         adapter._SLASH_CTX_MAX = 4
-        adapter.handle_hermes_command = AsyncMock(return_value=None)
+        adapter.handle_sparkii_command = AsyncMock(return_value=None)
         for i in range(10):
             command = {
                 "command": "/sparkii",

@@ -395,7 +395,7 @@ def _scan_gateway_pids(
             return (
                 f"--profile {current_profile_name_lc}" in command_lc
                 or f"-p {current_profile_name_lc}" in command_lc
-                or f"hermes_home={current_home_lc}" in command_lc
+                or f"sparkii_home={current_home_lc}" in command_lc
             )
 
         # Default-profile case: no profile flag in argv. Accept as long as
@@ -406,8 +406,8 @@ def _scan_gateway_pids(
         if "--profile " in command_lc or " -p " in command_lc:
             return False
         if (
-            "hermes_home=" in command_lc
-            and f"hermes_home={current_home_lc}" not in command_lc
+            "sparkii_home=" in command_lc
+            and f"sparkii_home={current_home_lc}" not in command_lc
         ):
             return False
         return True
@@ -1776,10 +1776,10 @@ def _profile_suffix() -> str:
     """
     import hashlib
     import re
-    from sparkii_constants import get_default_hermes_root
+    from sparkii_constants import get_default_sparkii_root
 
     home = get_sparkii_home().resolve()
-    default = get_default_hermes_root().resolve()
+    default = get_default_sparkii_root().resolve()
     if home == default:
         return ""
     # Detect <root>/profiles/<name> pattern → use the profile name
@@ -1795,26 +1795,26 @@ def _profile_suffix() -> str:
     return hashlib.sha256(str(home).encode()).hexdigest()[:8]
 
 
-def _profile_arg(hermes_home: str | None = None, default_root: str | Path | None = None) -> str:
+def _profile_arg(sparkii_home: str | None = None, default_root: str | Path | None = None) -> str:
     """Return ``--profile <name>`` only when SPARKII_HOME is a named profile.
 
     For ``~/.sparkii/profiles/<name>``, returns ``"--profile <name>"``.
     For the default profile or hash-based custom paths, returns the empty string.
 
     Args:
-        hermes_home: Optional explicit SPARKII_HOME path. Defaults to the current
+        sparkii_home: Optional explicit SPARKII_HOME path. Defaults to the current
             ``get_sparkii_home()`` value. Should be passed when generating a
             service definition for a different user (e.g. system service).
         default_root: Optional Sparkii root to compare against. Used when
             generating a system service for another user from a sudo/root
-            process, where ``Path.home()`` and ``get_default_hermes_root()``
+            process, where ``Path.home()`` and ``get_default_sparkii_root()``
             refer to root but the target profile lives under the service user.
     """
     import re
-    from sparkii_constants import get_default_hermes_root
+    from sparkii_constants import get_default_sparkii_root
 
-    home = Path(hermes_home or str(get_sparkii_home())).resolve()
-    default = Path(default_root).resolve() if default_root else get_default_hermes_root().resolve()
+    home = Path(sparkii_home or str(get_sparkii_home())).resolve()
+    default = Path(default_root).resolve() if default_root else get_default_sparkii_root().resolve()
     if home == default:
         return ""
     profiles_root = (default / "profiles").resolve()
@@ -1828,14 +1828,14 @@ def _profile_arg(hermes_home: str | None = None, default_root: str | Path | None
     return ""
 
 
-def _profile_arg_for_target_user(hermes_home: str, target_home_dir: str) -> str:
+def _profile_arg_for_target_user(sparkii_home: str, target_home_dir: str) -> str:
     """Return the profile arg for a system service running as another user."""
     target_root = Path(target_home_dir) / ".sparkii"
     try:
-        Path(hermes_home).resolve().relative_to(target_root.resolve())
-        return _profile_arg(hermes_home, default_root=target_root)
+        Path(sparkii_home).resolve().relative_to(target_root.resolve())
+        return _profile_arg(sparkii_home, default_root=target_root)
     except ValueError:
-        return _profile_arg(hermes_home)
+        return _profile_arg(sparkii_home)
 
 
 def get_service_name() -> str:
@@ -2134,7 +2134,7 @@ def _legacy_unit_search_paths() -> list[tuple[bool, Path]]:
     ]
 
 
-def _find_legacy_hermes_units() -> list[tuple[str, Path, bool]]:
+def _find_legacy_sparkii_units() -> list[tuple[str, Path, bool]]:
     """Return ``[(unit_name, unit_path, is_system)]`` for legacy Sparkii gateway units.
 
     Detects unit files installed by older Sparkii versions that used a
@@ -2172,9 +2172,9 @@ def _find_legacy_hermes_units() -> list[tuple[str, Path, bool]]:
     return results
 
 
-def has_legacy_hermes_units() -> bool:
+def has_legacy_sparkii_units() -> bool:
     """Return True when any legacy Sparkii gateway unit files exist."""
-    return bool(_find_legacy_hermes_units())
+    return bool(_find_legacy_sparkii_units())
 
 
 def print_legacy_unit_warning() -> None:
@@ -2183,7 +2183,7 @@ def print_legacy_unit_warning() -> None:
     Idempotent: prints nothing when no legacy units are detected. Safe to
     call from any status/install/setup path.
     """
-    legacy = _find_legacy_hermes_units()
+    legacy = _find_legacy_sparkii_units()
     if not legacy:
         return
     print_warning("Legacy Sparkii gateway unit(s) detected from an older install:")
@@ -2196,13 +2196,13 @@ def print_legacy_unit_warning() -> None:
     print_info("    sparkii gateway migrate-legacy")
 
 
-def remove_legacy_hermes_units(
+def remove_legacy_sparkii_units(
     interactive: bool = True,
     dry_run: bool = False,
 ) -> tuple[int, list[Path]]:
     """Stop, disable, and remove legacy Sparkii gateway unit files.
 
-    Iterates over whatever ``_find_legacy_hermes_units()`` returns — which is
+    Iterates over whatever ``_find_legacy_sparkii_units()`` returns — which is
     an explicit allowlist of legacy names (not a glob). Profile units and
     unrelated third-party services are never touched.
 
@@ -2216,7 +2216,7 @@ def remove_legacy_hermes_units(
         ``(removed_count, remaining_paths)`` — remaining includes units we
         couldn't remove (typically system-scope when not running as root).
     """
-    legacy = _find_legacy_hermes_units()
+    legacy = _find_legacy_sparkii_units()
     if not legacy:
         print("No legacy Sparkii gateway units found.")
         return 0, []
@@ -2675,10 +2675,10 @@ def _sparkii_home_for_target_user(target_home_dir: str) -> str:
       /root/.sparkii/profiles/coder     → /home/alice/.sparkii/profiles/coder
       /opt/custom-sparkii               → /opt/custom-sparkii  (kept as-is)
     """
-    current_hermes_raw = os.environ.get("SPARKII_HOME", "").strip()
-    current_hermes = (
-        Path(current_hermes_raw).expanduser()
-        if current_hermes_raw
+    current_sparkii_raw = os.environ.get("SPARKII_HOME", "").strip()
+    current_sparkii = (
+        Path(current_sparkii_raw).expanduser()
+        if current_sparkii_raw
         else get_sparkii_home()
     )
     # Keep explicit custom paths lexical. Resolving a non-existent custom path
@@ -2688,16 +2688,16 @@ def _sparkii_home_for_target_user(target_home_dir: str) -> str:
     target_default = Path(target_home_dir) / ".sparkii"
 
     # Default ~/.sparkii → remap to target user's default
-    if current_hermes == current_default:
+    if current_sparkii == current_default:
         return str(target_default)
 
     # Profile or subdir of ~/.sparkii → preserve the relative structure
     try:
-        relative = current_hermes.relative_to(current_default)
+        relative = current_sparkii.relative_to(current_default)
         return str(target_default / relative)
     except ValueError:
         # Completely custom path (not under ~/.sparkii) — keep as-is
-        return str(current_hermes)
+        return str(current_sparkii)
 
 
 def _build_service_path_dirs(project_root: Path | None = None) -> list[str]:
@@ -2723,13 +2723,13 @@ def _build_service_path_dirs(project_root: Path | None = None) -> list[str]:
     if _is_dir(node_bin):
         candidates.append(str(node_bin))
 
-    hermes_home = get_sparkii_home()
-    hermes_node = hermes_home / "node" / "bin"
-    if _is_dir(hermes_node):
-        candidates.append(str(hermes_node))
-    hermes_nm = hermes_home / "node_modules" / ".bin"
-    if _is_dir(hermes_nm):
-        candidates.append(str(hermes_nm))
+    sparkii_home = get_sparkii_home()
+    sparkii_node = sparkii_home / "node" / "bin"
+    if _is_dir(sparkii_node):
+        candidates.append(str(sparkii_node))
+    sparkii_nm = sparkii_home / "node_modules" / ".bin"
+    if _is_dir(sparkii_nm):
+        candidates.append(str(sparkii_nm))
 
     return candidates
 
@@ -2762,17 +2762,17 @@ def _stable_service_working_dir() -> str:
     return str(PROJECT_ROOT)
 
 
-def _systemd_watchdog_seconds(hermes_home: str | Path | None = None) -> int:
+def _systemd_watchdog_seconds(sparkii_home: str | Path | None = None) -> int:
     """Resolve the managed-overlay-aware watchdog setting for a service home."""
     override_token = None
     reset_home_override = None
-    if hermes_home is not None:
+    if sparkii_home is not None:
         from sparkii_constants import (
             reset_sparkii_home_override,
             set_sparkii_home_override,
         )
 
-        override_token = set_sparkii_home_override(hermes_home)
+        override_token = set_sparkii_home_override(sparkii_home)
         reset_home_override = reset_sparkii_home_override
     try:
         config = load_gateway_config()
@@ -2791,17 +2791,17 @@ def _systemd_watchdog_seconds(hermes_home: str | Path | None = None) -> int:
 
 
 def _systemd_watchdog_service_fields(
-    hermes_home: str | Path | None = None,
+    sparkii_home: str | Path | None = None,
 ) -> tuple[str, str]:
     """Return systemd service fields for the effective gateway config."""
-    seconds = _systemd_watchdog_seconds(hermes_home)
+    seconds = _systemd_watchdog_seconds(sparkii_home)
     if seconds <= 0:
         return "simple", ""
     return "notify", f"NotifyAccess=main\nWatchdogSec={seconds}s\n"
 
 
 def _append_node_dir_for_service(
-    path_entries: list[str], hermes_root: Path | None = None
+    path_entries: list[str], sparkii_root: Path | None = None
 ) -> None:
     """Add the Node directory a generated service unit should use to *path_entries*.
 
@@ -2813,7 +2813,7 @@ def _append_node_dir_for_service(
     backend spawn was fixed for. Managed dirs are profile-scoped, so each
     profile's unit still names its own Node.
 
-    *hermes_root* is the Sparkii home the unit will run against. System units
+    *sparkii_root* is the Sparkii home the unit will run against. System units
     installed via sudo MUST pass the **target user's** home: probing the
     default (the calling user's — root's — tree) would bake root's Node into
     the target user's unit. The probe swallows OSError: an unreadable
@@ -2822,9 +2822,9 @@ def _append_node_dir_for_service(
 
     PATH lookup remains the fallback rung for installs with no managed Node.
     """
-    from sparkii_constants import iter_hermes_node_dirs
+    from sparkii_constants import iter_sparkii_node_dirs
 
-    for directory in iter_hermes_node_dirs(hermes_root):
+    for directory in iter_sparkii_node_dirs(sparkii_root):
         entry = str(directory)
         try:
             present = directory.is_dir()
@@ -2880,11 +2880,11 @@ def generate_systemd_unit(system: bool = False, run_as_user: str | None = None) 
 
     if system:
         username, group_name, home_dir = _system_service_identity(run_as_user)
-        hermes_home = _sparkii_home_for_target_user(home_dir)
+        sparkii_home = _sparkii_home_for_target_user(home_dir)
         systemd_type, systemd_watchdog_directives = _systemd_watchdog_service_fields(
-            hermes_home
+            sparkii_home
         )
-        profile_arg = _profile_arg_for_target_user(hermes_home, home_dir)
+        profile_arg = _profile_arg_for_target_user(sparkii_home, home_dir)
         # Remap all paths that may resolve under the calling user's home
         # (e.g. /root/) to the target user's home so the service can
         # actually access them.
@@ -2892,16 +2892,16 @@ def generate_systemd_unit(system: bool = False, run_as_user: str | None = None) 
         # Anchor cwd to the target user's SPARKII_HOME (stable, always exists)
         # rather than a remapped source-checkout path that can rot. See
         # _stable_service_working_dir() for the full rationale.
-        working_dir = str(hermes_home) if hermes_home else _remap_path_for_user(working_dir, home_dir)
+        working_dir = str(sparkii_home) if sparkii_home else _remap_path_for_user(working_dir, home_dir)
         venv_dir = _remap_path_for_user(venv_dir, home_dir)
         path_entries = [_remap_path_for_user(p, home_dir) for p in path_entries]
         # Managed Node for the TARGET user's tree (see the skip above): probe
-        # the remapped hermes_home, not the calling user's. Prepend — the
+        # the remapped sparkii_home, not the calling user's. Prepend — the
         # managed Node must outrank remapped shell-PATH entries, matching the
         # user-unit ordering where it's appended before PATH capture.
         _target_node_entries: list[str] = []
         _append_node_dir_for_service(
-            _target_node_entries, Path(hermes_home) if hermes_home else None
+            _target_node_entries, Path(sparkii_home) if sparkii_home else None
         )
         path_entries = [
             e for e in _target_node_entries if e not in path_entries
@@ -2927,7 +2927,7 @@ Environment="USER={username}"
 Environment="LOGNAME={username}"
 Environment="PATH={sane_path}"
 Environment="VIRTUAL_ENV={venv_dir}"
-Environment="SPARKII_HOME={hermes_home}"
+Environment="SPARKII_HOME={sparkii_home}"
 Restart=always
 RestartSec=5
 RestartForceExitStatus={GATEWAY_SERVICE_RESTART_EXIT_CODE}
@@ -2944,11 +2944,11 @@ StandardError=journal
 WantedBy=multi-user.target
 """
 
-    hermes_home = str(get_sparkii_home().resolve())
+    sparkii_home = str(get_sparkii_home().resolve())
     systemd_type, systemd_watchdog_directives = _systemd_watchdog_service_fields(
-        hermes_home
+        sparkii_home
     )
-    profile_arg = _profile_arg(hermes_home)
+    profile_arg = _profile_arg(sparkii_home)
     path_entries.extend(_build_user_local_paths(Path.home(), path_entries))
     path_entries.extend(_build_wsl_interop_paths(path_entries))
     path_entries.extend(common_bin_paths)
@@ -2965,7 +2965,7 @@ Type={systemd_type}
 WorkingDirectory={working_dir}
 Environment="PATH={sane_path}"
 Environment="VIRTUAL_ENV={venv_dir}"
-Environment="SPARKII_HOME={hermes_home}"
+Environment="SPARKII_HOME={sparkii_home}"
 Restart=always
 RestartSec=5
 RestartForceExitStatus={GATEWAY_SERVICE_RESTART_EXIT_CODE}
@@ -3146,7 +3146,7 @@ def refresh_systemd_unit_if_needed(system: bool = False) -> bool:
     # The user-scope unit path resolves under ``Path.home()``, which is NOT
     # sandboxed by the test conftest (only SPARKII_HOME is). If a test
     # exercises ``run_gateway()`` with a pytest-tmp SPARKII_HOME, the freshly
-    # generated unit bakes that ``/tmp/pytest-of-.../hermes_test`` path into
+    # generated unit bakes that ``/tmp/pytest-of-.../sparkii_test`` path into
     # ``Environment="SPARKII_HOME=..."``. Writing that to the developer's
     # real user systemd unit file silently breaks their gateway on the next
     # reboot (systemd loads the polluted env, the gateway looks at an empty
@@ -3158,8 +3158,8 @@ def refresh_systemd_unit_if_needed(system: bool = False) -> bool:
     # still works.
     if not system and (
         "/pytest-of-" in new_unit
-        or '/hermes_test"' in new_unit
-        or "/hermes_test/" in new_unit
+        or '/sparkii_test"' in new_unit
+        or "/sparkii_test/" in new_unit
     ):
         return False
 
@@ -3332,12 +3332,12 @@ def systemd_install(
     # flap-fight for the Telegram bot token on every gateway startup.
     # Only removes units matching _LEGACY_SERVICE_NAMES + our ExecStart
     # signature — profile units are never touched.
-    if has_legacy_hermes_units():
+    if has_legacy_sparkii_units():
         print()
         print_legacy_unit_warning()
         print()
         if non_interactive or prompt_yes_no("Remove the legacy unit(s) before installing?", True):
-            remove_legacy_hermes_units(interactive=False)
+            remove_legacy_sparkii_units(interactive=False)
             print()
 
     unit_path = get_systemd_unit_path(system=system)
@@ -3597,7 +3597,7 @@ def systemd_status(deep: bool = False, system: bool = False, full: bool = False)
         print_systemd_scope_conflict_warning()
         print()
 
-    if has_legacy_hermes_units():
+    if has_legacy_sparkii_units():
         print_legacy_unit_warning()
         print()
 
@@ -4089,11 +4089,11 @@ def generate_launchd_plist() -> str:
     # _stable_service_working_dir() for the rationale (same rot risk applies
     # to launchd's WorkingDirectory as to systemd's).
     working_dir = _stable_service_working_dir()
-    hermes_home = str(get_sparkii_home().resolve())
+    sparkii_home = str(get_sparkii_home().resolve())
     log_dir = get_sparkii_home() / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
     label = get_launchd_label()
-    profile_arg = _profile_arg(hermes_home)
+    profile_arg = _profile_arg(sparkii_home)
     # Build a sane PATH for the launchd plist.  launchd provides only a
     # minimal default (/usr/bin:/bin:/usr/sbin:/sbin) which misses Homebrew,
     # nvm, cargo, etc.  We prepend venv/bin and node_modules/.bin (matching
@@ -4173,7 +4173,7 @@ def generate_launchd_plist() -> str:
         <key>VIRTUAL_ENV</key>
         <string>{venv_dir}</string>
         <key>SPARKII_HOME</key>
-        <string>{hermes_home}</string>
+        <string>{sparkii_home}</string>
     </dict>
 
     <key>LimitLoadToSessionType</key>
@@ -4844,8 +4844,8 @@ def _guard_named_profile_under_multiplexer(force: bool = False) -> None:
         return  # default profile (or unrecognized) — this guard doesn't apply
 
     try:
-        from sparkii_constants import get_default_hermes_root
-        default_root = get_default_hermes_root()
+        from sparkii_constants import get_default_sparkii_root
+        default_root = get_default_sparkii_root()
         # (b) Is the default-profile gateway running?
         from gateway.status import get_running_pid as _default_running_pid  # noqa
     except Exception:
@@ -6509,7 +6509,7 @@ def gateway_setup():
         print_systemd_scope_conflict_warning()
         print()
 
-    if supports_systemd_services() and has_legacy_hermes_units():
+    if supports_systemd_services() and has_legacy_sparkii_units():
         print_legacy_unit_warning()
         print()
 
@@ -7558,4 +7558,4 @@ def _gateway_command_inner(args):
         if not supports_systemd_services() and not is_macos():
             print("Legacy unit migration only applies to systemd-based Linux hosts.")
             return
-        remove_legacy_hermes_units(interactive=not yes, dry_run=dry_run)
+        remove_legacy_sparkii_units(interactive=not yes, dry_run=dry_run)

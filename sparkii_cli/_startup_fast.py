@@ -92,9 +92,9 @@ def is_container_startup_environment() -> bool:
     return "docker" in cgroup or "podman" in cgroup or "/lxc/" in cgroup
 
 
-def active_profile_may_override_home(hermes_root: str) -> bool:
+def active_profile_may_override_home(sparkii_root: str) -> bool:
     """Cheap probe: does an active non-default profile redirect SPARKII_HOME?"""
-    active_profile = os.path.join(hermes_root, "active_profile")
+    active_profile = os.path.join(sparkii_root, "active_profile")
     try:
         if os.path.exists(active_profile):
             with open(active_profile, encoding="utf-8") as handle:
@@ -106,9 +106,9 @@ def active_profile_may_override_home(hermes_root: str) -> bool:
 
 
 def _resolved_home() -> str:
-    hermes_home = os.environ.get("SPARKII_HOME", "").strip()
-    if hermes_home:
-        return hermes_home
+    sparkii_home = os.environ.get("SPARKII_HOME", "").strip()
+    if sparkii_home:
+        return sparkii_home
     return os.path.join(os.path.expanduser("~"), ".sparkii")
 
 
@@ -126,14 +126,14 @@ def container_mode_may_be_active() -> bool:
     if is_container_startup_environment():
         return False
 
-    hermes_home = os.environ.get("SPARKII_HOME", "").strip()
-    if hermes_home:
-        if os.path.exists(os.path.join(hermes_home, ".container-mode")):
+    sparkii_home = os.environ.get("SPARKII_HOME", "").strip()
+    if sparkii_home:
+        if os.path.exists(os.path.join(sparkii_home, ".container-mode")):
             return True
-        parent_name = os.path.basename(os.path.dirname(os.path.normpath(hermes_home)))
+        parent_name = os.path.basename(os.path.dirname(os.path.normpath(sparkii_home)))
         return (
             parent_name != "profiles"
-            and active_profile_may_override_home(hermes_home)
+            and active_profile_may_override_home(sparkii_home)
         )
 
     default_home = os.path.join(os.path.expanduser("~"), ".sparkii")

@@ -844,10 +844,10 @@ def run_doctor(
 
     if json_output:
         # Additive envelope: preserve the upstream health_report keys and
-        # attach Sparkii identity under hermes_identity so existing parsers
+        # attach Sparkii identity under sparkii_identity so existing parsers
         # that only read overall/checks keep working.
         payload = dict(report)
-        payload["hermes_identity"] = identity
+        payload["sparkii_identity"] = identity
         json.dump(payload, sys.stdout, indent=2, sort_keys=True)
         sys.stdout.write("\n")
     else:

@@ -24,7 +24,7 @@ from agent.skill_utils import (
 
 
 @pytest.fixture
-def hermes_home_with_config(tmp_path, monkeypatch):
+def sparkii_home_with_config(tmp_path, monkeypatch):
     """Isolated ``~/.sparkii/`` with a config.yaml referencing one external dir."""
     home = tmp_path / ".sparkii"
     home.mkdir()
@@ -50,9 +50,9 @@ def hermes_home_with_config(tmp_path, monkeypatch):
 
 
 
-def test_cache_invalidates_on_mtime_change(hermes_home_with_config):
+def test_cache_invalidates_on_mtime_change(sparkii_home_with_config):
     """A config.yaml edit invalidates the cache on the next call."""
-    _home, external, config = hermes_home_with_config
+    _home, external, config = sparkii_home_with_config
     other = external.parent / "other_skills"
     other.mkdir()
 

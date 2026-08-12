@@ -22,7 +22,7 @@ use std::process::Command;
 use tracing_appender::non_blocking::WorkerGuard;
 
 /// Returns the canonical Sparkii home directory, respecting $SPARKII_HOME if set.
-pub fn hermes_home() -> PathBuf {
+pub fn sparkii_home() -> PathBuf {
     if let Ok(override_path) = std::env::var("SPARKII_HOME") {
         if !override_path.trim().is_empty() {
             return PathBuf::from(override_path);
@@ -49,7 +49,7 @@ pub fn hermes_home() -> PathBuf {
 }
 
 pub fn log_dir() -> PathBuf {
-    hermes_home().join("logs")
+    sparkii_home().join("logs")
 }
 
 pub fn log_path() -> PathBuf {
@@ -57,7 +57,7 @@ pub fn log_path() -> PathBuf {
 }
 
 pub fn bootstrap_cache_dir() -> PathBuf {
-    hermes_home().join("bootstrap-cache")
+    sparkii_home().join("bootstrap-cache")
 }
 
 /// Stable location the installer copies itself to after a successful install.
@@ -74,20 +74,20 @@ pub fn installer_dest() -> PathBuf {
     } else {
         "sparkii-setup"
     };
-    hermes_home().join(name)
+    sparkii_home().join(name)
 }
 
 /// Marker the updater writes for the duration of an in-app update and removes
 /// when it finishes (see update.rs `UpdateMarkerGuard`). A freshly-launched
 /// desktop checks this before spawning its own local backend: spawning one
-/// mid-update re-locks the venv shim and triggers `force_kill_other_hermes`,
+/// mid-update re-locks the venv shim and triggers `force_kill_other_sparkii`,
 /// which then kills that legitimate backend in a respawn loop (#50238).
 ///
 /// Lives directly under SPARKII_HOME (same rationale as `installer_dest`) so the
 /// Electron desktop — which resolves SPARKII_HOME identically and pins it into
 /// the updater's env — agrees on the exact path.
 pub fn update_in_progress_marker() -> PathBuf {
-    hermes_home().join(".sparkii-update-in-progress")
+    sparkii_home().join(".sparkii-update-in-progress")
 }
 
 /// Copy the currently-running installer binary to `installer_dest()` so it's
@@ -203,7 +203,7 @@ pub fn get_log_path() -> String {
 
 #[tauri::command]
 pub fn get_sparkii_home() -> String {
-    hermes_home().to_string_lossy().into_owned()
+    sparkii_home().to_string_lossy().into_owned()
 }
 
 #[tauri::command]

@@ -27,7 +27,7 @@ def _clear_provider_caches():
     for mod in list(sys.modules.keys()):
         if (
             mod.startswith("plugins.model_providers")
-            or mod.startswith("_hermes_user_provider")
+            or mod.startswith("_sparkii_user_provider")
         ):
             del sys.modules[mod]
 
@@ -77,14 +77,14 @@ def test_all_profiles_register():
 def test_user_plugin_overrides_bundled(tmp_path, monkeypatch):
     """A user plugin with the same name must override the bundled profile."""
     # Point SPARKII_HOME at a fresh temp dir
-    hermes_home = tmp_path / ".sparkii"
-    hermes_home.mkdir()
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    sparkii_home = tmp_path / ".sparkii"
+    sparkii_home.mkdir()
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
     # get_sparkii_home() may be module-cached depending on codebase; ensure the
     # env var is the source of truth. Most code paths re-read it each call.
 
     # Drop a user plugin that replaces 'gmi'
-    user_gmi = hermes_home / "plugins" / "model-providers" / "gmi"
+    user_gmi = sparkii_home / "plugins" / "model-providers" / "gmi"
     user_gmi.mkdir(parents=True)
     (user_gmi / "__init__.py").write_text(
         "from providers import register_provider\n"

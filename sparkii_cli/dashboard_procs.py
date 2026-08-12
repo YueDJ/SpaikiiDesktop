@@ -2,7 +2,7 @@
 
 Mechanical move (main.py decomposition): the three leaf process-hygiene
 helpers (``_scan_dashboard_processes``, ``_kill_stale_dashboard_processes``,
-``_detect_concurrent_hermes_instances``) are lifted verbatim. References to
+``_detect_concurrent_sparkii_instances``) are lifted verbatim. References to
 helpers that STAY in ``sparkii_cli.main`` (``_find_stale_dashboard_pids``,
 ``_respawn_dashboard_processes``, ``_is_windows``, ...) are routed through a
 lazy ``_m()`` main reference so existing test monkeypatches on
@@ -341,7 +341,7 @@ def _kill_stale_dashboard_processes(
         "unrecovered": list(unrecovered),
     }
 
-def _detect_concurrent_hermes_instances(
+def _detect_concurrent_sparkii_instances(
     scripts_dir: Path, *, exclude_pid: int | None = None
 ) -> list[tuple[int, str]]:
     """Find other live processes whose .exe is one of our entry-point shims.
@@ -374,7 +374,7 @@ def _detect_concurrent_hermes_instances(
 
     # Resolve every shim path to its canonical form once for cheap comparison.
     shim_paths: set[str] = set()
-    for shim in _m()._hermes_exe_shims(scripts_dir):
+    for shim in _m()._sparkii_exe_shims(scripts_dir):
         try:
             shim_paths.add(str(shim.resolve()).lower())
         except OSError:
@@ -607,7 +607,7 @@ def _valid_lockfile_payload(parsed: object, ownership_id: str) -> bool:
 def _lock_owned_serve_pids(base_dir: Path | None = None) -> set[int]:
     """PIDs claimed as owners by valid ``backend.lock.json`` records on this host.
 
-    Scans ``{hermes_home}/desktop-ssh/<ownershipId>/backend.lock.json`` (the
+    Scans ``{sparkii_home}/desktop-ssh/<ownershipId>/backend.lock.json`` (the
     same directory the Desktop SSH runtime writes to). Any PID a valid lock
     names is a legitimately-owned backend — including backends another client
     or machine started over SSH — and must be spared by the orphan reap.

@@ -644,7 +644,6 @@ class TestNpmBareSpawnsResolved:
         [
             "sparkii_cli/tools_config.py",
             "sparkii_cli/doctor.py",
-            "plugins/platforms/whatsapp/adapter.py",
             "tools/browser_tool.py",
         ],
     )

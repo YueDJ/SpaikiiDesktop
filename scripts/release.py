@@ -1739,7 +1739,7 @@ LEGACY_AUTHOR_MAP = {
     "charliekerfoot@gmail.com": "CharlieKerfoot",  # PR #18951
     # Debug share upload-time redaction (May 2026)
     "dhuysamen@gmail.com": "GodsBoy",  # PR #19318
-    "github@nadyahermes.anonaddy.com": "ruangraung",  # PR #42308
+    "github@nadyasparkii.anonaddy.com": "ruangraung",  # PR #42308
     "mrcoferland@gmail.com": "mrcoferland",  # PR #19023
     "chenlinfeng@ruije.com.cn": "noOne-list",  # PR #19050
     "briansu@Mac-mini.attlocal.net": "likejudy",  # PR #19052
@@ -1843,8 +1843,8 @@ LEGACY_AUTHOR_MAP = {
     "zealy@tz.co": "dgians",  # PR #26034 (bot-committed by zealy-tzco under dgians' PR)
     "mottei.survive@gmail.com": "flanny7",  # PR #27030 (setup_open_webui python var)
     "20530505+flanny7@users.noreply.github.com": "flanny7",
-    "hermesagent26@gmail.com": "hermesagent26",  # PR #26438 (kimi model-name reasoning pad)
-    "276067471+hermesagent26@users.noreply.github.com": "hermesagent26",
+    "sparkiiagent26@gmail.com": "sparkiiagent26",  # PR #26438 (kimi model-name reasoning pad)
+    "276067471+sparkiiagent26@users.noreply.github.com": "sparkiiagent26",
     "71590782+kriscolab@users.noreply.github.com": "kriscolab",  # PR #26926 (deepseek default_aux_model)
     # batch salvage (May 2026 LHF run, group 3)
     "darvsum@users.noreply.github.com": "darvsum",  # PR #26766 (preserve discover_models in normalize)

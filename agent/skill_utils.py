@@ -547,7 +547,7 @@ def get_external_skills_dirs() -> List[Path]:
 
     from sparkii_constants import get_sparkii_home
 
-    hermes_home = get_sparkii_home()
+    sparkii_home = get_sparkii_home()
     local_skills = get_skills_dir().resolve()
     seen: Set[Path] = set()
     result = []
@@ -561,7 +561,7 @@ def get_external_skills_dirs() -> List[Path]:
         p = Path(expanded)
         # Resolve relative paths against SPARKII_HOME, not cwd
         if not p.is_absolute():
-            p = (hermes_home / p).resolve()
+            p = (sparkii_home / p).resolve()
         else:
             p = p.resolve()
         if p == local_skills:

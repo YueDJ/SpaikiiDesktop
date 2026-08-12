@@ -28,7 +28,7 @@ BOM = b"\xef\xbb\xbf"
 
 
 def _setup(tmp_path, *, ps1=b"WRITE-HOST current\n", sh=b"echo current\n"):
-    home = tmp_path / "hermes_home"
+    home = tmp_path / "sparkii_home"
     root = tmp_path / "sparkii-agent"
     (root / "scripts").mkdir(parents=True)
     (home / "bootstrap-cache").mkdir(parents=True)

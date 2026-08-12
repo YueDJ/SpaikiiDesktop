@@ -112,7 +112,7 @@ _sparkii_profiles() {{
     echo "$profiles"
 }}
 
-_hermes_completion() {{
+_sparkii_completion() {{
     local cur prev
     COMPREPLY=()
     cur="${{COMP_WORDS[COMP_CWORD]}}"
@@ -135,7 +135,7 @@ _hermes_completion() {{
     fi
 }}
 
-complete -F _hermes_completion sparkii
+complete -F _sparkii_completion sparkii
 """
 
 
@@ -213,7 +213,7 @@ _sparkii_profiles() {{
     _describe 'profile' profiles
 }}
 
-_hermes() {{
+_sparkii() {{
     local context state line
     typeset -A opt_args
 
@@ -240,7 +240,7 @@ _hermes() {{
     esac
 }}
 
-compdef _hermes sparkii
+compdef _sparkii sparkii
 """
 
 

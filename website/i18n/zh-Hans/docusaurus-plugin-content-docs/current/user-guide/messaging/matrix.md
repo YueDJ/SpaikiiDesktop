@@ -312,7 +312,7 @@ Sparkii 在启动时会检测到此情况并拒绝启用 E2EE，日志显示：`
    或通过 Synapse 管理员 API（注意 URL 编码的用户 ID）：
    ```bash
    curl -X DELETE -H "Authorization: Bearer ADMIN_TOKEN" \
-     'https://your-server/_synapse/admin/v2/users/%40hermes%3Ayour-server/devices/DEVICE_ID'
+     'https://your-server/_synapse/admin/v2/users/%40sparkii%3Ayour-server/devices/DEVICE_ID'
    ```
    注意：通过管理员 API 删除设备也可能使关联的访问令牌失效。之后你可能需要生成新令牌。
 

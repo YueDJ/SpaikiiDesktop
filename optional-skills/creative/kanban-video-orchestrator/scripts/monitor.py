@@ -26,7 +26,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 
 
-def hermes_available() -> bool:
+def sparkii_available() -> bool:
     return shutil.which("sparkii") is not None
 
 
@@ -171,7 +171,7 @@ def main():
                     help="Print one snapshot and exit (no polling loop)")
     args = ap.parse_args()
 
-    if not hermes_available():
+    if not sparkii_available():
         print("ERROR: 'sparkii' CLI not found in PATH", file=sys.stderr)
         sys.exit(1)
 

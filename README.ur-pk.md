@@ -243,7 +243,7 @@ scripts/run_tests.sh
 - 📚 [سکلز ہب (Skills Hub)](https://agentskills.io)
 - 🐛 [مسائل (Issues)](https://github.com/YueDJ/SpaikiiDesktop/issues)
 - 🔌 [computer-use-linux](https://github.com/avifenesh/computer-use-linux) — سپارکی اور دیگر MCP ہوسٹس کے لیے لینکس (Linux) ڈیسک ٹاپ کنٹرول MCP سرور، جس میں AT-SPI ایکسیسیبلٹی ٹریز، Wayland/X11 ان پٹ، سکرین شاٹس، اور کمپوزیٹر ونڈو ٹارگیٹنگ شامل ہے۔
-- 🔌 [HermesClaw](https://github.com/AaronWong1999/hermesclaw) — کمیونٹی وی چیٹ (WeChat) برج: سپارکی ایجنٹ اور OpenClaw کو ایک ہی وی چیٹ اکاؤنٹ پر چلائیں۔
+- 🔌 [___SPARKIICLAW_PRESERVE___](https://github.com/AaronWong1999/___SPARKIICLAW_URL_PRESERVE___) — کمیونٹی وی چیٹ (WeChat) برج: سپارکی ایجنٹ اور OpenClaw کو ایک ہی وی چیٹ اکاؤنٹ پر چلائیں۔
 
 ---
 

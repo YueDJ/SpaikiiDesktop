@@ -11,9 +11,9 @@ import pytest
 
 
 def _write_auth_store(tmp_path, payload: dict) -> None:
-    hermes_home = tmp_path / "sparkii"
-    hermes_home.mkdir(parents=True, exist_ok=True)
-    (hermes_home / "auth.json").write_text(json.dumps(payload, indent=2))
+    sparkii_home = tmp_path / "sparkii"
+    sparkii_home.mkdir(parents=True, exist_ok=True)
+    (sparkii_home / "auth.json").write_text(json.dumps(payload, indent=2))
 
 
 def _jwt_with_claims(claims: dict) -> str:
@@ -937,15 +937,15 @@ def test_load_pool_prefers_dotenv_over_stale_os_environ(tmp_path, monkeypatch):
     os.environ and silently wrote the stale value into auth.json, causing
     persistent 401 errors after key rotation.
     """
-    hermes_home = tmp_path / "sparkii"
-    hermes_home.mkdir()
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    sparkii_home = tmp_path / "sparkii"
+    sparkii_home.mkdir()
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
     # Simulate the bug: parent shell exported a stale test key
     monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-STALE-from-shell")
 
     # User edited ~/.sparkii/.env with the fresh key
-    (hermes_home / ".env").write_text(
+    (sparkii_home / ".env").write_text(
         "OPENROUTER_API_KEY=sk-or-FRESH-from-dotenv\n"
     )
 
@@ -969,13 +969,13 @@ def test_load_pool_falls_back_to_os_environ_when_dotenv_empty(tmp_path, monkeypa
     os.environ. Guards against regressions that would break production
     deployments relying on runtime-injected env vars.
     """
-    hermes_home = tmp_path / "sparkii"
-    hermes_home.mkdir()
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    sparkii_home = tmp_path / "sparkii"
+    sparkii_home.mkdir()
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
     monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-from-runtime-env")
 
     # .env exists but does not define OPENROUTER_API_KEY
-    (hermes_home / ".env").write_text("SOME_OTHER_VAR=unrelated\n")
+    (sparkii_home / ".env").write_text("SOME_OTHER_VAR=unrelated\n")
 
     _write_auth_store(tmp_path, {"version": 1, "providers": {}})
 
@@ -1132,7 +1132,7 @@ def test_load_pool_api_key_path_prunes_stale_oauth_entries(tmp_path, monkeypatch
     """Switching OAuth -> API key must prune stale OAuth entries from auth.json.
 
     Without this, a user who logs into OAuth (seeding `claude_code` or
-    `hermes_pkce` into auth.json) and later switches to the API key at
+    `sparkii_pkce` into auth.json) and later switches to the API key at
     `sparkii setup` would still have those OAuth entries dormant on disk.
     Pool rotation on a transient 401 could revive them and flip the
     session onto the OAuth masquerade.

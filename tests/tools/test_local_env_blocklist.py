@@ -517,7 +517,7 @@ class TestSanePathIncludesHomebrew:
     """Verify _SANE_PATH includes macOS Homebrew directories."""
 
     @pytest.fixture(autouse=True)
-    def _disable_hermes_bin_injection(self):
+    def _disable_sparkii_bin_injection(self):
         """These tests assert the sane-path merge in isolation. Disable the
         sparkii-install-dir prepend (a separate concern, covered by
         TestSparkiiBinDirOnPath) so a real ``sparkii`` on the test runner's PATH
@@ -583,7 +583,7 @@ class TestSparkiiBinDirOnPath:
     Plugins shelling out to bare ``sparkii`` via the terminal tool must work
     even when the gateway was launched without the sparkii install dir on
     PATH (systemd, service managers, cron). See the discussion that motivated
-    _resolve_sparkii_bin_dir / _prepend_hermes_bin_dir.
+    _resolve_sparkii_bin_dir / _prepend_sparkii_bin_dir.
     """
 
     def _reset_cache(self):
@@ -603,12 +603,12 @@ class TestSparkiiBinDirOnPath:
         from tools.environments import local as local_mod
         self._reset_cache()
         local_mod._SPARKII_BIN_DIR = None
-        assert local_mod._prepend_hermes_bin_dir("/usr/bin:/bin") == "/usr/bin:/bin"
+        assert local_mod._prepend_sparkii_bin_dir("/usr/bin:/bin") == "/usr/bin:/bin"
 
-    def test_make_run_env_injects_hermes_bin_dir(self):
+    def test_make_run_env_injects_sparkii_bin_dir(self):
         """A gateway env missing the sparkii dir gets it back in the subshell PATH.
 
-        Platform-agnostic: ``_prepend_hermes_bin_dir`` uses ``os.pathsep`` on
+        Platform-agnostic: ``_prepend_sparkii_bin_dir`` uses ``os.pathsep`` on
         every host, so no platform flag is faked here."""
         from tools.environments import local as local_mod
         from tools.environments.local import _make_run_env

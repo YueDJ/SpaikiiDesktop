@@ -37,7 +37,7 @@ const getActionStatusSpy = vi.fn()
 
 vi.mock('@/sparkii', () => ({
   checkSparkiiUpdate: (...args: unknown[]) => checkSparkiiUpdateSpy(...args),
-  updateHermes: (...args: unknown[]) => updateSparkiiSpy(...args),
+  updateSparkii: (...args: unknown[]) => updateSparkiiSpy(...args),
   getActionStatus: (...args: unknown[]) => getActionStatusSpy(...args)
 }))
 

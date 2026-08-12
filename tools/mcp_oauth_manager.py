@@ -103,7 +103,7 @@ class _ProviderEntry:
 # ---------------------------------------------------------------------------
 
 
-def _make_hermes_provider_class() -> Optional[type]:
+def _make_sparkii_provider_class() -> Optional[type]:
     """Lazy-import the SDK base class and return our subclass.
 
     Wrapped in a function so this module imports cleanly even when the
@@ -137,14 +137,14 @@ def _make_hermes_provider_class() -> Optional[type]:
             **kwargs: Any,
         ):
             super().__init__(*args, **kwargs)
-            self._hermes_server_name = server_name
+            self._sparkii_server_name = server_name
             self._sparkii_home = ""
             # When the client_id comes from config.yaml (pre-registered), an
             # invalid_client rejection means the *config* is wrong — deleting
             # client.json would just be re-seeded from config and re-running
             # registration can't help. Only auto-heal dynamically-registered
             # clients. See _maybe_flag_poisoned_client.
-            self._hermes_preregistered = preregistered
+            self._sparkii_preregistered = preregistered
 
         async def _initialize(self) -> None:
             """Load stored tokens + client info AND seed token_expiry_time.
@@ -200,7 +200,7 @@ def _make_hermes_provider_class() -> Optional[type]:
                     logger.debug(
                         "MCP OAuth '%s': restored metadata from disk "
                         "(token_endpoint=%s)",
-                        self._hermes_server_name,
+                        self._sparkii_server_name,
                         meta.token_endpoint,
                     )
 
@@ -221,7 +221,7 @@ def _make_hermes_provider_class() -> Optional[type]:
                     logger.debug(
                         "MCP OAuth '%s': pre-flight metadata discovery "
                         "failed (non-fatal): %s",
-                        self._hermes_server_name, exc,
+                        self._sparkii_server_name, exc,
                     )
 
         async def _prefetch_oauth_metadata(self) -> None:
@@ -254,7 +254,7 @@ def _make_hermes_provider_class() -> Optional[type]:
                     except httpx.HTTPError as exc:
                         logger.debug(
                             "MCP OAuth '%s': PRM discovery to %s failed: %s",
-                            self._hermes_server_name, url, exc,
+                            self._sparkii_server_name, url, exc,
                         )
                         continue
                     prm = await handle_protected_resource_response(resp)
@@ -277,7 +277,7 @@ def _make_hermes_provider_class() -> Optional[type]:
                     except httpx.HTTPError as exc:
                         logger.debug(
                             "MCP OAuth '%s': ASM discovery to %s failed: %s",
-                            self._hermes_server_name, url, exc,
+                            self._sparkii_server_name, url, exc,
                         )
                         continue
                     ok, asm = await handle_auth_metadata_response(resp)
@@ -294,7 +294,7 @@ def _make_hermes_provider_class() -> Optional[type]:
                         logger.debug(
                             "MCP OAuth '%s': pre-flight ASM discovered "
                             "token_endpoint=%s",
-                            self._hermes_server_name, asm.token_endpoint,
+                            self._sparkii_server_name, asm.token_endpoint,
                         )
                         break
 
@@ -350,7 +350,7 @@ def _make_hermes_provider_class() -> Optional[type]:
             back to ``sparkii mcp reauth``.
             """
             try:
-                if self._hermes_preregistered:
+                if self._sparkii_preregistered:
                     return
                 status = getattr(response, "status_code", None)
                 if status not in (400, 401):
@@ -384,7 +384,7 @@ def _make_hermes_provider_class() -> Optional[type]:
             except Exception as exc:  # pragma: no cover — defensive, must not throw
                 logger.debug(
                     "MCP OAuth '%s': invalid_client detection failed (non-fatal): %s",
-                    self._hermes_server_name, exc,
+                    self._sparkii_server_name, exc,
                 )
 
         async def async_auth_flow(self, request):  # type: ignore[override]
@@ -393,13 +393,13 @@ def _make_hermes_provider_class() -> Optional[type]:
             # whatever state the SDK already has.
             try:
                 await get_manager().invalidate_if_disk_changed(
-                    self._hermes_server_name,
-                    hermes_home=self._sparkii_home,
+                    self._sparkii_server_name,
+                    sparkii_home=self._sparkii_home,
                 )
             except Exception as exc:  # pragma: no cover — defensive
                 logger.debug(
                     "MCP OAuth '%s': pre-flow disk-watch failed (non-fatal): %s",
-                    self._hermes_server_name, exc,
+                    self._sparkii_server_name, exc,
                 )
 
             # Manually bridge the bidirectional generator protocol. httpx's
@@ -435,7 +435,7 @@ def _make_hermes_provider_class() -> Optional[type]:
 
 
 # Cached at import time. Tested and used by :class:`MCPOAuthManager`.
-_SPARKII_PROVIDER_CLS: Optional[type] = _make_hermes_provider_class()
+_SPARKII_PROVIDER_CLS: Optional[type] = _make_sparkii_provider_class()
 
 
 # ---------------------------------------------------------------------------
@@ -502,11 +502,11 @@ class MCPOAuthManager:
     @staticmethod
     def _key(
         server_name: str,
-        hermes_home: str | Path | None = None,
+        sparkii_home: str | Path | None = None,
     ) -> tuple[str, str]:
         from sparkii_constants import get_sparkii_home
 
-        home = Path(hermes_home) if hermes_home is not None else get_sparkii_home()
+        home = Path(sparkii_home) if sparkii_home is not None else get_sparkii_home()
         return (str(home.expanduser().resolve(strict=False)), server_name)
 
     def _build_provider(
@@ -591,7 +591,7 @@ class MCPOAuthManager:
         self,
         server_name: str,
         *,
-        hermes_home: str | Path | None = None,
+        sparkii_home: str | Path | None = None,
     ) -> _ProviderEntry | None:
         """Evict the provider from cache AND delete tokens from disk.
 
@@ -599,10 +599,10 @@ class MCPOAuthManager:
         ``sparkii mcp login <name>`` during forced re-auth.
         """
         with self._entries_lock:
-            entry = self._entries.pop(self._key(server_name, hermes_home), None)
+            entry = self._entries.pop(self._key(server_name, sparkii_home), None)
 
         from tools.mcp_oauth import remove_oauth_tokens
-        remove_oauth_tokens(server_name, hermes_home=hermes_home)
+        remove_oauth_tokens(server_name, sparkii_home=sparkii_home)
         logger.info(
             "MCP OAuth '%s': evicted from cache and removed from disk",
             server_name,
@@ -614,23 +614,23 @@ class MCPOAuthManager:
         server_name: str,
         entry: _ProviderEntry | None,
         *,
-        hermes_home: str | Path | None = None,
+        sparkii_home: str | Path | None = None,
     ) -> None:
         """Restore a provider entry removed for a failed reauthorization."""
         if entry is None:
             return
         with self._entries_lock:
-            self._entries.setdefault(self._key(server_name, hermes_home), entry)
+            self._entries.setdefault(self._key(server_name, sparkii_home), entry)
 
     def evict(
         self,
         server_name: str,
         *,
-        hermes_home: str | Path | None = None,
+        sparkii_home: str | Path | None = None,
     ) -> None:
         """Drop only the in-process provider, preserving persisted OAuth state."""
         with self._entries_lock:
-            self._entries.pop(self._key(server_name, hermes_home), None)
+            self._entries.pop(self._key(server_name, sparkii_home), None)
 
     # -- Disk watch ----------------------------------------------------------
 
@@ -638,7 +638,7 @@ class MCPOAuthManager:
         self,
         server_name: str,
         *,
-        hermes_home: str | Path | None = None,
+        sparkii_home: str | Path | None = None,
     ) -> bool:
         """If the tokens file on disk has a newer mtime than last-seen, force
         the MCP SDK provider to reload its in-memory state.
@@ -650,12 +650,12 @@ class MCPOAuthManager:
         """
         from tools.mcp_oauth import _get_token_dir, _safe_filename
 
-        entry = self._entries.get(self._key(server_name, hermes_home))
+        entry = self._entries.get(self._key(server_name, sparkii_home))
         if entry is None or entry.provider is None:
             return False
 
         async with entry.lock:
-            tokens_path = _get_token_dir(hermes_home) / f"{_safe_filename(server_name)}.json"
+            tokens_path = _get_token_dir(sparkii_home) / f"{_safe_filename(server_name)}.json"
             try:
                 mtime_ns = tokens_path.stat().st_mtime_ns
             except (FileNotFoundError, OSError):

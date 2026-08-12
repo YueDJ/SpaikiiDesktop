@@ -38,7 +38,7 @@ def _make_task(kb, *, assignee: str = "w"):
 
 
 def _capture_spawn_env(kb, monkeypatch, workspace: str) -> dict:
-    monkeypatch.setattr(kb, "_resolve_hermes_argv", lambda: ["sparkii"])
+    monkeypatch.setattr(kb, "_resolve_sparkii_argv", lambda: ["sparkii"])
 
     captured: dict = {}
 

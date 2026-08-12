@@ -223,12 +223,12 @@ from sparkii_cli.browser_connect import (
     manual_chrome_debug_command,
     try_launch_chrome_debug,
 )
-from sparkii_cli.env_loader import load_hermes_dotenv
+from sparkii_cli.env_loader import load_sparkii_dotenv
 from utils import base_url_host_matches, fast_safe_load
 
 _sparkii_home = get_sparkii_home()
 _project_env = Path(__file__).parent / '.env'
-load_hermes_dotenv(hermes_home=_sparkii_home, project_env=_project_env)
+load_sparkii_dotenv(sparkii_home=_sparkii_home, project_env=_project_env)
 
 
 _REASONING_TAGS = (
@@ -2805,7 +2805,7 @@ def _install_skin_light_mode_hook() -> None:
         from sparkii_cli.skin_engine import SkinConfig  # type: ignore[import]
     except Exception:
         return
-    if getattr(SkinConfig, "_hermes_light_mode_hook_installed", False):
+    if getattr(SkinConfig, "_sparkii_light_mode_hook_installed", False):
         return
     _orig_get_color = SkinConfig.get_color
 
@@ -2817,7 +2817,7 @@ def _install_skin_light_mode_hook() -> None:
             return value
 
     SkinConfig.get_color = _wrapped_get_color  # type: ignore[method-assign]
-    SkinConfig._hermes_light_mode_hook_installed = True  # type: ignore[attr-defined]
+    SkinConfig._sparkii_light_mode_hook_installed = True  # type: ignore[attr-defined]
 
 
 _install_skin_light_mode_hook()
@@ -3565,14 +3565,14 @@ def _apply_bracketed_paste_timeout_patch() -> None:
     parsing.  See upstream issue #16263.
 
     The patch is idempotent — repeated calls are no-ops via the
-    ``_hermes_bp_timeout_patched`` sentinel on the module.
+    ``_sparkii_bp_timeout_patched`` sentinel on the module.
     """
     try:
         import prompt_toolkit.input.vt100_parser as _vt100_mod
         from prompt_toolkit.keys import Keys as _PtKeys
         from prompt_toolkit.key_binding.key_processor import KeyPress as _PtKeyPress
 
-        if getattr(_vt100_mod, "_hermes_bp_timeout_patched", False):
+        if getattr(_vt100_mod, "_sparkii_bp_timeout_patched", False):
             return
 
         _BP_TIMEOUT_S = 2.0  # max time to wait for ESC[201~ before flushing
@@ -3593,19 +3593,19 @@ def _apply_bracketed_paste_timeout_patch() -> None:
                         end_index + len(end_mark):
                     ]
                     self_parser._paste_buffer = ""
-                    self_parser._hermes_bp_start = None
+                    self_parser._sparkii_bp_start = None
                     if remaining:
                         _patched_vt100_feed(self_parser, remaining)
                 else:
-                    bp_start = getattr(self_parser, "_hermes_bp_start", None)
+                    bp_start = getattr(self_parser, "_sparkii_bp_start", None)
                     now = time.monotonic()
                     if bp_start is None:
-                        self_parser._hermes_bp_start = now
+                        self_parser._sparkii_bp_start = now
                     elif now - bp_start > _BP_TIMEOUT_S:
                         paste_content = self_parser._paste_buffer
                         self_parser._in_bracketed_paste = False
                         self_parser._paste_buffer = ""
-                        self_parser._hermes_bp_start = None
+                        self_parser._sparkii_bp_start = None
                         if paste_content:
                             self_parser.feed_key_callback(
                                 _PtKeyPress(_PtKeys.BracketedPaste, paste_content)
@@ -3628,7 +3628,7 @@ def _apply_bracketed_paste_timeout_patch() -> None:
                     self_parser._input_parser.send(c)
 
         _vt100_mod.Vt100Parser.feed = _patched_vt100_feed
-        _vt100_mod._hermes_bp_timeout_patched = True
+        _vt100_mod._sparkii_bp_timeout_patched = True
         logger.debug("Applied Vt100Parser bracketed-paste timeout patch (#16263)")
     except Exception as exc:  # noqa: BLE001 — defensive: never break startup
         logger.debug("Bracketed-paste timeout patch skipped: %s", exc)
@@ -3979,7 +3979,7 @@ class ChatConsole:
         """
         yield self
 
-# ASCII Art - HERMES-AGENT logo (full width, single line - requires ~95 char terminal)
+# ASCII Art - SPARKII-AGENT logo (full width, single line - requires ~95 char terminal)
 SPARKII_AGENT_LOGO = """[bold #FFD700]██╗  ██╗███████╗██████╗ ███╗   ███╗███████╗███████╗       █████╗  ██████╗ ███████╗███╗   ██╗████████╗[/]
 [bold #FFD700]██║  ██║██╔════╝██╔══██╗████╗ ████║██╔════╝██╔════╝      ██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝[/]
 [#FFBF00]███████║█████╗  ██████╔╝██╔████╔██║█████╗  ███████╗█████╗███████║██║  ███╗█████╗  ██╔██╗ ██║   ██║[/]
@@ -4020,8 +4020,8 @@ def _build_compact_banner() -> str:
     dim_color = _skin.get_color("banner_dim", "#B8860B") if _skin else "#B8860B"
 
     if skin_name == "default":
-        line1 = "⚕ NOUS HERMES - AI Agent Framework"
-        tiny_line = "⚕ NOUS HERMES"
+        line1 = "⚕ NOUS SPARKII - AI Agent Framework"
+        tiny_line = "⚕ NOUS SPARKII"
     else:
         agent_name = _skin.get_branding("agent_name", "Sparkii Agent") if _skin else "Sparkii Agent"
         line1 = f"{agent_name} - AI Agent Framework"
@@ -4691,7 +4691,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
             self.session_id = f"{timestamp_str}_{short_uuid}"
         
         # History file for persistent input recall across sessions
-        self._history_file = _sparkii_home / ".hermes_history"
+        self._history_file = _sparkii_home / ".sparkii_history"
         self._last_invalidate: float = 0.0  # throttle UI repaints
         self._app = None
 
@@ -8676,7 +8676,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
         except Exception as e:
             print(f"(x_x) Failed to create save directory {saved_dir}: {e}")
             return
-        path = saved_dir / f"hermes_conversation_{timestamp}.json"
+        path = saved_dir / f"sparkii_conversation_{timestamp}.json"
 
         try:
             with open(path, "w", encoding="utf-8") as f:
@@ -12873,9 +12873,9 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
 
             # Use MP3 output for CLI playback (afplay doesn't handle OGG well).
             # The TTS tool may auto-convert MP3->OGG, but the original MP3 remains.
-            os.makedirs(os.path.join(tempfile.gettempdir(), "hermes_voice"), exist_ok=True)
+            os.makedirs(os.path.join(tempfile.gettempdir(), "sparkii_voice"), exist_ok=True)
             mp3_path = os.path.join(
-                tempfile.gettempdir(), "hermes_voice",
+                tempfile.gettempdir(), "sparkii_voice",
                 f"tts_{time.strftime('%Y%m%d_%H%M%S')}.mp3",
             )
 
@@ -17600,7 +17600,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
             import prompt_toolkit.renderer as _pt_renderer
             from prompt_toolkit.renderer import _output_screen_diff as _orig_osd
 
-            if not getattr(_pt_renderer, "_hermes_osd_patched", False):
+            if not getattr(_pt_renderer, "_sparkii_osd_patched", False):
                 def _patched_output_screen_diff(
                     app, output, screen, current_pos, color_depth,
                     previous_screen, last_style, is_done, full_screen,
@@ -17638,7 +17638,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
                     )
 
                 _pt_renderer._output_screen_diff = _patched_output_screen_diff
-                _pt_renderer._hermes_osd_patched = True
+                _pt_renderer._sparkii_osd_patched = True
         except Exception:
             pass
 

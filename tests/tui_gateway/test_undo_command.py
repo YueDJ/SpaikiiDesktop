@@ -24,7 +24,7 @@ from sparkii_state import SessionDB
 
 
 @pytest.fixture()
-def hermes_home(tmp_path, monkeypatch):
+def sparkii_home(tmp_path, monkeypatch):
     home = tmp_path / ".sparkii"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
@@ -33,7 +33,7 @@ def hermes_home(tmp_path, monkeypatch):
 
 
 @pytest.fixture()
-def server(hermes_home):
+def server(sparkii_home):
     # Mocks are scoped to the initial import only (see
     # tests/tui_gateway/test_protocol.py for the rationale).
     with patch.dict(
@@ -61,8 +61,8 @@ def server(hermes_home):
 
 
 @pytest.fixture()
-def db(hermes_home):
-    return SessionDB(db_path=hermes_home / "state.db")
+def db(sparkii_home):
+    return SessionDB(db_path=sparkii_home / "state.db")
 
 
 @pytest.fixture()

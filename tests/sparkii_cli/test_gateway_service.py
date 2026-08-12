@@ -94,7 +94,7 @@ class TestSystemdServiceRefresh:
         ``Environment=`` line. Without this guard, any test that drives
         ``run_gateway()`` end-to-end on a real Linux dev box silently
         rewrites the developer's installed gateway unit with a
-        ``/tmp/pytest-of-.../hermes_test`` SPARKII_HOME — silently breaking
+        ``/tmp/pytest-of-.../sparkii_test`` SPARKII_HOME — silently breaking
         their gateway on the next boot. The guard sniffs the generated
         unit body for tmpdir markers and refuses the write. Tests that
         legitimately exercise the refresh flow patch
@@ -111,7 +111,7 @@ class TestSystemdServiceRefresh:
         polluted_unit = (
             "[Service]\n"
             'Environment="SPARKII_HOME=/tmp/pytest-of-alice/pytest-42/'
-            'popen-gw0/test_x/hermes_test"\n'
+            'popen-gw0/test_x/sparkii_test"\n'
         )
         monkeypatch.setattr(
             gateway_cli,
@@ -867,8 +867,8 @@ class TestSystemUnitSparkiiHome:
         # User-scope units should still use the calling user's SPARKII_HOME
         unit = gateway_cli.generate_systemd_unit(system=False)
 
-        hermes_home = str(gateway_cli.get_sparkii_home().resolve())
-        assert f'SPARKII_HOME={hermes_home}' in unit
+        sparkii_home = str(gateway_cli.get_sparkii_home().resolve())
+        assert f'SPARKII_HOME={sparkii_home}' in unit
 
 
 class TestSystemUnitRefreshSyncsSparkiiHome:
@@ -877,14 +877,14 @@ class TestSystemUnitRefreshSyncsSparkiiHome:
     def test_refresh_adopts_unit_sparkii_home_before_rewriting(self, tmp_path, monkeypatch):
         root_home = tmp_path / "root"
         alice_home = tmp_path / "alice"
-        root_hermes = root_home / ".sparkii"
-        alice_hermes = alice_home / ".sparkii"
-        root_hermes.mkdir(parents=True)
-        alice_hermes.mkdir(parents=True)
-        (root_hermes / "config.yaml").write_text(
+        root_sparkii = root_home / ".sparkii"
+        alice_sparkii = alice_home / ".sparkii"
+        root_sparkii.mkdir(parents=True)
+        alice_sparkii.mkdir(parents=True)
+        (root_sparkii / "config.yaml").write_text(
             "agent:\n  restart_drain_timeout: 60\n", encoding="utf-8"
         )
-        (alice_hermes / "config.yaml").write_text(
+        (alice_sparkii / "config.yaml").write_text(
             "agent:\n  restart_drain_timeout: 180\n", encoding="utf-8"
         )
 
@@ -904,16 +904,16 @@ class TestSystemUnitRefreshSyncsSparkiiHome:
         monkeypatch.delenv("SPARKII_RESTART_DRAIN_TIMEOUT", raising=False)
 
         # Correct installed unit (operator's SPARKII_HOME + drain timeout).
-        monkeypatch.setenv("SPARKII_HOME", str(alice_hermes))
+        monkeypatch.setenv("SPARKII_HOME", str(alice_sparkii))
         good_unit = gateway_cli.generate_systemd_unit(system=True, run_as_user="alice")
         assert "TimeoutStopSec=210" in good_unit
         unit_path.write_text(good_unit, encoding="utf-8")
 
         # Simulate sudo without inherited SPARKII_HOME (falls back to root).
-        monkeypatch.setenv("SPARKII_HOME", str(root_hermes))
+        monkeypatch.setenv("SPARKII_HOME", str(root_sparkii))
         assert gateway_cli.refresh_systemd_unit_if_needed(system=True) is False
         assert unit_path.read_text(encoding="utf-8") == good_unit
-        assert os.environ["SPARKII_HOME"] == str(alice_hermes)
+        assert os.environ["SPARKII_HOME"] == str(alice_sparkii)
         assert gateway_cli.systemd_unit_is_current(system=True) is True
 
     def test_is_current_syncs_before_reading_unit(self, tmp_path, monkeypatch):
@@ -1346,7 +1346,7 @@ class TestDockerAwareGateway:
 
 
 class TestLegacySparkiiUnitDetection:
-    """Tests for _find_legacy_hermes_units / has_legacy_hermes_units.
+    """Tests for _find_legacy_sparkii_units / has_legacy_sparkii_units.
 
     These guard against the scenario that tripped Luis in April 2026: an
     older install left a ``sparkii.service`` unit behind when the service was
@@ -1391,7 +1391,7 @@ class TestLegacySparkiiUnitDetection:
         (user_dir / "sparkii.service").write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
         (system_dir / "sparkii.service").write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
 
-        results = gateway_cli._find_legacy_hermes_units()
+        results = gateway_cli._find_legacy_sparkii_units()
 
         scopes = sorted(is_system for _, _, is_system in results)
         assert scopes == [False, True]
@@ -1419,7 +1419,7 @@ class TestLegacySparkiiUnitDetection:
                 f"[Unit]\nDescription=Old Sparkii\n[Service]\n{execstart}\n",
                 encoding="utf-8",
             )
-            results = gateway_cli._find_legacy_hermes_units()
+            results = gateway_cli._find_legacy_sparkii_units()
             assert len(results) == 1, f"Variant {i} not detected: {execstart!r}"
 
 
@@ -1437,7 +1437,7 @@ class TestLegacySparkiiUnitDetection:
 
 
 class TestRemoveLegacySparkiiUnits:
-    """Tests for remove_legacy_hermes_units (the migration action)."""
+    """Tests for remove_legacy_sparkii_units (the migration action)."""
 
     _OUR_UNIT_TEXT = (
         "[Unit]\nDescription=Sparkii Gateway\n[Service]\n"
@@ -1473,7 +1473,7 @@ class TestRemoveLegacySparkiiUnits:
         legacy = user_dir / "sparkii.service"
         legacy.write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
 
-        removed, remaining = gateway_cli.remove_legacy_hermes_units(interactive=False)
+        removed, remaining = gateway_cli.remove_legacy_sparkii_units(interactive=False)
 
         assert removed == 1
         assert remaining == []
@@ -1498,7 +1498,7 @@ class TestRemoveLegacySparkiiUnits:
         default_unit = user_dir / "sparkii-gateway.service"
         default_unit.write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
 
-        removed, remaining = gateway_cli.remove_legacy_hermes_units(interactive=False)
+        removed, remaining = gateway_cli.remove_legacy_sparkii_units(interactive=False)
 
         assert removed == 0
         assert remaining == []
@@ -1549,7 +1549,7 @@ class TestMigrateLegacyCommand:
             called["dry_run"] = dry_run
             return 0, []
 
-        monkeypatch.setattr(gateway_cli, "remove_legacy_hermes_units", fake_remove)
+        monkeypatch.setattr(gateway_cli, "remove_legacy_sparkii_units", fake_remove)
         monkeypatch.setattr(gateway_cli, "supports_systemd_services", lambda: True)
         monkeypatch.setattr(gateway_cli, "is_macos", lambda: False)
 
@@ -1608,9 +1608,9 @@ class TestSystemdInstallOffersLegacyRemoval:
             remove_called["interactive"] = interactive
             return 1, []
 
-        # has_legacy_hermes_units must return True
-        monkeypatch.setattr(gateway_cli, "has_legacy_hermes_units", lambda: True)
-        monkeypatch.setattr(gateway_cli, "remove_legacy_hermes_units", fake_remove)
+        # has_legacy_sparkii_units must return True
+        monkeypatch.setattr(gateway_cli, "has_legacy_sparkii_units", lambda: True)
+        monkeypatch.setattr(gateway_cli, "remove_legacy_sparkii_units", fake_remove)
         monkeypatch.setattr(gateway_cli, "print_legacy_unit_warning", lambda: None)
         # Answer "yes" to the legacy-removal prompt
         monkeypatch.setattr(gateway_cli, "prompt_yes_no", lambda *a, **k: True)
@@ -1648,8 +1648,8 @@ class TestSystemdInstallOffersLegacyRemoval:
             remove_called["invoked"] = True
             return 0, []
 
-        monkeypatch.setattr(gateway_cli, "has_legacy_hermes_units", lambda: True)
-        monkeypatch.setattr(gateway_cli, "remove_legacy_hermes_units", fake_remove)
+        monkeypatch.setattr(gateway_cli, "has_legacy_sparkii_units", lambda: True)
+        monkeypatch.setattr(gateway_cli, "remove_legacy_sparkii_units", fake_remove)
         monkeypatch.setattr(gateway_cli, "print_legacy_unit_warning", lambda: None)
         monkeypatch.setattr(gateway_cli, "prompt_yes_no", lambda *a, **k: False)
 
@@ -1693,8 +1693,8 @@ class TestSystemdInstallOffersLegacyRemoval:
             remove_called["invoked"] = True
             return 0, []
 
-        monkeypatch.setattr(gateway_cli, "has_legacy_hermes_units", lambda: False)
-        monkeypatch.setattr(gateway_cli, "remove_legacy_hermes_units", fake_remove)
+        monkeypatch.setattr(gateway_cli, "has_legacy_sparkii_units", lambda: False)
+        monkeypatch.setattr(gateway_cli, "remove_legacy_sparkii_units", fake_remove)
         monkeypatch.setattr(gateway_cli, "prompt_yes_no", counting_prompt)
 
         unit_path = tmp_path / "sparkii-gateway.service"

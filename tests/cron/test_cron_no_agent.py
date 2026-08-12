@@ -18,7 +18,7 @@ import pytest
 
 
 @pytest.fixture
-def hermes_env(tmp_path, monkeypatch):
+def sparkii_env(tmp_path, monkeypatch):
     """Isolate SPARKII_HOME for each test so jobs/scripts don't leak."""
     home = tmp_path / ".sparkii"
     home.mkdir()
@@ -44,17 +44,17 @@ def hermes_env(tmp_path, monkeypatch):
 # ---------------------------------------------------------------------------
 
 
-def test_create_job_no_agent_requires_script(hermes_env):
+def test_create_job_no_agent_requires_script(sparkii_env):
     from cron.jobs import create_job
 
     with pytest.raises(ValueError, match="no_agent=True requires a script"):
         create_job(prompt=None, schedule="every 5m", no_agent=True)
 
 
-def test_update_job_roundtrips_no_agent_flag(hermes_env):
+def test_update_job_roundtrips_no_agent_flag(sparkii_env):
     from cron.jobs import create_job, update_job, get_job
 
-    script_path = hermes_env / "scripts" / "w.sh"
+    script_path = sparkii_env / "scripts" / "w.sh"
     script_path.write_text("echo hi\n")
     job = create_job(prompt=None, schedule="every 5m", script="w.sh", no_agent=True, deliver="local")
 
@@ -72,7 +72,7 @@ def test_update_job_roundtrips_no_agent_flag(hermes_env):
 # ---------------------------------------------------------------------------
 
 
-def test_cronjob_tool_create_no_agent_without_script_errors(hermes_env):
+def test_cronjob_tool_create_no_agent_without_script_errors(sparkii_env):
     from tools.cronjob_tools import cronjob
 
     result = json.loads(
@@ -87,12 +87,12 @@ def test_cronjob_tool_create_no_agent_without_script_errors(hermes_env):
 # ---------------------------------------------------------------------------
 
 
-def test_run_job_no_agent_success_returns_script_stdout(hermes_env):
+def test_run_job_no_agent_success_returns_script_stdout(sparkii_env):
     """Happy path: script exits 0 with output, delivered verbatim."""
     from cron.jobs import create_job
     from cron.scheduler import run_job
 
-    script_path = hermes_env / "scripts" / "alert.sh"
+    script_path = sparkii_env / "scripts" / "alert.sh"
     script_path.write_text("#!/bin/bash\necho 'RAM 92% on host'\n")
 
     job = create_job(
@@ -105,7 +105,7 @@ def test_run_job_no_agent_success_returns_script_stdout(hermes_env):
     assert "RAM 92% on host" in doc
 
 
-def test_run_job_no_agent_reloads_dotenv_before_script(hermes_env, monkeypatch):
+def test_run_job_no_agent_reloads_dotenv_before_script(sparkii_env, monkeypatch):
     """Regression: a standalone cron tick process starts without home-channel
     vars in its environment, and the agent path's per-run dotenv reload never
     executes for no_agent jobs — delivery home channels stayed unresolved.
@@ -116,13 +116,13 @@ def test_run_job_no_agent_reloads_dotenv_before_script(hermes_env, monkeypatch):
 
     loaded_homes: list = []
 
-    def fake_load(*, hermes_home=None, project_env=None):
-        loaded_homes.append(hermes_home)
+    def fake_load(*, sparkii_home=None, project_env=None):
+        loaded_homes.append(sparkii_home)
         return []
 
-    monkeypatch.setattr(env_loader, "load_hermes_dotenv", fake_load)
+    monkeypatch.setattr(env_loader, "load_sparkii_dotenv", fake_load)
 
-    script_path = hermes_env / "scripts" / "probe.sh"
+    script_path = sparkii_env / "scripts" / "probe.sh"
     script_path.write_text('#!/bin/bash\necho "ok"\n')
 
     job = create_job(
@@ -131,8 +131,8 @@ def test_run_job_no_agent_reloads_dotenv_before_script(hermes_env, monkeypatch):
     success, doc, final_response, error = run_job(job)
     assert success is True
     assert error is None
-    assert loaded_homes, "load_hermes_dotenv was not called on the no_agent path"
-    assert str(loaded_homes[0]) == str(hermes_env)
+    assert loaded_homes, "load_sparkii_dotenv was not called on the no_agent path"
+    assert str(loaded_homes[0]) == str(sparkii_env)
 
 
 # ---------------------------------------------------------------------------
@@ -140,7 +140,7 @@ def test_run_job_no_agent_reloads_dotenv_before_script(hermes_env, monkeypatch):
 # ---------------------------------------------------------------------------
 
 
-def test_run_job_script_path_traversal_still_blocked(hermes_env):
+def test_run_job_script_path_traversal_still_blocked(sparkii_env):
     """Security regression: shell-script support must NOT loosen containment."""
     from cron.scheduler import _run_job_script
 
@@ -150,7 +150,7 @@ def test_run_job_script_path_traversal_still_blocked(hermes_env):
     assert "Blocked" in output or "outside" in output
 
 
-def test_run_job_script_nul_path_fails_cleanly(hermes_env):
+def test_run_job_script_nul_path_fails_cleanly(sparkii_env):
     """Sibling of the lifecycle-guard ingestion fix: a NUL-bearing script
     value can survive to fire time (the creation-time guard treats it as
     "nothing to scan"), and ``Path.expanduser()`` raises ValueError — not

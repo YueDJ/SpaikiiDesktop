@@ -97,15 +97,15 @@ def test_main_markets_json_prints_normalized_payload(capsys):
 
 
 
-def test_env_lookup_reads_hermes_dotenv(tmp_path, monkeypatch):
+def test_env_lookup_reads_sparkii_dotenv(tmp_path, monkeypatch):
     mod = load_module()
-    hermes_home = tmp_path / ".sparkii"
-    hermes_home.mkdir(parents=True)
-    (hermes_home / ".env").write_text(
+    sparkii_home = tmp_path / ".sparkii"
+    sparkii_home.mkdir(parents=True)
+    (sparkii_home / ".env").write_text(
         "HYPERLIQUID_USER_ADDRESS=0xdotenv123\nHYPERLIQUID_API_URL=https://api.hyperliquid-testnet.xyz\n",
         encoding="utf-8",
     )
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
     monkeypatch.delenv("HYPERLIQUID_USER_ADDRESS", raising=False)
     monkeypatch.delenv("HYPERLIQUID_API_URL", raising=False)
 
@@ -120,12 +120,12 @@ def test_user_dotenv_overrides_project_dotenv(tmp_path, monkeypatch):
     project_dir.mkdir()
     (project_dir / ".env").write_text("HYPERLIQUID_USER_ADDRESS=0xproject\n", encoding="utf-8")
 
-    hermes_home = tmp_path / ".sparkii"
-    hermes_home.mkdir()
-    (hermes_home / ".env").write_text("HYPERLIQUID_USER_ADDRESS=0xuserhome\n", encoding="utf-8")
+    sparkii_home = tmp_path / ".sparkii"
+    sparkii_home.mkdir()
+    (sparkii_home / ".env").write_text("HYPERLIQUID_USER_ADDRESS=0xuserhome\n", encoding="utf-8")
 
     monkeypatch.chdir(project_dir)
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
     monkeypatch.delenv("HYPERLIQUID_USER_ADDRESS", raising=False)
 
     assert mod._env_lookup("HYPERLIQUID_USER_ADDRESS") == "0xuserhome"

@@ -43,7 +43,7 @@ def profile_env(tmp_path, monkeypatch):
 
 
 @pytest.fixture()
-def hermes_home(profile_env):
+def sparkii_home(profile_env):
     return profile_env / ".sparkii"
 
 
@@ -168,11 +168,11 @@ def snapshot_tree(root: Path) -> dict:
     }
 
 
-def run_import(agent, source, hermes_home, execute, overwrite=False):
+def run_import(agent, source, sparkii_home, execute, overwrite=False):
     return AgentImporter(
         agent=agent,
         source_root=source,
-        target_root=hermes_home,
+        target_root=sparkii_home,
         execute=execute,
         overwrite=overwrite,
     ).run()
@@ -187,9 +187,9 @@ class TestDetection:
         assert detect_agents() == ["claude-code", "codex"]
 
 
-    def test_unsupported_agent_raises(self, hermes_home, tmp_path):
+    def test_unsupported_agent_raises(self, sparkii_home, tmp_path):
         with pytest.raises(ValueError):
-            AgentImporter("cursor", tmp_path, hermes_home)
+            AgentImporter("cursor", tmp_path, sparkii_home)
 
 
 class TestRuleMapping:
@@ -233,17 +233,17 @@ class TestMarkdownEntries:
 # ---------------------------------------------------------------------------
 
 class TestDryRun:
-    def test_claude_dry_run_writes_nothing(self, claude_tree, hermes_home):
-        before = snapshot_tree(hermes_home)
-        report = run_import("claude-code", claude_tree, hermes_home, execute=False)
-        assert snapshot_tree(hermes_home) == before
+    def test_claude_dry_run_writes_nothing(self, claude_tree, sparkii_home):
+        before = snapshot_tree(sparkii_home)
+        report = run_import("claude-code", claude_tree, sparkii_home, execute=False)
+        assert snapshot_tree(sparkii_home) == before
         assert report["dry_run"] is True
         assert report["summary"]["imported"] > 0
 
 
-    def test_dry_run_and_real_run_plan_same_items(self, claude_tree, hermes_home):
-        preview = run_import("claude-code", claude_tree, hermes_home, execute=False)
-        applied = run_import("claude-code", claude_tree, hermes_home, execute=True)
+    def test_dry_run_and_real_run_plan_same_items(self, claude_tree, sparkii_home):
+        preview = run_import("claude-code", claude_tree, sparkii_home, execute=False)
+        applied = run_import("claude-code", claude_tree, sparkii_home, execute=True)
         pk = [(i["kind"], i["status"]) for i in preview["items"]]
         ak = [(i["kind"], i["status"]) for i in applied["items"]]
         assert pk == ak
@@ -255,12 +255,12 @@ class TestDryRun:
 
 class TestClaudeCodeImport:
     @pytest.fixture()
-    def report(self, claude_tree, hermes_home):
-        return run_import("claude-code", claude_tree, hermes_home, execute=True)
+    def report(self, claude_tree, sparkii_home):
+        return run_import("claude-code", claude_tree, sparkii_home, execute=True)
 
 
-    def test_allowlist_lands_in_config_yaml(self, report, hermes_home):
-        config = yaml.safe_load((hermes_home / "config.yaml").read_text())
+    def test_allowlist_lands_in_config_yaml(self, report, sparkii_home):
+        config = yaml.safe_load((sparkii_home / "config.yaml").read_text())
         allow = config["command_allowlist"]
         assert "npm run build" in allow
         assert "npm run test*" in allow
@@ -282,20 +282,20 @@ class TestClaudeCodeImport:
 
 class TestCodexImport:
     @pytest.fixture()
-    def report(self, codex_tree, hermes_home):
-        return run_import("codex", codex_tree, hermes_home, execute=True)
+    def report(self, codex_tree, sparkii_home):
+        return run_import("codex", codex_tree, sparkii_home, execute=True)
 
 
-    def test_mcp_servers_from_config_toml(self, report, hermes_home):
-        config = yaml.safe_load((hermes_home / "config.yaml").read_text())
+    def test_mcp_servers_from_config_toml(self, report, sparkii_home):
+        config = yaml.safe_load((sparkii_home / "config.yaml").read_text())
         docs = config["mcp_servers"]["docs"]
         assert docs["command"] == "uvx"
         assert docs["args"] == ["docs-mcp"]
         # non-secret env survives, secret is stripped
         assert docs["env"] == {"DOCS_REGION": "eu"}
 
-    def test_skill_copied(self, report, hermes_home):
-        assert (hermes_home / "skills" / "codex-imports" / "db-migrate" / "SKILL.md").exists()
+    def test_skill_copied(self, report, sparkii_home):
+        assert (sparkii_home / "skills" / "codex-imports" / "db-migrate" / "SKILL.md").exists()
 
 
 # ---------------------------------------------------------------------------
@@ -303,34 +303,34 @@ class TestCodexImport:
 # ---------------------------------------------------------------------------
 
 class TestSecretsNeverImported:
-    def test_no_secret_values_anywhere_claude(self, claude_tree, hermes_home):
-        run_import("claude-code", claude_tree, hermes_home, execute=True)
+    def test_no_secret_values_anywhere_claude(self, claude_tree, sparkii_home):
+        run_import("claude-code", claude_tree, sparkii_home, execute=True)
         blob = "".join(
             p.read_text(encoding="utf-8", errors="replace")
-            for p in hermes_home.rglob("*") if p.is_file()
+            for p in sparkii_home.rglob("*") if p.is_file()
         )
         assert "ghp_SECRET123" not in blob
         assert "Bearer abc123" not in blob
         assert "sk-ant-SUPERSECRET" not in blob
 
-    def test_no_secret_values_anywhere_codex(self, codex_tree, hermes_home):
-        run_import("codex", codex_tree, hermes_home, execute=True)
+    def test_no_secret_values_anywhere_codex(self, codex_tree, sparkii_home):
+        run_import("codex", codex_tree, sparkii_home, execute=True)
         blob = "".join(
             p.read_text(encoding="utf-8", errors="replace")
-            for p in hermes_home.rglob("*") if p.is_file()
+            for p in sparkii_home.rglob("*") if p.is_file()
         )
         assert "secret-value" not in blob
         assert "sk-SECRET" not in blob
 
-    def test_stripped_secrets_reported(self, claude_tree, hermes_home):
-        report = run_import("claude-code", claude_tree, hermes_home, execute=True)
+    def test_stripped_secrets_reported(self, claude_tree, sparkii_home):
+        report = run_import("claude-code", claude_tree, sparkii_home, execute=True)
         stripped = report.get("stripped_secrets", [])
         assert "mcp_servers.github.env.GITHUB_TOKEN" in stripped
         assert any("Authorization" in s for s in stripped)
 
-    def test_non_secret_header_kept(self, claude_tree, hermes_home):
-        run_import("claude-code", claude_tree, hermes_home, execute=True)
-        config = yaml.safe_load((hermes_home / "config.yaml").read_text())
+    def test_non_secret_header_kept(self, claude_tree, sparkii_home):
+        run_import("claude-code", claude_tree, sparkii_home, execute=True)
+        config = yaml.safe_load((sparkii_home / "config.yaml").read_text())
         assert config["mcp_servers"]["remote"]["headers"] == {"X-Region": "us-east"}
 
 
@@ -339,23 +339,23 @@ class TestSecretsNeverImported:
 # ---------------------------------------------------------------------------
 
 class TestMalformedInputs:
-    def test_bad_settings_json_reports_error(self, profile_env, hermes_home):
+    def test_bad_settings_json_reports_error(self, profile_env, sparkii_home):
         root = profile_env / ".claude"
         root.mkdir()
         (root / "settings.json").write_text("{not json!!", encoding="utf-8")
         (root / "CLAUDE.md").write_text("- still importable\n", encoding="utf-8")
-        report = run_import("claude-code", root, hermes_home, execute=True)
+        report = run_import("claude-code", root, sparkii_home, execute=True)
         errors = [i for i in report["items"] if i["status"] == "error"]
         assert any(i["kind"] == "settings" for i in errors)
         # CLAUDE.md still imported despite bad settings.json
         assert "still importable" in (
-            hermes_home / "memories" / "MEMORY.md").read_text()
+            sparkii_home / "memories" / "MEMORY.md").read_text()
 
 
-    def test_empty_tree_all_skipped(self, profile_env, hermes_home):
+    def test_empty_tree_all_skipped(self, profile_env, sparkii_home):
         root = profile_env / ".codex"
         root.mkdir()
-        report = run_import("codex", root, hermes_home, execute=True)
+        report = run_import("codex", root, sparkii_home, execute=True)
         assert report["summary"]["imported"] == 0
         assert report["summary"]["error"] == 0
 
@@ -367,12 +367,12 @@ class TestMalformedInputs:
 class TestMergeSemantics:
 
     def test_existing_mcp_server_conflicts_without_overwrite(
-            self, claude_tree, hermes_home):
-        (hermes_home / "config.yaml").write_text(
+            self, claude_tree, sparkii_home):
+        (sparkii_home / "config.yaml").write_text(
             yaml.safe_dump({"mcp_servers": {"github": {"command": "mine"}}}),
             encoding="utf-8")
-        report = run_import("claude-code", claude_tree, hermes_home, execute=True)
-        config = yaml.safe_load((hermes_home / "config.yaml").read_text())
+        report = run_import("claude-code", claude_tree, sparkii_home, execute=True)
+        config = yaml.safe_load((sparkii_home / "config.yaml").read_text())
         assert config["mcp_servers"]["github"]["command"] == "mine"
         assert any(
             i["status"] == "conflict" and i["source"] == "github"
@@ -381,22 +381,22 @@ class TestMergeSemantics:
 
 
     def test_existing_skill_conflicts_without_overwrite(
-            self, claude_tree, hermes_home):
-        dest = hermes_home / "skills" / "claude-code-imports" / "deploy-helper"
+            self, claude_tree, sparkii_home):
+        dest = sparkii_home / "skills" / "claude-code-imports" / "deploy-helper"
         dest.mkdir(parents=True)
         (dest / "SKILL.md").write_text("mine\n", encoding="utf-8")
-        report = run_import("claude-code", claude_tree, hermes_home, execute=True)
+        report = run_import("claude-code", claude_tree, sparkii_home, execute=True)
         assert (dest / "SKILL.md").read_text() == "mine\n"
         assert any(
             i["kind"] == "skill" and i["status"] == "conflict"
             for i in report["items"]
         )
 
-    def test_reimport_is_idempotent_for_memory(self, claude_tree, hermes_home):
-        run_import("claude-code", claude_tree, hermes_home, execute=True)
-        first = (hermes_home / "memories" / "MEMORY.md").read_text()
-        report = run_import("claude-code", claude_tree, hermes_home, execute=True)
-        assert (hermes_home / "memories" / "MEMORY.md").read_text() == first
+    def test_reimport_is_idempotent_for_memory(self, claude_tree, sparkii_home):
+        run_import("claude-code", claude_tree, sparkii_home, execute=True)
+        first = (sparkii_home / "memories" / "MEMORY.md").read_text()
+        report = run_import("claude-code", claude_tree, sparkii_home, execute=True)
+        assert (sparkii_home / "memories" / "MEMORY.md").read_text() == first
         memory_items = [i for i in report["items"] if i["kind"] == "claude-md"]
         assert memory_items[0]["status"] == "skipped"
 
@@ -435,11 +435,11 @@ class TestExistingMemoryStorePreserved:
     """
 
     @pytest.fixture()
-    def seeded_home(self, hermes_home):
-        memory = hermes_home / "memories" / "MEMORY.md"
+    def seeded_home(self, sparkii_home):
+        memory = sparkii_home / "memories" / "MEMORY.md"
         memory.parent.mkdir(parents=True, exist_ok=True)
         memory.write_text(EXISTING_MEMORY, encoding="utf-8")
-        return hermes_home
+        return sparkii_home
 
 
 
@@ -509,8 +509,8 @@ class TestExistingConfigPreserved:
     """
 
     @pytest.fixture()
-    def config_path(self, hermes_home):
-        return hermes_home / "config.yaml"
+    def config_path(self, sparkii_home):
+        return sparkii_home / "config.yaml"
 
     @staticmethod
     def items_for(report, kind):
@@ -519,19 +519,19 @@ class TestExistingConfigPreserved:
     # -- present but unreadable: refuse, change nothing --------------------
 
     def test_malformed_config_is_left_byte_identical(
-            self, claude_tree, hermes_home, config_path):
+            self, claude_tree, sparkii_home, config_path):
         config_path.write_text(MALFORMED_CONFIG, encoding="utf-8")
         before = config_path.read_bytes()
 
-        run_import("claude-code", claude_tree, hermes_home, execute=True)
+        run_import("claude-code", claude_tree, sparkii_home, execute=True)
 
         assert config_path.read_bytes() == before
 
     def test_malformed_config_records_an_error_not_an_import(
-            self, claude_tree, hermes_home, config_path):
+            self, claude_tree, sparkii_home, config_path):
         config_path.write_text(MALFORMED_CONFIG, encoding="utf-8")
 
-        report = run_import("claude-code", claude_tree, hermes_home, execute=True)
+        report = run_import("claude-code", claude_tree, sparkii_home, execute=True)
 
         for kind in CONFIG_WRITING_KINDS:
             items = self.items_for(report, kind)
@@ -544,7 +544,7 @@ class TestExistingConfigPreserved:
             assert "sparkii config edit" in reason
 
     def test_unreadable_config_is_left_byte_identical(
-            self, claude_tree, hermes_home, config_path):
+            self, claude_tree, sparkii_home, config_path):
         """A permission problem is the other half of the same root cause."""
         import os
 
@@ -556,7 +556,7 @@ class TestExistingConfigPreserved:
         before = config_path.read_bytes()
         config_path.chmod(0o000)
         try:
-            report = run_import("claude-code", claude_tree, hermes_home,
+            report = run_import("claude-code", claude_tree, sparkii_home,
                                 execute=True)
             statuses = {
                 i["status"]
@@ -569,23 +569,23 @@ class TestExistingConfigPreserved:
         assert config_path.read_bytes() == before
 
     def test_non_mapping_config_is_refused(
-            self, claude_tree, hermes_home, config_path):
+            self, claude_tree, sparkii_home, config_path):
         """Valid YAML that is not a mapping was also collapsed to {}."""
         config_path.write_text("- just\n- a\n- list\n", encoding="utf-8")
         before = config_path.read_bytes()
 
-        report = run_import("claude-code", claude_tree, hermes_home, execute=True)
+        report = run_import("claude-code", claude_tree, sparkii_home, execute=True)
 
         assert config_path.read_bytes() == before
         reasons = [i["reason"] for i in self.items_for(report, "command-allowlist")]
         assert any("YAML mapping" in r for r in reasons)
 
     def test_dry_run_reports_the_refusal_rather_than_a_preview(
-            self, claude_tree, hermes_home, config_path):
+            self, claude_tree, sparkii_home, config_path):
         """--dry-run must not promise an import that would destroy the file."""
         config_path.write_text(MALFORMED_CONFIG, encoding="utf-8")
 
-        report = run_import("claude-code", claude_tree, hermes_home, execute=False)
+        report = run_import("claude-code", claude_tree, sparkii_home, execute=False)
 
         for kind in CONFIG_WRITING_KINDS:
             statuses = [i["status"] for i in self.items_for(report, kind)]
@@ -595,10 +595,10 @@ class TestExistingConfigPreserved:
     # -- the regression that actually pins the data loss -------------------
 
     def test_import_preserves_every_pre_existing_config_key(
-            self, claude_tree, hermes_home, config_path):
+            self, claude_tree, sparkii_home, config_path):
         config_path.write_text(EXISTING_CONFIG, encoding="utf-8")
 
-        run_import("claude-code", claude_tree, hermes_home, execute=True)
+        run_import("claude-code", claude_tree, sparkii_home, execute=True)
 
         merged = yaml.safe_load(config_path.read_text(encoding="utf-8"))
         # Untouched sections survive verbatim.
@@ -614,20 +614,20 @@ class TestExistingConfigPreserved:
         assert "github" in merged["mcp_servers"]
 
     def test_absent_config_is_still_created(
-            self, claude_tree, hermes_home, config_path):
+            self, claude_tree, sparkii_home, config_path):
         """The guard must not break first-time creation."""
         assert not config_path.exists()
 
-        run_import("claude-code", claude_tree, hermes_home, execute=True)
+        run_import("claude-code", claude_tree, sparkii_home, execute=True)
 
         created = yaml.safe_load(config_path.read_text(encoding="utf-8"))
         assert "npm run build" in created["command_allowlist"]
 
     def test_empty_config_is_treated_as_absent(
-            self, claude_tree, hermes_home, config_path):
+            self, claude_tree, sparkii_home, config_path):
         config_path.write_text("", encoding="utf-8")
 
-        run_import("claude-code", claude_tree, hermes_home, execute=True)
+        run_import("claude-code", claude_tree, sparkii_home, execute=True)
 
         created = yaml.safe_load(config_path.read_text(encoding="utf-8"))
         assert "npm run build" in created["command_allowlist"]
@@ -635,29 +635,29 @@ class TestExistingConfigPreserved:
     # -- the write itself --------------------------------------------------
 
     def test_config_write_is_atomic_and_leaves_no_temp_files(
-            self, claude_tree, hermes_home, config_path):
+            self, claude_tree, sparkii_home, config_path):
         config_path.write_text(EXISTING_CONFIG, encoding="utf-8")
 
-        run_import("claude-code", claude_tree, hermes_home, execute=True)
+        run_import("claude-code", claude_tree, sparkii_home, execute=True)
 
-        leftovers = [p.name for p in hermes_home.glob(".tmp*")]
+        leftovers = [p.name for p in sparkii_home.glob(".tmp*")]
         assert leftovers == []
 
     def test_symlinked_config_stays_a_symlink(
-            self, claude_tree, hermes_home, tmp_path, config_path):
+            self, claude_tree, sparkii_home, tmp_path, config_path):
         """A non-atomic ``write_text`` would follow it; ``os.replace`` would
         clobber it.  ``atomic_replace`` keeps the link and writes the target."""
         real = tmp_path / "real-config.yaml"
         real.write_text(EXISTING_CONFIG, encoding="utf-8")
         config_path.symlink_to(real)
 
-        run_import("claude-code", claude_tree, hermes_home, execute=True)
+        run_import("claude-code", claude_tree, sparkii_home, execute=True)
 
         assert config_path.is_symlink()
         assert "npm run build" in real.read_text(encoding="utf-8")
 
     def test_failed_write_does_not_truncate_the_existing_config(
-            self, hermes_home, config_path, monkeypatch):
+            self, sparkii_home, config_path, monkeypatch):
         """An interrupted dump leaves the previous file complete."""
         from sparkii_cli import agent_import
 
@@ -707,7 +707,7 @@ class TestCliWiring:
             parser.parse_args(["import-agent", "cursor"])
 
     def test_command_dry_run_via_cli_writes_nothing(
-            self, claude_tree, hermes_home, capsys):
+            self, claude_tree, sparkii_home, capsys):
         """End-to-end through import_agent_command with --dry-run."""
         import types
         from sparkii_cli.agent_import import import_agent_command
@@ -721,9 +721,9 @@ class TestCliWiring:
         assert "command-allowlist" in out
         # Baseline config.yaml/SOUL.md may be seeded by save_config() before
         # the preview runs — but nothing from the IMPORT itself may land:
-        assert not (hermes_home / "memories" / "MEMORY.md").exists()
-        assert not (hermes_home / "skills" / "claude-code-imports").exists()
-        config_text = (hermes_home / "config.yaml").read_text(encoding="utf-8") \
-            if (hermes_home / "config.yaml").exists() else ""
+        assert not (sparkii_home / "memories" / "MEMORY.md").exists()
+        assert not (sparkii_home / "skills" / "claude-code-imports").exists()
+        config_text = (sparkii_home / "config.yaml").read_text(encoding="utf-8") \
+            if (sparkii_home / "config.yaml").exists() else ""
         assert "npm run build" not in config_text
         assert "github" not in config_text

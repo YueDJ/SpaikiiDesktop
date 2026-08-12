@@ -20,7 +20,7 @@ import pytest
 from sparkii_cli import main as cli_main
 
 
-# Tests in this module either exercise the REAL _detect_concurrent_hermes_instances
+# Tests in this module either exercise the REAL _detect_concurrent_sparkii_instances
 # helper (and need the autouse stub in tests/sparkii_cli/conftest.py disabled),
 # or supply their own explicit return value via patch.object. Mark the whole
 # module so the conftest fixture skips its default stub.
@@ -28,7 +28,7 @@ pytestmark = pytest.mark.real_concurrent_gate
 
 
 # ---------------------------------------------------------------------------
-# _detect_concurrent_hermes_instances
+# _detect_concurrent_sparkii_instances
 # ---------------------------------------------------------------------------
 
 
@@ -123,7 +123,7 @@ def test_detect_concurrent_parents_call_robust_to_one_bad_hop(_winp, tmp_path):
         ancestor_exe=None,
     )
     with patch.dict(sys.modules, {"psutil": fake_psutil}):
-        result = cli_main._detect_concurrent_hermes_instances(scripts_dir)
+        result = cli_main._detect_concurrent_sparkii_instances(scripts_dir)
 
     # No crash; helper completes. (Degenerate stub: launcher exe unreadable.)
     assert result == [(launcher_pid, "sparkii.exe")]
@@ -139,7 +139,7 @@ def test_detect_concurrent_parents_call_robust_to_one_bad_hop(_winp, tmp_path):
 
 
 # ---------------------------------------------------------------------------
-# _quarantine_running_hermes_exe — retry + reboot-deferred fallback
+# _quarantine_running_sparkii_exe — retry + reboot-deferred fallback
 # ---------------------------------------------------------------------------
 
 
@@ -149,7 +149,7 @@ def test_quarantine_succeeds_first_attempt(_winp, tmp_path):
     shim = tmp_path / "sparkii.exe"
     shim.write_bytes(b"old")
 
-    pairs = cli_main._quarantine_running_hermes_exe(tmp_path)
+    pairs = cli_main._quarantine_running_sparkii_exe(tmp_path)
 
     assert len(pairs) == 1
     orig, quarantine = pairs[0]
@@ -174,11 +174,11 @@ def test_quarantine_falls_back_to_reboot_schedule(_winp, tmp_path, capsys, monke
         scheduled_calls.append((s, q))
         return True
 
-    monkeypatch.setattr(cli_main, "_hermes_exe_shims", lambda d: [shim])
+    monkeypatch.setattr(cli_main, "_sparkii_exe_shims", lambda d: [shim])
     with patch.object(Path, "rename", always_fails), patch.object(
         cli_main, "_schedule_replace_on_reboot", fake_schedule
     ), patch("time.sleep", lambda *_a, **_k: None):
-        pairs = cli_main._quarantine_running_hermes_exe(tmp_path)
+        pairs = cli_main._quarantine_running_sparkii_exe(tmp_path)
 
     captured = capsys.readouterr().out
 

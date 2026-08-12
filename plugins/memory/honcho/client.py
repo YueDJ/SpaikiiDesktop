@@ -59,7 +59,7 @@ def resolve_active_host() -> str:
 
     Resolution order:
       1. SPARKII_HONCHO_HOST env var (explicit override)
-      2. Active profile name via profiles system -> ``hermes_<profile>``
+      2. Active profile name via profiles system -> ``sparkii_<profile>``
       3. defaultHost from the active config, but only for the default profile
       4. Fallback: ``"sparkii"`` (default profile)
     """
@@ -1036,8 +1036,8 @@ def get_honcho_client(config: HonchoClientConfig | None = None) -> Honcho:
         if not resolved_base_url or resolved_timeout is None:
             try:
                 from sparkii_cli.config import load_config
-                hermes_cfg = load_config()
-                honcho_cfg = hermes_cfg.get("honcho", {})
+                sparkii_cfg = load_config()
+                honcho_cfg = sparkii_cfg.get("honcho", {})
                 if isinstance(honcho_cfg, dict):
                     if not resolved_base_url:
                         resolved_base_url = honcho_cfg.get("base_url", "").strip() or None

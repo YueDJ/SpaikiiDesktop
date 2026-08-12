@@ -4859,7 +4859,7 @@ def _fallback_destination(
     fb_label: str,
 ) -> _FallbackDestination:
     """Return the resolved route identity used by a fallback request."""
-    attached = getattr(fb_client, "_hermes_fallback_destination", None)
+    attached = getattr(fb_client, "_sparkii_fallback_destination", None)
     if isinstance(attached, _FallbackDestination):
         return attached
 
@@ -5512,7 +5512,7 @@ def _resolve_fallback_entry(entry: Dict[str, Any]) -> Tuple[Optional[Any], Optio
     )
     if client is not None:
         try:
-            client._hermes_fallback_destination = _fallback_destination_from_entry(
+            client._sparkii_fallback_destination = _fallback_destination_from_entry(
                 entry, client, resolved_model
             )
         except Exception:
@@ -5835,7 +5835,7 @@ def _tag_effective_provider(client: Any, provider: str) -> None:
     if client is None or not provider:
         return
     try:
-        setattr(client, "_hermes_aux_effective_provider", provider)
+        setattr(client, "_sparkii_aux_effective_provider", provider)
     except (AttributeError, TypeError):
         logger.debug(
             "Auxiliary client %s cannot retain effective provider %s",
@@ -5845,7 +5845,7 @@ def _tag_effective_provider(client: Any, provider: str) -> None:
 
 def _effective_provider_for_client(client: Any, fallback: str) -> str:
     """Return the concrete provider selected for an auto-routed client."""
-    effective_provider = getattr(client, "_hermes_aux_effective_provider", "")
+    effective_provider = getattr(client, "_sparkii_aux_effective_provider", "")
     if isinstance(effective_provider, str) and effective_provider:
         return effective_provider
     return str(fallback or "")

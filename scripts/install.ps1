@@ -365,7 +365,7 @@ $script:ResolvedPathReport = @{
     normalized        = $script:NormalizedPathRewrites
     resolver          = $script:LastResolver
     temp              = $env:TEMP
-    hermes_home       = $SparkiiHome
+    sparkii_home       = $SparkiiHome
     install_dir       = $InstallDir
 }
 
@@ -2303,7 +2303,7 @@ function Install-Venv {
             # on failure -- but only for tasks that were enabled to begin with.
             # Best-effort: a missing task just errors quietly.
             try {
-                schtasks /Query /FO CSV 2>$null | ConvertFrom-Csv | Where-Object { $_.TaskName -like '*Hermes_Gateway*' } | ForEach-Object {
+                schtasks /Query /FO CSV 2>$null | ConvertFrom-Csv | Where-Object { $_.TaskName -like '*Sparkii_Gateway*' } | ForEach-Object {
                     $tn = $_.TaskName
                     if ($_.Status -eq 'Disabled') {
                         Write-Info "  gateway autostart task $tn is already disabled; leaving it that way"
@@ -3317,7 +3317,7 @@ function Install-Desktop {
     # itself, ~150MB), then run `npm run pack` in apps/desktop which
     # produces the unpacked binary at apps/desktop/release/<os>-unpacked/.
     #
-    # The Tauri bootstrap installer's launch_hermes_desktop command
+    # The Tauri bootstrap installer's launch_sparkii_desktop command
     # resolves apps/desktop/release/win-unpacked/Sparkii.exe directly,
     # so an "unpacked" build (electron-builder --dir) is enough -- we
     # don't need to produce an NSIS/MSI artifact here.

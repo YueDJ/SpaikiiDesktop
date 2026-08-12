@@ -4,7 +4,7 @@ Three different surfaces can start an update of the same install tree:
 
 * ``sparkii update`` from a terminal,
 * the dashboard's Update button (``POST /api/sparkii/update`` →
-  ``_spawn_hermes_action(["update"])``, detached),
+  ``_spawn_sparkii_action(["update"])``, detached),
 * the desktop's Update button, which hands off to the Tauri
   ``sparkii-setup --update`` and, on its failure screen, to install-mode
   bootstrap (``install.ps1`` / ``install.sh``).

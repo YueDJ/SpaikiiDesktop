@@ -126,7 +126,7 @@ export const ja = defineLocale({
     backendOutOfDateMessage:
       'Sparkii バックエンドがこのデスクトップビルドより古く、正常に動作しない場合があります。更新して揃えてください。',
     installMethodUnsupportedTitle: 'サポート対象外のインストール方法',
-    updateHermes: 'Sparkii を更新',
+    updateSparkii: 'Sparkii を更新',
     updateReadyTitle: '更新の準備ができました',
     updateReadyMessage: count => `${count} 件の新しい変更が利用可能です。`,
     seeWhatsNew: '新機能を見る',
@@ -331,7 +331,7 @@ export const ja = defineLocale({
       backdropDesc: '会話の背後に表示される淡い彫像の画像。',
       reactionsTitle: 'メッセージリアクション',
       reactionsDesc:
-        'iMessage風の絵文字タップバック — メッセージにリアクションでき、Hermesもあなたのメッセージにリアクションします。',
+        'iMessage風の絵文字タップバック — メッセージにリアクションでき、Sparkiiもあなたのメッセージにリアクションします。',
       embedsTitle: 'インライン埋め込み',
       embedsDesc:
         'リッチプレビューは第三者サイト（YouTube、X など）から読み込まれます。確認は許可するまでプレースホルダーを表示し、常には自動で読み込み、オフはリンクのままにします。',
@@ -1224,7 +1224,7 @@ export const ja = defineLocale({
     sparkiiActiveSessions: (version, count) => `Sparkii ${version} · アクティブセッション ${count}`,
     restartGateway: 'ゲートウェイを再起動',
     gatewayRestartFailed: 'ゲートウェイの再起動に失敗しました。',
-    updateHermes: 'Sparkii を更新',
+    updateSparkii: 'Sparkii を更新',
     actionRunning: '実行中',
     actionDone: '完了',
     actionFailed: '失敗',

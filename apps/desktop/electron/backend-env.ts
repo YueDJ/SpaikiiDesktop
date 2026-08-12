@@ -71,7 +71,7 @@ function appendUniquePathEntries(entries, { delimiter = path.delimiter } = {}) {
  *
  * This is the single source of truth for the ordering rule on the Node side —
  * `main.ts` imports it rather than keeping its own copy. Mirrors
- * `iter_hermes_node_dirs()` in sparkii_constants.py, which the Electron main
+ * `iter_sparkii_node_dirs()` in sparkii_constants.py, which the Electron main
  * process cannot import.
  */
 function sparkiiManagedNodePathEntries(

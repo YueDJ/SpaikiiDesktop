@@ -16,18 +16,18 @@ from gateway import run as gateway_run
 
 
 def test_reload_runtime_env_preserves_config_max_turns(tmp_path: Path, monkeypatch) -> None:
-    hermes_home = tmp_path / ".sparkii"
-    hermes_home.mkdir()
-    (hermes_home / "config.yaml").write_text(
+    sparkii_home = tmp_path / ".sparkii"
+    sparkii_home.mkdir()
+    (sparkii_home / "config.yaml").write_text(
         yaml.safe_dump({"agent": {"max_turns": 9000}}),
         encoding="utf-8",
     )
-    (hermes_home / ".env").write_text(
+    (sparkii_home / ".env").write_text(
         "SPARKII_MAX_ITERATIONS=90\nOPENROUTER_API_KEY=fresh-key\n",
         encoding="utf-8",
     )
 
-    monkeypatch.setattr(gateway_run, "_sparkii_home", hermes_home)
+    monkeypatch.setattr(gateway_run, "_sparkii_home", sparkii_home)
     monkeypatch.setenv("SPARKII_MAX_ITERATIONS", "9000")
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
 
@@ -49,16 +49,16 @@ def test_reload_runtime_env_preserves_config_terminal_backend(
     execute_code / read_file call starts trying Docker — while
     ``sparkii config get terminal.backend`` still says local.
     """
-    hermes_home = tmp_path / ".sparkii"
-    hermes_home.mkdir()
-    (hermes_home / "config.yaml").write_text(
+    sparkii_home = tmp_path / ".sparkii"
+    sparkii_home.mkdir()
+    (sparkii_home / "config.yaml").write_text(
         yaml.safe_dump({"terminal": {"backend": "local"}}),
         encoding="utf-8",
     )
-    (hermes_home / ".env").write_text("TERMINAL_ENV=docker\n", encoding="utf-8")
+    (sparkii_home / ".env").write_text("TERMINAL_ENV=docker\n", encoding="utf-8")
 
-    monkeypatch.setattr(gateway_run, "_sparkii_home", hermes_home)
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    monkeypatch.setattr(gateway_run, "_sparkii_home", sparkii_home)
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
     # Startup bridge already ran: the effective backend is local.
     monkeypatch.setenv("TERMINAL_ENV", "local")
 

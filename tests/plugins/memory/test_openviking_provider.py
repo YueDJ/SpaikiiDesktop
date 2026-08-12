@@ -107,7 +107,7 @@ def test_openviking_provider_config_loader_uses_readonly_config(monkeypatch):
     monkeypatch.setattr(config_mod, "load_config_readonly", load_config_readonly)
     monkeypatch.setattr(config_mod, "load_config", load_config)
 
-    config = openviking_module._load_hermes_openviking_config()
+    config = openviking_module._load_sparkii_openviking_config()
 
     assert calls == ["readonly"]
     assert config == {
@@ -119,9 +119,9 @@ def test_openviking_provider_config_loader_uses_readonly_config(monkeypatch):
 
 def test_connection_settings_read_dashboard_config_file(tmp_path, monkeypatch):
     _clear_openviking_env(monkeypatch)
-    hermes_home = tmp_path / "sparkii"
-    hermes_home.mkdir()
-    (hermes_home / "config.yaml").write_text(
+    sparkii_home = tmp_path / "sparkii"
+    sparkii_home.mkdir()
+    (sparkii_home / "config.yaml").write_text(
         """\
 memory:
   provider: openviking
@@ -133,10 +133,10 @@ memory:
 """,
         encoding="utf-8",
     )
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
     settings = openviking_module._resolve_connection_settings(
-        openviking_module._load_hermes_openviking_config()
+        openviking_module._load_sparkii_openviking_config()
     )
 
     assert settings["endpoint"] == "http://saved.test:1933"
@@ -273,9 +273,9 @@ def test_link_ovcli_profile_removes_stale_inline_config(tmp_path):
 
 def test_post_setup_existing_profile_picker_validates_and_links_saved_profile(tmp_path, monkeypatch):
     _clear_openviking_env(monkeypatch)
-    hermes_home = tmp_path / "sparkii"
-    hermes_home.mkdir()
-    env_path = hermes_home / ".env"
+    sparkii_home = tmp_path / "sparkii"
+    sparkii_home.mkdir()
+    env_path = sparkii_home / ".env"
     env_path.write_text("OPENVIKING_ENDPOINT=http://old.test\nOTHER_KEY=keep\n", encoding="utf-8")
     openviking_home = tmp_path / ".openviking"
     openviking_home.mkdir()
@@ -286,7 +286,7 @@ def test_post_setup_existing_profile_picker_validates_and_links_saved_profile(tm
         json.dumps({"url": "https://vps.example", "api_key": "user-key"}),
         encoding="utf-8",
     )
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
     monkeypatch.setattr(openviking_module.Path, "home", staticmethod(lambda: tmp_path))
 
     from sparkii_cli import memory_setup
@@ -307,7 +307,7 @@ def test_post_setup_existing_profile_picker_validates_and_links_saved_profile(tm
     monkeypatch.setattr(memory_setup, "_curses_select", lambda *args, **kwargs: next(choices))
     config = {"memory": {}}
 
-    OpenVikingMemoryProvider().post_setup(str(hermes_home), config)
+    OpenVikingMemoryProvider().post_setup(str(sparkii_home), config)
 
     assert validate_calls == [{
         "endpoint": "https://vps.example",
@@ -679,14 +679,14 @@ def test_tool_search_sorts_by_raw_score_across_buckets():
     assert result["total"] == 3
 
 
-def test_tool_add_resource_rejects_hermes_credential_file_upload(tmp_path, monkeypatch):
+def test_tool_add_resource_rejects_sparkii_credential_file_upload(tmp_path, monkeypatch):
     import agent.file_safety as fs
 
-    hermes_home = tmp_path / "hermes_home"
-    hermes_home.mkdir()
-    auth_json = hermes_home / "auth.json"
+    sparkii_home = tmp_path / "sparkii_home"
+    sparkii_home.mkdir()
+    auth_json = sparkii_home / "auth.json"
     auth_json.write_text('{"OPENROUTER_API_KEY":"sk-test-secret"}', encoding="utf-8")
-    monkeypatch.setattr(fs, "_sparkii_home_path", lambda: hermes_home)
+    monkeypatch.setattr(fs, "_sparkii_home_path", lambda: sparkii_home)
 
     provider = OpenVikingMemoryProvider()
     provider._client = MagicMock()
@@ -1527,7 +1527,7 @@ def test_blocked_endpoint_does_not_fall_back_or_construct_client(monkeypatch, tm
 
     provider.initialize(
         "session-1",
-        hermes_home=str(tmp_path),
+        sparkii_home=str(tmp_path),
         platform="cli",
         warning_callback=warnings.append,
     )
@@ -1581,7 +1581,7 @@ def test_runtime_rejects_unrelated_json_health_response(
 
     provider.initialize(
         "session-1",
-        hermes_home=str(tmp_path),
+        sparkii_home=str(tmp_path),
         platform="cli",
         warning_callback=warnings.append,
     )
@@ -1597,7 +1597,7 @@ def test_is_available_true_for_config_yaml_endpoint(monkeypatch):
     _clear_openviking_env(monkeypatch)
     monkeypatch.setattr(
         openviking_module,
-        "_load_hermes_openviking_config",
+        "_load_sparkii_openviking_config",
         lambda: {"endpoint": "http://saved.test:1933"},
     )
     assert OpenVikingMemoryProvider().is_available() is True
@@ -1606,6 +1606,6 @@ def test_is_available_true_for_config_yaml_endpoint(monkeypatch):
 def test_is_available_false_without_any_endpoint(monkeypatch):
     _clear_openviking_env(monkeypatch)
     monkeypatch.setattr(
-        openviking_module, "_load_hermes_openviking_config", lambda: {}
+        openviking_module, "_load_sparkii_openviking_config", lambda: {}
     )
     assert OpenVikingMemoryProvider().is_available() is False

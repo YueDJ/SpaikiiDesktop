@@ -24,20 +24,20 @@ from sparkii_cli.config import (
 @pytest.fixture
 def container_env(tmp_path, monkeypatch):
     """Set up a fake SPARKII_HOME with .container-mode file."""
-    hermes_home = tmp_path / ".sparkii"
-    hermes_home.mkdir()
-    monkeypatch.setenv("SPARKII_HOME", str(hermes_home))
+    sparkii_home = tmp_path / ".sparkii"
+    sparkii_home.mkdir()
+    monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
     monkeypatch.delenv("SPARKII_DEV", raising=False)
 
-    container_mode = hermes_home / ".container-mode"
+    container_mode = sparkii_home / ".container-mode"
     container_mode.write_text(
         "# Written by NixOS activation script. Do not edit manually.\n"
         "backend=podman\n"
         "container_name=sparkii-agent\n"
         "exec_user=sparkii\n"
-        "hermes_bin=/data/current-package/bin/sparkii\n"
+        "sparkii_bin=/data/current-package/bin/sparkii\n"
     )
-    return hermes_home
+    return sparkii_home
 
 
 def test_get_container_exec_info_returns_metadata(container_env):
@@ -49,7 +49,7 @@ def test_get_container_exec_info_returns_metadata(container_env):
     assert info["backend"] == "podman"
     assert info["container_name"] == "sparkii-agent"
     assert info["exec_user"] == "sparkii"
-    assert info["hermes_bin"] == "/data/current-package/bin/sparkii"
+    assert info["sparkii_bin"] == "/data/current-package/bin/sparkii"
 
 
 
@@ -69,7 +69,7 @@ def docker_container_info():
         "backend": "docker",
         "container_name": "sparkii-agent",
         "exec_user": "sparkii",
-        "hermes_bin": "/data/current-package/bin/sparkii",
+        "sparkii_bin": "/data/current-package/bin/sparkii",
     }
 
 
@@ -79,7 +79,7 @@ def podman_container_info():
         "backend": "podman",
         "container_name": "sparkii-agent",
         "exec_user": "sparkii",
-        "hermes_bin": "/data/current-package/bin/sparkii",
+        "sparkii_bin": "/data/current-package/bin/sparkii",
     }
 
 
