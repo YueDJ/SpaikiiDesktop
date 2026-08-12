@@ -34,8 +34,8 @@ class TestAgentConfigSignature:
 
         runtime = {"api_key": "sk-test12345678", "base_url": "https://openrouter.ai/api/v1",
                     "provider": "openrouter"}
-        sig1 = GatewayRunner._agent_config_signature("claude-sonnet-4", runtime, ["sparkii-telegram"], "")
-        sig2 = GatewayRunner._agent_config_signature("claude-opus-4.6", runtime, ["sparkii-telegram"], "")
+        sig1 = GatewayRunner._agent_config_signature("claude-sonnet-4", runtime, ["sparkii-cli"], "")
+        sig2 = GatewayRunner._agent_config_signature("claude-opus-4.6", runtime, ["sparkii-cli"], "")
         assert sig1 != sig2
 
     def test_same_token_prefix_different_full_token_changes_signature(self):
@@ -56,8 +56,8 @@ class TestAgentConfigSignature:
         }
 
         assert rt1["api_key"][:8] == rt2["api_key"][:8]
-        sig1 = GatewayRunner._agent_config_signature("gpt-5.3-codex", rt1, ["sparkii-telegram"], "")
-        sig2 = GatewayRunner._agent_config_signature("gpt-5.3-codex", rt2, ["sparkii-telegram"], "")
+        sig1 = GatewayRunner._agent_config_signature("gpt-5.3-codex", rt1, ["sparkii-cli"], "")
+        sig2 = GatewayRunner._agent_config_signature("gpt-5.3-codex", rt2, ["sparkii-cli"], "")
         assert sig1 != sig2
 
     def test_provider_change_different_signature(self):
@@ -65,8 +65,8 @@ class TestAgentConfigSignature:
 
         rt1 = {"api_key": "sk-test12345678", "base_url": "https://openrouter.ai/api/v1", "provider": "openrouter"}
         rt2 = {"api_key": "sk-test12345678", "base_url": "https://api.anthropic.com", "provider": "anthropic"}
-        sig1 = GatewayRunner._agent_config_signature("claude-sonnet-4", rt1, ["sparkii-telegram"], "")
-        sig2 = GatewayRunner._agent_config_signature("claude-sonnet-4", rt2, ["sparkii-telegram"], "")
+        sig1 = GatewayRunner._agent_config_signature("claude-sonnet-4", rt1, ["sparkii-cli"], "")
+        sig2 = GatewayRunner._agent_config_signature("claude-sonnet-4", rt2, ["sparkii-cli"], "")
         assert sig1 != sig2
 
 
@@ -186,7 +186,7 @@ class TestAgentCacheLifecycle:
         session_key = "telegram:12345"
         runtime = {"api_key": "test", "base_url": "https://openrouter.ai/api/v1",
                     "provider": "openrouter", "api_mode": "chat_completions"}
-        sig = runner._agent_config_signature("anthropic/claude-sonnet-4", runtime, ["sparkii-telegram"], "")
+        sig = runner._agent_config_signature("anthropic/claude-sonnet-4", runtime, ["sparkii-cli"], "")
 
         # First message — create and cache
         agent1 = AIAgent(
@@ -836,10 +836,10 @@ class TestAgentConfigSignatureUserId:
         from gateway.run import GatewayRunner
         runtime = {"provider": "anthropic", "api_key": "k", "base_url": "", "api_mode": "chat_completions"}
         sig_implicit = GatewayRunner._agent_config_signature(
-            "claude-sonnet-4", runtime, ["sparkii-telegram"], "",
+            "claude-sonnet-4", runtime, ["sparkii-cli"], "",
         )
         sig_explicit_none = GatewayRunner._agent_config_signature(
-            "claude-sonnet-4", runtime, ["sparkii-telegram"], "",
+            "claude-sonnet-4", runtime, ["sparkii-cli"], "",
             user_id=None, user_id_alt=None,
         )
         assert sig_implicit == sig_explicit_none

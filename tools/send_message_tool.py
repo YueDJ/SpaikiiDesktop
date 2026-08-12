@@ -2109,7 +2109,6 @@ from tools.registry import tool_error
 # ``_send_via_adapter``, ``_parse_target_ref``, the per-platform ``_send_*``
 # helpers) remains the shared transport used by:
 #   - cron delivery (cron/scheduler.py)
-#   - the ``sparkii send`` CLI command (sparkii_cli/send_cmd.py)
 #   - the gateway kanban notifier (dashboard-toggled, outside agent control)
 #   - the standalone MCP server (mcp_serve.py), which is an opt-in surface
 # Those callers import the helpers directly; none of them need the registry

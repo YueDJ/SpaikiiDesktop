@@ -115,29 +115,6 @@ def test_get_platform_tools_homeassistant_uses_active_profile_token(monkeypatch)
         secret_scope.set_multiplex_active(False)
 
 
-# ─── #35527: platform-restricted default-off toolsets (discord/discord_admin)
-# are stripped by _DEFAULT_OFF_TOOLSETS even when the user explicitly opts in
-# via the platform's native composite. The composite ``sparkii-discord``
-# contains both ``discord`` and ``discord_admin`` tools, so configuring it is
-# an explicit opt-in that should survive the default-off strip. ───────────────
-
-
-def test_discord_toolsets_do_not_leak_to_other_platforms():
-    """Layer 4 (guard): discord/discord_admin are platform-restricted — they
-    must never appear on a non-discord platform even when that platform is
-    explicitly configured."""
-    config = {"platform_toolsets": {"telegram": ["sparkii-telegram", "discord"]}}
-    enabled = _get_platform_tools(config, "telegram")
-    assert "discord" not in enabled
-    assert "discord_admin" not in enabled
-
-
-
-
-
-
-
-
 def test_toolset_has_keys_for_vision_accepts_codex_auth(tmp_path, monkeypatch):
     monkeypatch.setenv("SPARKII_HOME", str(tmp_path))
     (tmp_path / "auth.json").write_text(
@@ -277,23 +254,6 @@ class TestPlatformToolsetConsistency:
                 f"which is not defined in toolsets.py"
             )
 
-    def test_gateway_toolset_includes_all_messaging_platforms(self):
-        """sparkii-gateway includes list should cover all messaging platforms."""
-        from sparkii_cli.tools_config import PLATFORMS
-        from toolsets import TOOLSETS
-
-        gateway_includes = set(TOOLSETS["sparkii-gateway"]["includes"])
-        # Exclude non-messaging platforms from the check
-        non_messaging = {"cli", "api_server", "cron"}
-        for platform, meta in PLATFORMS.items():
-            if platform in non_messaging:
-                continue
-            ts_name = meta["default_toolset"]
-            assert ts_name in gateway_includes, (
-                f"Platform {platform!r} toolset {ts_name!r} missing from "
-                f"sparkii-gateway includes"
-            )
-
     def test_skills_config_covers_tools_config_platforms(self):
         """skills_config.PLATFORMS should have entries for all gateway platforms."""
         from sparkii_cli.tools_config import PLATFORMS as TOOLS_PLATFORMS
@@ -430,10 +390,10 @@ class TestImagegenModelPicker:
 
 
 def test_get_effective_configurable_toolsets_dedupes_bundled_plugins():
-    """Bundled plugins (plugins/spotify) share their toolset key with the
-    built-in CONFIGURABLE_TOOLSETS entry. The effective list must not list
-    them twice — otherwise `sparkii tools` → "reconfigure existing" shows
-    the same toolset two rows in a row.
+    """Bundled plugins share their toolset key with the built-in
+    CONFIGURABLE_TOOLSETS entry. The effective list must not list them
+    twice — otherwise `sparkii tools` → "reconfigure existing" shows the
+    same toolset two rows in a row.
     """
     from sparkii_cli.tools_config import _get_effective_configurable_toolsets
 
@@ -443,11 +403,6 @@ def test_get_effective_configurable_toolsets_dedupes_bundled_plugins():
         f"duplicate toolset keys in effective list: "
         f"{[k for k in keys if keys.count(k) > 1]}"
     )
-    # Spotify specifically — the bug that motivated the dedupe.
-    spotify_rows = [t for t in all_ts if t[0] == "spotify"]
-    assert len(spotify_rows) == 1, spotify_rows
-    # Built-in label wins over the plugin label.
-    assert spotify_rows[0][1] == "🎵 Spotify"
 
 
 

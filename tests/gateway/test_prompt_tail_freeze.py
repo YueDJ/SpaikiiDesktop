@@ -98,10 +98,9 @@ def _make_context(
 
 
 @pytest.fixture(autouse=True)
-def _stable_discord_tools(monkeypatch):
+def _stable_platform_tools(monkeypatch):
     """Pin the config/env-dependent renderer gates so key<->render parity is
     evaluated on the same footing in every environment."""
-    monkeypatch.setattr("gateway.session._discord_tools_loaded", lambda: True)
     monkeypatch.setattr("gateway.session._slack_tools_loaded", lambda: False)
 
 

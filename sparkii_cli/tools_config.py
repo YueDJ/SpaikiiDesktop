@@ -116,10 +116,6 @@ CONFIGURABLE_TOOLSETS = [
     ("delegation",      "👥 Task Delegation",           "delegate_task"),
     ("cronjob",         "⏰ Cron Jobs",                 "create/list/update/pause/resume/run, with optional attached skills"),
     ("homeassistant",    "🏠 Home Assistant",           "smart home device control"),
-    ("spotify",          "🎵 Spotify",                  "playback, search, playlists, library"),
-    ("discord",         "💬 Discord (read/participate)", "fetch messages, search members, create thread"),
-    ("discord_admin",   "🛡️  Discord Server Admin",    "list channels/roles, pin, assign roles"),
-    ("yuanbao",          "🤖 Yuanbao",                  "group info, member queries, DM"),
     ("computer_use",     "🖱️  Computer Use (macOS/Windows/Linux)", "background desktop control via cua-driver"),
 ]
 
@@ -153,7 +149,7 @@ def gui_toolset_label(label: str) -> str:
 # `sparkii tools` → X (Twitter) Search setup walks users through credential
 # setup. The tool's check_fn means the schema still won't appear to the
 # model if the credential later goes missing or expires.
-_DEFAULT_OFF_TOOLSETS = {"homeassistant", "spotify", "discord", "discord_admin", "video", "video_gen", "x_search", "a2a"}
+_DEFAULT_OFF_TOOLSETS = {"homeassistant", "video", "video_gen", "x_search", "a2a"}
 
 
 # Config-only capabilities: they appear in `sparkii tools` for provider/API-key
@@ -213,10 +209,7 @@ def _homeassistant_credentials_present() -> bool:
 # Use this for tools whose APIs only make sense on one platform (Discord
 # server admin, Slack workspace admin, etc.).  Keeps every other platform's
 # checklist from filling up with irrelevant toggles.
-_TOOLSET_PLATFORM_RESTRICTIONS: Dict[str, Set[str]] = {
-    "discord": {"discord"},
-    "discord_admin": {"discord"},
-}
+_TOOLSET_PLATFORM_RESTRICTIONS: Dict[str, Set[str]] = {}
 
 
 def _toolset_allowed_for_platform(ts_key: str, platform: str) -> bool:
@@ -248,8 +241,8 @@ def _get_effective_configurable_toolsets():
     Plugin toolsets are appended at the end so they appear after the
     built-in toolsets in the TUI checklist. A plugin whose toolset key
     already appears in ``CONFIGURABLE_TOOLSETS`` is skipped — bundled
-    plugins (e.g. ``plugins/spotify``) share their toolset key with the
-    built-in entry, and we want the built-in label/description to win.
+    plugins share their toolset key with the built-in entry, and we want
+    the built-in label/description to win.
     Without the dedupe, ``sparkii tools`` → "reconfigure existing" would
     list the same toolset twice.
     """
@@ -680,18 +673,6 @@ TOOL_CATEGORIES = {
                     {"key": "HASS_TOKEN", "prompt": "Home Assistant Long-Lived Access Token"},
                     {"key": "HASS_URL", "prompt": "Home Assistant URL", "default": "http://homeassistant.local:8123"},
                 ],
-            },
-        ],
-    },
-    "spotify": {
-        "name": "Spotify",
-        "icon": "🎵",
-        "providers": [
-            {
-                "name": "Spotify Web API",
-                "tag": "PKCE OAuth — opens the setup wizard",
-                "env_vars": [],
-                "post_setup": "spotify",
             },
         ],
     },
@@ -1906,35 +1887,6 @@ def _run_post_setup(post_setup_key: str):
         _print_info("    No API key required. DuckDuckGo enforces server-side rate limits.")
         _print_info("    Pair with an extract provider if you also need web_extract.")
 
-    elif post_setup_key == "spotify":
-        # Run the full `sparkii auth spotify` flow — if the user has no
-        # client_id yet, this drops them into the interactive wizard
-        # (opens the Spotify dashboard, prompts for client_id, persists
-        # to ~/.sparkii/.env), then continues straight into PKCE. If they
-        # already have an app, it skips the wizard and just does OAuth.
-        from types import SimpleNamespace
-        try:
-            from sparkii_cli.auth import login_spotify_command
-        except Exception as exc:
-            _print_warning(f"    Could not load Spotify auth: {exc}")
-            _print_info("    Run manually: sparkii auth spotify")
-            return
-        _print_info("    Starting Spotify login...")
-        try:
-            login_spotify_command(SimpleNamespace(
-                client_id=None, redirect_uri=None, scope=None,
-                no_browser=False, timeout=None,
-            ))
-            _print_success("    Spotify authenticated")
-        except SystemExit as exc:
-            # User aborted the wizard, or OAuth failed — don't fail the
-            # toolset enable; they can retry with `sparkii auth spotify`.
-            _print_warning(f"    Spotify login did not complete: {exc}")
-            _print_info("    Run later: sparkii auth spotify")
-        except Exception as exc:
-            _print_warning(f"    Spotify login failed: {exc}")
-            _print_info("    Run manually: sparkii auth spotify")
-
     elif post_setup_key == "langfuse":
         # Install the langfuse SDK.
         try:
@@ -2102,8 +2054,6 @@ def _get_enabled_platforms() -> List[str]:
     enabled = ["cli"]
     if get_env_value("TELEGRAM_BOT_TOKEN"):
         enabled.append("telegram")
-    if get_env_value("DISCORD_BOT_TOKEN"):
-        enabled.append("discord")
     if get_env_value("SLACK_BOT_TOKEN"):
         enabled.append("slack")
     if get_env_value("WHATSAPP_ENABLED"):
@@ -2189,13 +2139,11 @@ def _exempt_explicit_platform_native(
     """Let platform-native default-off toolsets through on explicit config.
 
     Toolsets that are both in ``_DEFAULT_OFF_TOOLSETS`` and restricted to
-    ``platform`` via ``_TOOLSET_PLATFORM_RESTRICTIONS`` (currently
-    ``discord``/``discord_admin`` on the discord platform) are the platform's
+    ``platform`` via ``_TOOLSET_PLATFORM_RESTRICTIONS`` are the platform's
     own native tools. They are kept off for *unconfigured* platforms (security
     opt-in), but once a user explicitly saves a toolset list for the platform
-    the composite they chose (e.g. ``sparkii-discord``, which contains those
-    tools) is an opt-in — stripping them silently defeats the explicit
-    configuration (#35527). Mutates ``default_off`` in place.
+    the composite they chose is an opt-in — stripping them silently defeats
+    the explicit configuration (#35527). Mutates ``default_off`` in place.
     """
     if not explicitly_configured:
         return
@@ -2277,9 +2225,9 @@ def _get_platform_tools(
     platform_toolsets = config.get("platform_toolsets") or {}
     toolset_names = platform_toolsets.get(platform)
     # Track whether the user explicitly saved a toolset list for this platform
-    # (vs. falling back to the platform default). An explicit composite (e.g.
-    # ``sparkii-discord``) is an opt-in to the platform's native default-off
-    # toolsets — see _exempt_explicit_platform_native (#35527).
+    # (vs. falling back to the platform default). An explicit composite is an
+    # opt-in to the platform's native default-off toolsets — see
+    # _exempt_explicit_platform_native (#35527).
     explicitly_configured = isinstance(toolset_names, list)
 
     if toolset_names is None or not isinstance(toolset_names, list):
@@ -2311,13 +2259,12 @@ def _get_platform_tools(
             ts for ts in toolset_names
             if ts in configurable_keys and _toolset_allowed_for_platform(ts, platform)
         }
-        # Mixed config: composite toolset alongside configurables (e.g.
-        # ``[sparkii-cli, spotify]`` after enabling Spotify via ``sparkii
-        # tools``). Without expansion the composite name is silently dropped,
+        # Mixed config: composite toolset alongside configurables. Without
+        # expansion the composite name is silently dropped,
         # leaving sessions with only the configurable opt-ins and no native
         # tools. Mirror the else-branch's subset inference, but apply
         # _DEFAULT_OFF_TOOLSETS only to the implicit expansion — anything the
-        # user explicitly listed (e.g. ``spotify``) must survive.
+        # user explicitly listed must survive.
         composite_tools = set()
         for ts_name in toolset_names:
             if ts_name in configurable_keys or ts_name in plugin_ts_keys:
@@ -2394,7 +2341,7 @@ def _get_platform_tools(
         # toolset (e.g. `homeassistant` platform + `homeassistant` toolset),
         # keep that toolset enabled on first install.  Skip this dodge for
         # platform-restricted toolsets — those are always opt-in even on
-        # their own platform (e.g. `discord` + `discord` should stay OFF).
+        # their own platform.
         if platform in default_off and platform not in _TOOLSET_PLATFORM_RESTRICTIONS:
             default_off.remove(platform)
         # Home Assistant is already runtime-gated by its check_fn (requires
@@ -2416,7 +2363,7 @@ def _get_platform_tools(
         )
         enabled_toolsets -= default_off
 
-    # Recover non-configurable platform toolsets (e.g. discord, feishu_doc,
+    # Recover non-configurable platform toolsets (e.g. feishu_doc,
     # feishu_drive).  These are part of the platform's default composite but
     # absent from CONFIGURABLE_TOOLSETS, so they can't appear in the TUI
     # checklist or in a user-saved config.  Must run in BOTH branches —
@@ -2456,7 +2403,7 @@ def _get_platform_tools(
             claimed.update(ts_tools)
 
     # Plugin toolsets: enabled by default unless explicitly disabled, or
-    # unless the toolset is in _DEFAULT_OFF_TOOLSETS (e.g. spotify —
+    # unless the toolset is in _DEFAULT_OFF_TOOLSETS —
     # shipped as a bundled plugin but user must opt in via `sparkii tools`
     # so we don't ship 7 Spotify tool schemas to users who don't use it).
     # A plugin toolset is "known" for a platform once `sparkii tools`
@@ -2573,7 +2520,7 @@ def _save_platform_tools(config: dict, platform: str, enabled_toolset_keys: Set[
 
     # Drop platform-scoped toolsets that don't apply here.  Prevents the
     # "Configure all platforms" checklist (or a hand-edited config.yaml)
-    # from turning on, say, the `discord` toolset for Telegram.
+    # from turning on a toolset that is restricted to another platform.
     enabled_toolset_keys = {
         ts for ts in enabled_toolset_keys
         if _toolset_allowed_for_platform(ts, platform)
@@ -2584,7 +2531,7 @@ def _save_platform_tools(config: dict, platform: str, enabled_toolset_keys: Set[
     plugin_keys = _get_plugin_toolset_keys()
     configurable_keys |= plugin_keys
 
-    # Also exclude platform default toolsets (sparkii-cli, sparkii-telegram, etc.)
+    # Also exclude platform default toolsets (sparkii-cli, sparkii-webhook, etc.)
     # These are "super" toolsets that resolve to ALL tools, so preserving them
     # would silently override the user's unchecked selections on the next read.
     platform_default_keys = {p["default_toolset"] for p in PLATFORMS.values()}

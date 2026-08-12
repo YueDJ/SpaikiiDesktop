@@ -11630,12 +11630,6 @@ def main():
     build_slack_parser(subparsers, cmd_slack=cmd_slack)
 
     # =========================================================================
-    # send command — pipe shell-script output to any configured platform
-    # =========================================================================
-    from sparkii_cli.send_cmd import register_send_subparser
-    register_send_subparser(subparsers)
-
-    # =========================================================================
     # login command  (parser built in sparkii_cli/subcommands/login.py)
     # =========================================================================
     build_login_parser(subparsers, cmd_login=cmd_login)

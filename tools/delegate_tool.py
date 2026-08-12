@@ -1398,7 +1398,7 @@ def _build_child_agent(
         child_toolsets = _strip_blocked_tools(DEFAULT_TOOLSETS)
 
     # Blocked tools also live inside mixed platform bundles (sparkii-cli,
-    # sparkii-telegram, etc.) that _strip_blocked_tools must keep because they
+    # sparkii-cli, sparkii-webhook, etc.) that _strip_blocked_tools must keep because they
     # carry useful tools too. Pass exact one-tool deny toolsets through to the
     # child so model_tools subtracts the blocked names AFTER composite
     # expansion, and the restriction survives later registry/MCP refreshes.

@@ -202,11 +202,10 @@ class TestToolsetConsistency:
     def test_sparkii_platforms_share_core_tools(self):
         """All sparkii-* platform toolsets share the same core tools.
 
-        Platform-specific additions (e.g. ``discord`` / ``discord_admin``
-        on sparkii-discord, gated on DISCORD_BOT_TOKEN) are allowed on top —
-        the invariant is that the core set is identical across platforms.
+        Platform-specific additions are allowed on top — the invariant is
+        that the core set is identical across platforms.
         """
-        platforms = ["sparkii-cli", "sparkii-telegram", "sparkii-discord", "sparkii-whatsapp", "sparkii-slack", "sparkii-signal", "sparkii-homeassistant"]
+        platforms = ["sparkii-cli", "sparkii-cron", "sparkii-acp", "sparkii-api-server"]
         tool_sets = [set(TOOLSETS[p]["tools"]) for p in platforms]
         # All platforms must contain the shared core; platform-specific
         # extras are OK (subset check, not equality).
@@ -236,8 +235,8 @@ class TestPluginToolsets:
 
 
 class TestDefaultPlatformWebSearchCoverage:
-    def test_sparkii_whatsapp_toolset_includes_web_search(self):
-        assert "web_search" in resolve_toolset("sparkii-whatsapp")
+    def test_sparkii_webhook_toolset_includes_web_search(self):
+        assert "web_search" in resolve_toolset("sparkii-webhook")
 
 
 

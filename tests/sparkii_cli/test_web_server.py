@@ -2291,41 +2291,6 @@ class TestNewEndpoints:
 
 
 
-    def test_discord_toolsets_read_and_write_discord_platform(self):
-        """Platform-restricted toolsets must not be saved as successful CLI no-ops."""
-        from sparkii_cli.config import load_config
-
-        listing = {t["name"]: t for t in self.client.get("/api/tools/toolsets").json()}
-        assert listing["discord"]["platform"] == "discord"
-        assert listing["discord"]["platform_label"] == "Discord"
-        assert listing["discord"]["enabled"] is False
-
-        resp = self.client.put("/api/tools/toolsets/discord", json={"enabled": True})
-        assert resp.status_code == 200
-        assert resp.json() == {
-            "ok": True,
-            "name": "discord",
-            "platform": "discord",
-            "enabled": True,
-        }
-
-        config = load_config()
-        assert "discord" in config["platform_toolsets"]["discord"]
-        assert "discord" not in config["platform_toolsets"].get("cli", [])
-
-        listing = {t["name"]: t for t in self.client.get("/api/tools/toolsets").json()}
-        assert listing["discord"]["enabled"] is True
-        assert listing["discord_admin"]["enabled"] is False
-
-        resp = self.client.put(
-            "/api/tools/toolsets/discord_admin", json={"enabled": True}
-        )
-        assert resp.status_code == 200
-        config = load_config()
-        assert {"discord", "discord_admin"} <= set(
-            config["platform_toolsets"]["discord"]
-        )
-
     def test_toolsets_resolve_subscription_features_once(self, monkeypatch):
         import sparkii_cli.tools_config as tools_config
         from sparkii_cli.nous_subscription import NousSubscriptionFeatures

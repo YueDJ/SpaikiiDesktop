@@ -832,7 +832,7 @@ def tool_category(kwargs: dict[str, Any]) -> str:
     if toolset == "x_search":
         return "web"
     if toolset.startswith(
-        ("discord", "email", "feishu", "sparkii-yuanbao", "slack", "sms")
+        ("feishu_doc", "feishu_drive")
     ):
         return "communication"
     return "other"

@@ -332,30 +332,6 @@ TOOLSETS = {
         "includes": [],
     },
 
-    "discord": {
-        "description": "Discord read and participate tools (fetch messages, search members, create threads)",
-        "tools": ["discord"],
-        "includes": [],
-    },
-
-    "discord_admin": {
-        "description": "Discord server management (list channels/roles, pin messages, assign roles)",
-        "tools": ["discord_admin"],
-        "includes": [],
-    },
-
-    "yuanbao": {
-        "description": "Yuanbao platform tools - group info, member queries, DM, stickers",
-        "tools": [
-            "yb_query_group_info",
-            "yb_query_group_members",
-            "yb_send_dm",
-            "yb_search_sticker",
-            "yb_send_sticker",
-        ],
-        "includes": []
-    },
-
     "feishu_doc": {
         "description": "Read Feishu/Lark document content",
         "tools": ["feishu_doc_read"],
@@ -370,16 +346,6 @@ TOOLSETS = {
         ],
         "includes": []
     },
-
-    "spotify": {
-        "description": "Native Spotify playback, search, playlist, album, and library tools",
-        "tools": [
-            "spotify_playback", "spotify_devices", "spotify_queue", "spotify_search",
-            "spotify_playlists", "spotify_albums", "spotify_library",
-        ],
-        "includes": []
-    },
-
 
     # Scenario-specific toolsets
     
@@ -512,141 +478,11 @@ TOOLSETS = {
         "includes": []
     },
 
-    "sparkii-telegram": {
-        "description": "Telegram bot toolset - full access for personal use (terminal has safety checks)",
-        "tools": _SPARKII_CORE_TOOLS,
-        "includes": []
-    },
-    
-    "sparkii-discord": {
-        "description": "Discord bot toolset - full access (terminal has safety checks via dangerous command approval)",
-        "tools": _SPARKII_CORE_TOOLS + [
-            "discord",
-            "discord_admin",
-        ],
-        "includes": []
-    },
-    
-    "sparkii-whatsapp": {
-        "description": "WhatsApp bot toolset - similar to Telegram (personal messaging, more trusted)",
-        "tools": _SPARKII_CORE_TOOLS,
-        "includes": []
-    },
-    
-    "sparkii-slack": {
-        "description": "Slack bot toolset - full access for workspace use (terminal has safety checks)",
-        "tools": _SPARKII_CORE_TOOLS,
-        "includes": []
-    },
-    
-    "sparkii-signal": {
-        "description": "Signal bot toolset - encrypted messaging platform (full access)",
-        "tools": _SPARKII_CORE_TOOLS,
-        "includes": []
-    },
-
-    "sparkii-bluebubbles": {
-        "description": "BlueBubbles iMessage bot toolset - Apple iMessage via local BlueBubbles server",
-        "tools": _SPARKII_CORE_TOOLS,
-        "includes": []
-    },
-
-    "sparkii-homeassistant": {
-        "description": "Home Assistant bot toolset - smart home event monitoring and control",
-        "tools": _SPARKII_CORE_TOOLS,
-        "includes": []
-    },
-
-    "sparkii-email": {
-        "description": "Email bot toolset - interact with Sparkii via email (IMAP/SMTP)",
-        "tools": _SPARKII_CORE_TOOLS,
-        "includes": []
-    },
-
-    "sparkii-mattermost": {
-        "description": "Mattermost bot toolset - self-hosted team messaging (full access)",
-        "tools": _SPARKII_CORE_TOOLS,
-        "includes": []
-    },
-
-    "sparkii-matrix": {
-        "description": "Matrix bot toolset - decentralized encrypted messaging (full access)",
-        "tools": _SPARKII_CORE_TOOLS,
-        "includes": []
-    },
-
-    "sparkii-dingtalk": {
-        "description": "DingTalk bot toolset - enterprise messaging platform (full access)",
-        "tools": _SPARKII_CORE_TOOLS,
-        "includes": []
-    },
-
-    "sparkii-feishu": {
-        "description": "Feishu/Lark bot toolset - enterprise messaging via Feishu/Lark (full access)",
-        "tools": _SPARKII_CORE_TOOLS + [
-            "feishu_doc_read",
-            "feishu_drive_list_comments",
-            "feishu_drive_list_comment_replies",
-            "feishu_drive_reply_comment",
-            "feishu_drive_add_comment",
-        ],
-        "includes": []
-    },
-
-    "sparkii-weixin": {
-        "description": "Weixin bot toolset - personal WeChat messaging via iLink (full access)",
-        "tools": _SPARKII_CORE_TOOLS,
-        "includes": []
-    },
-
-    "sparkii-qqbot": {
-        "description": "QQBot toolset - QQ messaging via Official Bot API v2 (full access)",
-        "tools": _SPARKII_CORE_TOOLS,
-        "includes": []
-    },
-
-    "sparkii-wecom": {
-        "description": "WeCom bot toolset - enterprise WeChat messaging (full access)",
-        "tools": _SPARKII_CORE_TOOLS,
-        "includes": []
-    },
-
-    "sparkii-wecom-callback": {
-        "description": "WeCom callback toolset - enterprise self-built app messaging (full access)",
-        "tools": _SPARKII_CORE_TOOLS,
-        "includes": []
-    },
-
-    "sparkii-yuanbao": {
-        "description": "Yuanbao Bot 元宝消息平台工具集 - 群信息、成员查询、私聊、贴纸表情",
-        "tools": _SPARKII_CORE_TOOLS + [
-            "yb_query_group_info",
-            "yb_query_group_members",
-            "yb_send_dm",
-            "yb_search_sticker",
-            "yb_send_sticker",
-        ],
-        "module": "tools.yuanbao_tools",
-        "includes": []
-    },
-
-    "sparkii-sms": {
-        "description": "SMS bot toolset - interact with Sparkii via SMS (Twilio)",
-        "tools": _SPARKII_CORE_TOOLS,
-        "includes": []
-    },
-
     "sparkii-webhook": {
         "description": "Webhook toolset - receive and process external webhook events",
         "tools": _SPARKII_WEBHOOK_SAFE_TOOLS,
         "includes": []
     },
-
-    "sparkii-gateway": {
-        "description": "Gateway toolset - union of all messaging platform tools",
-        "tools": [],
-        "includes": ["sparkii-telegram", "sparkii-discord", "sparkii-whatsapp", "sparkii-slack", "sparkii-signal", "sparkii-bluebubbles", "sparkii-homeassistant", "sparkii-email", "sparkii-sms", "sparkii-mattermost", "sparkii-matrix", "sparkii-dingtalk", "sparkii-feishu", "sparkii-wecom", "sparkii-wecom-callback", "sparkii-weixin", "sparkii-qqbot", "sparkii-webhook", "sparkii-yuanbao"]
-    }
 }
 
 
@@ -735,10 +571,9 @@ def bundle_non_core_tools(toolset_name: str) -> Set[str]:
     one-level ``includes``), so disabling a bundle removes its platform tools
     while leaving core intact.
 
-    Bundle nesting is one level deep in practice (only ``sparkii-gateway``
-    includes other bundles, and those leaves don't nest further), so a single
-    ``includes`` pass is sufficient. Unknown/garbage names fall back to the
-    full resolution minus core — never re-introducing the core wipe.
+    Bundle nesting is one level deep in practice, so a single ``includes``
+    pass is sufficient. Unknown/garbage names fall back to the full resolution
+    minus core — never re-introducing the core wipe.
     """
     core = set(_SPARKII_CORE_TOOLS)
     ts_def = get_toolset(toolset_name)

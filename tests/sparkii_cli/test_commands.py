@@ -442,12 +442,12 @@ class TestSubcommandCompletion:
             monkeypatch,
             {
                 "telegram": ("123", "Me"),
-                "discord": None,  # no home channel yet -> still listed
+                "webhook": None,  # no home channel yet -> still listed
             },
         )
 
         texts = {c.text for c in _completions(SlashCommandCompleter(), "/handoff ")}
-        assert texts == {"telegram", "discord"}
+        assert texts == {"telegram", "webhook"}
 
 
 

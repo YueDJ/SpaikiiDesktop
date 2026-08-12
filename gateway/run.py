@@ -3412,7 +3412,7 @@ def _get_channel_override(
     return None
 
 
-def _resolve_hermes_bin() -> Optional[list[str]]:
+def _resolve_sparkii_bin() -> Optional[list[str]]:
     """Resolve the Sparkii update command as argv parts.
 
     Tries in order:
@@ -10095,7 +10095,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         import shutil
         import subprocess
 
-        hermes_cmd = _resolve_hermes_bin()
+        hermes_cmd = _resolve_sparkii_bin()
         if not hermes_cmd:
             logger.error("Could not locate sparkii binary for detached /restart")
             return
@@ -14164,40 +14164,24 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
             logger.debug("Platform registry lookup for '%s' failed: %s", platform.value, e)
         # Fall through to built-in adapters below
 
-        if platform == Platform.WHATSAPP_CLOUD:
-            from gateway.platforms.whatsapp_cloud import (
-                WhatsAppCloudAdapter,
-                check_whatsapp_cloud_requirements,
+        if platform in {
+            Platform.WHATSAPP_CLOUD,
+            Platform.SIGNAL,
+            Platform.WEIXIN,
+            Platform.MSGRAPH_WEBHOOK,
+            Platform.BLUEBUBBLES,
+            Platform.QQBOT,
+            Platform.YUANBAO,
+        }:
+            logger.error(
+                "Platform '%s' was removed from Sparkii — its adapter no "
+                "longer ships. Remove the platform from the gateway config "
+                "to stop this message.",
+                platform.value,
             )
-            if not check_whatsapp_cloud_requirements():
-                logger.warning(
-                    "WhatsApp Cloud: aiohttp/httpx missing — reinstall sparkii-agent"
-                )
-                return None
-            return WhatsAppCloudAdapter(config)
-        
-        elif platform == Platform.SIGNAL:
-            from gateway.platforms.signal import (
-                SignalAdapter,
-                check_signal_requirements,
-                validate_signal_config,
-            )
-            if not check_signal_requirements():
-                logger.warning("Signal: runtime requirements not met")
-                return None
-            if not validate_signal_config(config):
-                logger.warning("Signal: SIGNAL_HTTP_URL or SIGNAL_ACCOUNT not configured")
-                return None
-            return SignalAdapter(config)
+            return None
 
-        elif platform == Platform.WEIXIN:
-            from gateway.platforms.weixin import WeixinAdapter, check_weixin_requirements
-            if not check_weixin_requirements():
-                logger.warning("Weixin: aiohttp/cryptography not installed")
-                return None
-            return WeixinAdapter(config)
-
-        elif platform == Platform.API_SERVER:
+        if platform == Platform.API_SERVER:
             from gateway.platforms.api_server import APIServerAdapter, check_api_server_requirements
             if not check_api_server_requirements():
                 logger.warning("API Server: aiohttp not installed")
@@ -14214,37 +14198,6 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
             adapter = WebhookAdapter(config)
             adapter.gateway_runner = self  # For cross-platform delivery
             return adapter
-
-        elif platform == Platform.MSGRAPH_WEBHOOK:
-            from gateway.platforms.msgraph_webhook import (
-                MSGraphWebhookAdapter,
-                check_msgraph_webhook_requirements,
-            )
-            if not check_msgraph_webhook_requirements():
-                logger.warning("MSGraph webhook: aiohttp not installed")
-                return None
-            return MSGraphWebhookAdapter(config)
-
-        elif platform == Platform.BLUEBUBBLES:
-            from gateway.platforms.bluebubbles import BlueBubblesAdapter, check_bluebubbles_requirements
-            if not check_bluebubbles_requirements():
-                logger.warning("BlueBubbles: aiohttp/httpx missing or BLUEBUBBLES_SERVER_URL/BLUEBUBBLES_PASSWORD not configured")
-                return None
-            return BlueBubblesAdapter(config)
-
-        elif platform == Platform.QQBOT:
-            from gateway.platforms.qqbot import QQAdapter, check_qq_requirements
-            if not check_qq_requirements():
-                logger.warning("QQBot: aiohttp/httpx missing or QQ_APP_ID/QQ_CLIENT_SECRET not configured")
-                return None
-            return QQAdapter(config)
-
-        elif platform == Platform.YUANBAO:
-            from gateway.platforms.yuanbao import YuanbaoAdapter, WEBSOCKETS_AVAILABLE
-            if not WEBSOCKETS_AVAILABLE:
-                logger.warning("Yuanbao: websockets not installed. Run: pip install websockets")
-                return None
-            return YuanbaoAdapter(config)
 
         return None
 
@@ -16608,19 +16561,6 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         # bust the agent-cache signature and rebuild the AIAgent every message
         # (destroying prompt caching). The static IDs block points the agent
         # here; the volatile id rides the per-turn user content.
-        if (
-            source is not None
-            and getattr(source, "platform", None) == Platform.DISCORD
-            and getattr(event, "message_id", None)
-        ):
-            from gateway.session import _discord_tools_loaded as _disc_tools_loaded
-            if _disc_tools_loaded():
-                message_text = (
-                    f"[Triggering message id: `{event.message_id}` — use as "
-                    f"`message_id` for reply/react/pin via the discord tools.]\n\n"
-                    f"{message_text}"
-                )
-
         if getattr(event, "reply_to_text", None) and event.reply_to_message_id:
             # Always inject the reply-to pointer — even when the quoted text
             # already appears in history. The prefix isn't deduplication, it's
@@ -24117,26 +24057,9 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         src = context.source
         platform = src.platform.value if src.platform else ""
 
-        discord_ids: tuple = ()
-        discord_tools = ""
-        if src.platform == Platform.DISCORD:
-            from gateway.session import _discord_tools_loaded
-
-            discord_tools = "1" if _discord_tools_loaded() else "0"
-            discord_ids = (
-                str(src.guild_id or ""),
-                str(src.parent_chat_id or ""),
-                str(src.thread_id or ""),
-                str(src.chat_id or ""),
-                # Only PRESENCE is rendered (the id itself is delivered
-                # per-turn in the user message) — keying on the value would
-                # re-render every message for zero byte change.
-                "1" if src.message_id else "0",
-            )
-
         # Slack renders a capability-aware platform note gated on
         # _slack_tools_loaded() — the gate state must appear in the key
-        # (same parity contract as the Discord gate above) so a config /
+        # (same parity contract as the other platform gates) so a config /
         # MCP-registration flip re-renders once instead of serving a
         # stale pinned note for the rest of the session.
         slack_tools = ""
@@ -24163,8 +24086,6 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
             str(src.user_id or ""),
             str(getattr(src, "profile", None) or ""),
             bool(context.shared_multi_user_session),
-            discord_ids,
-            discord_tools,
             slack_tools,
             tuple(p.value for p in context.connected_platforms),
             tuple(

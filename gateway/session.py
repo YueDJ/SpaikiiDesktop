@@ -415,33 +415,6 @@ def _slack_tools_loaded() -> bool:
         return False
 
 
-def _discord_tools_loaded() -> bool:
-    """True iff the agent will actually have Discord tools this session.
-
-    Two conditions must hold:
-      1. The `discord` or `discord_admin` toolset is enabled for the
-         Discord platform via `sparkii tools` (opt-in, default OFF).
-      2. `DISCORD_BOT_TOKEN` is set — the tool's `check_fn` gates on it
-         at registry time, so the toolset being enabled in config is not
-         enough if the token isn't configured.
-
-    Returns False (safe default — keeps the stale-API disclaimer) on any
-    error so a bad config can't silently promise tools the agent lacks.
-    """
-    try:
-        from agent.secret_scope import get_secret
-        from sparkii_cli.config import load_config
-        from sparkii_cli.tools_config import _get_platform_tools
-
-        if not (get_secret("DISCORD_BOT_TOKEN", "") or "").strip():
-            return False
-        cfg = load_config()
-        enabled = _get_platform_tools(cfg, "discord", include_default_mcp_servers=False)
-        return "discord" in enabled or "discord_admin" in enabled
-    except Exception:
-        return False
-
-
 _MAX_PROMPT_METADATA_CHARS = 240
 
 
@@ -624,54 +597,6 @@ def build_session_context_prompt(
                 "guess or reuse `<@U...>` mentions from names, memory, or prior "
                 "conversation history."
             )
-    elif context.source.platform == Platform.DISCORD:
-        # Inject the Discord IDs block only when the agent actually has
-        # Discord tools loaded this session — i.e. the user opted into
-        # `discord` / `discord_admin` via `sparkii tools` AND the bot
-        # token is configured.  Otherwise keep the stale-API disclaimer
-        # honest so we never promise tools the agent lacks.
-        if _discord_tools_loaded():
-            src = context.source
-            id_lines = ["", "**Discord IDs (for the `discord` / `discord_admin` tools):**"]
-            if src.guild_id:
-                id_lines.append(f"  - Guild: `{src.guild_id}`")
-            if src.thread_id and src.parent_chat_id:
-                id_lines.append(f"  - Parent channel: `{src.parent_chat_id}`")
-                id_lines.append(f"  - Thread: `{src.thread_id}` (use as `channel_id` for fetch_messages etc.)")
-            else:
-                id_lines.append(f"  - Channel: `{src.chat_id}`")
-            if src.message_id:
-                # The triggering message id is volatile (changes every turn).
-                # Keep it OUT of this cached system-prompt block — including it
-                # here changes build_session_context_prompt() output per turn,
-                # which busts the gateway agent-cache signature and forces an
-                # AIAgent rebuild on every Discord message. The actual id is
-                # injected per-turn into the user message instead (see the
-                # "Triggering message id" note in run.py).
-                id_lines.append(
-                    "  - Triggering message: provided per-turn in the incoming "
-                    "user message (use it as `message_id` for reply/react/pin)"
-                )
-            lines.extend(id_lines)
-        else:
-            lines.append("")
-            lines.append(
-                "**Platform notes:** You are running inside Discord. "
-                "You do NOT have access to Discord-specific APIs — you cannot search "
-                "channel history, pin messages, manage roles, or list server members. "
-                "Do not promise to perform these actions. If the user asks, explain "
-                "that you can only read messages sent directly to you and respond."
-            )
-        # Static (never per-turn): live voice-channel state used to be
-        # appended here and changed bytes every turn the bot sat in a voice
-        # channel, busting the prompt cache.  It now arrives on the current
-        # user message as a `[Voice channel now: ...]` note, injected only
-        # when it actually changed.
-        lines.append("")
-        lines.append(
-            "Voice-channel state, when relevant, appears in the current "
-            "message as a `[Voice channel now: ...]` note."
-        )
     elif context.source.platform == Platform.BLUEBUBBLES:
         lines.append("")
         lines.append(
@@ -684,16 +609,6 @@ def build_session_context_prompt(
             "If the user needs a detailed answer, give the short version first "
             "and offer to elaborate."
         )
-    elif context.source.platform == Platform.YUANBAO:
-        lines.append("")
-        lines.append(
-            "**Platform notes:** You are running inside Yuanbao. "
-            "To send a private (DM) message to a user in the current group, "
-            "use the yb_send_dm tool (look up the recipient by name or pass "
-            "their user_id). Your normal reply is delivered to the group you "
-            "are responding in."
-        )
-
     # Connected platforms
     platforms_list = ["local (files on this machine)"]
     for p in context.connected_platforms:

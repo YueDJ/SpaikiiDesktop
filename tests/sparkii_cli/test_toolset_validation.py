@@ -12,8 +12,7 @@ from sparkii_cli.toolset_validation import validate_platform_toolsets
 # that is the corruption #38798 reported (`sparkii-cli` rewritten to `sparkii`).
 _KNOWN = {
     "sparkii-cli",
-    "sparkii-telegram",
-    "sparkii-discord",
+    "sparkii-webhook",
     "terminal",
     "web",
 }
@@ -44,7 +43,6 @@ def test_mixed_valid_and_invalid_flags_only_the_invalid():
     assert len(warnings) == 1
     assert "platform 'discord'" in warnings[0]
     assert "unknown toolset 'bogus'" in warnings[0]
-
 
 
 

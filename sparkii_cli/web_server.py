@@ -1048,10 +1048,9 @@ _CATEGORY_MERGE: Dict[str, str] = {
     # (`onboarding.seen` is an internal latch dict, not a user setting), so fold
     # it into the agent tab rather than spawning a one-field orphan category.
     "onboarding": "agent",
-    # Only `telegram.reactions` currently lives under telegram — fold it in
-    # with the other messaging-platform config (discord) so it isn't an
-    # orphan tab of one field.
-    "telegram": "discord",
+    # Only `telegram.reactions` currently lives under telegram — fold it into
+    # auxiliary so it isn't an orphan tab of one field.
+    "telegram": "auxiliary",
     # `mcp.auto_reload_on_config_change` is the only schema-surfaced mcp
     # runtime field (server definitions live under mcp_servers, edited via
     # the MCP tab) — fold it into the agent tab rather than spawning a
@@ -1077,7 +1076,7 @@ _CATEGORY_MERGE: Dict[str, str] = {
 _CATEGORY_ORDER = [
     "general", "agent", "terminal", "display", "delegation",
     "memory", "compression", "security", "browser", "voice",
-    "tts", "stt", "logging", "discord", "auxiliary",
+    "tts", "stt", "logging", "auxiliary",
 ]
 
 
@@ -7765,16 +7764,6 @@ _PLATFORM_OVERRIDES: dict[str, dict[str, Any]] = {
         "env_vars": ("TELEGRAM_BOT_TOKEN", "TELEGRAM_ALLOWED_USERS", "TELEGRAM_PROXY"),
         "required_env": ("TELEGRAM_BOT_TOKEN",),
     },
-    "discord": {
-        "name": "Discord",
-        "description": "Connect Sparkii to Discord DMs, channels, and threads.",
-        "docs_url": "https://discord.com/developers/applications",
-        "env_vars": (
-            "DISCORD_BOT_TOKEN",
-            "DISCORD_ALLOWED_USERS",
-        ),
-        "required_env": ("DISCORD_BOT_TOKEN",),
-    },
     "slack": {
         "name": "Slack",
         "description": "Use Sparkii from Slack via Socket Mode. Add allowed Slack member IDs so connected bots can respond.",
@@ -8007,7 +7996,6 @@ _PLATFORM_OVERRIDES: dict[str, dict[str, Any]] = {
 # the end alphabetically.
 _PLATFORM_ORDER: tuple[str, ...] = (
     "telegram",
-    "discord",
     "slack",
     "mattermost",
     "matrix",
@@ -9697,24 +9685,24 @@ def _anthropic_oauth_status() -> Dict[str, Any]:
     """
     try:
         from agent.anthropic_adapter import (
-            read_hermes_oauth_credentials,
-            _get_hermes_oauth_file,
+            read_sparkii_oauth_credentials,
+            _get_sparkii_oauth_file,
         )
     except ImportError:
-        read_hermes_oauth_credentials = None  # type: ignore
-        _get_hermes_oauth_file = None  # type: ignore
+        read_sparkii_oauth_credentials = None  # type: ignore
+        _get_sparkii_oauth_file = None  # type: ignore
 
     hermes_creds = None
-    if read_hermes_oauth_credentials:
+    if read_sparkii_oauth_credentials:
         try:
-            hermes_creds = read_hermes_oauth_credentials()
+            hermes_creds = read_sparkii_oauth_credentials()
         except Exception:
             hermes_creds = None
     if hermes_creds and hermes_creds.get("accessToken"):
         return {
             "logged_in": True,
             "source": "hermes_pkce",
-            "source_label": f"Sparkii PKCE ({_get_hermes_oauth_file() if _get_hermes_oauth_file else None})",
+            "source_label": f"Sparkii PKCE ({_get_sparkii_oauth_file() if _get_sparkii_oauth_file else None})",
             "token_preview": _truncate_token(hermes_creds.get("accessToken")),
             "expires_at": hermes_creds.get("expiresAt"),
             "has_refresh_token": bool(hermes_creds.get("refreshToken")),
@@ -10157,8 +10145,8 @@ async def disconnect_oauth_provider(
             if provider_id == "anthropic":
                 cleared = False
                 try:
-                    from agent.anthropic_adapter import _get_hermes_oauth_file
-                    oauth_file = _get_hermes_oauth_file()
+                    from agent.anthropic_adapter import _get_sparkii_oauth_file
+                    oauth_file = _get_sparkii_oauth_file()
                     if oauth_file.exists():
                         oauth_file.unlink()
                         cleared = True
@@ -10306,8 +10294,8 @@ def _save_anthropic_oauth_creds(access_token: str, refresh_token: str, expires_a
     Mirrors what auth_commands.add_command does so the dashboard flow leaves
     the system in the same state as ``sparkii auth add anthropic``.
     """
-    from agent.anthropic_adapter import _get_hermes_oauth_file
-    oauth_file = _get_hermes_oauth_file()
+    from agent.anthropic_adapter import _get_sparkii_oauth_file
+    oauth_file = _get_sparkii_oauth_file()
     payload = {
         "accessToken": access_token,
         "refreshToken": refresh_token,
@@ -12686,7 +12674,7 @@ async def create_webhook(body: WebhookCreate):
     if body.deliver_only and body.deliver == "log":
         raise HTTPException(
             status_code=400,
-            detail="Direct delivery requires a real target (telegram, discord, …), not 'log'.",
+            detail="Direct delivery requires a real target, not 'log'.",
         )
 
     secret = body.secret or _secrets.token_urlsafe(32)

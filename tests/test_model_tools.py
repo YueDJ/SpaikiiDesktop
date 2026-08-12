@@ -417,38 +417,38 @@ class TestDisabledToolsetsPlatformBundle:
     must not remove core tools from other enabled toolsets."""
 
     def test_disabling_platform_bundle_preserves_core_tools(self):
-        """Disabling sparkii-yuanbao should not strip core tools from sparkii-telegram."""
+        """Disabling one platform bundle should not strip core tools from another."""
         from model_tools import get_tool_definitions
 
-        tools_telegram = get_tool_definitions(
-            enabled_toolsets=["sparkii-telegram"],
+        tools_cli = get_tool_definitions(
+            enabled_toolsets=["sparkii-cli"],
             quiet_mode=True,
         )
-        tools_telegram_no_yuanbao = get_tool_definitions(
-            enabled_toolsets=["sparkii-telegram"],
-            disabled_toolsets=["sparkii-yuanbao"],
+        tools_cli_no_webhook = get_tool_definitions(
+            enabled_toolsets=["sparkii-cli"],
+            disabled_toolsets=["sparkii-webhook"],
             quiet_mode=True,
         )
-        names_telegram = {t["function"]["name"] for t in tools_telegram}
-        names_no_yuanbao = {t["function"]["name"] for t in tools_telegram_no_yuanbao}
+        names_cli = {t["function"]["name"] for t in tools_cli}
+        names_no_webhook = {t["function"]["name"] for t in tools_cli_no_webhook}
 
         # Disabling a *different* platform bundle must not remove any tools
-        assert names_telegram == names_no_yuanbao, (
-            f"Tools lost after disabling sparkii-yuanbao: "
-            f"{names_telegram - names_no_yuanbao}"
+        assert names_cli == names_no_webhook, (
+            f"Tools lost after disabling sparkii-webhook: "
+            f"{names_cli - names_no_webhook}"
         )
 
     def test_disabling_platform_bundle_removes_own_tools(self):
-        """Disabling sparkii-discord should remove discord-specific tools."""
+        """Disabling a platform bundle should remove its own tools."""
         from model_tools import get_tool_definitions
 
         tools = get_tool_definitions(
-            enabled_toolsets=["sparkii-discord"],
-            disabled_toolsets=["sparkii-discord"],
+            enabled_toolsets=["sparkii-webhook"],
+            disabled_toolsets=["sparkii-webhook"],
             quiet_mode=True,
         )
         names = {t["function"]["name"] for t in tools}
-        assert "discord" not in names
+        assert "web_search" not in names
 
 
 
