@@ -22,7 +22,7 @@
 10. [结论](#结论)
 
 ## 简介
-本指南面向需要在系统中集成Signal通信能力的开发者，覆盖从安装signal-cli、启动HTTP模式守护进程、到通过Hermes网关的Signal适配器完成消息收发、媒体处理、群组策略、速率限制与连接健康监控等全链路流程。文档同时解释Signal特有的端到端加密、自毁消息（由Signal协议保障）、群组聊天、文件共享、联系人标识解析、消息格式转换、以及SSE长连接与自动重连机制。
+本指南面向需要在系统中集成Signal通信能力的开发者，覆盖从安装signal-cli、启动HTTP模式守护进程、到通过Sparkii网关的Signal适配器完成消息收发、媒体处理、群组策略、速率限制与连接健康监控等全链路流程。文档同时解释Signal特有的端到端加密、自毁消息（由Signal协议保障）、群组聊天、文件共享、联系人标识解析、消息格式转换、以及SSE长连接与自动重连机制。
 
 ## 项目结构
 Signal集成的关键代码位于网关平台适配层：
@@ -34,7 +34,7 @@ Signal集成的关键代码位于网关平台适配层：
 
 ```mermaid
 graph TB
-A["Hermes网关"] --> B["Signal适配器<br/>signal.py"]
+A["Sparkii网关"] --> B["Signal适配器<br/>signal.py"]
 B --> C["signal-cli HTTP守护进程"]
 B --> D["Markdown→Signal样式<br/>signal_format.py"]
 B --> E["附件速率限制调度器<br/>signal_rate_limit.py"]
@@ -73,7 +73,7 @@ sequenceDiagram
 participant U as "用户"
 participant SC as "signal-cli(HTTP)"
 participant SA as "Signal适配器"
-participant G as "Hermes网关"
+participant G as "Sparkii网关"
 U->>SC : 发送消息(端到端加密)
 SC-->>SA : SSE事件(data envelope)
 SA->>SA : 解析envelope/去重/群组过滤
@@ -269,4 +269,4 @@ CFG["config.py"] --> SA
 - [gateway/platforms/signal.py:1176-1366](file://gateway/platforms/signal.py#L1176-L1366)
 
 ## 结论
-通过Hermes网关的Signal适配器，可以稳定地接入Signal生态，利用其端到端加密与隐私保护特性，实现安全的消息收发、群组协作与媒体共享。结合Markdown→原生样式转换、附件速率限制调度器与健康监控，能够在复杂网络与高并发场景下保持良好体验。建议在生产环境中严格配置访问控制、合理设置群组白名单与用户白名单，并持续观察日志与调度器状态以优化吞吐与稳定性。
+通过Sparkii网关的Signal适配器，可以稳定地接入Signal生态，利用其端到端加密与隐私保护特性，实现安全的消息收发、群组协作与媒体共享。结合Markdown→原生样式转换、附件速率限制调度器与健康监控，能够在复杂网络与高并发场景下保持良好体验。建议在生产环境中严格配置访问控制、合理设置群组白名单与用户白名单，并持续观察日志与调度器状态以优化吞吐与稳定性。

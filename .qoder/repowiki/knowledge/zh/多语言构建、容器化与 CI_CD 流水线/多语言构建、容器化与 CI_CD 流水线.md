@@ -64,7 +64,7 @@ Dockerfile 严格按“manifest → deps → source”顺序 COPY，使 Python �
 ### 版本与发布
 - Python 版本约束 `>=3.11,<3.14`（防止 uv 自动选择 3.14 导致 Rust 依赖无 wheel）。
 - Node 版本统一为 26（Dockerfile 注释标注 pin 在多处）。
-- 构建时注入 `SPARKII_GIT_SHA` 到 `.hermes_build_sha`，供 `sparkii dump` 报告实际 commit。
+- 构建时注入 `SPARKII_GIT_SHA` 到 `.sparkii_build_sha`，供 `sparkii dump` 报告实际 commit。
 
 ## 4. 约定与约束
 

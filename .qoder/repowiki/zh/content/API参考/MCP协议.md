@@ -30,8 +30,8 @@
 ## 项目结构
 仓库中与MCP相关的代码主要分布在以下位置：
 - MCP服务端实现与示例
-  - mcp_serve.py：Hermes内置MCP服务器，暴露对话、消息、事件等能力
-  - agent/transports/sparkii_tools_mcp_server.py：将Hermes工具集以MCP形式暴露给Codex运行时
+  - mcp_serve.py：Sparkii内置MCP服务器，暴露对话、消息、事件等能力
+  - agent/transports/sparkii_tools_mcp_server.py：将Sparkii工具集以MCP形式暴露给Codex运行时
   - optional-skills/mcp/fastmcp/templates/database_server.py：FastMCP数据库只读服务模板
 - MCP客户端与连接管理
   - tools/mcp_tool.py：MCP客户端核心，支持stdio/HTTP/SSE传输、重连、鉴权、动态能力探测、采样与通知处理
@@ -43,8 +43,8 @@
 ```mermaid
 graph TB
 subgraph "MCP服务器"
-A["mcp_serve.py<br/>Hermes对话MCP服务"]
-B["sparkii_tools_mcp_server.py<br/>Hermes工具MCP服务"]
+A["mcp_serve.py<br/>Sparkii对话MCP服务"]
+B["sparkii_tools_mcp_server.py<br/>Sparkii工具MCP服务"]
 C["database_server.py<br/>FastMCP只读DB服务"]
 end
 subgraph "MCP客户端"
@@ -77,8 +77,8 @@ F --> E
 
 ## 核心组件
 - MCP服务器
-  - Hermes对话MCP服务：通过FastMCP暴露conversations_list、conversation_get、messages_read、attachments_fetch、events_poll、events_wait、messages_send、permissions相关工具，用于跨平台消息会话管理
-  - Hermes工具MCP服务：将Hermes工具集（搜索、浏览器自动化、视觉、图像生成、技能、TTS、看板等）以MCP工具形式暴露给外部运行时（如Codex）
+  - Sparkii对话MCP服务：通过FastMCP暴露conversations_list、conversation_get、messages_read、attachments_fetch、events_poll、events_wait、messages_send、permissions相关工具，用于跨平台消息会话管理
+  - Sparkii工具MCP服务：将Sparkii工具集（搜索、浏览器自动化、视觉、图像生成、技能、TTS、看板等）以MCP工具形式暴露给外部运行时（如Codex）
   - FastMCP数据库服务模板：演示如何构建只读SQLite查询服务
 - MCP客户端
   - 统一连接抽象：支持stdio子进程、HTTP/Streamable HTTP、SSE三种传输
@@ -99,7 +99,7 @@ F --> E
 
 ## 架构总览
 MCP在仓库中的整体交互如下：
-- 客户端（tools/mcp_tool.py）负责建立到MCP服务器的连接（stdio/HTTP/SSE），完成initialize握手，获取capabilities，发现工具列表（支持分页与动态通知），并将工具注册到Hermes工具表供模型调用。
+- 客户端（tools/mcp_tool.py）负责建立到MCP服务器的连接（stdio/HTTP/SSE），完成initialize握手，获取capabilities，发现工具列表（支持分页与动态通知），并将工具注册到Sparkii工具表供模型调用。
 - 服务器端（mcp_serve.py、sparkii_tools_mcp_server.py、database_server.py）通过FastMCP暴露工具或资源，按MCP规范响应工具调用、资源读取、提示列表等。
 - CLI（sparkii_cli/mcp_config.py）提供用户友好的配置入口，支持从manifest.yaml导入或手动配置，进行连通性测试与工具选择。
 - manifest.yaml作为“可安装MCP”的声明式清单，描述传输方式、认证、默认启用的工具以及安装后步骤。
@@ -133,7 +133,7 @@ C-->>U : 展示结果/错误
 
 ## 详细组件分析
 
-### 组件A：Hermes对话MCP服务（mcp_serve.py）
+### 组件A：Sparkii对话MCP服务（mcp_serve.py）
 - 职责：提供跨平台消息会话的工具集合，包括会话列表、会话详情、消息读取、附件提取、事件轮询与等待、消息发送、权限请求等。
 - 关键数据结构
   - 会话索引：从state.db或sessions.json构建，包含session_key、platform、chat_type、display_name、origin等
@@ -168,12 +168,12 @@ Return --> End
 - [mcp_serve.py:284-584](file://mcp_serve.py#L284-L584)
 - [mcp_serve.py:590-800](file://mcp_serve.py#L590-L800)
 
-### 组件B：Hermes工具MCP服务（sparkii_tools_mcp_server.py）
-- 职责：将Hermes工具集以MCP工具形式暴露给Codex等运行时，屏蔽底层调度细节，仅暴露必要的安全工具集。
+### 组件B：Sparkii工具MCP服务（sparkii_tools_mcp_server.py）
+- 职责：将Sparkii工具集以MCP工具形式暴露给Codex等运行时，屏蔽底层调度细节，仅暴露必要的安全工具集。
 - 关键机制
   - 工具白名单：EXPOSED_TOOLS限定暴露范围
-  - 动态签名生成：从Hermes工具定义中提取JSON Schema，构造Python函数签名与注解
-  - 分发器：通过handle_function_call调用Hermes内部工具，捕获异常并返回结构化错误
+  - 动态签名生成：从Sparkii工具定义中提取JSON Schema，构造Python函数签名与注解
+  - 分发器：通过handle_function_call调用Sparkii内部工具，捕获异常并返回结构化错误
 - 错误处理
   - 工具未注册时跳过
   - 调用异常捕获并返回JSON错误
@@ -304,8 +304,8 @@ Save --> End
 
 ## 依赖关系分析
 - 模块耦合
-  - mcp_serve.py依赖FastMCP与Hermes状态库（SessionDB、常量）
-  - sparkii_tools_mcp_server.py依赖FastMCP与Hermes工具调度（model_tools）
+  - mcp_serve.py依赖FastMCP与Sparkii状态库（SessionDB、常量）
+  - sparkii_tools_mcp_server.py依赖FastMCP与Sparkii工具调度（model_tools）
   - tools/mcp_tool.py依赖mcp SDK（可选），封装stdio/HTTP/SSE客户端
   - sparkii_cli/mcp_config.py依赖tools/mcp_tool.py进行连接探测
 - 外部依赖
@@ -317,9 +317,9 @@ Save --> End
 ```mermaid
 graph LR
 A["mcp_serve.py"] --> B["FastMCP"]
-A --> C["Hermes状态库"]
+A --> C["Sparkii状态库"]
 D["sparkii_tools_mcp_server.py"] --> B
-D --> E["Hermes工具调度"]
+D --> E["Sparkii工具调度"]
 F["tools/mcp_tool.py"] --> G["mcp SDK"]
 H["sparkii_cli/mcp_config.py"] --> F
 ```
@@ -408,7 +408,7 @@ H["sparkii_cli/mcp_config.py"] --> F
 - [mcp_config.py:88-104](file://sparkii_cli/mcp_config.py#L88-L104)
 
 ### 集成示例与调试技巧
-- 快速启动Hermes对话MCP服务：sparkii mcp serve
+- 快速启动Sparkii对话MCP服务：sparkii mcp serve
 - 添加远程MCP服务器：sparkii mcp add <name> --url <endpoint>
 - 添加stdio服务器：sparkii mcp add <name> --command <cmd> --args <args...>
 - 测试连接：sparkii mcp test <name>
@@ -428,7 +428,7 @@ H["sparkii_cli/mcp_config.py"] --> F
   - 兼容SSE与Streamable HTTP传输
   - 兼容不同MCP服务器的capabilities差异
 - 迁移
-  - 从hermes CLI迁移至sparkii CLI：配置键与行为保持一致
+  - 从sparkii CLI迁移至sparkii CLI：配置键与行为保持一致
   - 从OpenClaw 9-tool通道迁移：Sparkii MCP服务匹配其工具表面并扩展channels_list
   - 从本地脚本迁移至manifest.yaml：标准化传输、认证、工具清单与安装后步骤
 

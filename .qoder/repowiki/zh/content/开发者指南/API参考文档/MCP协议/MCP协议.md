@@ -32,7 +32,7 @@
 - sparkii_cli/mcp_config.py：CLI命令用于添加/删除/列出/测试/配置MCP服务器，包含交互式工具选择、鉴权配置与探测。
 - tools/mcp_oauth.py：MCP OAuth 2.1（PKCE）客户端实现，含本地回调服务、令牌持久化、动态客户端注册与元数据缓存。
 - tools/mcp_schema_cache.py：MCP工具Schema的持久化缓存，避免冷启动时频繁拉起子进程。
-- agent/transports/sparkii_tools_mcp_server.py：在Codex运行时下暴露精选的Hermes工具集作为MCP服务器，补齐Codex内置能力之外的功能。
+- agent/transports/sparkii_tools_mcp_server.py：在Codex运行时下暴露精选的Sparkii工具集作为MCP服务器，补齐Codex内置能力之外的功能。
 
 ```mermaid
 graph TB
@@ -75,7 +75,7 @@ H["CLI管理<br/>sparkii_cli/mcp_config.py"] --> B
 - Schema缓存（tools/mcp_schema_cache.py）
   - 按服务器名+配置指纹缓存工具Schema，避免冷启动开销。
 - Codex专用MCP服务器（agent/transports/sparkii_tools_mcp_server.py）
-  - 暴露精选Hermes工具（搜索、浏览器自动化、视觉、图像生成、技能、TTS、看板协作等），适配Codex运行时的工具生态。
+  - 暴露精选Sparkii工具（搜索、浏览器自动化、视觉、图像生成、技能、TTS、看板协作等），适配Codex运行时的工具生态。
 
 **章节来源**
 - [mcp_serve.py:284-585](file://mcp_serve.py#L284-L585)
@@ -278,9 +278,9 @@ OAuth-->>CLI : 认证成功
 - [tools/mcp_schema_cache.py:1-122](file://tools/mcp_schema_cache.py#L1-L122)
 
 ### Codex专用MCP服务器（agent/transports/sparkii_tools_mcp_server.py）
-- 目标：在Codex运行时下暴露精选Hermes工具，弥补Codex内置工具不足。
+- 目标：在Codex运行时下暴露精选Sparkii工具，弥补Codex内置工具不足。
 - 暴露能力：网页搜索/抽取、浏览器自动化、视觉分析、图像生成、技能浏览、TTS、看板协作等。
-- 实现：从Hermes工具定义中提取schema，动态构造处理器并注册到FastMCP。
+- 实现：从Sparkii工具定义中提取schema，动态构造处理器并注册到FastMCP。
 
 **章节来源**
 - [agent/transports/sparkii_tools_mcp_server.py:1-60](file://agent/transports/sparkii_tools_mcp_server.py#L1-L60)
@@ -361,14 +361,14 @@ T["sparkii_tools_mcp_server.py"] --> SDK
 
 ## 附录：OpenAI兼容接口映射
 - 背景
-  - ACP适配器将Hermes能力以Agent Client Protocol暴露，并在内部转换为OpenAI兼容的用户内容结构（文本与image_url等），以便下游模型消费。
+  - ACP适配器将Sparkii能力以Agent Client Protocol暴露，并在内部转换为OpenAI兼容的用户内容结构（文本与image_url等），以便下游模型消费。
 - 映射要点
   - 文本块：ACP TextContentBlock → OpenAI content parts中的text。
   - 图片块：ACP ImageContentBlock → OpenAI image_url（data URL或URI）。
   - 资源链接：ACP ResourceContentBlock → 本地文件读取，图片转为image_url，文本内联或提示二进制省略。
   - 嵌入资源：EmbeddedResourceContentBlock → 文本或图片处理，超大文件截断或省略。
 - 影响
-  - 确保多模态输入在Hermes/OpenAI路径中一致呈现，便于模型理解与渲染。
+  - 确保多模态输入在Sparkii/OpenAI路径中一致呈现，便于模型理解与渲染。
 
 **章节来源**
 - [acp_adapter/server.py:332-563](file://acp_adapter/server.py#L332-L563)

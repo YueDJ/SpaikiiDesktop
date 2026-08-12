@@ -1,4 +1,4 @@
-﻿# 工具Schema设计
+# 工具Schema设计
 
 <cite>
 **本文引用的文件**
@@ -17,7 +17,7 @@
 7. [最佳实践](#最佳实践)
 
 ## 简介
-本文档详细说明Hermes Agent中工具Schema的设计规范和实现机制。Schema定义了工具接受的参数格式，是模型与工具交互的契约。系统通过schema_sanitizer.py对Schema进行后处理，确保在不同LLM后端（OpenAI、Anthropic、本地推理等）上的兼容性。
+本文档详细说明Sparkii Agent中工具Schema的设计规范和实现机制。Schema定义了工具接受的参数格式，是模型与工具交互的契约。系统通过schema_sanitizer.py对Schema进行后处理，确保在不同LLM后端（OpenAI、Anthropic、本地推理等）上的兼容性。
 
 ## Schema基础格式
 

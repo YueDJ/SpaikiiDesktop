@@ -17,7 +17,7 @@
 7. [故障排除](#故障排除)
 
 ## 简介
-为Hermes Agent的工具Schema设计创建详细文档。详细说明OpenAI兼容的function schema格式，包括properties、required、description等字段的定义方法。解释参数类型的支持范围，包括基本类型、对象类型、数组类型和枚举类型。介绍必填字段和可选字段的配置方法，以及默认值的设置规则。说明复杂参数的嵌套结构定义，包括对象数组和条件参数的处理。解释sch...
+为Sparkii Agent的工具Schema设计创建详细文档。详细说明OpenAI兼容的function schema格式，包括properties、required、description等字段的定义方法。解释参数类型的支持范围，包括基本类型、对象类型、数组类型和枚举类型。介绍必填字段和可选字段的配置方法，以及默认值的设置规则。说明复杂参数的嵌套结构定义，包括对象数组和条件参数的处理。解释sch...
 
 本模块是 Sparkii/Sparkii Agent 系统的重要组成部分，负责工具Schema设计的核心功能实现。
 

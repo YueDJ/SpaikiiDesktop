@@ -182,7 +182,7 @@ Gate --> Comment["PR评论与耗时报告"]
   - 依赖管理：uv锁定版本，启用缓存；额外功能包按需安装以覆盖测试场景。
 - 端到端测试
   - 桌面端E2E使用Xvfb+Playwright，维护主分支截图基线；PR中对比差异并上传报告与可视化diff。
-  - 后端服务hermes serve与Electron前端联合验证，确保整体链路可用。
+  - 后端服务sparkii serve与Electron前端联合验证，确保整体链路可用。
 - 性能测试
   - 当前未包含专用性能测试工作流；可通过扩展tests.yml增加基准测试任务，结合ci-timings进行回归对比。
 

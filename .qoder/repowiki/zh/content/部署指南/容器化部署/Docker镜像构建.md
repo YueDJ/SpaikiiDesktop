@@ -99,7 +99,7 @@ Runtime->>S6 : /init (PID 1路径) 或 fallback
 S6->>Hook : cont-init.d/01-sparkii-setup
 Hook-->>S6 : 完成UID/GID重映射、数据卷chown、配置种子
 S6->>Wrapper : 执行CMD(非PID 1路径直接exec)
-Wrapper->>Service : 以hermes用户执行目标命令
+Wrapper->>Service : 以sparkii用户执行目标命令
 Service-->>Runtime : 退出码传递
 Runtime-->>Dev : 容器退出
 ```
@@ -132,13 +132,13 @@ Runtime-->>Dev : 容器退出
 
 ### 安全加固措施
 - 非root用户运行
-  - 创建hermes用户（默认UID 10000），服务通过s6-setuidgid降权执行；禁止以任意非hermes UID启动容器，引导用户使用SPARKII_UID/PUID机制。
+  - 创建sparkii用户（默认UID 10000），服务通过s6-setuidgid降权执行；禁止以任意非sparkii UID启动容器，引导用户使用SPARKII_UID/PUID机制。
 - 最小化镜像大小
   - 使用slim基础镜像；仅安装必要系统依赖；清理apt列表与npm缓存；排除测试、文档、桌面应用等无关内容。
 - 漏洞与依赖验证
   - 固定SQLite版本并校验SHA256；s6-overlay各tarball均校验哈希；构建时禁用审计以减少网络调用但保持确定性。
 - 只读安装树与可写数据卷
-  - /opt/hermes设置为只读，运行时状态位于/opt/data；可选后端懒安装重定向到数据卷，避免破坏核心venv。
+  - /opt/sparkii设置为只读，运行时状态位于/opt/data；可选后端懒安装重定向到数据卷，避免破坏核心venv。
 
 章节来源
 - [Dockerfile:149-151](file://Dockerfile#L149-L151)
@@ -236,7 +236,7 @@ Runtime --> Playwright["Playwright浏览器"]
 - [.github/workflows/docker.yml:33-84](file://.github/workflows/docker.yml#L33-L84)
 
 ## 故障排查指南
-- 启动失败：检查是否以非root且非hermes UID启动，参考错误提示改用SPARKII_UID/PUID方式。
+- 启动失败：检查是否以非root且非sparkii UID启动，参考错误提示改用SPARKII_UID/PUID方式。
 - 权限问题：确认/opt/data所有权正确，stage2-hook会在启动时修复；若挂载宿主机目录，注意避免符号链接导致的安全拒绝。
 - Dashboard无法访问：确认SPARKII_DASHBOARD开启并配置认证提供者；非回环地址必须启用认证。
 - 浏览器工具失败：检查PLAYWRIGHT_BROWSERS_PATH是否存在，stage2-hook会尝试发现Chromium二进制并导出环境变量。

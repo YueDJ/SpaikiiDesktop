@@ -28,7 +28,7 @@
 10. [附录：配置与示例](#附录配置与示例)
 
 ## 简介
-本文件面向Hermes Agent的Telegram平台集成，系统性说明如何基于python-telegram-bot完成机器人创建、权限与安全配置、Webhook与轮询模式接入；深入解析消息处理流程（文本、富媒体、交互式按钮、Inline键盘）、频道与群组话题模式适配、语音与音频区分；并给出代理与连接池等网络层配置建议、反垃圾策略与常见问题排查。
+本文件面向Sparkii Agent的Telegram平台集成，系统性说明如何基于python-telegram-bot完成机器人创建、权限与安全配置、Webhook与轮询模式接入；深入解析消息处理流程（文本、富媒体、交互式按钮、Inline键盘）、频道与群组话题模式适配、语音与音频区分；并给出代理与连接池等网络层配置建议、反垃圾策略与常见问题排查。
 
 ## 项目结构
 Telegram集成以插件形式提供，核心由适配器、网络辅助、ID归一化与CLI托管机器人工具组成，并通过Gateway平台注册机制接入主运行期。
@@ -93,7 +93,7 @@ T4 --> A
 - [gateway/config.py:584-584](file://gateway/config.py#L584-L584)
 
 ## 架构总览
-下图展示从Telegram到Hermes Gateway再到Agent的核心调用链，包括消息入站、认证、事件构建、出站响应与回调交互。
+下图展示从Telegram到Sparkii Gateway再到Agent的核心调用链，包括消息入站、认证、事件构建、出站响应与回调交互。
 
 ```mermaid
 sequenceDiagram

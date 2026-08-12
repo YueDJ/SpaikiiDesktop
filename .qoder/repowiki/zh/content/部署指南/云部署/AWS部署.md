@@ -101,7 +101,7 @@ ECS --> CW
 
 ### ECS容器化部署
 - 任务定义（Task Definition）：
-  - 镜像：使用仓库构建的hermes-agent镜像。
+  - 镜像：使用仓库构建的sparkii-agent镜像。
   - 资源：分配CPU/内存，合理设置健康检查（HTTP /health或自定义探针）。
   - 环境变量：SPARKII_UID/GID、API_SERVER_KEY（如需）、各平台凭据（Teams/Google Chat等）。
   - 存储：挂载EFS或EBS至/opt/data，或使用Fargate + EFS。

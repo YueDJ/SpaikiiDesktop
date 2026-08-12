@@ -74,7 +74,7 @@ Agent --> MCP["MCP工具/服务桥接<br/>tools/mcp_tool.py / agent/transports/s
 - [agent/transports/sparkii_tools_mcp_server.py](file://agent/transports/sparkii_tools_mcp_server.py)
 
 ## 架构总览
-OpenAI兼容API作为统一入口，内部路由到Hermes Agent；Dashboard提供本地Web管理界面与实时通信；ACP为编辑器/IDE场景提供标准化Agent交互；MCP作为工具生态扩展。
+OpenAI兼容API作为统一入口，内部路由到Sparkii Agent；Dashboard提供本地Web管理界面与实时通信；ACP为编辑器/IDE场景提供标准化Agent交互；MCP作为工具生态扩展。
 
 ```mermaid
 sequenceDiagram
@@ -191,11 +191,11 @@ Note over W,B : 所有/api/受令牌或OAuth保护
 
 ### ACP适配器（Agent Client Protocol）
 - 角色
-  - 将Hermes Agent能力以标准ACP协议暴露给编辑器/IDE（如Zed等）。
+  - 将Sparkii Agent能力以标准ACP协议暴露给编辑器/IDE（如Zed等）。
 - 能力
   - 会话管理、模型选择、工具调用、资源附件（文本/图片）、命令提示。
 - 数据转换
-  - 将ACP内容块转换为OpenAI/Hermes可理解的文本与图像部分。
+  - 将ACP内容块转换为OpenAI/Sparkii可理解的文本与图像部分。
   - 支持本地文件URI与嵌入资源，限制大小与类型。
 - 模型目录
   - 聚合已认证提供者与自定义命名端点，限制每提供者条目数，保证UI体验。
@@ -255,7 +255,7 @@ Plugin["Web插件<br/>plugins/web/__init__.py"] --> Tool
 ## 依赖关系分析
 - OpenAI兼容API依赖aiohttp与网关模块，负责HTTP路由、SSE流式、会话与任务管理。
 - Dashboard依赖FastAPI/Starlette，提供Web UI与管理接口，内置CORS、认证中间件与健康自检。
-- ACP适配器依赖acp库与Hermes会话管理，负责协议适配与内容转换。
+- ACP适配器依赖acp库与Sparkii会话管理，负责协议适配与内容转换。
 - MCP集成依赖工具层与传输层，将外部服务纳入Agent工具生态。
 
 ```mermaid

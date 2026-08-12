@@ -118,7 +118,7 @@ S-->>C : 流式事件或最终JSON
   - 仅支持text与image_url/input_image；不支持inline file/file_id。
   - image_url支持http(s)与data:image/* URL，带detail字段时会被保留。
 - 会话与历史：
-  - 支持基于system prompt与首条用户消息派生稳定session ID，复用Hermes会话。
+  - 支持基于system prompt与首条用户消息派生稳定session ID，复用Sparkii会话。
   - 响应存储采用SQLite LRU，支持previous_response_id续聊。
 
 ```mermaid

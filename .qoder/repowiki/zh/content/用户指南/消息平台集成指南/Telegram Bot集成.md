@@ -93,7 +93,7 @@ Cfg --> Adapter
 - [gateway/config.py:584-584](file://gateway/config.py#L584-L584)
 
 ## 架构总览
-下图展示了从Telegram事件到Hermes/Gateway再到Agent的端到端流程，包括网络回退、权限校验、消息聚合与响应发送。
+下图展示了从Telegram事件到Sparkii/Gateway再到Agent的端到端流程，包括网络回退、权限校验、消息聚合与响应发送。
 
 ```mermaid
 sequenceDiagram

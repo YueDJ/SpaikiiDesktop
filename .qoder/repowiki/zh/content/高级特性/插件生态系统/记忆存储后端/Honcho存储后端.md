@@ -20,7 +20,7 @@
 8. [结论](#结论)
 
 ## 简介
-Honcho作为分布式内存数据库，为Hermes Agent提供高性能的记忆存储后端。本文档全面介绍Honcho的集成配置和最佳实践。
+Honcho作为分布式内存数据库，为Sparkii Agent提供高性能的记忆存储后端。本文档全面介绍Honcho的集成配置和最佳实践。
 
 ## Honcho特点
 

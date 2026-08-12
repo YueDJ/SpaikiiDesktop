@@ -41,8 +41,8 @@ MCP在SparkiiDesktop中的角色：
 - sparkii_cli/mcp_config.py：CLI命令实现（add/remove/list/test/configure），交互式配置与工具选择
 - sparkii_cli/mcp_startup.py：后台MCP发现线程与等待机制，保证启动时不阻塞且具备超时保护
 - sparkii_cli/mcp_security.py：对MCP服务端配置的恶意模式检测（网络外发、持久化写入、IOC匹配）
-- mcp_serve.py：Hermes内置MCP Server，将会话消息、事件、权限审批等暴露为MCP工具
-- agent/transports/sparkii_tools_mcp_server.py：将Hermes部分工具以MCP Server形式暴露给Codex等运行时
+- mcp_serve.py：Sparkii内置MCP Server，将会话消息、事件、权限审批等暴露为MCP工具
+- agent/transports/sparkii_tools_mcp_server.py：将Sparkii部分工具以MCP Server形式暴露给Codex等运行时
 
 ```mermaid
 graph TB
@@ -53,8 +53,8 @@ C["sparkii_cli/mcp_startup.py<br/>后台发现与等待"]
 D["sparkii_cli/mcp_security.py<br/>安全校验"]
 end
 subgraph "服务端侧"
-E["mcp_serve.py<br/>Hermes内置MCP Server"]
-F["agent/transports/sparkii_tools_mcp_server.py<br/>Hermes工具MCP Server"]
+E["mcp_serve.py<br/>Sparkii内置MCP Server"]
+F["agent/transports/sparkii_tools_mcp_server.py<br/>Sparkii工具MCP Server"]
 end
 B --> A
 C --> A
@@ -98,8 +98,8 @@ A --> F
   - 阻止shell解释器+网络外发、系统持久化写入、已知IOC
 - 内置MCP Server（mcp_serve.py）
   - 暴露会话列表、消息读取、附件获取、事件轮询/等待、权限审批等工具
-- Hermes工具MCP Server（agent/transports/sparkii_tools_mcp_server.py）
-  - 将Hermes的部分工具（搜索、浏览器自动化、图像生成、TTS、看板等）暴露为MCP工具供Codex等运行时使用
+- Sparkii工具MCP Server（agent/transports/sparkii_tools_mcp_server.py）
+  - 将Sparkii的部分工具（搜索、浏览器自动化、图像生成、TTS、看板等）暴露为MCP工具供Codex等运行时使用
 
 **章节来源**
 - [tools/mcp_tool.py:1-95](file://tools/mcp_tool.py#L1-L95)
@@ -114,7 +114,7 @@ MCP在SparkiiDesktop的整体交互如下：
 - 用户通过CLI添加/配置MCP服务器（支持stdio、HTTP/StreamableHTTP、SSE）
 - 后台线程异步发现并建立连接，注册工具到Agent工具表
 - Agent在对话中按需调用工具；失败时自动重连
-- 内置MCP Server提供跨平台会话管理能力；Hermes工具MCP Server为特定运行时暴露能力
+- 内置MCP Server提供跨平台会话管理能力；Sparkii工具MCP Server为特定运行时暴露能力
 
 ```mermaid
 sequenceDiagram
@@ -288,10 +288,10 @@ EventBridge --> QueueEvent : "维护队列"
 - [mcp_serve.py:288-449](file://mcp_serve.py#L288-L449)
 - [mcp_serve.py:450-584](file://mcp_serve.py#L450-L584)
 
-### Hermes工具MCP Server（agent/transports/sparkii_tools_mcp_server.py）
-- 将Hermes的部分工具（web_search、browser_*、vision_analyze、image_generate、skills_*、text_to_speech、kanban_*）暴露为MCP工具
+### Sparkii工具MCP Server（agent/transports/sparkii_tools_mcp_server.py）
+- 将Sparkii的部分工具（web_search、browser_*、vision_analyze、image_generate、skills_*、text_to_speech、kanban_*）暴露为MCP工具
 - 通过FastMCP注册，参数签名由JSON Schema推导
-- 适用于Codex等运行时，使其获得Hermes更丰富的工具能力
+- 适用于Codex等运行时，使其获得Sparkii更丰富的工具能力
 
 **章节来源**
 - [agent/transports/sparkii_tools_mcp_server.py:1-43](file://agent/transports/sparkii_tools_mcp_server.py#L1-L43)
@@ -302,7 +302,7 @@ EventBridge --> QueueEvent : "维护队列"
 - tools/mcp_tool.py依赖mcp SDK（可选），根据可用能力启用HTTP/SSE、采样、通知等功能
 - CLI与后台发现模块依赖tools/mcp_tool.py进行实际连接与工具发现
 - 安全模块独立于连接逻辑，但在CLI保存与启动时被调用
-- 内置MCP Server与Hermes工具MCP Server作为服务端，被客户端连接
+- 内置MCP Server与Sparkii工具MCP Server作为服务端，被客户端连接
 
 ```mermaid
 graph LR
@@ -375,7 +375,7 @@ SparkiiDesktop通过MCP协议将外部工具与服务无缝集成到Agent工作�
 - 健壮的连接管理与自动重连
 - 安全的配置校验与敏感信息脱敏
 - 高效的工具发现与动态更新
-- 内置MCP Server与Hermes工具MCP Server扩展了跨平台与运行时能力
+- 内置MCP Server与Sparkii工具MCP Server扩展了跨平台与运行时能力
 
 建议开发者：
 - 使用CLI进行交互式配置与测试
