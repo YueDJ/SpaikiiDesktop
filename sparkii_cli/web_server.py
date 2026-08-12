@@ -8689,47 +8689,9 @@ def _ensure_whatsapp_bridge_dependencies(bridge_dir: Path) -> None:
 
 
 def _spawn_whatsapp_pairing_process(session_path: Path, mode: str) -> subprocess.Popen:
-    from gateway.platforms.whatsapp_common import resolve_whatsapp_bridge_dir
-    from sparkii_constants import find_node_executable, with_sparkii_node_path
-
-    bridge_dir = resolve_whatsapp_bridge_dir()
-    bridge_script = bridge_dir / "bridge.js"
-    if not bridge_script.exists():
-        raise HTTPException(
-            status_code=500,
-            detail=f"WhatsApp bridge script was not found at {bridge_script}.",
-        )
-    node = find_node_executable("node")
-    if not node:
-        raise HTTPException(
-            status_code=500,
-            detail="Node.js was not found. WhatsApp setup needs Node.js.",
-        )
-
-    _ensure_whatsapp_bridge_dependencies(bridge_dir)
-    session_path.mkdir(parents=True, exist_ok=True)
-
-    env = with_sparkii_node_path()
-    env["WHATSAPP_MODE"] = mode
-    env["WHATSAPP_DM_POLICY"] = "pairing"
-    return subprocess.Popen(
-        [
-            node,
-            str(bridge_script),
-            "--pair-only",
-            "--pair-json",
-            "--session",
-            str(session_path),
-        ],
-        cwd=str(bridge_dir),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        start_new_session=True,
-        env=env,
-        creationflags=windows_hide_flags(),
+    raise HTTPException(
+        status_code=400,
+        detail="WhatsApp was removed from this fork; the pairing wizard is unavailable.",
     )
 
 

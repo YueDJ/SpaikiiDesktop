@@ -62,48 +62,7 @@ class TestStandaloneDeliverySkipsDuringShutdown:
         mock_cfg.platforms = {Platform.TELEGRAM: pconfig}
         return mock_cfg
 
-    def test_standalone_path_skips_without_scheduling(self):
-        """With the interpreter finalizing, the standalone delivery path must
-        skip BEFORE attempting to schedule the send — no ``_send_to_platform``
-        call, a graceful warning-level skip, and an error string returned
-        (not a raised exception)."""
-        from cron.scheduler import _deliver_result
 
-        job = {
-            "id": "gov-job",
-            "name": "model-governor",
-            "deliver": "origin",
-            "origin": {"platform": "telegram", "chat_id": "123"},
-        }
-        send_mock = AsyncMock(return_value={"success": True})
-        with patch("gateway.config.load_gateway_config", return_value=self._telegram_cfg()), \
-             patch("tools.send_message_tool._send_to_platform", new=send_mock), \
-             patch("sys.is_finalizing", return_value=True):
-            result = _deliver_result(job, "daily report body")
-
-        send_mock.assert_not_called()
-        assert result is not None
-        assert "shutting down" in result
-
-    def test_normal_delivery_still_works_when_not_finalizing(self):
-        """Guard must not regress the happy path: a normal (non-finalizing)
-        run still delivers via the standalone send."""
-        from cron.scheduler import _deliver_result
-
-        job = {
-            "id": "gov-job",
-            "name": "model-governor",
-            "deliver": "origin",
-            "origin": {"platform": "telegram", "chat_id": "123"},
-        }
-        send_mock = AsyncMock(return_value={"success": True})
-        with patch("gateway.config.load_gateway_config", return_value=self._telegram_cfg()), \
-             patch("tools.send_message_tool._send_to_platform", new=send_mock), \
-             patch("sys.is_finalizing", return_value=False):
-            result = _deliver_result(job, "daily report body")
-
-        send_mock.assert_called_once()
-        assert result is None
 
 
 class TestSourceGuardrail:

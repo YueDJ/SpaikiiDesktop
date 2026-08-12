@@ -790,84 +790,6 @@ class TestMCPToolParameterCoercion:
         assert result["event"]["content"] == "waiting for this"
 
 
-class TestE2EMessagesSend:
-    def test_send_missing_args(self, mcp_server_e2e, _event_loop):
-        server, _ = mcp_server_e2e
-        result = _run_tool(server, "messages_send", {"target": "", "message": "hi"})
-        assert "error" in result
-
-    def test_send_delegates_to_tool(self, mcp_server_e2e, _event_loop, monkeypatch):
-        server, _ = mcp_server_e2e
-        mock = MagicMock(return_value=json.dumps({"success": True, "platform": "telegram"}))
-        monkeypatch.setattr("tools.send_message_tool.send_message_tool", mock)
-
-        result = _run_tool(server, "messages_send",
-                          {"target": "telegram:123456", "message": "Hello!"})
-        assert result["success"] is True
-        mock.assert_called_once()
-        call_args = mock.call_args[0][0]
-        assert call_args["action"] == "send"
-        assert call_args["target"] == "telegram:123456"
-
-
-class TestE2EChannelsList:
-    def test_channels_from_sessions(self, mcp_server_e2e, _event_loop):
-        server, _ = mcp_server_e2e
-        result = _run_tool(server, "channels_list")
-        assert result["count"] == 3
-        targets = {c["target"] for c in result["channels"]}
-        assert "telegram:123456" in targets
-        assert "discord:789" in targets
-        assert "slack:C1234" in targets
-
-    def test_channels_platform_filter(self, mcp_server_e2e, _event_loop):
-        server, _ = mcp_server_e2e
-        result = _run_tool(server, "channels_list", {"platform": "slack"})
-        assert result["count"] == 1
-        assert result["channels"][0]["target"] == "slack:C1234"
-
-    def test_channels_with_directory(self, mcp_server_e2e, _event_loop, monkeypatch):
-        """Populated channel_directory.json should be unwrapped via the 'platforms' key.
-
-        Regression test for issue #21474: the writer wraps platforms under
-        {"updated_at": ..., "platforms": {...}} but the reader was iterating
-        directory.items() directly, so channels_list always returned 0.
-        """
-        import mcp_serve
-        monkeypatch.setattr(mcp_serve, "_load_channel_directory", lambda: {
-            "updated_at": "2026-05-07T12:00:00",
-            "platforms": {
-                "telegram": [
-                    {"id": "123456", "name": "Alice", "type": "dm"},
-                    {"id": "-100999", "name": "Dev Group", "type": "group"},
-                ],
-                "discord": [
-                    {"id": "789", "name": "general", "type": "text"},
-                ],
-            },
-        })
-        server, _ = mcp_server_e2e
-        result = _run_tool(server, "channels_list")
-        assert result["count"] == 3
-        targets = {c["target"] for c in result["channels"]}
-        assert targets == {"telegram:123456", "telegram:-100999", "discord:789"}
-
-    def test_channels_with_directory_platform_filter(self, mcp_server_e2e, _event_loop, monkeypatch):
-        """Platform filter should work against the wrapped 'platforms' payload."""
-        import mcp_serve
-        monkeypatch.setattr(mcp_serve, "_load_channel_directory", lambda: {
-            "updated_at": "2026-05-07T12:00:00",
-            "platforms": {
-                "telegram": [{"id": "123456", "name": "Alice", "type": "dm"}],
-                "discord": [{"id": "789", "name": "general", "type": "text"}],
-            },
-        })
-        server, _ = mcp_server_e2e
-        result = _run_tool(server, "channels_list", {"platform": "discord"})
-        assert result["count"] == 1
-        assert result["channels"][0]["target"] == "discord:789"
-
-
 class TestE2EPermissions:
     def test_list_empty(self, mcp_server_e2e, _event_loop):
         server, _ = mcp_server_e2e
@@ -932,7 +854,6 @@ class TestToolRegistration:
         expected = {
             "conversations_list", "conversation_get", "messages_read",
             "attachments_fetch", "events_poll", "events_wait",
-            "messages_send", "channels_list",
             "permissions_list_open", "permissions_respond",
         }
         assert expected == tool_names, f"Missing: {expected - tool_names}, Extra: {tool_names - expected}"

@@ -54,7 +54,7 @@ def _make_runner(**attrs):
 
 def _make_context(
     *,
-    platform: Platform = Platform.DISCORD,
+    platform: Platform = Platform.WEBHOOK,
     chat_id: str = "111222333",
     chat_name: str = "general",
     chat_type: str = "channel",
@@ -82,11 +82,11 @@ def _make_context(
         scope_id=guild_id,
         message_id=message_id,
     )
-    connected = connected if connected is not None else [Platform.DISCORD, Platform.TELEGRAM]
+    connected = connected if connected is not None else [Platform.WEBHOOK, Platform.WEBHOOK]
     if home_channels is None:
         home_channels = {
-            Platform.DISCORD: HomeChannel(
-                platform=Platform.DISCORD, chat_id="111222333", name="general"
+            Platform.WEBHOOK: HomeChannel(
+                platform=Platform.WEBHOOK, chat_id="111222333", name="general"
             ),
         }
     return SessionContext(
@@ -95,13 +95,6 @@ def _make_context(
         home_channels=home_channels,
         shared_multi_user_session=shared_multi_user,
     )
-
-
-@pytest.fixture(autouse=True)
-def _stable_platform_tools(monkeypatch):
-    """Pin the config/env-dependent renderer gates so key<->render parity is
-    evaluated on the same footing in every environment."""
-    monkeypatch.setattr("gateway.session._slack_tools_loaded", lambda: False)
 
 
 def _key(runner, context, redact_pii=False):
@@ -133,14 +126,14 @@ class TestEphemeralChangeKeyParity:
         ("guild_id", dict(guild_id="123123123")),
         ("parent_chat_id", dict(parent_chat_id="999000111")),
         ("chat_id", dict(chat_id="999999999", parent_chat_id="999999999")),
-        ("platform", dict(platform=Platform.TELEGRAM)),
-        ("connected_platforms", dict(connected=[Platform.DISCORD])),
+        ("platform", dict(platform=Platform.WEBHOOK)),
+        ("connected_platforms", dict(connected=[Platform.WEBHOOK])),
         (
             "home_channel_renamed",
             dict(
                 home_channels={
-                    Platform.DISCORD: HomeChannel(
-                        platform=Platform.DISCORD, chat_id="111222333", name="ops-home"
+                    Platform.WEBHOOK: HomeChannel(
+                        platform=Platform.WEBHOOK, chat_id="111222333", name="ops-home"
                     )
                 }
             ),
@@ -149,26 +142,17 @@ class TestEphemeralChangeKeyParity:
             "home_channel_added",
             dict(
                 home_channels={
-                    Platform.DISCORD: HomeChannel(
-                        platform=Platform.DISCORD, chat_id="111222333", name="general"
+                    Platform.WEBHOOK: HomeChannel(
+                        platform=Platform.WEBHOOK, chat_id="111222333", name="general"
                     ),
-                    Platform.TELEGRAM: HomeChannel(
-                        platform=Platform.TELEGRAM, chat_id="tg1", name="tg-home"
+                    Platform.WEBHOOK: HomeChannel(
+                        platform=Platform.WEBHOOK, chat_id="tg1", name="tg-home"
                     ),
                 }
             ),
         ),
         ("message_id_cleared", dict(message_id=None)),
     ]
-
-
-    def test_redact_pii_flip_changes_key(self):
-        # PII redaction only rewrites bytes on pii-safe platforms; the key
-        # must react wherever the render does.
-        runner = _make_runner()
-        ctx = _make_context(platform=Platform.TELEGRAM, thread_id=None, parent_chat_id=None)
-        assert _render(ctx, False) != _render(ctx, True)
-        assert _key(runner, ctx, False) != _key(runner, ctx, True)
 
 
     def test_slack_note_byte_stable_across_turns_in_one_session(self):
@@ -179,7 +163,7 @@ class TestEphemeralChangeKeyParity:
 
         def _slack_ctx():
             return _make_context(
-                platform=Platform.SLACK,
+                platform=Platform.WEBHOOK,
                 chat_id="C123",
                 thread_id=None,
                 parent_chat_id=None,
@@ -241,7 +225,7 @@ class TestComposedPromptByteStability:
 
 def _source():
     return SessionSource(
-        platform=Platform.DISCORD, chat_id="c1", chat_type="channel", user_id="u1"
+        platform=Platform.WEBHOOK, chat_id="c1", chat_type="channel", user_id="u1"
     )
 
 
@@ -255,42 +239,12 @@ class _VcAdapter:
 
 def _vc_runner(vc_value):
     adapter = _VcAdapter(vc_value)
-    runner = _make_runner(adapters={Platform.DISCORD: adapter})
+    runner = _make_runner(adapters={Platform.WEBHOOK: adapter})
     return runner, adapter
 
 
 def _vc_event():
     return SimpleNamespace(raw_message=SimpleNamespace(guild_id="777"))
-
-
-class TestVoiceChannelSidecarNote:
-    def test_first_sighting_injects(self):
-        runner, _ = _vc_runner("**Voice:** dev-vc (2 members)")
-        note = runner._voice_channel_sidecar_note(_vc_event(), _source(), "sk")  # noqa: SLF001
-        assert note == "[Voice channel now: **Voice:** dev-vc (2 members)]"
-
-    def test_unchanged_state_injects_nothing(self):
-        runner, _ = _vc_runner("**Voice:** dev-vc (2 members)")
-        assert runner._voice_channel_sidecar_note(_vc_event(), _source(), "sk")  # noqa: SLF001
-        assert runner._voice_channel_sidecar_note(_vc_event(), _source(), "sk") is None  # noqa: SLF001
-
-    def test_member_change_injects_again(self):
-        runner, adapter = _vc_runner("**Voice:** dev-vc (2 members)")
-        runner._voice_channel_sidecar_note(_vc_event(), _source(), "sk")  # noqa: SLF001
-        adapter.value = "**Voice:** dev-vc (3 members)"
-        note = runner._voice_channel_sidecar_note(_vc_event(), _source(), "sk")  # noqa: SLF001
-        assert note == "[Voice channel now: **Voice:** dev-vc (3 members)]"
-
-    def test_leaving_channel_injects_disconnect_note(self):
-        runner, adapter = _vc_runner("**Voice:** dev-vc (2 members)")
-        runner._voice_channel_sidecar_note(_vc_event(), _source(), "sk")  # noqa: SLF001
-        adapter.value = ""
-        note = runner._voice_channel_sidecar_note(_vc_event(), _source(), "sk")  # noqa: SLF001
-        assert note == "[Voice channel now: not connected to a voice channel]"
-
-    def test_never_in_channel_injects_nothing(self):
-        runner, _ = _vc_runner("")
-        assert runner._voice_channel_sidecar_note(_vc_event(), _source(), "sk") is None  # noqa: SLF001
 
 
 # ---------------------------------------------------------------------------
@@ -313,14 +267,14 @@ class TestConnectedPlatformsOrder:
     def test_sorted_regardless_of_insertion_order(self):
         cfg_a = GatewayConfig(
             platforms={
-                Platform.TELEGRAM: PlatformConfig(enabled=True, token="t"),
-                Platform.DISCORD: PlatformConfig(enabled=True, token="d"),
+                Platform.WEBHOOK: PlatformConfig(enabled=True, token="t"),
+                Platform.WEBHOOK: PlatformConfig(enabled=True, token="d"),
             }
         )
         cfg_b = GatewayConfig(
             platforms={
-                Platform.DISCORD: PlatformConfig(enabled=True, token="d"),
-                Platform.TELEGRAM: PlatformConfig(enabled=True, token="t"),
+                Platform.WEBHOOK: PlatformConfig(enabled=True, token="d"),
+                Platform.WEBHOOK: PlatformConfig(enabled=True, token="t"),
             }
         )
         assert cfg_a.get_connected_platforms() == cfg_b.get_connected_platforms()

@@ -1309,47 +1309,14 @@ def _resolve_single_delivery_target(job: dict, deliver_value: str) -> Optional[d
         return None
 
     if ":" in deliver_value:
-        platform_name, rest = deliver_value.split(":", 1)
-        platform_key = platform_name.lower()
-
-        from tools.send_message_tool import _parse_target_ref
-
-        parsed_chat_id, parsed_thread_id, is_explicit = _parse_target_ref(platform_key, rest)
-        if is_explicit:
-            chat_id, thread_id = parsed_chat_id, parsed_thread_id
-        else:
-            chat_id, thread_id = rest, None
-
-        # Resolve human-friendly labels like "Alice (dm)" to real IDs.
-        try:
-            from gateway.channel_directory import resolve_channel_name
-            resolved = resolve_channel_name(platform_key, chat_id)
-            if resolved:
-                parsed_chat_id, parsed_thread_id, resolved_is_explicit = _parse_target_ref(platform_key, resolved)
-                if resolved_is_explicit:
-                    chat_id = parsed_chat_id
-                    if parsed_thread_id is not None:
-                        thread_id = parsed_thread_id
-                else:
-                    chat_id = resolved
-        except Exception:
-            pass
-
-        if (
-            thread_id is None
-            and platform_key == "slack"
-            and origin
-            and str(origin.get("platform") or "").lower() == platform_key
-            and str(origin.get("chat_id")) == str(chat_id)
-            and origin.get("thread_id")
-        ):
-            thread_id = origin.get("thread_id")
-
-        return {
-            "platform": platform_name,
-            "chat_id": chat_id,
-            "thread_id": thread_id,
-        }
+        platform_name = deliver_value.split(":", 1)[0]
+        logger.warning(
+            "Job '%s': deliver=%s targets a messaging platform, which was "
+            "removed in this fork — skipping delivery (output saved in last_output)",
+            job.get("name", job.get("id", "?")),
+            deliver_value,
+        )
+        return None
 
     platform_name = deliver_value
     if origin and origin.get("platform") == platform_name:
@@ -1635,7 +1602,6 @@ def _deliver_result(job: dict, content: str, adapters=None, loop=None) -> Option
         logger.warning("Job '%s': %s", job["id"], msg)
         return msg
 
-    from tools.send_message_tool import _send_to_platform
     from gateway.config import load_gateway_config, Platform
 
     # Optionally wrap the content with a header/footer so the user knows this
@@ -2174,78 +2140,15 @@ def _deliver_result(job: dict, content: str, adapters=None, loop=None) -> Option
                 target_errors.append(msg)
                 delivery_errors.extend(target_errors)
                 continue
-            # Standalone path: run the async send in a fresh event loop (safe from any thread)
-            coro = _send_to_platform(platform, pconfig, chat_id, cleaned_delivery_content, thread_id=thread_id, media_files=media_files)
-            try:
-                result = asyncio.run(coro)
-            except RuntimeError as run_err:
-                # asyncio.run() checks for a running loop before awaiting the coroutine;
-                # when it raises, the original coro was never started — close it to
-                # prevent "coroutine was never awaited" RuntimeWarning, then retry in a
-                # fresh thread that has no running loop.
-                coro.close()
-                # If the RuntimeError is the interpreter-finalization signal,
-                # the fresh-thread fallback would fail identically — skip
-                # gracefully instead of logging a shutdown-race traceback.
-                if _interpreter_shutting_down(run_err):
-                    msg = f"delivery to {platform_name}:{chat_id} skipped — interpreter is shutting down"
-                    logger.warning("Job '%s': %s", job["id"], msg)
-                    target_errors.append(msg)
-                    delivery_errors.extend(target_errors)
-                    continue
-                # The thread-pool fallback can itself raise (SMTP ConnectionError,
-                # future.result timeout, etc.). An exception raised inside this
-                # `except RuntimeError` block is NOT caught by the sibling
-                # `except Exception` below — it would escape _deliver_result()
-                # and crash the whole delivery loop, silently skipping every
-                # remaining target (#47163). Wrap the fallback in its own
-                # try/except so a per-target failure is logged and the loop
-                # continues to the next target.
-                try:
-                    pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
-                    try:
-                        future = pool.submit(asyncio.run, _send_to_platform(platform, pconfig, chat_id, cleaned_delivery_content, thread_id=thread_id, media_files=media_files))
-                        result = future.result(timeout=30)
-                    finally:
-                        pool.shutdown(wait=False)
-                except Exception as e:
-                    # A shutdown-race here is expected during teardown; downgrade
-                    # to a warning so it doesn't read as a genuine failure.
-                    if _interpreter_shutting_down(e):
-                        msg = f"delivery to {platform_name}:{chat_id} skipped — interpreter is shutting down"
-                        logger.warning("Job '%s': %s", job["id"], msg)
-                        target_errors.append(msg)
-                        delivery_errors.extend(target_errors)
-                        continue
-                    msg = f"delivery to {platform_name}:{chat_id} failed: {e}"
-                    logger.error("Job '%s': %s", job["id"], msg, exc_info=True)
-                    target_errors.extend([msg])
-                    delivery_errors.extend(target_errors)
-                    continue
-            except Exception as e:
-                msg = f"delivery to {platform_name}:{chat_id} failed: {e}"
-                logger.error("Job '%s': %s", job["id"], msg, exc_info=True)
-                target_errors.extend([msg])
-                delivery_errors.extend(target_errors)
-                continue
-
-            if result and result.get("error"):
-                # Include target context (platform/chat) so a bare error string
-                # like "Discord send failed: TimeoutError: " is attributable.
-                # Not inside an except block — the error comes from the send
-                # result dict, so there is no traceback to attach.
-                msg = f"delivery error: {result['error']} (target {platform_name}:{chat_id})"
-                logger.error("Job '%s': %s", job["id"], msg)
-                target_errors.extend([msg])
-                delivery_errors.extend(target_errors)
-                continue
-
-            logger.info("Job '%s': delivered to %s:%s", job["id"], platform_name, chat_id)
-            _maybe_mirror_cron_delivery(
-                job, platform_name, chat_id, mirror_text,
-                thread_id=thread_id, user_id=origin_user_id,
-                enabled=mirror_this_target and not thread_seeded,
+            # Standalone platform delivery was removed along with the messaging
+            # platforms; no remaining built-in platform reaches this path.
+            msg = (
+                f"delivery to {platform_name}:{chat_id} failed: messaging "
+                "platforms were removed in this fork"
             )
+            logger.error("Job '%s': %s", job["id"], msg)
+            target_errors.extend([msg])
+            delivery_errors.extend(target_errors)
 
     if delivery_errors:
         return "; ".join(delivery_errors)
@@ -3521,8 +3424,6 @@ def run_job(
     #   - tools/skills_tool.py + agent/prompt_builder.py: per-platform
     #     skill-disable lists and the system-prompt cache key both consume
     #     SPARKII_SESSION_PLATFORM.
-    #   - tools/send_message_tool.py: mirror source labelling and the
-    #     send_message gate read SPARKII_SESSION_PLATFORM.
     # Cron output delivery itself reads job["origin"] directly via
     # _resolve_origin(job) and the SPARKII_CRON_AUTO_DELIVER_* vars set
     # below, so clearing SPARKII_SESSION_* here does not affect delivery.

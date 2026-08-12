@@ -270,37 +270,44 @@ _Platform__bundled_plugin_names: Optional[set] = None
 
 
 class Platform(Enum):
-    """Supported messaging platforms.
+    """Supported gateway platforms.
 
-    Built-in platforms have explicit members.  Plugin platforms use dynamic
-    members created on-demand by ``_missing_()`` so that
-    ``Platform("irc")`` works without modifying this enum.  Dynamic members
-    are cached in ``_value2member_map_`` for identity-stable comparisons.
+    Messaging platforms were removed from this fork.  Remaining built-in
+    platforms (API server, webhook) have explicit members.  Plugin platforms
+    use dynamic members created on-demand by ``_missing_()`` so that unknown
+    names parse without modifying this enum; dynamic members are cached in
+    ``_value2member_map_`` for identity-stable comparisons.
     """
     LOCAL = "local"
-    TELEGRAM = "telegram"
-    DISCORD = "discord"
-    WHATSAPP = "whatsapp"
-    WHATSAPP_CLOUD = "whatsapp_cloud"
-    SLACK = "slack"
-    SIGNAL = "signal"
-    MATTERMOST = "mattermost"
-    MATRIX = "matrix"
-    HOMEASSISTANT = "homeassistant"
-    EMAIL = "email"
-    SMS = "sms"
-    DINGTALK = "dingtalk"
     API_SERVER = "api_server"
     WEBHOOK = "webhook"
-    MSGRAPH_WEBHOOK = "msgraph_webhook"
-    FEISHU = "feishu"
-    WECOM = "wecom"
-    WECOM_CALLBACK = "wecom_callback"
-    WEIXIN = "weixin"
-    BLUEBUBBLES = "bluebubbles"
-    QQBOT = "qqbot"
-    YUANBAO = "yuanbao"
     RELAY = "relay"  # generic relay adapter fronted by the connector (EXPERIMENTAL)
+
+    # Retired messaging platforms.  Kept only as ``None`` members so legacy
+    # comparisons short-circuit to False during the migration instead of
+    # raising AttributeError; config values for these names resolve through
+    # ``_missing_`` to dynamic members and are rejected at adapter creation.
+    # Remove each member once the last code reference is gone.
+    TELEGRAM = None
+    DISCORD = None
+    WHATSAPP = None
+    WHATSAPP_CLOUD = None
+    SLACK = None
+    SIGNAL = None
+    MATTERMOST = None
+    MATRIX = None
+    HOMEASSISTANT = None
+    EMAIL = None
+    SMS = None
+    DINGTALK = None
+    MSGRAPH_WEBHOOK = None
+    FEISHU = None
+    WECOM = None
+    WECOM_CALLBACK = None
+    WEIXIN = None
+    BLUEBUBBLES = None
+    QQBOT = None
+    YUANBAO = None
     @classmethod
     def _missing_(cls, value):
         """Accept unknown platform names only for known plugin adapters.

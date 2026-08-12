@@ -90,10 +90,6 @@ from .config import (
     SessionResetPolicy,  # noqa: F401 — re-exported via gateway/__init__.py
     HomeChannel,
 )
-from .whatsapp_identity import (
-    canonical_whatsapp_identifier,
-    normalize_whatsapp_identifier,  # noqa: F401 - re-exported for gateway.session callers
-)
 from utils import atomic_replace
 from agent.turn_context import extract_api_content_sidecar
 
@@ -346,73 +342,10 @@ class SessionContext:
         }
 
 
-_PII_SAFE_PLATFORMS = frozenset({
-    Platform.WHATSAPP,
-    Platform.SIGNAL,
-    Platform.TELEGRAM,
-    Platform.BLUEBUBBLES,
-})
-"""Platforms where user IDs can be safely redacted (no in-message mention system
-that requires raw IDs).  Discord is excluded because mentions use ``<@user_id>``
-and the LLM needs the real ID to tag users."""
-
-
-def _slack_tools_loaded() -> bool:
-    """True iff the agent will actually have Slack tools this session.
-
-    Two independent paths grant Slack capability:
-      1. Native `slack` toolset enabled via `sparkii tools` (opt-in, default
-         OFF) AND `SLACK_BOT_TOKEN` set — the tool's `check_fn` gates on it
-         at registry time, so config alone isn't enough.
-      2. An MCP server that has ACTUALLY registered tools into the live
-         registry (tools/mcp_tool.get_registered_mcp_server_names()), whose
-         name suggests Slack. This is the real, availability-filtered
-         signal (post-connection, post include/exclude filtering) rather
-         than just what's listed in config.yaml -- a configured-but-
-         unconnected or zero-tool MCP server must not claim capability.
-         Named MCP servers are process-wide (one gateway connects each MCP
-         server once, not per-session), so this check is intentionally NOT
-         scoped further per-session -- unlike the earlier get_all_tool_names()
-         approach this replaces, which conflated ALL built-in tool names
-         process-wide, this only inspects the small, purpose-built MCP
-         server-name map.
-
-    Returns False (safe default — keeps the stale-API disclaimer) on any
-    error so a bad config can never silently promise tools the agent lacks.
-    """
-    try:
-        from tools.mcp_tool import get_registered_mcp_server_names
-        if any("slack" in name.lower() for name in get_registered_mcp_server_names()):
-            return True
-    except Exception:
-        pass
-
-    # Presence check through the profile secret scope: under multiplex the
-    # process env may carry another profile's token (Slack pattern for the
-    # unscoped default-profile path).
-    try:
-        from agent.secret_scope import UnscopedSecretError, get_secret
-
-        try:
-            _slack_token = get_secret("SLACK_BOT_TOKEN") or ""
-        except UnscopedSecretError:
-            _slack_token = os.environ.get("SLACK_BOT_TOKEN") or ""
-    except Exception:
-        _slack_token = os.environ.get("SLACK_BOT_TOKEN") or ""
-    if not _slack_token.strip():
-        return False
-    try:
-        from sparkii_cli.config import load_config
-        from sparkii_cli.tools_config import _get_platform_tools
-        cfg = load_config()
-        # include_default_mcp_servers=True (the default) so a Slack MCP
-        # server that's enabled by default for this platform (not
-        # explicitly listed) is also counted, in addition to the native
-        # 'slack' toolset.
-        enabled = _get_platform_tools(cfg, "slack")
-        return "slack" in enabled
-    except Exception:
-        return False
+_PII_SAFE_PLATFORMS = frozenset()
+"""Platforms where user IDs can be safely redacted.  No messaging platforms
+remain in this fork, so the built-in set is empty; plugin platforms opt in
+via the registry's ``pii_safe`` flag."""
 
 
 _MAX_PROMPT_METADATA_CHARS = 240
@@ -524,22 +457,6 @@ def build_session_context_prompt(
             f"**Channel Topic:** {_format_untrusted_prompt_value(context.source.chat_topic)}"
         )
 
-    if context.source.platform == Platform.MATRIX:
-        src = context.source
-        room_name = src.chat_name or src.chat_id
-        room_id = _hash_chat_id(src.chat_id) if redact_pii else src.chat_id
-        lines.append("")
-        lines.append(f"**Matrix Room:** {_format_untrusted_prompt_value(room_name)}")
-        lines.append(f"**Matrix Room ID:** {room_id}")
-        if src.thread_id:
-            thread_id = _hash_chat_id(src.thread_id) if redact_pii else src.thread_id
-            lines.append(f"**Matrix Thread:** {thread_id}")
-        lines.append(
-            "**Matrix room boundary:** Treat this turn as scoped to the current "
-            "Matrix room/thread only. Do not assume unresolved references are "
-            "about other Matrix rooms or projects unless the user explicitly says so."
-        )
-
     # User identity.
     # In shared multi-user sessions (shared threads OR shared non-thread groups
     # when group_sessions_per_user=False), multiple users contribute to the same
@@ -563,52 +480,6 @@ def build_session_context_prompt(
             uid = _hash_sender_id(uid)
         lines.append(f"**User ID:** {_format_untrusted_prompt_value(uid)}")
 
-    # Platform-specific behavioral notes
-    if context.source.platform == Platform.SLACK:
-        # Inject the Slack capability note only when the agent actually has
-        # Slack tools loaded this session — native `slack` toolset opt-in,
-        # or a connected MCP server that has registered Slack tools.
-        # Otherwise keep the stale-API disclaimer honest so we never
-        # promise tools the agent lacks. Mirrors the Discord pattern below.
-        if _slack_tools_loaded():
-            lines.append("")
-            lines.append(
-                "**Platform notes:** You are running inside Slack and have access "
-                "to Slack-specific tools this session. Consult the available Slack "
-                "tool schemas for the exact operations supported (e.g. channel "
-                "history and thread lookups, posting, reactions) — use those tools "
-                "for Slack-specific requests, and do not promise Slack actions "
-                "beyond what the loaded tools actually expose."
-            )
-        else:
-            lines.append("")
-            lines.append(
-                "**Platform notes:** You are running inside Slack. "
-                "You do NOT have access to Slack-specific APIs — you cannot search "
-                "channel history, pin/unpin messages, manage channels, or list users. "
-                "Do not promise to perform these actions. The gateway may inline the "
-                "current message's Slack block/attachment payload when available, but "
-                "you still cannot call Slack APIs yourself."
-            )
-        if context.shared_multi_user_session:
-            lines.append(
-                "In shared Slack threads, use the current turn's sender prefix "
-                "as the only verified current-author mention target. Do not "
-                "guess or reuse `<@U...>` mentions from names, memory, or prior "
-                "conversation history."
-            )
-    elif context.source.platform == Platform.BLUEBUBBLES:
-        lines.append("")
-        lines.append(
-            "**Platform notes:** You are responding via iMessage. "
-            "Keep responses short and conversational — think texts, not essays. "
-            "Structure longer replies as separate short thoughts, each separated "
-            "by a blank line (double newline). Each block between blank lines "
-            "will be delivered as its own iMessage bubble, so write accordingly: "
-            "one idea per bubble, 1–3 sentences each. "
-            "If the user needs a detailed answer, give the short version first "
-            "and offer to elaborate."
-        )
     # Connected platforms
     platforms_list = ["local (files on this machine)"]
     for p in context.connected_platforms:
@@ -918,46 +789,6 @@ class SessionEntry:
         )
 
 
-def build_channel_continuity_note(
-    entry: "SessionEntry",
-    source: SessionSource,
-) -> Optional[str]:
-    """Build a lightweight session-continuity hint for Slack/Discord channels.
-
-    Slack and Discord channels/threads are long-lived: when the daily/idle
-    reset policy starts a fresh session, the agent loses the thread's prior
-    context and can mistakenly bind a new request to an unrelated recent
-    session.  This deterministic one-line hint points the agent at the
-    specific prior session in *this* channel/thread so it recalls that
-    context via ``session_search`` before acting.
-
-    Returns ``None`` (and the caller adds nothing) unless **all** hold:
-      - the source platform is Slack or Discord,
-      - this session was created by an auto-reset that had real activity,
-      - the previous session_id was recorded on the entry.
-
-    No LLM calls, no extra API/DB lookups — the previous session id is
-    already known from :meth:`SessionStore.get_or_create_session`.
-    """
-    if source.platform not in (Platform.SLACK, Platform.DISCORD):
-        return None
-    if not getattr(entry, "reset_had_activity", False):
-        return None
-    prev = getattr(entry, "prev_session_id", None)
-    if not prev:
-        return None
-
-    where = "thread" if source.thread_id else "channel"
-    return (
-        f"[System note: This {where} had an earlier Sparkii session "
-        f"(session_id: {prev}) that was auto-reset. If the user refers to "
-        f"earlier work here, or the request depends on this {where}'s history, "
-        f"use the session_search tool to recall that prior session before "
-        f"acting — do not assume an unrelated recent session is the right "
-        f"context.]"
-    )
-
-
 def is_shared_multi_user_session(
     source: SessionSource,
     *,
@@ -1024,34 +855,23 @@ def build_session_key(
       - Without thread_id or chat_id, DMs share a single session.
 
     Group/channel rules:
-      - Slack ``scope_id`` identifies the workspace before chat/thread ids.
       - chat_id identifies the parent group/channel.
       - user_id/user_id_alt isolates participants within that parent chat when available when
         ``group_sessions_per_user`` is enabled.
       - thread_id differentiates threads within that parent chat.  When
         ``thread_sessions_per_user`` is False (default), threads are *shared* across all
         participants — user_id is NOT appended, so every user in the thread
-        shares a single session.  This is the expected UX for threaded
-        conversations (Telegram forum topics, Discord threads, Slack threads).
+        shares a single session.
       - Without participant identifiers, or when isolation is disabled, messages fall back to one
         shared session per chat.
       - Without identifiers, messages fall back to one session per platform/chat_type.
     """
     ns = _session_key_namespace(profile)
     platform = source.platform.value
-    slack_scope_id = (
-        str(source.scope_id)
-        if source.platform == Platform.SLACK and source.scope_id
-        else None
-    )
     if source.chat_type == "dm":
         dm_chat_id = source.chat_id
-        if source.platform == Platform.WHATSAPP:
-            dm_chat_id = canonical_whatsapp_identifier(source.chat_id)
 
         dm_parts = [ns, platform, "dm"]
-        if slack_scope_id:
-            dm_parts.append(slack_scope_id)
         if dm_chat_id:
             dm_parts.append(dm_chat_id)
             if source.thread_id:
@@ -1064,11 +884,6 @@ def build_session_key(
         # single cached agent ends up serving multiple people's conversations —
         # cross-user history bleed.  participant_id keeps DMs isolated per user.
         dm_participant_id = source.user_id_alt or source.user_id
-        if dm_participant_id and source.platform == Platform.WHATSAPP:
-            dm_participant_id = (
-                canonical_whatsapp_identifier(str(dm_participant_id))
-                or dm_participant_id
-            )
         if dm_participant_id:
             dm_parts.append(str(dm_participant_id))
             if source.thread_id:
@@ -1079,32 +894,10 @@ def build_session_key(
         return ":".join(str(part) for part in dm_parts)
 
     participant_id = source.user_id_alt or source.user_id
-    if participant_id and source.platform == Platform.WHATSAPP:
-        # Same JID/LID-flip bug as the DM case: without canonicalisation, a
-        # single group member gets two isolated per-user sessions when the
-        # bridge reshuffles alias forms.
-        participant_id = canonical_whatsapp_identifier(str(participant_id)) or participant_id
-    # Discord auto-thread continuity: a channel-initiating message carries no
-    # thread_id yet, but the connector tells us the thread its reply WILL be
-    # auto-threaded into (prospective_thread_id == the message id, which becomes
-    # the thread id). Key the session on that so the initiating channel message
-    # and every follow-up that later arrives IN that thread (real thread_id ==
-    # prospective_thread_id) resolve to the SAME session — "initiate in channel,
-    # continue in thread". A real thread_id always wins when present.
-    #
-    # The follow-up arrives with chat_type="thread" while the initiating message
-    # has chat_type="group"/"channel"; normalize the chat_type slot to "thread"
-    # when keying on a prospective id so the two byte-match. (Real-thread events
-    # already carry chat_type="thread", so this only rewrites the initiating
-    # channel message's slot.)
     effective_thread_id = source.thread_id or source.prospective_thread_id
     chat_type_slot = source.chat_type
-    if source.prospective_thread_id and not source.thread_id:
-        chat_type_slot = "thread"
     key_parts = [ns, platform, chat_type_slot]
 
-    if slack_scope_id:
-        key_parts.append(slack_scope_id)
     if source.chat_id:
         key_parts.append(source.chat_id)
     if effective_thread_id:
@@ -1740,74 +1533,6 @@ class SessionStore:
             profile=self._resolve_profile_for_key(source),
         )
 
-    def _legacy_slack_session_key(self, source: SessionSource) -> Optional[str]:
-        """Return the pre-workspace Slack key for an explicitly scoped source.
-
-        The compatibility path is deliberately Slack-only. Discord and every
-        other platform keep byte-identical keys, and an unscoped Slack session
-        may be claimed by only one workspace because its old key contains no
-        information that could safely distinguish multiple teams.
-        """
-        if source.platform != Platform.SLACK or not source.scope_id:
-            return None
-        legacy_source = replace(source, scope_id=None, guild_id=None)
-        return build_session_key(
-            legacy_source,
-            group_sessions_per_user=getattr(
-                self.config, "group_sessions_per_user", True
-            ),
-            thread_sessions_per_user=getattr(
-                self.config, "thread_sessions_per_user", False
-            ),
-            profile=self._resolve_profile_for_key(source),
-        )
-
-    def _claim_legacy_slack_key(self, legacy_key: Optional[str]) -> bool:
-        """Atomically reserve one ambiguous legacy Slack key for migration."""
-        if not legacy_key:
-            return False
-        claim_lock = getattr(self, "_legacy_slack_claim_lock", None)
-        if claim_lock is None:
-            claim_lock = threading.Lock()
-            self._legacy_slack_claim_lock = claim_lock
-        with claim_lock:
-            claimed = getattr(self, "_claimed_legacy_slack_keys", None)
-            if claimed is None:
-                claimed = set()
-                self._claimed_legacy_slack_keys = claimed
-            if legacy_key in claimed:
-                return False
-            claimed.add(legacy_key)
-            return True
-
-    @staticmethod
-    def _recovered_row_matches_source_scope(
-        recovered: Dict[str, Any], source: SessionSource
-    ) -> bool:
-        """Reject recovered rows whose recorded origin belongs to another workspace.
-
-        Slack group/channel rows recorded with an origin_json carry the
-        workspace (scope_id) they were created under. A workspace-scoped
-        lookup must not adopt a row another team recorded — even via the
-        legacy-key fallback — unless the recorded origin names the same
-        workspace. Rows without a parseable origin are rejected for scoped
-        sources: an unattributable transcript is precisely the ambiguity
-        this guard exists to avoid.
-        """
-        if (
-            source.platform != Platform.SLACK
-            or source.chat_type == "dm"
-            or not source.scope_id
-        ):
-            return True
-        try:
-            origin = json.loads(recovered.get("origin_json") or "")
-        except (TypeError, ValueError):
-            return False
-        if not isinstance(origin, dict):
-            return False
-        return origin.get("scope_id", origin.get("guild_id")) == source.scope_id
-
     def _create_entry_from_recovered_row(
         self,
         *,
@@ -1905,29 +1630,13 @@ class SessionStore:
         row is then durably promoted to a reset boundary instead of being
         resurrected as freshly active.
         """
-        legacy_key = self._legacy_slack_session_key(source)
         recovered = self._find_gateway_session_row(
             session_key=session_key,
             source=source,
-            allow_peer_fallback=legacy_key is None,
+            allow_peer_fallback=True,
             raise_on_lookup_error=raise_on_lookup_error,
         )
-        migrated_legacy = False
-        if (
-            not recovered
-            and legacy_key
-            and self._claim_legacy_slack_key(legacy_key)
-        ):
-            recovered = self._find_gateway_session_row(
-                session_key=legacy_key,
-                source=source,
-                allow_peer_fallback=False,
-                raise_on_lookup_error=raise_on_lookup_error,
-            )
-            migrated_legacy = bool(recovered)
         if not recovered:
-            return None
-        if not self._recovered_row_matches_source_scope(recovered, source):
             return None
         if not self._recovered_row_allowed_for_active_profile(
             requested_session_key=session_key,
@@ -1966,13 +1675,6 @@ class SessionStore:
             self._db.reopen_session(entry.session_id)
         except Exception as exc:
             logger.debug("Gateway session DB reopen failed for %s: %s", session_key, exc)
-        if migrated_legacy:
-            self._record_gateway_session_peer(
-                entry.session_id,
-                session_key,
-                source,
-                display_name=entry.display_name,
-            )
         return entry
 
     def _query_recoverable_session(
@@ -1984,27 +1686,12 @@ class SessionStore:
         The returned entry's session row is NOT reopened here: the caller
         evaluates the reset policy first and decides reset vs resume.
         """
-        legacy_key = self._legacy_slack_session_key(source)
         recovered = self._find_gateway_session_row(
             session_key=session_key,
             source=source,
-            allow_peer_fallback=legacy_key is None,
+            allow_peer_fallback=True,
         )
-        migrated_legacy = False
-        if (
-            not recovered
-            and legacy_key
-            and self._claim_legacy_slack_key(legacy_key)
-        ):
-            recovered = self._find_gateway_session_row(
-                session_key=legacy_key,
-                source=source,
-                allow_peer_fallback=False,
-            )
-            migrated_legacy = bool(recovered)
         if not isinstance(recovered, dict):
-            return None
-        if not self._recovered_row_matches_source_scope(recovered, source):
             return None
         if not self._recovered_row_allowed_for_active_profile(
             requested_session_key=session_key,
@@ -2024,13 +1711,6 @@ class SessionStore:
         entry = self._create_entry_from_recovered_row(
             row=recovered, session_key=session_key, source=source, now=now,
         )
-        if migrated_legacy:
-            self._record_gateway_session_peer(
-                entry.session_id,
-                session_key,
-                source,
-                display_name=entry.display_name,
-            )
         return entry
     def _record_gateway_session_peer(
         self,
@@ -2396,52 +2076,6 @@ class SessionStore:
         """
         session_key = self._generate_session_key(source)
         now = _now()
-
-        # One-time routing-index migration for Slack sessions created before
-        # workspace scope was part of the key. Move (rather than copy) the
-        # legacy entry so a second workspace with identical Slack ids cannot
-        # attach to the same transcript.
-        #
-        # Adoption policy (composed from #20583/#66398 and #68925):
-        #   - The legacy entry's recorded origin names a workspace → migrate
-        #     only when it matches the incoming workspace (precise).
-        #   - Scope-less origin, DM → first workspace claims it once
-        #     (claim-once): a 1:1 DM has a single human peer, so continuity
-        #     across the key-format change outweighs the ambiguity risk.
-        #   - Scope-less origin, channel/group → refuse: channel ids collide
-        #     across workspaces and a shared transcript leaking to a second
-        #     tenant is exactly the bug this fix removes.
-        migrated_legacy_entry: Optional[SessionEntry] = None
-        legacy_key = self._legacy_slack_session_key(source)
-        if legacy_key and not force_new:
-            with self._lock:
-                self._ensure_loaded_locked()
-                legacy_entry = self._entries.get(legacy_key)
-                if session_key not in self._entries and legacy_entry is not None:
-                    origin_scope = (
-                        getattr(legacy_entry.origin, "scope_id", None)
-                        if legacy_entry.origin is not None
-                        else None
-                    )
-                    if origin_scope is not None:
-                        adopt = origin_scope == source.scope_id
-                    else:
-                        adopt = source.chat_type == "dm"
-                    if adopt and self._claim_legacy_slack_key(legacy_key):
-                        migrated_legacy_entry = self._entries.pop(legacy_key)
-                        migrated_legacy_entry.session_key = session_key
-                        migrated_legacy_entry.origin = source
-                        migrated_legacy_entry.platform = source.platform
-                        migrated_legacy_entry.chat_type = source.chat_type
-                        self._entries[session_key] = migrated_legacy_entry
-            if migrated_legacy_entry is not None:
-                self._save_entries()
-                self._record_gateway_session_peer(
-                    migrated_legacy_entry.session_id,
-                    session_key,
-                    source,
-                    display_name=migrated_legacy_entry.display_name,
-                )
 
         db_end_session_id = None
         db_create_kwargs = None
