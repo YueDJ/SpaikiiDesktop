@@ -70,7 +70,7 @@ def _is_hermes_provider_credential(name: str) -> bool:
     try:
         from tools.environments.local import (
             _SPARKII_PROVIDER_ENV_BLOCKLIST,
-            _is_hermes_internal_secret,
+            _is_sparkii_internal_secret,
         )
     except Exception as e:
         logger.warning(
@@ -85,7 +85,7 @@ def _is_hermes_provider_credential(name: str) -> bool:
     # credentials the static blocklist can't enumerate — they're injected per
     # task/relay at gateway startup. A skill must not be able to register them
     # as passthrough and tunnel them into an execute_code / terminal child.
-    if _is_hermes_internal_secret(name):
+    if _is_sparkii_internal_secret(name):
         return True
     return name in _SPARKII_PROVIDER_ENV_BLOCKLIST
 

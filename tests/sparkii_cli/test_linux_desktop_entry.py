@@ -41,7 +41,7 @@ def test_install_writes_entry_with_absolute_exec_and_icon(tmp_path, xdg_home, mo
     hermes_bin.parent.mkdir()
     hermes_bin.write_text("", encoding="utf-8")
     monkeypatch.setattr(
-        "sparkii_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
+        "sparkii_cli.relaunch.resolve_sparkii_bin", lambda: str(hermes_bin)
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -68,7 +68,7 @@ def test_install_writes_entry_with_absolute_exec_and_icon(tmp_path, xdg_home, mo
 
 def test_installed_entry_is_executable(tmp_path, xdg_home, monkeypatch):
     root = _make_project(tmp_path)
-    monkeypatch.setattr("sparkii_cli.relaunch.resolve_hermes_bin", lambda: "/usr/bin/sparkii")
+    monkeypatch.setattr("sparkii_cli.relaunch.resolve_sparkii_bin", lambda: "/usr/bin/sparkii")
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
@@ -78,7 +78,7 @@ def test_installed_entry_is_executable(tmp_path, xdg_home, monkeypatch):
 
 def test_exec_falls_back_to_interpreter_module(tmp_path, xdg_home, monkeypatch):
     root = _make_project(tmp_path)
-    monkeypatch.setattr("sparkii_cli.relaunch.resolve_hermes_bin", lambda: None)
+    monkeypatch.setattr("sparkii_cli.relaunch.resolve_sparkii_bin", lambda: None)
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
@@ -90,7 +90,7 @@ def test_exec_falls_back_to_interpreter_module(tmp_path, xdg_home, monkeypatch):
 
 def test_install_is_idempotent_and_skips_cache_refresh(tmp_path, xdg_home, monkeypatch):
     root = _make_project(tmp_path)
-    monkeypatch.setattr("sparkii_cli.relaunch.resolve_hermes_bin", lambda: "/usr/bin/sparkii")
+    monkeypatch.setattr("sparkii_cli.relaunch.resolve_sparkii_bin", lambda: "/usr/bin/sparkii")
     calls: list[Path] = []
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda d: calls.append(d) or [])
 
@@ -105,7 +105,7 @@ def test_install_is_idempotent_and_skips_cache_refresh(tmp_path, xdg_home, monke
 def test_install_without_source_icon_uses_themed_name(tmp_path, xdg_home, monkeypatch):
     root = tmp_path / "sparkii-agent"
     root.mkdir()
-    monkeypatch.setattr("sparkii_cli.relaunch.resolve_hermes_bin", lambda: "/usr/bin/sparkii")
+    monkeypatch.setattr("sparkii_cli.relaunch.resolve_sparkii_bin", lambda: "/usr/bin/sparkii")
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
@@ -196,7 +196,7 @@ def test_exec_arg_quoting_handles_spaces(tmp_path, xdg_home, monkeypatch):
     spaced = tmp_path / "my apps" / "sparkii"
     spaced.parent.mkdir()
     spaced.write_text("", encoding="utf-8")
-    monkeypatch.setattr("sparkii_cli.relaunch.resolve_hermes_bin", lambda: str(spaced))
+    monkeypatch.setattr("sparkii_cli.relaunch.resolve_sparkii_bin", lambda: str(spaced))
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)

@@ -1113,7 +1113,7 @@ def test_load_pool_api_key_path_skips_oauth_autodiscovery(tmp_path, monkeypatch)
             "expiresAt": int(time.time() * 1000) + 3_600_000,
         }
 
-    monkeypatch.setattr("agent.anthropic_adapter.read_hermes_oauth_credentials", _fake_pkce)
+    monkeypatch.setattr("agent.anthropic_adapter.read_sparkii_oauth_credentials", _fake_pkce)
     monkeypatch.setattr("agent.anthropic_adapter.read_claude_code_credentials", _fake_cc)
 
     from agent.credential_pool import load_pool
@@ -1167,7 +1167,7 @@ def test_load_pool_api_key_path_prunes_stale_oauth_entries(tmp_path, monkeypatch
         },
     )
     monkeypatch.setattr("sparkii_cli.auth.is_provider_explicitly_configured", lambda pid: True)
-    monkeypatch.setattr("agent.anthropic_adapter.read_hermes_oauth_credentials", lambda: None)
+    monkeypatch.setattr("agent.anthropic_adapter.read_sparkii_oauth_credentials", lambda: None)
     monkeypatch.setattr("agent.anthropic_adapter.read_claude_code_credentials", lambda: None)
 
     from agent.credential_pool import load_pool
@@ -1196,7 +1196,7 @@ def test_load_pool_oauth_path_still_autodiscovers(tmp_path, monkeypatch):
     monkeypatch.setattr("sparkii_cli.auth.is_provider_explicitly_configured", lambda pid: True)
 
     monkeypatch.setattr(
-        "agent.anthropic_adapter.read_hermes_oauth_credentials",
+        "agent.anthropic_adapter.read_sparkii_oauth_credentials",
         lambda: None,
     )
     monkeypatch.setattr(
@@ -1370,7 +1370,7 @@ def test_load_pool_does_not_seed_claude_code_when_anthropic_not_configured(tmp_p
         lambda: {"accessToken": "sk-ant...oken", "refreshToken": "rt", "expiresAt": 9999999999999},
     )
     monkeypatch.setattr(
-        "agent.anthropic_adapter.read_hermes_oauth_credentials",
+        "agent.anthropic_adapter.read_sparkii_oauth_credentials",
         lambda: None,
     )
     # User configured kimi-coding, NOT anthropic
@@ -1780,7 +1780,7 @@ def test_persist_preserves_concurrent_disk_only_entry(tmp_path, monkeypatch):
     # Block external-credential autodiscovery: a real ~/.claude/.credentials.json
     # on a dev machine would seed an extra claude_code entry and break the
     # exact-id assertions below (passes on CI where no such file exists).
-    monkeypatch.setattr("agent.anthropic_adapter.read_hermes_oauth_credentials", lambda: None)
+    monkeypatch.setattr("agent.anthropic_adapter.read_sparkii_oauth_credentials", lambda: None)
     monkeypatch.setattr("agent.anthropic_adapter.read_claude_code_credentials", lambda: None)
     _write_auth_store(
         tmp_path,
@@ -1856,7 +1856,7 @@ def _make_anthropic_claude_code_pool(tmp_path, monkeypatch, *, access_token, ref
     _write_auth_store(tmp_path, {"version": 1, "credential_pool": {}})
     monkeypatch.setattr("sparkii_cli.auth.is_provider_explicitly_configured", lambda pid: pid == "anthropic")
     monkeypatch.setattr(
-        "agent.anthropic_adapter.read_hermes_oauth_credentials",
+        "agent.anthropic_adapter.read_sparkii_oauth_credentials",
         lambda: None,
     )
     monkeypatch.setattr(

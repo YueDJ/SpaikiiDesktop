@@ -67,7 +67,7 @@ _hermes_interactive_ctx: contextvars.ContextVar[Optional[str]] = contextvars.Con
 )
 
 
-def set_hermes_interactive_context(interactive: bool) -> contextvars.Token:
+def set_sparkii_interactive_context(interactive: bool) -> contextvars.Token:
     """Bind interactive mode for the current context (thread or asyncio task).
 
     Use this instead of mutating ``os.environ["SPARKII_INTERACTIVE"]`` from
@@ -77,8 +77,8 @@ def set_hermes_interactive_context(interactive: bool) -> contextvars.Token:
     return _hermes_interactive_ctx.set("1" if interactive else "")
 
 
-def reset_hermes_interactive_context(token: contextvars.Token) -> None:
-    """Restore the prior value from :func:`set_hermes_interactive_context`."""
+def reset_sparkii_interactive_context(token: contextvars.Token) -> None:
+    """Restore the prior value from :func:`set_sparkii_interactive_context`."""
     _hermes_interactive_ctx.reset(token)
 
 

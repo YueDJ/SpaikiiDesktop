@@ -9895,7 +9895,7 @@ def _resolve_hermes_argv() -> list[str]:
        launchd jobs, detached processes, etc.). Goes through the running
        interpreter so the result is independent of ``$PATH``.
 
-    Mirrors ``gateway.run._resolve_hermes_bin`` for the same reason. Kept
+    Mirrors ``gateway.run._resolve_sparkii_bin`` for the same reason. Kept
     local (not imported from gateway) because ``sparkii_cli`` sits below
     ``gateway`` in the dependency order.
     """

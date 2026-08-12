@@ -13,7 +13,7 @@ class TestResolveSparkiiBin:
         monkeypatch.setattr(sys, "argv", [fake])
         monkeypatch.setattr(relaunch_mod.os.path, "isfile", lambda p: p == fake)
         monkeypatch.setattr(relaunch_mod.os, "access", lambda p, mode: p == fake)
-        assert relaunch_mod.resolve_hermes_bin() == fake
+        assert relaunch_mod.resolve_sparkii_bin() == fake
 
     def test_resolves_relative_argv0(self, monkeypatch, tmp_path):
         fake = tmp_path / "sparkii"
@@ -23,14 +23,14 @@ class TestResolveSparkiiBin:
         monkeypatch.chdir(tmp_path)
         # Ensure we don't accidentally match a real 'sparkii' on PATH
         monkeypatch.setattr(relaunch_mod.shutil, "which", lambda _name: None)
-        assert relaunch_mod.resolve_hermes_bin() == str(fake)
+        assert relaunch_mod.resolve_sparkii_bin() == str(fake)
 
     def test_falls_back_to_path_which(self, monkeypatch):
         monkeypatch.setattr(sys, "argv", ["-c"])  # not a real path
         monkeypatch.setattr(
             relaunch_mod.shutil, "which", lambda name: "/usr/bin/sparkii" if name == "sparkii" else None
         )
-        assert relaunch_mod.resolve_hermes_bin() == "/usr/bin/sparkii"
+        assert relaunch_mod.resolve_sparkii_bin() == "/usr/bin/sparkii"
 
 
 class TestExtractInheritedFlags:
@@ -69,13 +69,13 @@ class TestInheritedFlagTable:
 
 class TestBuildRelaunchArgv:
     def test_uses_bin_when_available(self, monkeypatch):
-        monkeypatch.setattr(relaunch_mod, "resolve_hermes_bin", lambda: "/usr/bin/sparkii")
+        monkeypatch.setattr(relaunch_mod, "resolve_sparkii_bin", lambda: "/usr/bin/sparkii")
         argv = relaunch_mod.build_relaunch_argv(["--resume", "abc"])
         assert argv[0] == "/usr/bin/sparkii"
 
 
     def test_preserves_inherited_flags(self, monkeypatch):
-        monkeypatch.setattr(relaunch_mod, "resolve_hermes_bin", lambda: "/usr/bin/sparkii")
+        monkeypatch.setattr(relaunch_mod, "resolve_sparkii_bin", lambda: "/usr/bin/sparkii")
         original = ["--tui", "--dev", "--profile", "work", "sessions", "browse"]
         argv = relaunch_mod.build_relaunch_argv(["--resume", "abc"], original_argv=original)
         assert "--tui" in argv
@@ -89,7 +89,7 @@ class TestBuildRelaunchArgv:
         assert "browse" not in argv
 
     def test_can_disable_preserve(self, monkeypatch):
-        monkeypatch.setattr(relaunch_mod, "resolve_hermes_bin", lambda: "/usr/bin/sparkii")
+        monkeypatch.setattr(relaunch_mod, "resolve_sparkii_bin", lambda: "/usr/bin/sparkii")
         original = ["--tui", "chat"]
         argv = relaunch_mod.build_relaunch_argv(
             ["--resume", "abc"], preserve_inherited=False, original_argv=original
@@ -107,7 +107,7 @@ class TestRelaunch:
             raise SystemExit(0)
 
         monkeypatch.setattr(relaunch_mod.os, "execvp", fake_execvp)
-        monkeypatch.setattr(relaunch_mod, "resolve_hermes_bin", lambda: "/usr/bin/sparkii")
+        monkeypatch.setattr(relaunch_mod, "resolve_sparkii_bin", lambda: "/usr/bin/sparkii")
 
         with pytest.raises(SystemExit):
             relaunch_mod.relaunch(["--resume", "abc"])
@@ -126,7 +126,7 @@ class TestRelaunch:
         platform only re-asserted the branch we wrote, never the constraint
         that motivated it.
         """
-        monkeypatch.setattr(relaunch_mod, "resolve_hermes_bin", lambda: r"C:\Users\test\sparkii.exe")
+        monkeypatch.setattr(relaunch_mod, "resolve_sparkii_bin", lambda: r"C:\Users\test\sparkii.exe")
         # Pin sys.argv: relaunch() preserves inherited flags from the LIVE
         # argv, so under pytest it happily inherited the runner's own
         # "-m 'windows_only and not integration'" and the assertion below saw
@@ -166,7 +166,7 @@ class TestRelaunch:
     @pytest.mark.windows_only
     def test_windows_propagates_child_exit_code(self, monkeypatch):
         """A non-zero exit from the child should flow through to sys.exit."""
-        monkeypatch.setattr(relaunch_mod, "resolve_hermes_bin", lambda: r"C:\sparkii.exe")
+        monkeypatch.setattr(relaunch_mod, "resolve_sparkii_bin", lambda: r"C:\sparkii.exe")
 
         import subprocess as _subprocess
 
@@ -184,7 +184,7 @@ class TestRelaunch:
 
 
 class TestResolveSparkiiBinWindowsPyGuard:
-    """On Windows, resolve_hermes_bin MUST NOT return a .py path.
+    """On Windows, resolve_sparkii_bin MUST NOT return a .py path.
     os.access(x, os.X_OK) returns True for .py files on Windows because
     PATHEXT includes .py when the Python launcher is installed — but
     subprocess.run can't actually exec a .py directly, so the relaunch
@@ -211,7 +211,7 @@ class TestResolveSparkiiBinWindowsPyGuard:
             lambda name: r"C:\venv\Scripts\sparkii.exe" if name == "sparkii" else None,
         )
 
-        bin_path = relaunch_mod.resolve_hermes_bin()
+        bin_path = relaunch_mod.resolve_sparkii_bin()
         # Must NOT be the .py — must be the sparkii.exe PATH entry.
         assert bin_path == r"C:\venv\Scripts\sparkii.exe"
 
@@ -224,7 +224,7 @@ class TestResolveSparkiiBinWindowsPyGuard:
         script.write_text("#!/usr/bin/env python3\n")
         script.chmod(0o755)
         monkeypatch.setattr(relaunch_mod.sys, "argv", [str(script), "chat"])
-        assert relaunch_mod.resolve_hermes_bin() == str(script)
+        assert relaunch_mod.resolve_sparkii_bin() == str(script)
 
     @pytest.mark.windows_only
     def test_windows_py_argv0_with_no_hermes_on_path_returns_none(self, monkeypatch, tmp_path):
@@ -237,4 +237,4 @@ class TestResolveSparkiiBinWindowsPyGuard:
         monkeypatch.setattr(relaunch_mod.sys, "argv", [str(script), "chat"])
         monkeypatch.setattr(relaunch_mod.shutil, "which", lambda name: None)
 
-        assert relaunch_mod.resolve_hermes_bin() is None
+        assert relaunch_mod.resolve_sparkii_bin() is None

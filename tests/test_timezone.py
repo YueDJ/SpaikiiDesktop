@@ -235,7 +235,7 @@ class TestCronTimezone:
         monkeypatch.setattr(jobs_module, "OUTPUT_DIR", tmp_path / "cron" / "output")
 
         # Use a Sparkii timezone far behind UTC so that the numeric wall time
-        # of the naive timestamp exceeds _hermes_now's wall time — this would
+        # of the naive timestamp exceeds _sparkii_now's wall time — this would
         # have caused a false "not due" with the old replace(tzinfo=...) approach.
         os.environ["SPARKII_TIMEZONE"] = "Pacific/Midway"  # UTC-11
         _reset_sparkii_time_cache()

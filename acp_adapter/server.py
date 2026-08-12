@@ -80,8 +80,8 @@ from agent.context_compressor import (
 )
 from agent.interrupt_compat import request_hard_interrupt
 from tools.approval import (
-    reset_hermes_interactive_context,
-    set_hermes_interactive_context,
+    reset_sparkii_interactive_context,
+    set_sparkii_interactive_context,
 )
 
 logger = logging.getLogger(__name__)
@@ -1834,7 +1834,7 @@ class SparkiiACPAgent(acp.Agent):
         # Set it INSIDE _run_agent so the TLS write happens in the executor
         # thread — setting it here would write to the event-loop thread's TLS,
         # not the executor's. Interactive routing uses a contextvar in
-        # tools.approval (set_hermes_interactive_context) rather than
+        # tools.approval (set_sparkii_interactive_context) rather than
         # os.environ["SPARKII_INTERACTIVE"], so concurrent executor workers can't
         # race on a process-global flag — one session's restore can't drop
         # another onto the non-interactive auto-approve path mid-run
@@ -1896,7 +1896,7 @@ class SparkiiACPAgent(acp.Agent):
             # and the non-interactive auto-approve path must not fire. Uses a
             # contextvar (not os.environ) so concurrent executor workers don't
             # race on the flag (GHSA-96vc-wcxf-jjff).
-            interactive_token = set_hermes_interactive_context(True)
+            interactive_token = set_sparkii_interactive_context(True)
             # Propagate the originating ACP session id to tools that want to
             # tag side-effects with it (e.g. ``kanban_create`` stamps it on
             # the new task so clients can render a per-session board). Save
@@ -1929,7 +1929,7 @@ class SparkiiACPAgent(acp.Agent):
             finally:
                 # Restore the interactive contextvar for this context.
                 if interactive_token is not None:
-                    reset_hermes_interactive_context(interactive_token)
+                    reset_sparkii_interactive_context(interactive_token)
                 # Restore SPARKII_SESSION_ID symmetrically.
                 if previous_session_id is None:
                     os.environ.pop("SPARKII_SESSION_ID", None)

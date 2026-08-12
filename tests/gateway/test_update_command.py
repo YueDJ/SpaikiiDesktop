@@ -91,15 +91,15 @@ class TestHandleUpdateCommand:
 
 
     @pytest.mark.asyncio
-    async def test_resolve_hermes_bin_fallback(self):
-        """_resolve_hermes_bin falls back to sys.executable argv when which fails."""
+    async def test_resolve_sparkii_bin_fallback(self):
+        """_resolve_sparkii_bin falls back to sys.executable argv when which fails."""
         import sys
-        from gateway.run import _resolve_hermes_bin
+        from gateway.run import _resolve_sparkii_bin
 
         fake_spec = MagicMock()
         with patch("shutil.which", return_value=None), \
              patch("importlib.util.find_spec", return_value=fake_spec):
-            result = _resolve_hermes_bin()
+            result = _resolve_sparkii_bin()
 
         assert result == [sys.executable, "-m", "sparkii_cli.main"]
 

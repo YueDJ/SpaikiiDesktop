@@ -92,7 +92,7 @@ def get_env_value(name: str, default=None):
     return value if value is not None else default
 
 
-def hermes_xai_user_agent() -> str:
+def sparkii_xai_user_agent() -> str:
     """Return a stable Sparkii-specific User-Agent for xAI HTTP calls."""
     try:
         from sparkii_cli import __version__
@@ -101,14 +101,14 @@ def hermes_xai_user_agent() -> str:
     return f"Sparkii-Agent/{__version__}"
 
 
-def hermes_xai_default_headers() -> Dict[str, str]:
+def sparkii_xai_default_headers() -> Dict[str, str]:
     """Default headers for OpenAI-SDK and raw HTTP clients talking to xAI.
 
     Replaces the OpenAI Python SDK's identifying ``User-Agent: OpenAI/Python …``
     so chat/completions and Responses traffic is attributed as Sparkii Agent,
     matching the direct HTTP integrations (search, TTS, STT, image, video).
     """
-    return {"User-Agent": hermes_xai_user_agent()}
+    return {"User-Agent": sparkii_xai_user_agent()}
 
 
 def _load_config_section(section_name: str) -> Dict[str, Any]:

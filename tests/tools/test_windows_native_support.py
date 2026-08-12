@@ -1040,7 +1040,7 @@ class TestGatewayRunRestartWatcherOuterPopenFallback:
             windows_detach_popen_kwargs,
         )
 
-        monkeypatch.setattr(gr, "_resolve_hermes_bin", lambda: ["sparkii"])
+        monkeypatch.setattr(gr, "_resolve_sparkii_bin", lambda: ["sparkii"])
 
         calls = []
 
@@ -1099,7 +1099,7 @@ class TestGatewayRunRestartWatcherOuterPopenFallback:
     def test_outer_watcher_happy_path_spawns_once(self, monkeypatch):
         import gateway.run as gr
 
-        monkeypatch.setattr(gr, "_resolve_hermes_bin", lambda: ["sparkii"])
+        monkeypatch.setattr(gr, "_resolve_sparkii_bin", lambda: ["sparkii"])
 
         calls = []
         monkeypatch.setattr(
@@ -1119,7 +1119,7 @@ class TestGatewayRunRestartWatcherOuterPopenFallback:
     ):
         import gateway.run as gr
 
-        monkeypatch.setattr(gr, "_resolve_hermes_bin", lambda: ["sparkii"])
+        monkeypatch.setattr(gr, "_resolve_sparkii_bin", lambda: ["sparkii"])
 
         calls = []
 

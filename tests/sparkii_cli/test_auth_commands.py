@@ -661,7 +661,7 @@ def test_seed_from_singletons_respects_hermes_pkce_suppression(tmp_path, monkeyp
 
     # Stub the readers so only hermes_pkce is "available"; claude_code returns None
     import agent.anthropic_adapter as aa
-    monkeypatch.setattr(aa, "read_hermes_oauth_credentials", lambda: {
+    monkeypatch.setattr(aa, "read_sparkii_oauth_credentials", lambda: {
         "accessToken": "tok", "refreshToken": "r", "expiresAt": 9999999999000,
     })
     monkeypatch.setattr(aa, "read_claude_code_credentials", lambda: None)

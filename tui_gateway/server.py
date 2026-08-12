@@ -33,7 +33,7 @@ from sparkii_constants import (
 )
 from sparkii_cli.env_loader import load_hermes_dotenv
 from utils import is_truthy_value
-from tools.environments.local import hermes_subprocess_env
+from tools.environments.local import sparkii_subprocess_env
 from agent.replay_cleanup import sanitize_replay_history
 from agent.skill_commands import describe_skill_invocation
 from agent.conversation_loop import INTERRUPT_WAITING_FOR_MODEL_PREFIX
@@ -360,7 +360,7 @@ class _SlashWorker:
         # instead of a hand-rolled env["SPARKII_HOME"] assignment.
         from tools.environments.local import build_subprocess_env
         env = build_subprocess_env(
-            hermes_subprocess_env(inherit_credentials=True),
+            sparkii_subprocess_env(inherit_credentials=True),
             scrub_secrets=False,
             inherit_profile_home=False,  # base already carries the HOME contract
             extra={"SPARKII_HOME": str(profile_home)} if profile_home else None,

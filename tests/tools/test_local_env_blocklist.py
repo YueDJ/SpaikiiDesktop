@@ -583,7 +583,7 @@ class TestSparkiiBinDirOnPath:
     Plugins shelling out to bare ``sparkii`` via the terminal tool must work
     even when the gateway was launched without the sparkii install dir on
     PATH (systemd, service managers, cron). See the discussion that motivated
-    _resolve_hermes_bin_dir / _prepend_hermes_bin_dir.
+    _resolve_sparkii_bin_dir / _prepend_hermes_bin_dir.
     """
 
     def _reset_cache(self):
@@ -596,7 +596,7 @@ class TestSparkiiBinDirOnPath:
         monkeypatch.setattr(local_mod.shutil, "which",
                             lambda name: "/opt/sparkii/bin/sparkii" if name == "sparkii" else None)
         monkeypatch.setattr(local_mod.os.path, "isdir", lambda p: p == "/opt/sparkii/bin")
-        assert local_mod._resolve_hermes_bin_dir() == "/opt/sparkii/bin"
+        assert local_mod._resolve_sparkii_bin_dir() == "/opt/sparkii/bin"
 
 
     def test_prepend_noop_when_unresolved(self, monkeypatch):
@@ -634,43 +634,43 @@ class TestSparkiiInternalDynamicSecrets:
     - ``GATEWAY_RELAY_*_SECRET`` / ``_KEY`` / ``_TOKEN`` — relay-auth material
       provisioned by ``gateway/relay``.
 
-    ``_is_hermes_internal_secret`` is the single source of truth; every spawn
+    ``_is_sparkii_internal_secret`` is the single source of truth; every spawn
     path (``_sanitize_subprocess_env``, ``_make_run_env``,
-    ``hermes_subprocess_env``, Docker forward filter, ``env_passthrough``)
+    ``sparkii_subprocess_env``, Docker forward filter, ``env_passthrough``)
     consults it. These tests exercise the terminal execute path + predicate.
     """
 
     def test_predicate_matches_auxiliary_api_key(self):
-        from tools.environments.local import _is_hermes_internal_secret
-        assert _is_hermes_internal_secret("AUXILIARY_VISION_API_KEY")
-        assert _is_hermes_internal_secret("AUXILIARY_WEB_EXTRACT_API_KEY")
-        assert _is_hermes_internal_secret("AUXILIARY_APPROVAL_API_KEY")
+        from tools.environments.local import _is_sparkii_internal_secret
+        assert _is_sparkii_internal_secret("AUXILIARY_VISION_API_KEY")
+        assert _is_sparkii_internal_secret("AUXILIARY_WEB_EXTRACT_API_KEY")
+        assert _is_sparkii_internal_secret("AUXILIARY_APPROVAL_API_KEY")
         # plugin-registered task names are covered by the pattern
-        assert _is_hermes_internal_secret("AUXILIARY_MY_PLUGIN_TASK_API_KEY")
+        assert _is_sparkii_internal_secret("AUXILIARY_MY_PLUGIN_TASK_API_KEY")
 
     def test_predicate_matches_auxiliary_base_url(self):
-        from tools.environments.local import _is_hermes_internal_secret
-        assert _is_hermes_internal_secret("AUXILIARY_VISION_BASE_URL")
-        assert _is_hermes_internal_secret("AUXILIARY_COMPRESSION_BASE_URL")
+        from tools.environments.local import _is_sparkii_internal_secret
+        assert _is_sparkii_internal_secret("AUXILIARY_VISION_BASE_URL")
+        assert _is_sparkii_internal_secret("AUXILIARY_COMPRESSION_BASE_URL")
 
     def test_predicate_matches_gateway_relay_auth(self):
-        from tools.environments.local import _is_hermes_internal_secret
-        assert _is_hermes_internal_secret("GATEWAY_RELAY_SECRET")
-        assert _is_hermes_internal_secret("GATEWAY_RELAY_DELIVERY_KEY")
-        assert _is_hermes_internal_secret("GATEWAY_RELAY_SESSION_TOKEN")
+        from tools.environments.local import _is_sparkii_internal_secret
+        assert _is_sparkii_internal_secret("GATEWAY_RELAY_SECRET")
+        assert _is_sparkii_internal_secret("GATEWAY_RELAY_DELIVERY_KEY")
+        assert _is_sparkii_internal_secret("GATEWAY_RELAY_SESSION_TOKEN")
 
     def test_predicate_allows_auxiliary_non_secrets(self):
         """AUXILIARY_*_PROVIDER / _MODEL and GATEWAY_RELAY_* routing hints are
         NOT secrets and must remain visible so tooling that reads them works."""
-        from tools.environments.local import _is_hermes_internal_secret
-        assert not _is_hermes_internal_secret("AUXILIARY_VISION_PROVIDER")
-        assert not _is_hermes_internal_secret("AUXILIARY_VISION_MODEL")
-        assert not _is_hermes_internal_secret("GATEWAY_RELAY_URL")
-        assert not _is_hermes_internal_secret("GATEWAY_RELAY_PLATFORMS")
-        assert not _is_hermes_internal_secret("GATEWAY_RELAY_ID")  # not a secret suffix
+        from tools.environments.local import _is_sparkii_internal_secret
+        assert not _is_sparkii_internal_secret("AUXILIARY_VISION_PROVIDER")
+        assert not _is_sparkii_internal_secret("AUXILIARY_VISION_MODEL")
+        assert not _is_sparkii_internal_secret("GATEWAY_RELAY_URL")
+        assert not _is_sparkii_internal_secret("GATEWAY_RELAY_PLATFORMS")
+        assert not _is_sparkii_internal_secret("GATEWAY_RELAY_ID")  # not a secret suffix
         # unrelated vars pass through
-        assert not _is_hermes_internal_secret("PATH")
-        assert not _is_hermes_internal_secret("MY_APP_KEY")
+        assert not _is_sparkii_internal_secret("PATH")
+        assert not _is_sparkii_internal_secret("MY_APP_KEY")
 
     def test_auxiliary_secrets_stripped_from_subprocess(self):
         """AUXILIARY_*_API_KEY / _BASE_URL injected into os.environ must not

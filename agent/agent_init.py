@@ -1214,9 +1214,9 @@ def init_agent(
                 from agent.auxiliary_client import _codex_cloudflare_headers
                 client_kwargs["default_headers"] = _codex_cloudflare_headers(api_key)
             elif base_url_host_matches(effective_base, "x.ai"):
-                from tools.xai_http import hermes_xai_default_headers
+                from tools.xai_http import sparkii_xai_default_headers
 
-                client_kwargs["default_headers"] = hermes_xai_default_headers()
+                client_kwargs["default_headers"] = sparkii_xai_default_headers()
             elif "default_headers" not in client_kwargs:
                 # Fall back to profile.default_headers for providers that
                 # declare custom headers (e.g. Vercel AI Gateway attribution,

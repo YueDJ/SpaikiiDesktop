@@ -127,13 +127,13 @@ def _build_browser_env() -> dict:
 
     Strips Sparkii-managed secrets (provider keys, gateway tokens, GitHub auth,
     infra secrets) then re-adds only the browser-backend keys the worker needs.
-    The ``hermes_subprocess_env`` import is deferred to keep ``browser_tool``
+    The ``sparkii_subprocess_env`` import is deferred to keep ``browser_tool``
     importable under test harnesses that load it against a stubbed ``tools``
     package (tests/tools/test_managed_browserbase_and_modal.py).
     """
-    from tools.environments.local import hermes_subprocess_env
+    from tools.environments.local import sparkii_subprocess_env
 
-    env = hermes_subprocess_env(inherit_credentials=False)
+    env = sparkii_subprocess_env(inherit_credentials=False)
     for _key in _BROWSER_PASSTHROUGH_KEYS:
         if _key in os.environ:
             env[_key] = os.environ[_key]

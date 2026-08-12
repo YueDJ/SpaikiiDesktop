@@ -5589,7 +5589,7 @@ class GatewaySlashCommandsMixin:
         files are written so either the current gateway process or the next one
         can notify the user when the update finishes.
         """
-        from gateway.run import _sparkii_home, _resolve_hermes_bin
+        from gateway.run import _sparkii_home, _resolve_sparkii_bin
         import json
         import shutil
         import subprocess
@@ -5618,7 +5618,7 @@ class GatewaySlashCommandsMixin:
         if not git_dir.exists():
             return t("gateway.update.not_git_repo")
 
-        hermes_cmd = _resolve_hermes_bin()
+        hermes_cmd = _resolve_sparkii_bin()
         if not hermes_cmd:
             return t("gateway.update.hermes_cmd_not_found")
 

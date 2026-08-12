@@ -64,9 +64,9 @@ def resolve_exec_command() -> str:
     runs as a module with no launcher installed, use the current
     interpreter, also absolute.
     """
-    from sparkii_cli.relaunch import resolve_hermes_bin
+    from sparkii_cli.relaunch import resolve_sparkii_bin
 
-    bin_path = resolve_hermes_bin()
+    bin_path = resolve_sparkii_bin()
     if bin_path:
         argv = [str(Path(bin_path).resolve()), "desktop"]
     else:

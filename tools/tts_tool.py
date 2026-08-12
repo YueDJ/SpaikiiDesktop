@@ -98,7 +98,7 @@ from tools.tool_backend_helpers import (
     prefers_gateway,
     resolve_openai_audio_api_key,
 )
-from tools.xai_http import hermes_xai_user_agent
+from tools.xai_http import sparkii_xai_user_agent
 
 # ---------------------------------------------------------------------------
 # Lazy imports -- providers are imported only when actually used to avoid
@@ -1187,9 +1187,9 @@ def _run_command_tts(
     propagating delegated-child lineage markers when applicable.
     """
     from agent.delegation_context import delegated_child_subprocess_env
-    from tools.environments.local import hermes_subprocess_env
+    from tools.environments.local import sparkii_subprocess_env
 
-    scrubbed = hermes_subprocess_env(inherit_credentials=False)
+    scrubbed = sparkii_subprocess_env(inherit_credentials=False)
     for key in env_passthrough or []:
         value = os.environ.get(key)
         if value is not None:
@@ -2196,7 +2196,7 @@ def _generate_xai_tts(text: str, output_path: str, tts_config: Dict[str, Any]) -
         headers={
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
-            "User-Agent": hermes_xai_user_agent(),
+            "User-Agent": sparkii_xai_user_agent(),
         },
         json=payload,
         timeout=60,
