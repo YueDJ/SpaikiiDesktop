@@ -403,16 +403,16 @@ class TestAgentCacheBoundedGrowth:
         # Give Telegram a 'none' policy via the per-platform override; leave the
         # default policy finite ('both') for the Discord case.
         config.default_reset_policy = SessionResetPolicy(mode="both")
-        config.reset_by_platform[Platform.TELEGRAM] = SessionResetPolicy(mode="none")
+        config.reset_by_platform[Platform.WEBHOOK] = SessionResetPolicy(mode="none")
 
         with _patch("gateway.session.SessionStore._ensure_loaded"):
             store = SessionStore(sessions_dir=tmp_path, config=config)
         store._db = None
 
         # mode='none' → never finalized by the watcher.
-        assert store.is_session_finalizable(_entry_for(Platform.TELEGRAM)) is False
+        assert store.is_session_finalizable(_entry_for(Platform.WEBHOOK)) is False
         # default 'both' → finite, will eventually expire.
-        assert store.is_session_finalizable(_entry_for(Platform.DISCORD)) is True
+        assert store.is_session_finalizable(_entry_for(Platform.API_SERVER)) is True
 
     def test_plain_dict_cache_is_tolerated(self):
         """Test fixtures using plain {} don't crash _enforce_agent_cache_cap."""
