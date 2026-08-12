@@ -177,11 +177,10 @@ WORKDIR /opt/sparkii
 # ui-tui/package.json.  Copying the tree up front lets npm resolve the
 # workspace to real content instead of stopping at a bare package.json.
 COPY package.json package-lock.json ./
-COPY web/package.json web/
 COPY ui-tui/package.json ui-tui/
 COPY ui-tui/packages/sparkii-ink/ ui-tui/packages/sparkii-ink/
-# apps/shared/ is copied IN FULL because web/package.json references it as a
-# `file:` workspace dependency (same pattern as sparkii-ink above).
+# apps/shared/ is copied IN FULL because the remaining workspaces reference
+# it as a `file:` dependency (same pattern as sparkii-ink above).
 COPY apps/shared/ apps/shared/
 
 # `npm_config_install_links=false` forces npm to install `file:` deps as
@@ -203,22 +202,6 @@ RUN npm install --prefer-offline --no-audit --fetch-retries=5 && \
     done && \
     npm cache clean --force
 
-# ---------- Photon iMessage sidecar deps (baked, NS-606) ----------
-# The photon plugin's Node sidecar needs its own node_modules
-# (spectrum-ts). The install tree is immutable at runtime, so a lazy
-# `npm ci` on first connect would hit EROFS — bake the deps here instead
-# (deterministic installs, NS-559). The patch script is copied alongside
-# the manifests because package.json's postinstall runs it, which also
-# means the spectrum-ts patch is applied at build time. Layer-cached:
-# only re-runs when the sidecar manifests/patch change.
-COPY plugins/platforms/photon/sidecar/package.json \
-     plugins/platforms/photon/sidecar/package-lock.json \
-     plugins/platforms/photon/sidecar/patch-spectrum-mixed-attachments.mjs \
-     plugins/platforms/photon/sidecar/
-RUN cd plugins/platforms/photon/sidecar && \
-    npm ci --no-audit --fetch-retries=5 && \
-    npm cache clean --force
-
 # ---------- Layer-cached Python dependency install ----------
 # Copy only pyproject.toml + uv.lock so the Python dep resolve + wheel
 # download + native-extension compile layer is cached unless those inputs
@@ -230,11 +213,10 @@ RUN cd plugins/platforms/photon/sidecar && \
 # frontend stats the readme path during dep resolution, so we `touch` an
 # empty placeholder — the real README is restored by `COPY . .` below.
 #
-# `uv sync --frozen --no-install-project --extra all --extra messaging --extra otlp`
+# `uv sync --frozen --no-install-project --extra all --extra otlp`
 # installs the deps reachable through the composite `[all]` extra
-# (handpicked set intended for the production image — excludes `[dev]`),
-# plus gateway messaging adapters that should work in the published image
-# without a first-boot lazy install.  We do NOT use `--all-extras`:
+# (handpicked set intended for the production image — excludes `[dev]`).
+# We do NOT use `--all-extras`:
 # that would pull in `[rl]` (atroposlib + tinker + torch + wandb from
 # git), `[yc-bench]` (another git dep), and `[termux-all]` (Android
 # redundancy), none of which belong in the published container.
@@ -254,26 +236,17 @@ RUN cd plugins/platforms/photon/sidecar && \
 # image update and recall/retain then fails with
 # `ModuleNotFoundError: No module named 'hindsight_client'` (#38128).
 #
-# The Matrix gateway's deps ([matrix] extra) are baked in because
-# python-olm (transitive via mautrix[encryption]) builds from source on
-# Python/image combinations without usable wheels.  The Docker image is
-# Linux-only, so keeping the native libolm/build-toolchain packages here
-# avoids the cross-platform failures that kept [matrix] out of [all]
-# while still making Matrix work in the published container. Fixes #30399.
-#
 # The editable link is created after the source copy below.
 COPY pyproject.toml uv.lock ./
 RUN touch ./README.md
-RUN uv sync --frozen --no-install-project --extra all --extra messaging --extra otlp --extra anthropic --extra bedrock --extra azure-identity --extra hindsight --extra matrix
+RUN uv sync --frozen --no-install-project --extra all --extra otlp --extra anthropic --extra bedrock --extra azure-identity --extra hindsight
 
 # ---------- Frontend build (cached independently from Python source) ----------
-# Copy only the frontend source trees first so that Python-only changes don't
-# invalidate the (relatively slow) web + ui-tui build layer.
-COPY web/ web/
+# Copy only the frontend source tree first so that Python-only changes don't
+# invalidate the (relatively slow) ui-tui build layer.
 COPY ui-tui/ ui-tui/
 COPY apps/shared/ apps/shared/
-RUN cd web && npm run build && \
-    cd ../ui-tui && npm run build
+RUN cd ui-tui && npm run build
 
 # ---------- Source code ----------
 # .dockerignore excludes node_modules, so the installs above survive.
@@ -365,8 +338,8 @@ ENV SPARKII_WEB_DIST=/opt/sparkii/sparkii_cli/web_dist
 # nix/packaged-release path the launcher was designed for.
 #
 # Why this is required (not just an optimization): the root package-lock.json
-# describes the WHOLE monorepo workspace set (root + web + ui-tui + apps/*),
-# but the image only installs root/web/ui-tui (apps/* — the desktop app — is
+# describes the WHOLE monorepo workspace set (root + ui-tui + apps/*),
+# but the image only installs root/ui-tui (apps/* — the desktop app — is
 # never `npm install`ed here). So the actualized node_modules permanently
 # disagrees with the canonical lock, _tui_need_npm_install() returns True on
 # every launch, and the runtime `npm install` it triggers (a) can never

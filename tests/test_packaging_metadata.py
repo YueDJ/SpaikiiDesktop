@@ -285,24 +285,17 @@ def _lazy_deps_by_feature():
 # Security-critical packages whose patched floor must be enforced on EVERY
 # install path, eager and lazy. test_pyproject_and_lazy_deps_pins_agree only
 # fires when a package is pinned in BOTH sources, so it cannot catch a lazy
-# feature that omits the pin entirely — the exact gap that left platform.slack
-# carrying aiohttp==3.14.0 while platform.discord (whose discord.py dep pulls
-# aiohttp transitively as its HTTP backbone) shipped without it, so the lazy
-# Discord path could keep an already-installed vulnerable aiohttp. A fully
-# general "no mirrored feature drops a pin" check is impossible statically
-# (it can't see transitive deps), so this is the explicit coverage contract:
-# each security package -> the lazy features that bundle an SDK pulling it and
-# must therefore carry the same pin as the pyproject extra.
+# feature that omits the pin entirely. A fully general "no mirrored feature
+# drops a pin" check is impossible statically (it can't see transitive deps),
+# so this is the explicit coverage contract: each security package -> the lazy
+# features that bundle an SDK pulling it and must therefore carry the same pin
+# as the pyproject extra.
 _REQUIRED_SECURITY_PINS = {
-    # Every lazy messaging feature whose SDK pulls aiohttp transitively must
-    # carry the patched floor directly: discord.py (aiohttp<4), slack-bolt,
-    # mautrix/aiohttp-socks (aiohttp<4 / >=3.10), and microsoft-teams-apps —
-    # none of those upper/lower bounds excludes a vulnerable already-installed
-    # aiohttp, so the lazy path would not upgrade it without an explicit pin.
+    # Every lazy feature whose SDK pulls aiohttp transitively must carry the
+    # patched floor directly: microsoft-teams-apps does not exclude a
+    # vulnerable already-installed aiohttp, so the lazy path would not upgrade
+    # it without an explicit pin.
     "aiohttp": {
-        "platform.discord",
-        "platform.slack",
-        "platform.matrix",
         "platform.teams",
     },
 }

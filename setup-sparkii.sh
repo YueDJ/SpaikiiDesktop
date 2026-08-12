@@ -210,12 +210,12 @@ else
     # Multi-tier pip fallback. Goal: ONE compromised PyPI package
     # (mistralai 2.4.6 in May 2026 → quarantined) shouldn't silently demote
     # a fresh setup to "core only". Edit _BROKEN_EXTRAS when a transitive
-    # breaks; users keep voice / honcho / google / slack / matrix etc. even
+    # breaks; users keep voice / honcho / google / homeassistant etc. even
     # if mistral can't resolve.
     _BROKEN_EXTRAS=()  # populate when an extra becomes unresolvable
     _ALL_EXTRAS=(
-        modal daytona vercel messaging matrix cron cli dev tts-premium slack
-        pty honcho mcp homeassistant sms acp voice dingtalk feishu google
+        modal daytona vercel cron cli dev tts-premium
+        pty honcho mcp homeassistant sms acp voice google
         bedrock web youtube
     )
     _SAFE_EXTRAS=()
@@ -245,10 +245,9 @@ else
         # Critical flag choice: `--extra all`, NOT `--all-extras`. The
         # latter installs every [project.optional-dependencies] key,
         # bypassing the curated [all] extra and pulling backends like
-        # [matrix] (python-olm needs make on Windows) and [rl] (git+https
-        # deps that fail offline). See pyproject.toml's [all] for the
-        # curated set, and tools/lazy_deps.py for backends that install
-        # at first use.
+        # [rl] (git+https deps that fail offline). See pyproject.toml's
+        # [all] for the curated set, and tools/lazy_deps.py for backends
+        # that install at first use.
         # Also: stream stderr through directly so the user sees uv's
         # progress UI instead of staring at a frozen prompt.
         if UV_PROJECT_ENVIRONMENT="$SCRIPT_DIR/venv" $UV_CMD sync --extra all --locked; then

@@ -17,31 +17,18 @@ def _load_package_data():
     return tool["setuptools"]["package-data"]
 
 
-def test_matrix_extra_not_in_all():
-    """The [matrix] extra pulls `mautrix[encryption]` -> `python-olm`,
-    which has Linux-only wheels and no native build path on Windows or
-    modern macOS (archived libolm, C++ errors with Clang 21+).
+def test_removed_messaging_extras_absent():
+    """Messaging platform extras were removed with the platform cut.
 
-    With matrix in [all], `uv sync --locked` on Windows tried to build
-    python-olm from sdist and failed on `make`. As of 2026-05-12 the
-    [matrix] extra is excluded from [all] entirely and routed through
-    `tools/lazy_deps.py` (LAZY_DEPS["platform.matrix"]) — installs at
-    first use, where the user is expected to have a toolchain.
+    The messaging/slack/matrix/dingtalk/feishu/wecom extras shipped SDKs for
+    platform adapters that no longer exist in this tree. Keeping them would
+    let ``uv sync --extra messaging`` install dead dependencies.
     """
     optional_dependencies = _load_optional_dependencies()
-
-    assert "matrix" in optional_dependencies, "[matrix] extra must still exist for `uv sync --extra matrix`"
-    # Must NOT appear in [all] in any form — neither unconditional nor
-    # platform-gated. Lazy-install handles it.
-    matrix_in_all = [
-        dep for dep in optional_dependencies["all"]
-        if "matrix" in dep
-    ]
-    assert not matrix_in_all, (
-        "matrix must not appear in [all] — it's lazy-installed via "
-        "tools/lazy_deps.py LAZY_DEPS['platform.matrix']. Found: "
-        f"{matrix_in_all}"
-    )
+    for gone in ("messaging", "slack", "matrix", "dingtalk", "feishu", "wecom"):
+        assert gone not in optional_dependencies, (
+            f"[{gone}] extra must not exist — its platform was removed"
+        )
 
 
 def test_lazy_installable_extras_excluded_from_all():
@@ -70,7 +57,6 @@ def test_lazy_installable_extras_excluded_from_all():
         "edge-tts", "tts-premium",
         "voice",  # faster-whisper / sounddevice / numpy
         "modal", "daytona", "vercel",
-        "messaging", "slack", "matrix", "dingtalk", "feishu",
         "honcho", "hindsight",
         "supermemory", "mem0",
         "mistral",  # mistralai — Voxtral STT/TTS, lazy-installed (stt.mistral / tts.mistral)
@@ -151,19 +137,6 @@ def test_pyproject_pins_match_lazy_deps_pins():
         "package below the security-current lazy pin (see #31817). Drift: "
         f"{drift}"
     )
-
-
-
-
-
-
-def test_dingtalk_extra_includes_qrcode_for_qr_auth():
-    """DingTalk's QR-code device-flow auth (sparkii_cli/dingtalk_auth.py)
-    needs the qrcode package."""
-    optional_dependencies = _load_optional_dependencies()
-
-    dingtalk_extra = optional_dependencies["dingtalk"]
-    assert any(dep.startswith("qrcode") for dep in dingtalk_extra)
 
 
 
