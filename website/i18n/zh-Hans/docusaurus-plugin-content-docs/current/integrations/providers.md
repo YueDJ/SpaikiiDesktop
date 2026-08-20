@@ -15,7 +15,7 @@ sidebar_position: 1
 | 提供商 | 配置方式 |
 |----------|-------|
 | **Nous Portal** | `sparkii model`（OAuth，订阅制） |
-| **OpenAI Codex** | `sparkii model`（ChatGPT OAuth，使用 Codex 模型） |
+| **OpenAI Codex** | `sparkii model` → **ChatGPT or Codex Subscription**（ChatGPT OAuth，使用 Codex 模型） |
 | **GitHub Copilot** | `sparkii model`（OAuth 设备码流程，`COPILOT_GITHUB_TOKEN`、`GH_TOKEN` 或 `gh auth token`） |
 | **GitHub Copilot ACP** | `sparkii model`（在本地生成 `copilot --acp --stdio` 子进程） |
 | **Anthropic** | `sparkii model`（Claude Max + 额外用量积分，通过 OAuth；也支持 Anthropic API key 或手动 setup-token——见下方说明） |
@@ -69,7 +69,7 @@ sparkii portal info        # 随时查看登录状态和路由信息
 :::info Codex 说明
 OpenAI Codex 提供商通过设备码（device code）认证——打开一个 URL 并输入验证码。Sparkii 将生成的凭据存储在 `~/.sparkii/auth.json` 的自有认证存储中，并在存在 `~/.codex/auth.json` 时可导入现有的 Codex CLI 凭据。无需安装 Codex CLI。
 
-如果 token 刷新因终端错误（HTTP 4xx、`invalid_grant`、授权被撤销等）失败，Sparkii 会将该刷新 token 标记为失效并停止重试，避免出现大量重复的认证失败。下一次请求会显示类型化的重新认证提示。运行 `sparkii auth add codex-oauth`（或 `sparkii model` → OpenAI Codex）开始新的设备码登录；成功交换后隔离状态自动解除。
+如果 token 刷新因终端错误（HTTP 4xx、`invalid_grant`、授权被撤销等）失败，Sparkii 会将该刷新 token 标记为失效并停止重试，避免出现大量重复的认证失败。下一次请求会显示类型化的重新认证提示。运行 `sparkii auth add openai-codex`（或 `sparkii model` → **ChatGPT or Codex Subscription**）开始新的设备码登录；成功交换后隔离状态自动解除。
 :::
 
 :::warning

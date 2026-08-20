@@ -194,8 +194,10 @@ CLIENT_ARCHITECTURES: frozenset[str] = frozenset({
     "x86_64",
 })
 CLIENT_INSTALL_METHODS: frozenset[str] = frozenset({
+    "apt",
     "docker",
     "git",
+    "home-manager",
     "homebrew",
     "nixos",
     "pip",
@@ -832,7 +834,7 @@ def tool_category(kwargs: dict[str, Any]) -> str:
     if toolset == "x_search":
         return "web"
     if toolset.startswith(
-        ("feishu_doc", "feishu_drive")
+        ("discord", "email", "feishu", "sparkii-yuanbao", "slack", "sms")
     ):
         return "communication"
     return "other"

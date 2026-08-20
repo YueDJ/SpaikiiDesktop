@@ -1,11 +1,31 @@
-import { contextBridge, ipcRenderer, webUtils } from 'electron'
+import { contextBridge, ipcRenderer, webFrame, webUtils } from 'electron'
+
+// Which translucency the OS can back. Asked synchronously because the renderer
+// needs it before its first paint, and answered by main because deciding it
+// needs `os.release()` — a sandboxed preload may only require electron, events,
+// timers and url, so importing node:os here throws before contextBridge runs
+// and takes the ENTIRE bridge down with it (window.sparkiiDesktop undefined =>
+// "Desktop IPC bridge is unavailable"). No reply means no glass, which degrades
+// to an ordinary opaque window rather than a page thinned over nothing.
+const translucencySupport = ipcRenderer.sendSync('sparkii:translucency:support')
 
 contextBridge.exposeInMainWorld('sparkiiDesktop', {
+  glassSupported: translucencySupport?.glass === true,
+  translucencySupported: translucencySupport?.translucency === true,
   getConnection: profile => ipcRenderer.invoke('sparkii:connection', profile),
+  // Registry-scoped backend resolution: { connectionId, profile } → descriptor.
+  getConnectionFor: payload => ipcRenderer.invoke('sparkii:connection:for', payload),
+  getProfileRoutes: profiles => ipcRenderer.invoke('sparkii:plugin-profile-routes', profiles),
   revalidateConnection: () => ipcRenderer.invoke('sparkii:connection:revalidate'),
   touchBackend: profile => ipcRenderer.invoke('sparkii:backend:touch', profile),
   getGatewayWsUrl: profile => ipcRenderer.invoke('sparkii:gateway:ws-url', profile),
+  // Registry-scoped fresh WS URL: { connectionId, profile } → result shape of
+  // getGatewayWsUrl, minted against that connection's backend.
+  getGatewayWsUrlFor: payload => ipcRenderer.invoke('sparkii:gateway:ws-url-for', payload),
+  // Union agent roster across every registered connection.
+  getAgentRoster: () => ipcRenderer.invoke('sparkii:agents:roster'),
   openSessionWindow: (sessionId, opts) => ipcRenderer.invoke('sparkii:window:openSession', sessionId, opts),
+  openSessionInTerminal: (sessionId, opts) => ipcRenderer.invoke('sparkii:window:openInTerminal', sessionId, opts),
   openWindow: () => ipcRenderer.invoke('sparkii:window:openInstance'),
   claimAmbientCue: key => ipcRenderer.invoke('sparkii:ambient:claim', key),
   wakeIndicator: {
@@ -55,7 +75,10 @@ contextBridge.exposeInMainWorld('sparkiiDesktop', {
     setIgnoreMouse: ignore => ipcRenderer.send('sparkii:hud:ignore-mouse', ignore),
     moveBy: delta => ipcRenderer.send('sparkii:hud:move-by', delta),
     setBounds: bounds => ipcRenderer.send('sparkii:hud:set-bounds', bounds),
-    setVibrancy: on => ipcRenderer.invoke('sparkii:hud:vibrancy', on),
+    // Whether the band covers the window below the bar. Main pairs it with the
+    // user's translucency setting to decide the native frost (macOS vibrancy /
+    // Windows 11 DWM backdrop) — see hudFrostFor.
+    setFrost: showing => ipcRenderer.invoke('sparkii:hud:frost', showing),
     // The HUD tells main which session it is on; main hands that back to the
     // app window when the HUD closes, so the app can re-home onto it.
     setSession: sessionId => ipcRenderer.send('sparkii:hud:session', sessionId),
@@ -122,6 +145,27 @@ contextBridge.exposeInMainWorld('sparkiiDesktop', {
   saveConnectionConfig: payload => ipcRenderer.invoke('sparkii:connection-config:save', payload),
   applyConnectionConfig: payload => ipcRenderer.invoke('sparkii:connection-config:apply', payload),
   testConnectionConfig: payload => ipcRenderer.invoke('sparkii:connection-config:test', payload),
+  // v2 multi-connection registry: named agent sources (local / remote / cloud / ssh).
+  connections: {
+    list: () => ipcRenderer.invoke('sparkii:connections:list'),
+    save: payload => ipcRenderer.invoke('sparkii:connections:save', payload),
+    remove: id => ipcRenderer.invoke('sparkii:connections:remove', id),
+    setPrimary: id => ipcRenderer.invoke('sparkii:connections:set-primary', id),
+    setLaunchMode: mode => ipcRenderer.invoke('sparkii:connections:set-launch-mode', mode),
+    setLastUsed: id => ipcRenderer.invoke('sparkii:connections:set-last-used', id),
+    test: id => ipcRenderer.invoke('sparkii:connections:test', id),
+    // Fan out `sparkii update` to every eligible registered connection.
+    updateAll: () => ipcRenderer.invoke('sparkii:connections:update-all'),
+    // Registry lifecycle push (main → renderer): a connection was removed or
+    // materially edited, so secondaries scoped to it must be disposed (and,
+    // for edits, re-dialed at the new target).
+    onChanged: callback => {
+      const listener = (_event, payload) => callback(payload)
+      ipcRenderer.on('sparkii:connections:changed', listener)
+
+      return () => ipcRenderer.removeListener('sparkii:connections:changed', listener)
+    }
+  },
   sshConfigHosts: () => ipcRenderer.invoke('sparkii:ssh-config:hosts'),
   sshResolveHost: host => ipcRenderer.invoke('sparkii:ssh-config:resolve', host),
   probeConnectionConfig: remoteUrl => ipcRenderer.invoke('sparkii:connection-config:probe', remoteUrl),
@@ -155,7 +199,18 @@ contextBridge.exposeInMainWorld('sparkiiDesktop', {
   selectSavePath: options => ipcRenderer.invoke('sparkii:selectSavePath', options),
   writeClipboard: text => ipcRenderer.invoke('sparkii:writeClipboard', text),
   readClipboard: () => ipcRenderer.invoke('sparkii:readClipboard'),
+  saveGatewayFile: payload => ipcRenderer.invoke('sparkii:saveGatewayFile', payload),
   saveImageFromUrl: url => ipcRenderer.invoke('sparkii:saveImageFromUrl', url),
+  contextMenuEdit: command => ipcRenderer.invoke('sparkii:context-menu:edit', command),
+  contextMenuCopyImage: () => ipcRenderer.invoke('sparkii:context-menu:copy-image'),
+  contextMenuSpellcheck: action => ipcRenderer.invoke('sparkii:context-menu:spellcheck', action),
+  contextMenuGuestAddWord: payload => ipcRenderer.invoke('sparkii:context-menu:guest-add-word', payload),
+  onContextMenuSpellcheck: callback => {
+    const listener = (_event, payload) => callback(payload)
+    ipcRenderer.on('sparkii:context-menu-spellcheck', listener)
+
+    return () => ipcRenderer.removeListener('sparkii:context-menu-spellcheck', listener)
+  },
   saveImageBuffer: (data, ext) => ipcRenderer.invoke('sparkii:saveImageBuffer', { data, ext }),
   saveClipboardImage: () => ipcRenderer.invoke('sparkii:saveClipboardImage'),
   getPathForFile: file => {
@@ -174,9 +229,11 @@ contextBridge.exposeInMainWorld('sparkiiDesktop', {
   setNativeTheme: mode => ipcRenderer.send('sparkii:native-theme', mode),
   setTranslucency: payload => ipcRenderer.send('sparkii:translucency', payload),
   setKeepAwake: on => ipcRenderer.send('sparkii:keep-awake', on),
+  setDisableF12: blocked => ipcRenderer.send('sparkii:devtools:disable-f12', blocked),
   setPreviewShortcutActive: active => ipcRenderer.send('sparkii:previewShortcutActive', Boolean(active)),
   openExternal: url => ipcRenderer.invoke('sparkii:openExternal', url),
   openPreviewInBrowser: url => ipcRenderer.invoke('sparkii:openPreviewInBrowser', url),
+  reachPreviewUrl: url => ipcRenderer.invoke('sparkii:preview:reach', url),
   fetchLinkTitle: url => ipcRenderer.invoke('sparkii:fetchLinkTitle', url),
   sanitizeWorkspaceCwd: cwd => ipcRenderer.invoke('sparkii:workspace:sanitize', cwd),
   settings: {
@@ -187,6 +244,9 @@ contextBridge.exposeInMainWorld('sparkiiDesktop', {
   zoom: {
     // Current zoom of this window, as { level, percent }.
     get: () => ipcRenderer.invoke('sparkii:zoom:get'),
+    // Synchronous zoom factor (1 = 100%). Coordinate math needs it in the
+    // same tick as the event it converts, so no IPC round-trip here.
+    factor: () => webFrame.getZoomFactor(),
     setPercent: percent => ipcRenderer.send('sparkii:zoom:set-percent', percent),
     // Fires on every zoom change, including the Ctrl/Cmd +/-/0 shortcuts,
     // so the settings UI can stay in sync with the keyboard.
@@ -207,6 +267,7 @@ contextBridge.exposeInMainWorld('sparkiiDesktop', {
   revealPath: targetPath => ipcRenderer.invoke('sparkii:fs:reveal', targetPath),
   openDir: dirPath => ipcRenderer.invoke('sparkii:fs:openDir', dirPath),
   desktopPluginsRoot: () => ipcRenderer.invoke('sparkii:fs:desktopPluginsRoot'),
+  agentPluginsRoot: () => ipcRenderer.invoke('sparkii:fs:agentPluginsRoot'),
   renamePath: (targetPath, newName) => ipcRenderer.invoke('sparkii:fs:rename', targetPath, newName),
   writeTextFile: (filePath, content) => ipcRenderer.invoke('sparkii:fs:writeText', filePath, content),
   trashPath: targetPath => ipcRenderer.invoke('sparkii:fs:trash', targetPath),
@@ -235,6 +296,7 @@ contextBridge.exposeInMainWorld('sparkiiDesktop', {
       shipInfo: repoPath => ipcRenderer.invoke('sparkii:git:review:shipInfo', repoPath),
       prList: (repoPath, branches, numbers) =>
         ipcRenderer.invoke('sparkii:git:review:prList', repoPath, branches, numbers),
+      fetchPrComment: (repoPath, url) => ipcRenderer.invoke('sparkii:git:review:fetchPrComment', repoPath, url),
       createPr: repoPath => ipcRenderer.invoke('sparkii:git:review:createPr', repoPath)
     }
   },
@@ -265,6 +327,12 @@ contextBridge.exposeInMainWorld('sparkiiDesktop', {
 
     return () => ipcRenderer.removeListener('sparkii:close-preview-requested', listener)
   },
+  onPreviewNav: callback => {
+    const listener = (_event, command) => callback(command)
+    ipcRenderer.on('sparkii:preview-nav', listener)
+
+    return () => ipcRenderer.removeListener('sparkii:preview-nav', listener)
+  },
   onOpenFolderRequested: callback => {
     const listener = () => callback()
     ipcRenderer.on('sparkii:open-folder-requested', listener)
@@ -284,6 +352,8 @@ contextBridge.exposeInMainWorld('sparkiiDesktop', {
     return () => ipcRenderer.removeListener('sparkii:deep-link', listener)
   },
   signalDeepLinkReady: () => ipcRenderer.invoke('sparkii:deep-link-ready'),
+  probePluginRepo: payload => ipcRenderer.invoke('sparkii:plugin:probe', payload),
+  installDesktopPlugin: payload => ipcRenderer.invoke('sparkii:plugin:installDesktop', payload),
   onWindowStateChanged: callback => {
     const listener = (_event, payload) => callback(payload)
     ipcRenderer.on('sparkii:window-state-changed', listener)
@@ -301,6 +371,12 @@ contextBridge.exposeInMainWorld('sparkiiDesktop', {
     ipcRenderer.on('sparkii:notification-action', listener)
 
     return () => ipcRenderer.removeListener('sparkii:notification-action', listener)
+  },
+  onNotificationActivate: callback => {
+    const listener = (_event, payload) => callback(payload)
+    ipcRenderer.on('sparkii:notification-activate', listener)
+
+    return () => ipcRenderer.removeListener('sparkii:notification-activate', listener)
   },
   onPreviewFileChanged: callback => {
     const listener = (_event, payload) => callback(payload)
@@ -393,5 +469,14 @@ contextBridge.exposeInMainWorld('sparkiiDesktop', {
     ipcRenderer.on('sparkii:found-in-page', listener)
 
     return () => ipcRenderer.removeListener('sparkii:found-in-page', listener)
+  },
+  // Main-process `before-input-event` forwards Ctrl/Cmd+F here so renderer
+  // can open the FindBar even when the GTK compositor has already grabbed
+  // the chord at the windowing layer (#81727).
+  onOpenFindBarRequested: callback => {
+    const listener = () => callback()
+    ipcRenderer.on('sparkii:open-find-bar', listener)
+
+    return () => ipcRenderer.removeListener('sparkii:open-find-bar', listener)
   }
 })

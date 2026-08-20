@@ -19,10 +19,10 @@
       "@/*": ["./src/*"],
       "@sparkii/plugin-sdk": ["./src/sdk/index.ts"],
       "@sparkii/shared/billing": ["../shared/src/billing-types.ts"],
+      "@sparkii/shared/translucency": ["../shared/src/translucency.ts"],
       "@sparkii/shared": ["../shared/src/index.ts"]
     }
   },
   "include": ["src", "../shared/src"],
-  "exclude": ["e2e", "electron", "playwright.config.ts"],
-  "references": [{ "path": "./tsconfig.electron.json" }]
+  "exclude": ["e2e", "electron", "playwright.config.ts"]
 }

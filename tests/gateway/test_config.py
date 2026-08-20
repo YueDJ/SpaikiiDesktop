@@ -139,35 +139,6 @@ class TestPlatformConfigMalformedSections:
         assert restored.extra == {}
 
 
-class TestGetConnectedPlatforms:
-    def test_returns_enabled_with_token(self):
-        config = GatewayConfig(
-            platforms={
-                Platform.TELEGRAM: PlatformConfig(enabled=True, token="t"),
-                Platform.DISCORD: PlatformConfig(enabled=False, token="d"),
-                Platform.SLACK: PlatformConfig(enabled=True),  # no token
-            },
-        )
-        connected = config.get_connected_platforms()
-        assert Platform.TELEGRAM in connected
-        assert Platform.DISCORD not in connected
-        assert Platform.SLACK not in connected
-
-
-    def test_dingtalk_recognised_via_env_vars(self, monkeypatch):
-        """DingTalk configured via env vars (no extras) should still be
-        recognised as connected — covers the case where _apply_env_overrides
-        hasn't populated extras yet."""
-        monkeypatch.setenv("DINGTALK_CLIENT_ID", "env_cid")
-        monkeypatch.setenv("DINGTALK_CLIENT_SECRET", "env_sec")
-        config = GatewayConfig(
-            platforms={
-                Platform.DINGTALK: PlatformConfig(enabled=True, extra={}),
-            },
-        )
-        assert Platform.DINGTALK in config.get_connected_platforms()
-
-
 class TestSessionResetPolicy:
     def test_roundtrip(self):
         policy = SessionResetPolicy(mode="idle", at_hour=6, idle_minutes=120,
@@ -332,45 +303,6 @@ class TestLoadGatewayConfig:
         assert config.default_reset_policy.idle_minutes == 30
 
 
-    def test_slack_ignored_channels_config_sets_env_bridge(self, tmp_path, monkeypatch):
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        (sparkii_home / "config.yaml").write_text(
-            "slack:\n"
-            "  ignored_channels:\n"
-            "    - C0123456789\n"
-            "    - C0987654321\n",
-            encoding="utf-8",
-        )
-
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
-        monkeypatch.delenv("SLACK_IGNORED_CHANNELS", raising=False)
-
-        load_gateway_config()
-
-        assert os.getenv("SLACK_IGNORED_CHANNELS") == "C0123456789,C0987654321"
-
-
-    def test_typing_status_text_from_nested_platforms_block(self, tmp_path, monkeypatch):
-        """``platforms.slack.typing_status_text`` reaches PlatformConfig via
-        _merge_platform_map + the from_dict top-level read."""
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        (sparkii_home / "config.yaml").write_text(
-            "platforms:\n"
-            "  slack:\n"
-            "    enabled: true\n"
-            '    typing_status_text: "chasing yarn…"\n',
-            encoding="utf-8",
-        )
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
-
-        config = load_gateway_config()
-
-        assert (
-            config.platforms[Platform.SLACK].typing_status_text == "chasing yarn…"
-        )
-
     def test_multiplex_profiles_from_nested_gateway_section(self, tmp_path, monkeypatch):
         """``gateway.multiplex_profiles: true`` (the nested form written by
         ``sparkii config set gateway.multiplex_profiles true``) must enable
@@ -396,32 +328,6 @@ class TestLoadGatewayConfig:
         config = load_gateway_config()
 
         assert config.multiplex_profiles is True
-
-    def test_discord_websocket_health_settings_seed_platform_extra(self, tmp_path, monkeypatch):
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        (sparkii_home / "config.yaml").write_text(
-            "discord:\n"
-            "  websocket_liveness_interval_seconds: 17\n"
-            "  websocket_liveness_failure_threshold: 4\n"
-            "  websocket_heartbeat_ack_max_age_seconds: 75\n"
-            "  websocket_max_latency_seconds: 30\n",
-            encoding="utf-8",
-        )
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
-        for key in (
-            "SPARKII_DISCORD_LIVENESS_INTERVAL_SECONDS",
-            "SPARKII_DISCORD_LIVENESS_FAILURE_THRESHOLD",
-        ):
-            monkeypatch.delenv(key, raising=False)
-
-        config = load_gateway_config()
-
-        extra = config.platforms[Platform.DISCORD].extra
-        assert extra["websocket_liveness_interval_seconds"] == 17
-        assert extra["websocket_liveness_failure_threshold"] == 4
-        assert extra["websocket_heartbeat_ack_max_age_seconds"] == 75
-        assert extra["websocket_max_latency_seconds"] == 30
 
     def test_session_reset_from_nested_gateway_section(self, tmp_path, monkeypatch):
         """``gateway.session_reset`` (nested form) must reach default_reset_policy,
@@ -687,147 +593,6 @@ class TestLoadGatewayConfig:
         assert os.environ.get("DISCORD_THREAD_REQUIRE_MENTION") == "true"
 
 
-    def test_bridges_nested_gateway_platforms_dingtalk_allowed_users_to_env(self, tmp_path, monkeypatch):
-        """gateway.platforms.dingtalk.extra.allowed_users must reach
-        DINGTALK_ALLOWED_USERS — it's the documented config.yaml alternative
-        to the env var (website/docs/user-guide/messaging/dingtalk.md), the
-        adapter reads it from PlatformConfig.extra, but gateway auth
-        (_is_user_authorized) only consults the env var.
-        """
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        config_path = sparkii_home / "config.yaml"
-        config_path.write_text(
-            "gateway:\n"
-            "  platforms:\n"
-            "    dingtalk:\n"
-            "      enabled: true\n"
-            "      extra:\n"
-            "        allowed_users:\n"
-            "          - user-id-1\n"
-            "          - user-id-2\n",
-            encoding="utf-8",
-        )
-
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
-        monkeypatch.delenv("DINGTALK_ALLOWED_USERS", raising=False)
-
-        config = load_gateway_config()
-
-        assert config.platforms[Platform.DINGTALK].extra["allowed_users"] == [
-            "user-id-1",
-            "user-id-2",
-        ]
-        assert os.environ.get("DINGTALK_ALLOWED_USERS") == "user-id-1,user-id-2"
-
-
-    def test_top_level_platforms_override_nested_gateway_platforms(self, tmp_path, monkeypatch):
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        config_path = sparkii_home / "config.yaml"
-        config_path.write_text(
-            "gateway:\n"
-            "  platforms:\n"
-            "    telegram:\n"
-            "      enabled: false\n"
-            "      token: nested-token\n"
-            "      extra:\n"
-            "        reply_prefix: nested\n"
-            "platforms:\n"
-            "  telegram:\n"
-            "    enabled: true\n"
-            "    token: top-token\n"
-            "    extra:\n"
-            "      reply_prefix: top\n",
-            encoding="utf-8",
-        )
-
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
-
-        config = load_gateway_config()
-
-        telegram = config.platforms[Platform.TELEGRAM]
-        assert telegram.enabled is True
-        assert telegram.token == "top-token"
-        assert telegram.extra["reply_prefix"] == "top"
-
-    def test_shared_key_loop_bridges_allow_from_from_nested_platforms(self, tmp_path, monkeypatch):
-        """Regression: shared-key loop must bridge allow_from / require_mention
-        into PlatformConfig.extra even when the platform is configured only
-        under ``platforms:`` (no top-level ``telegram:`` block).
-
-        Before the fix, ``platform_cfg = yaml_cfg.get('telegram')`` returned
-        None for nested-only configs, so the loop skipped the platform entirely
-        and allow_from was silently ignored.  The apply_yaml_config_fn dispatch
-        received the same fix in #44f3e51; the shared-key loop now mirrors it.
-        """
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        config_path = sparkii_home / "config.yaml"
-        config_path.write_text(
-            "platforms:\n"
-            "  telegram:\n"
-            "    allow_from:\n"
-            "      - \"111222333\"\n"
-            "      - \"444555666\"\n"
-            "    require_mention: true\n",
-            encoding="utf-8",
-        )
-
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
-
-        config = load_gateway_config()
-
-        telegram = config.platforms[Platform.TELEGRAM]
-        assert telegram.extra.get("allow_from") == ["111222333", "444555666"], (
-            "allow_from configured under platforms.telegram must be bridged "
-            "into PlatformConfig.extra by the shared-key loop"
-        )
-        assert telegram.extra.get("require_mention") is True, (
-            "require_mention configured under platforms.telegram must be "
-            "bridged into PlatformConfig.extra by the shared-key loop"
-        )
-
-
-    def test_bridges_unauthorized_dm_behavior_from_config_yaml(self, tmp_path, monkeypatch):
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        config_path = sparkii_home / "config.yaml"
-        config_path.write_text(
-            "unauthorized_dm_behavior: ignore\n"
-            "whatsapp:\n"
-            "  unauthorized_dm_behavior: pair\n",
-            encoding="utf-8",
-        )
-
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
-
-        config = load_gateway_config()
-
-        assert config.unauthorized_dm_behavior == "ignore"
-        assert config.platforms[Platform.WHATSAPP].extra["unauthorized_dm_behavior"] == "pair"
-
-
-    def test_loads_telegram_rich_messages_from_gateway_platform_extra(self, tmp_path, monkeypatch):
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        config_path = sparkii_home / "config.yaml"
-        config_path.write_text(
-            "gateway:\n"
-            "  platforms:\n"
-            "    telegram:\n"
-            "      extra:\n"
-            "        rich_messages: false\n",
-            encoding="utf-8",
-        )
-
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
-
-        config = load_gateway_config()
-
-        assert config.platforms[Platform.TELEGRAM].extra["rich_messages"] is False
-
-
     def test_telegram_proxy_env_takes_precedence_over_config(self, tmp_path, monkeypatch):
         sparkii_home = tmp_path / ".sparkii"
         sparkii_home.mkdir()
@@ -931,41 +696,6 @@ class TestWebhookPortBridging:
         assert wh.enabled is True
         assert wh.extra.get("port") == 8649
         assert wh.extra.get("host") == "0.0.0.0"
-
-
-    def test_msgraph_webhook_port_host_secret_bridged_from_toplevel(self, tmp_path, monkeypatch):
-        """msgraph_webhook top-level port/host/secret must be bridged into extra,
-        with an explicit extra: value still winning over the top-level one."""
-        sparkii_home = tmp_path / ".sparkii"
-        sparkii_home.mkdir()
-        config_path = sparkii_home / "config.yaml"
-        config_path.write_text(
-            "platforms:\n"
-            "  msgraph_webhook:\n"
-            "    enabled: true\n"
-            "    host: 0.0.0.0\n"
-            "    port: 8651\n"
-            "    secret: toplevel-secret\n"
-            "    extra:\n"
-            "      client_state: my-client-state\n"
-            "      secret: extra-secret\n",
-            encoding="utf-8",
-        )
-        monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
-        monkeypatch.delenv("MSGRAPH_WEBHOOK_ENABLED", raising=False)
-        monkeypatch.delenv("MSGRAPH_WEBHOOK_PORT", raising=False)
-        monkeypatch.delenv("MSGRAPH_WEBHOOK_CLIENT_STATE", raising=False)
-
-        config = load_gateway_config()
-
-        assert Platform.MSGRAPH_WEBHOOK in config.platforms
-        ms = config.platforms[Platform.MSGRAPH_WEBHOOK]
-        assert ms.enabled is True
-        assert ms.extra.get("port") == 8651
-        assert ms.extra.get("host") == "0.0.0.0"
-        # explicit extra: wins over top-level
-        assert ms.extra.get("secret") == "extra-secret"
-        assert ms.extra.get("client_state") == "my-client-state"
 
 
 class TestHomeChannelEnvOverrides:

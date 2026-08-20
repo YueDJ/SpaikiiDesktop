@@ -29,11 +29,15 @@ SKIP_DIR_NAMES = {
     "hermes_agent.egg-info",
 }
 
-# Placeholder protects third-party product name during bulk replace.
-HERMESCLAW_TOKEN = "___HERMESCLAW_PRESERVE___"
-HERMESCLAW_URL_TOKEN = "___HERMESCLAW_URL_PRESERVE___"
+# Placeholder protects third-party product names during bulk replace.
+# Tokens must NOT contain hermes/Hermes/HERMES — the final substring sweep
+# would corrupt them before unprotect.
+HERMESCLAW_TOKEN = "___THIRDPARTY_CLAW_PRESERVE___"
+HERMESCLAW_URL_TOKEN = "___THIRDPARTY_CLAW_URL_PRESERVE___"
+HERMESBENCH_TOKEN = "___THIRDPARTY_BENCH_PRESERVE___"
+HERMESBENCH_URL_TOKEN = "___THIRDPARTY_BENCH_URL_PRESERVE___"
 
-# Ordered content replacements (apply after HermesClaw protection).
+# Ordered content replacements (apply after third-party protection).
 # Longer / more specific first.
 CONTENT_REPLACEMENTS: list[tuple[str, str]] = [
     (r"HermesAgent", "SparkiiAgent"),
@@ -48,6 +52,7 @@ CONTENT_REPLACEMENTS: list[tuple[str, str]] = [
     (r"HermesSkin", "SparkiiSkin"),
     (r"HermesToken", "SparkiiToken"),
     (r"HERMES_", "SPARKII_"),
+    (r"_HERMES\b", "_SPARKII"),
     (r"hermes-agent", "sparkii-agent"),
     (r"hermes_agent", "sparkii_agent"),
     (r"hermes-cli", "sparkii-cli"),
@@ -88,6 +93,10 @@ CONTENT_REPLACEMENTS: list[tuple[str, str]] = [
     (r"hermes_profile", "sparkii_profile"),
     (r"hermes-cron", "sparkii-cron"),
     (r"hermes_cron", "sparkii_cron"),
+    # Identifier-level leftovers (get_hermes_home, _hermes_bin, hermes_home, …)
+    (r"hermes_", "sparkii_"),
+    (r"_hermes\b", "_sparkii"),
+    (r"hermes-", "sparkii-"),
     (r"hey_hermes", "hey_sparkii"),
     (r"hey-hermes", "hey-sparkii"),
     (r"main-hermes", "main-sparkii"),
@@ -110,6 +119,7 @@ CONTENT_REPLACEMENTS: list[tuple[str, str]] = [
     (r"hermes(?=[A-Z])", "sparkii"),
     (r"\bHermes\b", "Sparkii"),
     (r"\bhermes\b", "sparkii"),
+    (r"\bHERMES\b", "SPARKII"),
 ]
 
 BINARY_SUFFIXES = {
@@ -156,23 +166,33 @@ def iter_files(root: Path):
             yield Path(dirpath) / name
 
 
-def protect_hermesclaw(text: str) -> str:
+def protect_third_party(text: str) -> str:
     text = text.replace("HermesClaw", HERMESCLAW_TOKEN)
     text = text.replace("hermesclaw", HERMESCLAW_URL_TOKEN)
+    text = text.replace("HermesBench", HERMESBENCH_TOKEN)
+    text = text.replace("hermesbench", HERMESBENCH_URL_TOKEN)
     return text
 
 
-def unprotect_hermesclaw(text: str) -> str:
+def unprotect_third_party(text: str) -> str:
     text = text.replace(HERMESCLAW_TOKEN, "HermesClaw")
     text = text.replace(HERMESCLAW_URL_TOKEN, "hermesclaw")
+    text = text.replace(HERMESBENCH_TOKEN, "HermesBench")
+    text = text.replace(HERMESBENCH_URL_TOKEN, "hermesbench")
     return text
 
 
 def transform_content(text: str) -> str:
-    text = protect_hermesclaw(text)
+    text = protect_third_party(text)
     for pattern, repl in CONTENT_REPLACEMENTS:
         text = re.sub(pattern, repl, text)
-    return unprotect_hermesclaw(text)
+    # Final sweep for CamelCase / embedded leftovers (startHermes, Hermes_Gateway,
+    # updateHermes, …) that word-boundary rules miss. Third-party tokens already
+    # protected above.
+    text = text.replace("Hermes", "Sparkii")
+    text = text.replace("hermes", "sparkii")
+    text = text.replace("HERMES", "SPARKII")
+    return unprotect_third_party(text)
 
 
 def is_probably_binary(path: Path) -> bool:
@@ -211,6 +231,8 @@ def rename_paths(root: Path) -> int:
         name = path.name
         new_name = transform_content(name)
         # Also handle CamelCase file stems already covered; ensure hermes→sparkii
+        if path.name.startswith("_rebrand_"):
+            continue
         if new_name == name:
             continue
         dest = path.with_name(new_name)
@@ -229,6 +251,10 @@ def rewrite_files(root: Path) -> tuple[int, int]:
     for path in iter_files(root):
         # Never rewrite this script itself if present under root
         if path.name == "_rebrand_hermes_to_sparkii.py":
+            continue
+        # Never rewrite gitlink / git metadata files (worktree .git is a file)
+        if path.name == ".git" or ".git" in path.parts:
+            skipped += 1
             continue
         if is_probably_binary(path):
             skipped += 1

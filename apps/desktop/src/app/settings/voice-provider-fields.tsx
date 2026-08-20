@@ -37,7 +37,7 @@ export function VoiceProviderFields({ section, providerKey }: { section: 'tts' |
 
   const { data: schemaResponse } = useQuery({
     queryKey: ['sparkii-config-schema'],
-    queryFn: getSparkiiConfigSchema,
+    queryFn: () => getSparkiiConfigSchema(),
     staleTime: 5 * 60 * 1000
   })
 

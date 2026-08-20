@@ -90,6 +90,10 @@ from .config import (
     SessionResetPolicy,  # noqa: F401 — re-exported via gateway/__init__.py
     HomeChannel,
 )
+from .whatsapp_identity import (
+    canonical_whatsapp_identifier,
+    normalize_whatsapp_identifier,  # noqa: F401 - re-exported for gateway.session callers
+)
 from utils import atomic_replace
 from agent.turn_context import extract_api_content_sidecar
 
@@ -178,6 +182,9 @@ class SessionSource:
     # None => the gateway's active/default profile. Drives both session-key
     # namespacing and the per-turn config/credential scope.
     profile: Optional[str] = None
+    # Transport-local fail-closed signal for an explicit profile route whose
+    # target is not served. Excluded from repr/equality and wire serialization.
+    profile_route_rejected: bool = field(default=False, repr=False, compare=False)
 
     # Discord auto-thread metadata.  Newly auto-created Discord threads start
     # with a fast placeholder title from the raw message, then the gateway can
@@ -342,10 +349,100 @@ class SessionContext:
         }
 
 
-_PII_SAFE_PLATFORMS = frozenset()
-"""Platforms where user IDs can be safely redacted.  No messaging platforms
-remain in this fork, so the built-in set is empty; plugin platforms opt in
-via the registry's ``pii_safe`` flag."""
+_PII_SAFE_PLATFORMS = frozenset({
+    Platform.WHATSAPP,
+    Platform.SIGNAL,
+    Platform.TELEGRAM,
+    Platform.BLUEBUBBLES,
+})
+"""Platforms where user IDs can be safely redacted (no in-message mention system
+that requires raw IDs).  Discord is excluded because mentions use ``<@user_id>``
+and the LLM needs the real ID to tag users."""
+
+
+def _slack_tools_loaded() -> bool:
+    """True iff the agent will actually have Slack tools this session.
+
+    Two independent paths grant Slack capability:
+      1. Native `slack` toolset enabled via `sparkii tools` (opt-in, default
+         OFF) AND `SLACK_BOT_TOKEN` set — the tool's `check_fn` gates on it
+         at registry time, so config alone isn't enough.
+      2. An MCP server that has ACTUALLY registered tools into the live
+         registry (tools/mcp_tool.get_registered_mcp_server_names()), whose
+         name suggests Slack. This is the real, availability-filtered
+         signal (post-connection, post include/exclude filtering) rather
+         than just what's listed in config.yaml -- a configured-but-
+         unconnected or zero-tool MCP server must not claim capability.
+         Named MCP servers are process-wide (one gateway connects each MCP
+         server once, not per-session), so this check is intentionally NOT
+         scoped further per-session -- unlike the earlier get_all_tool_names()
+         approach this replaces, which conflated ALL built-in tool names
+         process-wide, this only inspects the small, purpose-built MCP
+         server-name map.
+
+    Returns False (safe default — keeps the stale-API disclaimer) on any
+    error so a bad config can never silently promise tools the agent lacks.
+    """
+    try:
+        from tools.mcp_tool import get_registered_mcp_server_names
+        if any("slack" in name.lower() for name in get_registered_mcp_server_names()):
+            return True
+    except Exception:
+        pass
+
+    # Presence check through the profile secret scope: under multiplex the
+    # process env may carry another profile's token (Slack pattern for the
+    # unscoped default-profile path).
+    try:
+        from agent.secret_scope import UnscopedSecretError, get_secret
+
+        try:
+            _slack_token = get_secret("SLACK_BOT_TOKEN") or ""
+        except UnscopedSecretError:
+            _slack_token = os.environ.get("SLACK_BOT_TOKEN") or ""
+    except Exception:
+        _slack_token = os.environ.get("SLACK_BOT_TOKEN") or ""
+    if not _slack_token.strip():
+        return False
+    try:
+        from sparkii_cli.config import load_config
+        from sparkii_cli.tools_config import _get_platform_tools
+        cfg = load_config()
+        # include_default_mcp_servers=True (the default) so a Slack MCP
+        # server that's enabled by default for this platform (not
+        # explicitly listed) is also counted, in addition to the native
+        # 'slack' toolset.
+        enabled = _get_platform_tools(cfg, "slack")
+        return "slack" in enabled
+    except Exception:
+        return False
+
+
+def _discord_tools_loaded() -> bool:
+    """True iff the agent will actually have Discord tools this session.
+
+    Two conditions must hold:
+      1. The `discord` or `discord_admin` toolset is enabled for the
+         Discord platform via `sparkii tools` (opt-in, default OFF).
+      2. `DISCORD_BOT_TOKEN` is set — the tool's `check_fn` gates on it
+         at registry time, so the toolset being enabled in config is not
+         enough if the token isn't configured.
+
+    Returns False (safe default — keeps the stale-API disclaimer) on any
+    error so a bad config can't silently promise tools the agent lacks.
+    """
+    try:
+        from agent.secret_scope import get_secret
+        from sparkii_cli.config import load_config
+        from sparkii_cli.tools_config import _get_platform_tools
+
+        if not (get_secret("DISCORD_BOT_TOKEN", "") or "").strip():
+            return False
+        cfg = load_config()
+        enabled = _get_platform_tools(cfg, "discord", include_default_mcp_servers=False)
+        return "discord" in enabled or "discord_admin" in enabled
+    except Exception:
+        return False
 
 
 _MAX_PROMPT_METADATA_CHARS = 240
@@ -457,6 +554,22 @@ def build_session_context_prompt(
             f"**Channel Topic:** {_format_untrusted_prompt_value(context.source.chat_topic)}"
         )
 
+    if context.source.platform == Platform.MATRIX:
+        src = context.source
+        room_name = src.chat_name or src.chat_id
+        room_id = _hash_chat_id(src.chat_id) if redact_pii else src.chat_id
+        lines.append("")
+        lines.append(f"**Matrix Room:** {_format_untrusted_prompt_value(room_name)}")
+        lines.append(f"**Matrix Room ID:** {room_id}")
+        if src.thread_id:
+            thread_id = _hash_chat_id(src.thread_id) if redact_pii else src.thread_id
+            lines.append(f"**Matrix Thread:** {thread_id}")
+        lines.append(
+            "**Matrix room boundary:** Treat this turn as scoped to the current "
+            "Matrix room/thread only. Do not assume unresolved references are "
+            "about other Matrix rooms or projects unless the user explicitly says so."
+        )
+
     # User identity.
     # In shared multi-user sessions (shared threads OR shared non-thread groups
     # when group_sessions_per_user=False), multiple users contribute to the same
@@ -479,6 +592,110 @@ def build_session_context_prompt(
         if redact_pii:
             uid = _hash_sender_id(uid)
         lines.append(f"**User ID:** {_format_untrusted_prompt_value(uid)}")
+
+    # Platform-specific behavioral notes
+    if context.source.platform == Platform.SLACK:
+        # Inject the Slack capability note only when the agent actually has
+        # Slack tools loaded this session — native `slack` toolset opt-in,
+        # or a connected MCP server that has registered Slack tools.
+        # Otherwise keep the stale-API disclaimer honest so we never
+        # promise tools the agent lacks. Mirrors the Discord pattern below.
+        if _slack_tools_loaded():
+            lines.append("")
+            lines.append(
+                "**Platform notes:** You are running inside Slack and have access "
+                "to Slack-specific tools this session. Consult the available Slack "
+                "tool schemas for the exact operations supported (e.g. channel "
+                "history and thread lookups, posting, reactions) — use those tools "
+                "for Slack-specific requests, and do not promise Slack actions "
+                "beyond what the loaded tools actually expose."
+            )
+        else:
+            lines.append("")
+            lines.append(
+                "**Platform notes:** You are running inside Slack. "
+                "You do NOT have access to Slack-specific APIs — you cannot search "
+                "channel history, pin/unpin messages, manage channels, or list users. "
+                "Do not promise to perform these actions. The gateway may inline the "
+                "current message's Slack block/attachment payload when available, but "
+                "you still cannot call Slack APIs yourself."
+            )
+        if context.shared_multi_user_session:
+            lines.append(
+                "In shared Slack threads, use the current turn's sender prefix "
+                "as the only verified current-author mention target. Do not "
+                "guess or reuse `<@U...>` mentions from names, memory, or prior "
+                "conversation history."
+            )
+    elif context.source.platform == Platform.DISCORD:
+        # Inject the Discord IDs block only when the agent actually has
+        # Discord tools loaded this session — i.e. the user opted into
+        # `discord` / `discord_admin` via `sparkii tools` AND the bot
+        # token is configured.  Otherwise keep the stale-API disclaimer
+        # honest so we never promise tools the agent lacks.
+        if _discord_tools_loaded():
+            src = context.source
+            id_lines = ["", "**Discord IDs (for the `discord` / `discord_admin` tools):**"]
+            if src.guild_id:
+                id_lines.append(f"  - Guild: `{src.guild_id}`")
+            if src.thread_id and src.parent_chat_id:
+                id_lines.append(f"  - Parent channel: `{src.parent_chat_id}`")
+                id_lines.append(f"  - Thread: `{src.thread_id}` (use as `channel_id` for fetch_messages etc.)")
+            else:
+                id_lines.append(f"  - Channel: `{src.chat_id}`")
+            if src.message_id:
+                # The triggering message id is volatile (changes every turn).
+                # Keep it OUT of this cached system-prompt block — including it
+                # here changes build_session_context_prompt() output per turn,
+                # which busts the gateway agent-cache signature and forces an
+                # AIAgent rebuild on every Discord message. The actual id is
+                # injected per-turn into the user message instead (see the
+                # "Triggering message id" note in run.py).
+                id_lines.append(
+                    "  - Triggering message: provided per-turn in the incoming "
+                    "user message (use it as `message_id` for reply/react/pin)"
+                )
+            lines.extend(id_lines)
+        else:
+            lines.append("")
+            lines.append(
+                "**Platform notes:** You are running inside Discord. "
+                "You do NOT have access to Discord-specific APIs — you cannot search "
+                "channel history, pin messages, manage roles, or list server members. "
+                "Do not promise to perform these actions. If the user asks, explain "
+                "that you can only read messages sent directly to you and respond."
+            )
+        # Static (never per-turn): live voice-channel state used to be
+        # appended here and changed bytes every turn the bot sat in a voice
+        # channel, busting the prompt cache.  It now arrives on the current
+        # user message as a `[Voice channel now: ...]` note, injected only
+        # when it actually changed.
+        lines.append("")
+        lines.append(
+            "Voice-channel state, when relevant, appears in the current "
+            "message as a `[Voice channel now: ...]` note."
+        )
+    elif context.source.platform == Platform.BLUEBUBBLES:
+        lines.append("")
+        lines.append(
+            "**Platform notes:** You are responding via iMessage. "
+            "Keep responses short and conversational — think texts, not essays. "
+            "Structure longer replies as separate short thoughts, each separated "
+            "by a blank line (double newline). Each block between blank lines "
+            "will be delivered as its own iMessage bubble, so write accordingly: "
+            "one idea per bubble, 1–3 sentences each. "
+            "If the user needs a detailed answer, give the short version first "
+            "and offer to elaborate."
+        )
+    elif context.source.platform == Platform.YUANBAO:
+        lines.append("")
+        lines.append(
+            "**Platform notes:** You are running inside Yuanbao. "
+            "To send a private (DM) message to a user in the current group, "
+            "use the yb_send_dm tool (look up the recipient by name or pass "
+            "their user_id). Your normal reply is delivered to the group you "
+            "are responding in."
+        )
 
     # Connected platforms
     platforms_list = ["local (files on this machine)"]
@@ -789,6 +1006,46 @@ class SessionEntry:
         )
 
 
+def build_channel_continuity_note(
+    entry: "SessionEntry",
+    source: SessionSource,
+) -> Optional[str]:
+    """Build a lightweight session-continuity hint for Slack/Discord channels.
+
+    Slack and Discord channels/threads are long-lived: when the daily/idle
+    reset policy starts a fresh session, the agent loses the thread's prior
+    context and can mistakenly bind a new request to an unrelated recent
+    session.  This deterministic one-line hint points the agent at the
+    specific prior session in *this* channel/thread so it recalls that
+    context via ``session_search`` before acting.
+
+    Returns ``None`` (and the caller adds nothing) unless **all** hold:
+      - the source platform is Slack or Discord,
+      - this session was created by an auto-reset that had real activity,
+      - the previous session_id was recorded on the entry.
+
+    No LLM calls, no extra API/DB lookups — the previous session id is
+    already known from :meth:`SessionStore.get_or_create_session`.
+    """
+    if source.platform not in (Platform.SLACK, Platform.DISCORD):
+        return None
+    if not getattr(entry, "reset_had_activity", False):
+        return None
+    prev = getattr(entry, "prev_session_id", None)
+    if not prev:
+        return None
+
+    where = "thread" if source.thread_id else "channel"
+    return (
+        f"[System note: This {where} had an earlier Sparkii session "
+        f"(session_id: {prev}) that was auto-reset. If the user refers to "
+        f"earlier work here, or the request depends on this {where}'s history, "
+        f"use the session_search tool to recall that prior session before "
+        f"acting — do not assume an unrelated recent session is the right "
+        f"context.]"
+    )
+
+
 def is_shared_multi_user_session(
     source: SessionSource,
     *,
@@ -855,23 +1112,34 @@ def build_session_key(
       - Without thread_id or chat_id, DMs share a single session.
 
     Group/channel rules:
+      - Slack ``scope_id`` identifies the workspace before chat/thread ids.
       - chat_id identifies the parent group/channel.
       - user_id/user_id_alt isolates participants within that parent chat when available when
         ``group_sessions_per_user`` is enabled.
       - thread_id differentiates threads within that parent chat.  When
         ``thread_sessions_per_user`` is False (default), threads are *shared* across all
         participants — user_id is NOT appended, so every user in the thread
-        shares a single session.
+        shares a single session.  This is the expected UX for threaded
+        conversations (Telegram forum topics, Discord threads, Slack threads).
       - Without participant identifiers, or when isolation is disabled, messages fall back to one
         shared session per chat.
       - Without identifiers, messages fall back to one session per platform/chat_type.
     """
     ns = _session_key_namespace(profile)
     platform = source.platform.value
+    slack_scope_id = (
+        str(source.scope_id)
+        if source.platform == Platform.SLACK and source.scope_id
+        else None
+    )
     if source.chat_type == "dm":
         dm_chat_id = source.chat_id
+        if source.platform == Platform.WHATSAPP:
+            dm_chat_id = canonical_whatsapp_identifier(source.chat_id)
 
         dm_parts = [ns, platform, "dm"]
+        if slack_scope_id:
+            dm_parts.append(slack_scope_id)
         if dm_chat_id:
             dm_parts.append(dm_chat_id)
             if source.thread_id:
@@ -884,6 +1152,11 @@ def build_session_key(
         # single cached agent ends up serving multiple people's conversations —
         # cross-user history bleed.  participant_id keeps DMs isolated per user.
         dm_participant_id = source.user_id_alt or source.user_id
+        if dm_participant_id and source.platform == Platform.WHATSAPP:
+            dm_participant_id = (
+                canonical_whatsapp_identifier(str(dm_participant_id))
+                or dm_participant_id
+            )
         if dm_participant_id:
             dm_parts.append(str(dm_participant_id))
             if source.thread_id:
@@ -894,10 +1167,32 @@ def build_session_key(
         return ":".join(str(part) for part in dm_parts)
 
     participant_id = source.user_id_alt or source.user_id
+    if participant_id and source.platform == Platform.WHATSAPP:
+        # Same JID/LID-flip bug as the DM case: without canonicalisation, a
+        # single group member gets two isolated per-user sessions when the
+        # bridge reshuffles alias forms.
+        participant_id = canonical_whatsapp_identifier(str(participant_id)) or participant_id
+    # Discord auto-thread continuity: a channel-initiating message carries no
+    # thread_id yet, but the connector tells us the thread its reply WILL be
+    # auto-threaded into (prospective_thread_id == the message id, which becomes
+    # the thread id). Key the session on that so the initiating channel message
+    # and every follow-up that later arrives IN that thread (real thread_id ==
+    # prospective_thread_id) resolve to the SAME session — "initiate in channel,
+    # continue in thread". A real thread_id always wins when present.
+    #
+    # The follow-up arrives with chat_type="thread" while the initiating message
+    # has chat_type="group"/"channel"; normalize the chat_type slot to "thread"
+    # when keying on a prospective id so the two byte-match. (Real-thread events
+    # already carry chat_type="thread", so this only rewrites the initiating
+    # channel message's slot.)
     effective_thread_id = source.thread_id or source.prospective_thread_id
     chat_type_slot = source.chat_type
+    if source.prospective_thread_id and not source.thread_id:
+        chat_type_slot = "thread"
     key_parts = [ns, platform, chat_type_slot]
 
+    if slack_scope_id:
+        key_parts.append(slack_scope_id)
     if source.chat_id:
         key_parts.append(source.chat_id)
     if effective_thread_id:
@@ -938,6 +1233,13 @@ class AsyncSessionStore:
             return await asyncio.to_thread(attr, *args, **kwargs)
 
         return _offloaded
+
+
+# Sentinel for "no explicit SessionDB has been pinned on this store", so the
+# ``_db`` property can distinguish "resolve from the active profile scope"
+# from a deliberate ``store._db = None`` (which disables the DB and selects
+# the JSONL fallback).  A plain ``None`` cannot express both.
+_DB_UNPINNED = object()
 
 
 class SessionStore:
@@ -990,21 +1292,121 @@ class SessionStore:
             getattr(config, "write_sessions_json", True)
         )
         
-        # Initialize SQLite session database
-        self._db = None
-        try:
-            from sparkii_state import SessionDB
-            self._db = SessionDB()
-        except RuntimeError as e:
-            if "live-system guard" in str(e):
-                # Test-isolation guard fired: a pytest-context process
-                # resolved the developer's production state.db. Never
-                # swallow this into the JSONL fallback — the whole point
-                # is a loud, hard failure.
-                raise
-            print(f"[gateway] Warning: SQLite session store unavailable, falling back to JSONL: {e}")
-        except Exception as e:
-            print(f"[gateway] Warning: SQLite session store unavailable, falling back to JSONL: {e}")
+        # Initialize SQLite session database.
+        #
+        # Handles are cached per resolved path and looked up through the
+        # ``_db`` property instead of being bound to one handle here.  A
+        # multiplexed gateway serves every profile from a SINGLE process, so
+        # a handle bound during __init__ is frozen to the process's own root
+        # home; every profile's rows then land in the root state.db even
+        # though ``_profile_runtime_scope`` has already redirected
+        # ``get_sparkii_home()`` for the turn (its docstring lists "sessions"
+        # among what it scopes).  The row still carries the right
+        # ``profile_name``, so the damage is invisible in the data and shows
+        # up only as the desktop listing a profile's session under the
+        # default bot -- ``_open_session_db_for_profile`` reads
+        # ``profiles/<name>/state.db``, which never received the write.
+        # See #88532.
+        #
+        # Priming the handle for the current scope here keeps the startup
+        # diagnostics exactly where they were: the live-DB isolation guard
+        # still raises during construction, and the JSONL-fallback warning
+        # is still printed once at startup rather than on first use.
+        self._db_pinned = _DB_UNPINNED
+        self._db_handles: Dict[Path, Any] = {}
+        self._db_handles_lock = threading.Lock()
+        self._open_session_db_for_active_scope()
+
+    def _open_session_db_for_active_scope(self):
+        """Return the SessionDB for the profile scope active on this task.
+
+        ``SessionDB(db_path=None)`` resolves ``_default_db_path()`` at call
+        time, and that helper follows the context-local SPARKII_HOME override
+        installed by ``_profile_runtime_scope``.  Resolving here rather than
+        once in ``__init__`` is the whole fix for #88532: it lets the
+        scoping that the multiplexed inbound path already performs actually
+        reach session storage.
+
+        Handles are cached per resolved path, so a hot inbound path opens
+        SQLite once per profile rather than once per message, and two
+        profiles never share a handle.  Construction is done under the lock
+        so a concurrent first message on the same profile cannot open (and
+        then leak) a second handle for the same path.
+
+        A construction failure is cached as ``None`` for that path, matching
+        the previous behavior where a failed startup left ``_db`` None for
+        the life of the store and callers fell back to JSONL.
+        """
+        from sparkii_state import SessionDB, _default_db_path
+
+        path = Path(_default_db_path())
+        with self._db_handles_lock:
+            if path in self._db_handles:
+                return self._db_handles[path]
+            db = None
+            try:
+                db = SessionDB()
+            except RuntimeError as e:
+                if "live-system guard" in str(e):
+                    # Test-isolation guard fired: a pytest-context process
+                    # resolved the developer's production state.db. Never
+                    # swallow this into the JSONL fallback — the whole point
+                    # is a loud, hard failure.  Deliberately not cached: the
+                    # guard must fire again on the next attempt.
+                    raise
+                print(f"[gateway] Warning: SQLite session store unavailable, falling back to JSONL: {e}")
+            except Exception as e:
+                print(f"[gateway] Warning: SQLite session store unavailable, falling back to JSONL: {e}")
+            self._db_handles[path] = db
+            return db
+
+    @property
+    def _db(self):
+        """The SessionDB for the active profile scope, or a pinned override.
+
+        Assigning ``store._db`` pins that value for every subsequent read,
+        which is what tests rely on to install a fake or to disable the DB
+        with ``store._db = None``.  Unpinned (the production path), each read
+        resolves the scope so a multiplexed profile's writes reach its own
+        store.
+        """
+        if self._db_pinned is not _DB_UNPINNED:
+            return self._db_pinned
+        return self._open_session_db_for_active_scope()
+
+    @_db.setter
+    def _db(self, value) -> None:
+        self._db_pinned = value
+
+    def close_all_db_handles(self) -> None:
+        """Close every SessionDB handle this store opened, one per resolved path.
+
+        A multiplexed gateway accumulates one cached handle per profile it
+        served (see ``_open_session_db_for_active_scope``).  Reading ``_db``
+        at shutdown resolves only the handle for the scope active *then* —
+        the root home — so a shutdown that closes just ``store._db`` would
+        strand every secondary profile's handle with its WAL write lock held
+        until the interpreter exits, recreating the abandoned-handle leak
+        that ``SessionDB.close()`` exists to prevent.  Restart flows
+        (``--replace``) would then hit 'database is locked' opening those
+        profiles' stores.
+
+        Handles are drained under the lock but closed outside it, so a
+        concurrent resolver blocked in ``_open_session_db_for_active_scope``
+        is never made to wait on N ``close()`` calls; it simply opens a
+        fresh handle afterwards.  ``close()`` failures are swallowed the
+        same way the shutdown path treats the primary handle.  A pinned
+        handle (``store._db = fake``) is deliberately not closed here — the
+        pinner owns its lifecycle.
+        """
+        with self._db_handles_lock:
+            handles = [db for db in self._db_handles.values() if db is not None]
+            self._db_handles.clear()
+        for db in handles:
+            try:
+                db.close()
+            except Exception as exc:
+                logger.debug("SessionDB close error during handle sweep: %s", exc)
 
     def _has_active_processes_safe(self, session_key: str, *, context: str) -> bool:
         """Return whether a session has active work, failing closed on registry errors."""
@@ -1533,6 +1935,74 @@ class SessionStore:
             profile=self._resolve_profile_for_key(source),
         )
 
+    def _legacy_slack_session_key(self, source: SessionSource) -> Optional[str]:
+        """Return the pre-workspace Slack key for an explicitly scoped source.
+
+        The compatibility path is deliberately Slack-only. Discord and every
+        other platform keep byte-identical keys, and an unscoped Slack session
+        may be claimed by only one workspace because its old key contains no
+        information that could safely distinguish multiple teams.
+        """
+        if source.platform != Platform.SLACK or not source.scope_id:
+            return None
+        legacy_source = replace(source, scope_id=None, guild_id=None)
+        return build_session_key(
+            legacy_source,
+            group_sessions_per_user=getattr(
+                self.config, "group_sessions_per_user", True
+            ),
+            thread_sessions_per_user=getattr(
+                self.config, "thread_sessions_per_user", False
+            ),
+            profile=self._resolve_profile_for_key(source),
+        )
+
+    def _claim_legacy_slack_key(self, legacy_key: Optional[str]) -> bool:
+        """Atomically reserve one ambiguous legacy Slack key for migration."""
+        if not legacy_key:
+            return False
+        claim_lock = getattr(self, "_legacy_slack_claim_lock", None)
+        if claim_lock is None:
+            claim_lock = threading.Lock()
+            self._legacy_slack_claim_lock = claim_lock
+        with claim_lock:
+            claimed = getattr(self, "_claimed_legacy_slack_keys", None)
+            if claimed is None:
+                claimed = set()
+                self._claimed_legacy_slack_keys = claimed
+            if legacy_key in claimed:
+                return False
+            claimed.add(legacy_key)
+            return True
+
+    @staticmethod
+    def _recovered_row_matches_source_scope(
+        recovered: Dict[str, Any], source: SessionSource
+    ) -> bool:
+        """Reject recovered rows whose recorded origin belongs to another workspace.
+
+        Slack group/channel rows recorded with an origin_json carry the
+        workspace (scope_id) they were created under. A workspace-scoped
+        lookup must not adopt a row another team recorded — even via the
+        legacy-key fallback — unless the recorded origin names the same
+        workspace. Rows without a parseable origin are rejected for scoped
+        sources: an unattributable transcript is precisely the ambiguity
+        this guard exists to avoid.
+        """
+        if (
+            source.platform != Platform.SLACK
+            or source.chat_type == "dm"
+            or not source.scope_id
+        ):
+            return True
+        try:
+            origin = json.loads(recovered.get("origin_json") or "")
+        except (TypeError, ValueError):
+            return False
+        if not isinstance(origin, dict):
+            return False
+        return origin.get("scope_id", origin.get("guild_id")) == source.scope_id
+
     def _create_entry_from_recovered_row(
         self,
         *,
@@ -1630,13 +2100,29 @@ class SessionStore:
         row is then durably promoted to a reset boundary instead of being
         resurrected as freshly active.
         """
+        legacy_key = self._legacy_slack_session_key(source)
         recovered = self._find_gateway_session_row(
             session_key=session_key,
             source=source,
-            allow_peer_fallback=True,
+            allow_peer_fallback=legacy_key is None,
             raise_on_lookup_error=raise_on_lookup_error,
         )
+        migrated_legacy = False
+        if (
+            not recovered
+            and legacy_key
+            and self._claim_legacy_slack_key(legacy_key)
+        ):
+            recovered = self._find_gateway_session_row(
+                session_key=legacy_key,
+                source=source,
+                allow_peer_fallback=False,
+                raise_on_lookup_error=raise_on_lookup_error,
+            )
+            migrated_legacy = bool(recovered)
         if not recovered:
+            return None
+        if not self._recovered_row_matches_source_scope(recovered, source):
             return None
         if not self._recovered_row_allowed_for_active_profile(
             requested_session_key=session_key,
@@ -1675,6 +2161,13 @@ class SessionStore:
             self._db.reopen_session(entry.session_id)
         except Exception as exc:
             logger.debug("Gateway session DB reopen failed for %s: %s", session_key, exc)
+        if migrated_legacy:
+            self._record_gateway_session_peer(
+                entry.session_id,
+                session_key,
+                source,
+                display_name=entry.display_name,
+            )
         return entry
 
     def _query_recoverable_session(
@@ -1686,12 +2179,27 @@ class SessionStore:
         The returned entry's session row is NOT reopened here: the caller
         evaluates the reset policy first and decides reset vs resume.
         """
+        legacy_key = self._legacy_slack_session_key(source)
         recovered = self._find_gateway_session_row(
             session_key=session_key,
             source=source,
-            allow_peer_fallback=True,
+            allow_peer_fallback=legacy_key is None,
         )
+        migrated_legacy = False
+        if (
+            not recovered
+            and legacy_key
+            and self._claim_legacy_slack_key(legacy_key)
+        ):
+            recovered = self._find_gateway_session_row(
+                session_key=legacy_key,
+                source=source,
+                allow_peer_fallback=False,
+            )
+            migrated_legacy = bool(recovered)
         if not isinstance(recovered, dict):
+            return None
+        if not self._recovered_row_matches_source_scope(recovered, source):
             return None
         if not self._recovered_row_allowed_for_active_profile(
             requested_session_key=session_key,
@@ -1711,6 +2219,13 @@ class SessionStore:
         entry = self._create_entry_from_recovered_row(
             row=recovered, session_key=session_key, source=source, now=now,
         )
+        if migrated_legacy:
+            self._record_gateway_session_peer(
+                entry.session_id,
+                session_key,
+                source,
+                display_name=entry.display_name,
+            )
         return entry
     def _record_gateway_session_peer(
         self,
@@ -2021,12 +2536,15 @@ class SessionStore:
         self,
         source: SessionSource,
         force_new: bool = False,
+        touch_activity: bool = True,
     ) -> SessionEntry:
         """Single-flight session lookup/create per routing key.
 
         Calls for different keys remain concurrent. Overlapping calls for the
         same key share the owner's result, including concurrent ``force_new``
         deliveries, so only one routing transition and SQLite row is created.
+        ``touch_activity=False`` still evaluates reset policy but preserves the
+        prior user-activity clock when an internal/system event reuses a session.
         """
         session_key = self._generate_session_key(source)
         inflight_lock = getattr(self, "_inflight_lock", None)
@@ -2049,10 +2567,16 @@ class SessionStore:
             if slot.error is not None:
                 raise slot.error
             assert slot.result is not None
+            if touch_activity:
+                self.update_session(slot.result.session_key)
             return slot.result
 
         try:
-            result = self._get_or_create_session_impl(source, force_new=force_new)
+            result = self._get_or_create_session_impl(
+                source,
+                force_new=force_new,
+                touch_activity=touch_activity,
+            )
             slot.result = result
             return result
         except BaseException as exc:
@@ -2067,6 +2591,7 @@ class SessionStore:
         self,
         source: SessionSource,
         force_new: bool = False,
+        touch_activity: bool = True,
     ) -> SessionEntry:
         """Perform one session routing transition for the single-flight owner.
 
@@ -2076,6 +2601,52 @@ class SessionStore:
         """
         session_key = self._generate_session_key(source)
         now = _now()
+
+        # One-time routing-index migration for Slack sessions created before
+        # workspace scope was part of the key. Move (rather than copy) the
+        # legacy entry so a second workspace with identical Slack ids cannot
+        # attach to the same transcript.
+        #
+        # Adoption policy (composed from #20583/#66398 and #68925):
+        #   - The legacy entry's recorded origin names a workspace → migrate
+        #     only when it matches the incoming workspace (precise).
+        #   - Scope-less origin, DM → first workspace claims it once
+        #     (claim-once): a 1:1 DM has a single human peer, so continuity
+        #     across the key-format change outweighs the ambiguity risk.
+        #   - Scope-less origin, channel/group → refuse: channel ids collide
+        #     across workspaces and a shared transcript leaking to a second
+        #     tenant is exactly the bug this fix removes.
+        migrated_legacy_entry: Optional[SessionEntry] = None
+        legacy_key = self._legacy_slack_session_key(source)
+        if legacy_key and not force_new:
+            with self._lock:
+                self._ensure_loaded_locked()
+                legacy_entry = self._entries.get(legacy_key)
+                if session_key not in self._entries and legacy_entry is not None:
+                    origin_scope = (
+                        getattr(legacy_entry.origin, "scope_id", None)
+                        if legacy_entry.origin is not None
+                        else None
+                    )
+                    if origin_scope is not None:
+                        adopt = origin_scope == source.scope_id
+                    else:
+                        adopt = source.chat_type == "dm"
+                    if adopt and self._claim_legacy_slack_key(legacy_key):
+                        migrated_legacy_entry = self._entries.pop(legacy_key)
+                        migrated_legacy_entry.session_key = session_key
+                        migrated_legacy_entry.origin = source
+                        migrated_legacy_entry.platform = source.platform
+                        migrated_legacy_entry.chat_type = source.chat_type
+                        self._entries[session_key] = migrated_legacy_entry
+            if migrated_legacy_entry is not None:
+                self._save_entries()
+                self._record_gateway_session_peer(
+                    migrated_legacy_entry.session_id,
+                    session_key,
+                    source,
+                    display_name=migrated_legacy_entry.display_name,
+                )
 
         db_end_session_id = None
         db_create_kwargs = None
@@ -2194,10 +2765,12 @@ class SessionStore:
                     _needs_recover = True
                 elif entry.session_id != _stale_session_id:
                     # Another thread handled this entry during our lock-free
-                    # window.  Treat as healthy -- bump updated_at and save.
-                    entry.updated_at = now
-                    _needs_save = True
-                    _metadata_only_save = not _healed
+                    # window. Treat as healthy; internal/system events preserve
+                    # the prior user-activity clock used by reset policy.
+                    if touch_activity:
+                        entry.updated_at = now
+                    _needs_save = touch_activity or _healed
+                    _metadata_only_save = touch_activity and not _healed
                 else:
                     # Stale check clean.  Apply reset decision.
                     if _reset_reason:
@@ -2210,9 +2783,10 @@ class SessionStore:
                         entry = None
                         _needs_recover = True
                     else:
-                        entry.updated_at = now
-                        _needs_save = True
-                        _metadata_only_save = not _healed
+                        if touch_activity:
+                            entry.updated_at = now
+                        _needs_save = touch_activity or _healed
+                        _metadata_only_save = touch_activity and not _healed
             else:
                 if not force_new:
                     _needs_recover = True
@@ -2302,6 +2876,11 @@ class SessionStore:
                     "origin_json": _origin_json,
                     "display_name": source.chat_name,
                     "parent_session_id": prev_session_id,
+                    "model_config": (
+                        {"_reset_from": prev_session_id}
+                        if prev_session_id
+                        else None
+                    ),
                 }
 
         if _needs_save:
@@ -2365,14 +2944,20 @@ class SessionStore:
         self,
         session_key: str,
         last_prompt_tokens: int = None,
+        touch_activity: bool = True,
     ) -> None:
-        """Update lightweight session metadata after an interaction."""
+        """Update lightweight session metadata after an interaction.
+
+        Internal/system turns can persist token metadata without advancing the
+        user-activity clock that drives idle and daily reset policy.
+        """
         with self._lock:
             self._ensure_loaded_locked()
             entry = self._entries.get(session_key)
             if entry is None:
                 return
-            entry.updated_at = _now()
+            if touch_activity:
+                entry.updated_at = _now()
             if last_prompt_tokens is not None:
                 entry.last_prompt_tokens = last_prompt_tokens
             # Snapshot peer fields while still holding _lock: a concurrent
@@ -2417,6 +3002,12 @@ class SessionStore:
         Values must be small and JSON-serializable — they are written into
         the routing index (state.db gateway_routing table + the legacy
         sessions.json mirror) so they survive gateway restarts.
+
+        Metadata writes are internal bookkeeping and deliberately do NOT
+        advance ``updated_at``: it is the user-activity clock that drives
+        idle/daily reset policy and the restart-resume freshness gate
+        (#85709), and a background write must not make an idle session look
+        fresh.
         """
         with self._lock:
             self._ensure_loaded_locked()
@@ -2424,7 +3015,6 @@ class SessionStore:
             if entry is None:
                 return False
             entry.metadata[key] = value
-            entry.updated_at = _now()
             self._save()
             return True
 
@@ -2797,6 +3387,7 @@ class SessionStore:
                 "origin_json": _reset_origin_json,
                 "display_name": old_entry.display_name,
                 "parent_session_id": db_end_session_id,
+                "model_config": {"_reset_from": db_end_session_id},
             }
 
         if self._db and db_end_session_id:
@@ -2870,7 +3461,10 @@ class SessionStore:
                 target_session_id,
             ):
                 return None
-            entry.updated_at = _now()
+            # Compression repoint is store bookkeeping, not user activity —
+            # leave ``updated_at`` alone so a background compression on an
+            # idle session cannot make it look fresh to reset policy or the
+            # restart-resume freshness gate (#85709).
             self._save()
             return entry
 
@@ -2968,6 +3562,14 @@ class SessionStore:
                 if entry.session_id == session_id:
                     return entry
         return None
+
+    def lookup_by_session_key(self, session_key: str) -> Optional[SessionEntry]:
+        """Return the persisted routing entry for an exact session key."""
+        if not session_key:
+            return None
+        with self._lock:
+            self._ensure_loaded_locked()
+            return self._entries.get(session_key)
 
     def peek_session_id(self, session_key: str) -> Optional[str]:
         """Return the persisted session_id currently bound to a session key.
@@ -3072,8 +3674,18 @@ class SessionStore:
                 from sparkii_state import CompressionSessionClosedError
 
                 if isinstance(exc, CompressionSessionClosedError):
-                    child = self._db.find_live_compression_child(session_id)
-                    child_id = str(child["id"]) if child and child.get("id") else ""
+                    # Resolve the full continuation chain via the canonical
+                    # transitive API — a depth-1 live-child lookup misses
+                    # lineages with >=2 compression hops (root -> mid -> tip).
+                    # ``get_compression_tip`` returns the input id when no
+                    # continuation exists; adopt only a different, still-live
+                    # tip, otherwise fail closed as before.
+                    child_id = ""
+                    tip = self._db.get_compression_tip(session_id)
+                    if tip and tip != session_id:
+                        tip_row = self._db.get_session(tip)
+                        if tip_row is not None and tip_row.get("ended_at") is None:
+                            child_id = str(tip)
                     if child_id:
                         try:
                             self._append_transcript_message(child_id, msg)
@@ -3220,6 +3832,11 @@ class SessionStore:
             # any gateway-side persistence path or the next turn's
             # replay diverges at this row.
             api_content=extract_api_content_sidecar(message),
+            # Presentation typing (e.g. "internal_notification" for
+            # self-injected async-delegation/background notification turns,
+            # #82888). DB-only; stripped from provider-bound payloads.
+            display_kind=message.get("display_kind"),
+            display_metadata=message.get("display_metadata"),
         )
 
     # Maximum in-memory pending messages per session before dropping the

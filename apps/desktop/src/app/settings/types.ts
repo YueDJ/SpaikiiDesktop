@@ -7,6 +7,7 @@ import type { EnvVarInfo } from '@/types/sparkii'
 export type SettingsView =
   | 'about'
   | 'billing'
+  | 'connections'
   | 'gateway'
   | 'keybinds'
   | 'keys'

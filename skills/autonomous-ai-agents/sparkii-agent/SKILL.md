@@ -1,13 +1,13 @@
 ---
 name: sparkii-agent
 description: "Use, configure, theme, extend, and orchestrate Sparkii Agent."
-version: 3.1.0
+version: 3.2.0
 author: Sparkii Agent + Teknium
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
   sparkii:
-    tags: [sparkii, setup, configuration, multi-agent, spawning, cli, gateway, themes, skins, desktop-plugins, tui-widgets, petdex, development]
+    tags: [sparkii, setup, configuration, multi-agent, spawning, cli, gateway, bots, bot-mode, features, themes, skins, desktop-plugins, tui-widgets, petdex, development]
     homepage: https://github.com/NousResearch/sparkii-agent
     related_skills: [claude-code, codex, opencode]
 ---
@@ -34,11 +34,13 @@ What makes Sparkii different:
 
 This skill is a concise operating guide, not the complete source of truth for every Sparkii feature. If a Sparkii feature, command, or setting is not mentioned here or in a reference, do not treat that absence as evidence that it does not exist. Check the live repository and official docs before giving a negative answer.
 
-Good verification targets:
+Good verification targets, cheapest first:
 
+- **Every shipped feature, one line each: https://sparkii-agent.nousresearch.com/docs/llms.txt.** Start here for any "can Sparkii do X?" or "how do I do X?" — it indexes the entire documentation set with a link to the page that answers. It is generated from the docs tree on every build, so it is never behind the product. Fetch it with `web_extract`, or `curl -s https://sparkii-agent.nousresearch.com/docs/llms.txt` when web tools are off. The whole documentation set in one file is at `/docs/llms-full.txt`.
 - CLI commands: `sparkii --help`, `sparkii <command> --help`, and `sparkii_cli/main.py`
-- User documentation: https://sparkii-agent.nousresearch.com/docs/
 - Source tree: https://github.com/NousResearch/sparkii-agent
+
+Never answer "Sparkii can't do that" from memory. Sparkii ships far more than this skill body describes, and the index exists so a negative answer is always checkable.
 
 ## Quick Start
 
@@ -86,6 +88,8 @@ Profiles use `~/.sparkii/profiles/<name>/` with the same layout. When a profile 
 
 | User wants... | Load |
 |---|---|
+| **Anything not listed below — "can Sparkii do X?", "how do I set up X?"** | **https://sparkii-agent.nousresearch.com/docs/llms.txt** |
+| Bots that chat, run routines, or message each other; the Bots tab | docs: `/user-guide/bot-mode` |
 | CLI commands, subcommands, flags, "how do I run X" | `references/cli-reference.md` |
 | In-session slash commands | `references/slash-commands.md` |
 | Provider setup, API keys, OAuth | `references/providers-and-models.md` |
@@ -104,6 +108,11 @@ Profiles use `~/.sparkii/profiles/<name>/` with the same layout. When a profile 
 | Contributing code: adding tools, slash commands, tests | `references/contributor-guide.md` |
 | delegate_task "capped at N" reports | `references/delegate-task-concurrency-diagnosis.md` |
 | "Can app X use my Nous Portal subscription/OAuth?" | `references/portal-auth-for-third-party-apps.md` |
+| Connecting a messaging platform (Telegram, Discord, Slack, WhatsApp, …) | docs: `/user-guide/messaging` |
+
+The reference list above is not the feature list — it is the set of topics that
+need more than their docs page. For everything else Sparkii ships, fetch
+`llms.txt` and it maps the question to the page that answers it.
 
 Two theming rules that hold even without loading the reference: **you apply skins yourself** (`sparkii config set display.skin <name>` — every surface repaints live within ~a second; don't tell the user to run `/skin`), and **to tweak one color, edit the ACTIVE skin** (`sparkii skin set <key> <hex>`) — never fork `default`, which drops the palette and resets the background.
 

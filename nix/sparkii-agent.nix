@@ -192,6 +192,7 @@ stdenv.mkDerivation (finalAttrs: {
           --set SPARKII_OPTIONAL_MCPS $out/share/sparkii-agent/optional-mcps \
           --set SPARKII_WEB_DIST $out/share/sparkii-agent/web_dist \
           --set SPARKII_TUI_DIR $out/ui-tui \
+          --set-default SPARKII_BIN $out/bin/sparkii \
           --set SPARKII_PYTHON ${sparkiiVenv}/bin/python3 \
           --set SPARKII_NODE ${lib.getExe sparkiiNpmLib.nodejs}${
             # Fold the line continuation INTO the optionalString: a bare

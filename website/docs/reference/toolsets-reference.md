@@ -31,6 +31,7 @@ sparkii chat --toolsets all              # everything
 ```yaml
 toolsets:
   - sparkii-cli          # default for CLI
+  # - sparkii-telegram   # override for Telegram gateway
 ```
 
 ### Interactive management
@@ -58,6 +59,8 @@ Or in-session:
 | `cronjob` | `cronjob` | Schedule and manage recurring tasks. |
 | `debugging` | composite (`file` + `terminal` + `web`) | Debug bundle — file, process/terminal, web extract/search. |
 | `delegation` | `delegate_task` | Spawn isolated subagent instances for parallel work. |
+| `discord` | `discord` | Core Discord text/embed/DM actions (gateway-only). Active on the `sparkii-discord` toolset. |
+| `discord_admin` | `discord_admin` | Discord moderation (bans, role changes, channel management). Active on the `sparkii-discord` toolset; requires the bot to hold the relevant Discord permissions. |
 | `feishu_doc` | `feishu_doc_read` | Read Feishu/Lark document content. Used by the Feishu document-comment intelligent-reply handler. |
 | `feishu_drive` | `feishu_drive_add_comment`, `feishu_drive_list_comments`, `feishu_drive_list_comment_replies`, `feishu_drive_reply_comment` | Feishu/Lark drive comment operations. Scoped to the comment agent; not exposed on `sparkii-cli` or other messaging toolsets. |
 | `file` | `patch`, `read_file`, `search_files`, `write_file` | File reading, writing, searching, and editing. |
@@ -68,12 +71,13 @@ Or in-session:
 | `video_gen` | `video_generate`, `xai_video_edit`, `xai_video_extend` | Text-to-video and image-to-video via plugin-registered backends (xAI Grok-Imagine, FAL.ai Veo 3.1 / Pixverse v6 / Kling O3). Pass `image_url` to animate an image; omit it for text-to-video. `xai_video_edit` / `xai_video_extend` are provider-specific edit/extend tools, gated on xAI Imagine credentials. |
 | `kanban` | `kanban_attach`, `kanban_attach_url`, `kanban_attachments`, `kanban_block`, `kanban_comment`, `kanban_complete`, `kanban_create`, `kanban_heartbeat`, `kanban_link`, `kanban_list`, `kanban_request_changes`, `kanban_request_review`, `kanban_show`, `kanban_unblock` | Multi-agent coordination tools. Registered for dispatcher-spawned task workers (`SPARKII_KANBAN_TASK`) and for profiles that explicitly list the `kanban` toolset by name (the `all`/`*` wildcard does **not** enable it). Workers mark tasks done, request first-class review, block, heartbeat, comment, and create/link follow-up tasks; orchestrator profiles additionally get board-routing tools like list/unblock. `delegate_task` children are not Kanban run owners: their schema strips/disables this toolset and runtime guards reject direct board mutations, even if parent `SPARKII_KANBAN_*` env vars are present. |
 | `memory` | `memory` | Persistent cross-session memory management. |
-| `desktop_ui` | `close_terminal`, `focus_pane`, `open_preview`, `react_to_message`, `read_preview`, `read_terminal`, `read_window_below` | Affordances that act on the Sparkii desktop app itself — read/close the embedded terminal pane, open and read the in-app browser, identify the OS window behind the app, reveal a pane, react to a message. Enabled for sessions whose source is the desktop app, whichever backend it's connected to (local, SSH, URL, or Sparkii Cloud). Never present on CLI, TUI, messaging, or cron sessions. |
+| `desktop_ui` | `close_preview`, `close_terminal`, `focus_pane`, `open_preview`, `react_to_message`, `read_preview`, `read_terminal`, `read_window_below`, `tour` | Affordances that act on the Sparkii desktop app itself — read/close the embedded terminal pane, open/read/close the in-app browser, identify the OS window behind the app, reveal a pane, react to a message, run a guided tour (highlight + narrate UI elements in the app or the preview pane). Enabled for sessions whose source is the desktop app, whichever backend it's connected to (local, SSH, URL, or Sparkii Cloud). Never present on CLI, TUI, messaging, or cron sessions. |
 | `project` | `project_create`, `project_list`, `project_switch` | Create and switch desktop [Projects](../user-guide/cli.md) (named, multi-folder workspaces). GUI / desktop sessions only. |
 | `safe` | `image_generate`, `vision_analyze`, `web_extract`, `web_search` (via `includes`) | Read-only research + media generation. No file writes, no terminal, no code execution. |
 | `search` | `web_search` | Web search only (without extract). |
 | `session_search` | `session_search` | Search past conversation sessions. |
 | `skills` | `skill_manage`, `skill_view`, `skills_list` | Skill CRUD and browsing. |
+| `spotify` | `spotify_albums`, `spotify_devices`, `spotify_library`, `spotify_playback`, `spotify_playlists`, `spotify_queue`, `spotify_search` | Native Spotify control (playback, queue, search, playlists, albums, library). Registered by the bundled `spotify` plugin. |
 | `terminal` | `process`, `terminal` | Shell command execution and background process management. |
 | `todo` | `todo` | Task list management within a session. |
 | `tts` | `text_to_speech` | Text-to-speech audio generation. |
@@ -81,10 +85,11 @@ Or in-session:
 | `video` | `video_analyze` | Video analysis and understanding tools (opt-in, not in the default toolset — add explicitly via `--toolsets`). |
 | `web` | `web_extract`, `web_search` | Web search and page content extraction. |
 | `x_search` | `x_search` | Read-only public X discovery via xAI's built-in `x_search` Responses tool. Use the `xurl` skill for authenticated X API reads and account actions. Off by default; opt in via `sparkii tools`. Schema only registered when xAI credentials (SuperGrok OAuth or `XAI_API_KEY`) are configured. |
+| `yuanbao` | `yb_query_group_info`, `yb_query_group_members`, `yb_search_sticker`, `yb_send_dm`, `yb_send_sticker` | Yuanbao DM/group actions and sticker search. Registered only on `sparkii-yuanbao`. |
 
 ## Platform Toolsets
 
-Platform toolsets define the complete tool configuration for a deployment target. The remaining targets share the CLI core:
+Platform toolsets define the complete tool configuration for a deployment target. Most messaging platforms use the same set as `sparkii-cli`:
 
 | Toolset | Differences from `sparkii-cli` |
 |---------|-------------------------------|
@@ -92,7 +97,26 @@ Platform toolsets define the complete tool configuration for a deployment target
 | `sparkii-acp` | Drops `clarify`, `cronjob`, `image_generate`, `text_to_speech`, `computer_use`, all four Home Assistant tools, and the kanban tools. Focused on coding tasks in IDE context. |
 | `sparkii-api-server` | Drops `clarify`, `text_to_speech`, `computer_use`, and the kanban tools. Keeps everything else — suitable for programmatic access where user interaction isn't possible. |
 | `sparkii-cron` | Same as `sparkii-cli`. |
+| `sparkii-telegram` | Same as `sparkii-cli`. |
+| `sparkii-discord` | Adds `discord` and `discord_admin` on top of `sparkii-cli`. |
+| `sparkii-slack` | Same as `sparkii-cli`. |
+| `sparkii-whatsapp` | Same as `sparkii-cli`. |
+| `sparkii-signal` | Same as `sparkii-cli`. |
+| `sparkii-matrix` | Same as `sparkii-cli`. |
+| `sparkii-mattermost` | Same as `sparkii-cli`. |
+| `sparkii-email` | Same as `sparkii-cli`. |
+| `sparkii-sms` | Same as `sparkii-cli`. |
+| `sparkii-bluebubbles` | Same as `sparkii-cli`. |
+| `sparkii-dingtalk` | Same as `sparkii-cli`. |
+| `sparkii-feishu` | Adds the five `feishu_doc_*` / `feishu_drive_*` tools (only used by the document-comment handler, not the regular chat adapter). |
+| `sparkii-qqbot` | Same as `sparkii-cli`. |
+| `sparkii-wecom` | Same as `sparkii-cli`. |
+| `sparkii-wecom-callback` | Same as `sparkii-cli`. |
+| `sparkii-weixin` | Same as `sparkii-cli`. |
+| `sparkii-yuanbao` | Adds the five `yb_*` tools (DM/group/sticker) on top of `sparkii-cli`. |
+| `sparkii-homeassistant` | Same as `sparkii-cli` (the Home Assistant tools are already present by default and activate when `HASS_TOKEN` is set). |
 | `sparkii-webhook` | Restricted safe subset — only `web_search`, `web_extract`, `vision_analyze`, and `clarify`. Webhook-triggered runs get no terminal, file, or browser access. |
+| `sparkii-gateway` | Internal gateway orchestrator toolset — union of every `sparkii-<platform>` toolset; used when the gateway needs to accept any message source. |
 
 ## Dynamic Toolsets
 

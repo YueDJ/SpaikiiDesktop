@@ -20,11 +20,11 @@ class TestSkipContextFilesSignature:
 
     def test_signature_differs_when_toggled(self):
         sig_off = GatewayRunner._agent_config_signature(
-            "claude-sonnet-4", self.RUNTIME, ["sparkii-cli"], "",
+            "claude-sonnet-4", self.RUNTIME, ["sparkii-telegram"], "",
             skip_context_files=False,
         )
         sig_on = GatewayRunner._agent_config_signature(
-            "claude-sonnet-4", self.RUNTIME, ["sparkii-cli"], "",
+            "claude-sonnet-4", self.RUNTIME, ["sparkii-telegram"], "",
             skip_context_files=True,
         )
         assert sig_off != sig_on, (
@@ -34,11 +34,11 @@ class TestSkipContextFilesSignature:
 
     def test_signature_stable_when_unchanged(self):
         sig_a = GatewayRunner._agent_config_signature(
-            "claude-sonnet-4", self.RUNTIME, ["sparkii-cli"], "",
+            "claude-sonnet-4", self.RUNTIME, ["sparkii-telegram"], "",
             skip_context_files=True,
         )
         sig_b = GatewayRunner._agent_config_signature(
-            "claude-sonnet-4", self.RUNTIME, ["sparkii-cli"], "",
+            "claude-sonnet-4", self.RUNTIME, ["sparkii-telegram"], "",
             skip_context_files=True,
         )
         assert sig_a == sig_b
@@ -47,10 +47,10 @@ class TestSkipContextFilesSignature:
         """Back-compat: omitting the param must hash like False so existing
         cached agents aren't all invalidated by this change."""
         sig_default = GatewayRunner._agent_config_signature(
-            "claude-sonnet-4", self.RUNTIME, ["sparkii-cli"], "",
+            "claude-sonnet-4", self.RUNTIME, ["sparkii-telegram"], "",
         )
         sig_false = GatewayRunner._agent_config_signature(
-            "claude-sonnet-4", self.RUNTIME, ["sparkii-cli"], "",
+            "claude-sonnet-4", self.RUNTIME, ["sparkii-telegram"], "",
             skip_context_files=False,
         )
         assert sig_default == sig_false
@@ -72,11 +72,17 @@ class TestSkipContextFilesConfigResolution:
             ({"gateway": {"platforms": {"discord": {"skip_context_files": True}}}}, "telegram", False),
             # Truthy non-bool values coerce.
             ({"gateway": {"platforms": {"telegram": {"skip_context_files": 1}}}}, "telegram", True),
+            # ``sparkii gateway setup`` writes platforms as a LIST of enabled
+            # platform names — must not crash and must default to False (#83185).
+            ({"gateway": {"platforms": ["telegram", "discord"]}}, "telegram", False),
+            ({"gateway": {"platforms": []}}, "telegram", False),
         ],
     )
     def test_resolution(self, cfg, platform_key, expected):
         # Mirror the production resolution in TurnRunner exactly.
         _platforms_gw_cfg = (cfg.get("gateway") or {}).get("platforms") or {}
+        if not isinstance(_platforms_gw_cfg, dict):
+            _platforms_gw_cfg = {}
         _plat_gw_cfg = _platforms_gw_cfg.get(platform_key) or {}
         _skip_context = _plat_gw_cfg.get("skip_context_files")
         skip_context_files = bool(_skip_context) if _skip_context is not None else False
