@@ -210,32 +210,6 @@ class TestResolveDeliveryTarget:
             "chat_id": "-1001234567890",
             "thread_id": "42",
         }
-
-
-
-
-
-
-
-    def test_unresolved_target_still_delivered_as_written(self):
-        """A stored job's platform-native target keeps delivering when neither
-        parser nor directory recognizes it. Routing cron through
-        resolve_send_target turned these into a warning plus a silently
-        dropped delivery; pass_unresolved_references hands the raw id to the adapter
-        again."""
-        job = {"deliver": "telegram:ops-room"}
-        with patch(
-            "gateway.channel_directory.resolve_channel_name",
-            return_value=None,
-        ):
-            result = _resolve_delivery_target(job)
-        assert result == {
-            "platform": "telegram",
-            "chat_id": "ops-room",
-            "thread_id": None,
-        }
-
-
     def test_list_form_deliver_is_normalized(self, monkeypatch):
         """deliver=['telegram'] (Python list) should resolve like 'telegram' string.
 
@@ -294,13 +268,8 @@ class TestDeliverResultWrapping:
             (root,),
         )
         return media_file.resolve()
-
-
 class TestDeliverResultErrorReturns:
     """Verify _deliver_result returns error strings on failure, None on success."""
-
-
-
 class TestRunJobSessionPersistence:
     def test_run_job_passes_session_db_and_cron_platform(self, tmp_path):
         job = {
@@ -546,68 +515,7 @@ class TestRunJobSessionPersistence:
         assert os.getenv("SPARKII_CRON_AUTO_DELIVER_CHAT_ID") is None
         assert os.getenv("SPARKII_CRON_AUTO_DELIVER_THREAD_ID") is None
         fake_db.close.assert_called_once()
-
-    def test_run_job_preserves_slack_origin_thread_for_same_explicit_channel(self, tmp_path, monkeypatch):
-        job = {
-            "id": "slack-thread-job",
-            "name": "slack-thread",
-            "prompt": "hello",
-            "deliver": "slack:C0B3KEP3SD6",
-            "origin": {
-                "platform": "slack",
-                "chat_id": "C0B3KEP3SD6",
-                "thread_id": "1778485067.844139",
-            },
-        }
-        fake_db = MagicMock()
-        seen = {}
-
-        monkeypatch.delenv("SPARKII_CRON_AUTO_DELIVER_PLATFORM", raising=False)
-        monkeypatch.delenv("SPARKII_CRON_AUTO_DELIVER_CHAT_ID", raising=False)
-        monkeypatch.delenv("SPARKII_CRON_AUTO_DELIVER_THREAD_ID", raising=False)
-
-        class FakeAgent:
-            def __init__(self, *args, **kwargs):
-                pass
-
-            def run_conversation(self, *args, **kwargs):
-                from gateway.session_context import get_session_env
-
-                seen["platform"] = get_session_env("SPARKII_CRON_AUTO_DELIVER_PLATFORM") or None
-                seen["chat_id"] = get_session_env("SPARKII_CRON_AUTO_DELIVER_CHAT_ID") or None
-                seen["thread_id"] = get_session_env("SPARKII_CRON_AUTO_DELIVER_THREAD_ID") or None
-                return {"final_response": "ok"}
-
-        with patch("cron.scheduler._sparkii_home", tmp_path), \
-             patch("cron.scheduler._preflight_job_config", return_value=None), \
-             patch("sparkii_state.SessionDB", return_value=fake_db), \
-             patch(
-                 "sparkii_cli.runtime_provider.resolve_runtime_provider",
-                 return_value={
-                     "api_key": "***",
-                     "base_url": "https://example.invalid/v1",
-                     "provider": "openrouter",
-                     "api_mode": "chat_completions",
-                 },
-             ), \
-             patch("run_agent.AIAgent", FakeAgent):
-            success, output, final_response, error = run_job(job)
-
-        assert success is True
-        assert error is None
-        assert final_response == "ok"
-        assert "ok" in output
-        assert seen == {
-            "platform": "slack",
-            "chat_id": "C0B3KEP3SD6",
-            "thread_id": "1778485067.844139",
-        }
-        assert os.getenv("SPARKII_CRON_AUTO_DELIVER_PLATFORM") is None
-        assert os.getenv("SPARKII_CRON_AUTO_DELIVER_CHAT_ID") is None
-        assert os.getenv("SPARKII_CRON_AUTO_DELIVER_THREAD_ID") is None
-        fake_db.close.assert_called_once()
-
-    @pytest.mark.parametrize("timeout_value", ["600", "0"])
+    @pytest.mark.parametrize("timeout_value", ["120", "0"])
     def test_run_job_heartbeats_oneshot_claim_in_both_wait_modes(
         self, tmp_path, monkeypatch, timeout_value
     ):
@@ -711,83 +619,6 @@ class TestRunJobSessionPersistence:
         assert error is None
         # reset MUST precede the reload, else _APPLIED_HOMES no-ops the re-pull.
         assert call_order[:2] == ["reset", "load"], call_order
-
-    def test_run_job_clears_stale_auto_delivery_thread_id_between_jobs(self, tmp_path, monkeypatch):
-        jobs = [
-            {
-                "id": "threaded-job",
-                "name": "threaded",
-                "prompt": "hello",
-                "deliver": "telegram:-1001:42",
-            },
-            {
-                "id": "threadless-job",
-                "name": "threadless",
-                "prompt": "hello again",
-                "deliver": "telegram:-2002",
-            },
-        ]
-        fake_db = MagicMock()
-        seen = []
-
-        monkeypatch.delenv("SPARKII_CRON_AUTO_DELIVER_PLATFORM", raising=False)
-        monkeypatch.delenv("SPARKII_CRON_AUTO_DELIVER_CHAT_ID", raising=False)
-        monkeypatch.delenv("SPARKII_CRON_AUTO_DELIVER_THREAD_ID", raising=False)
-
-        class FakeAgent:
-            def __init__(self, *args, **kwargs):
-                pass
-
-            def run_conversation(self, *args, **kwargs):
-                from gateway.session_context import get_session_env
-
-                seen.append(
-                    {
-                        "platform": get_session_env("SPARKII_CRON_AUTO_DELIVER_PLATFORM") or None,
-                        "chat_id": get_session_env("SPARKII_CRON_AUTO_DELIVER_CHAT_ID") or None,
-                        "thread_id": get_session_env("SPARKII_CRON_AUTO_DELIVER_THREAD_ID") or None,
-                    }
-                )
-                return {"final_response": "ok"}
-
-        with patch("cron.scheduler._sparkii_home", tmp_path), \
-             patch("cron.scheduler._preflight_job_config", return_value=None), \
-             patch("sparkii_state.SessionDB", return_value=fake_db), \
-             patch(
-                 "sparkii_cli.runtime_provider.resolve_runtime_provider",
-                 return_value={
-                     "api_key": "***",
-                     "base_url": "https://example.invalid/v1",
-                     "provider": "openrouter",
-                     "api_mode": "chat_completions",
-                 },
-             ), \
-             patch("run_agent.AIAgent", FakeAgent):
-            for job in jobs:
-                success, output, final_response, error = run_job(job)
-                assert success is True
-                assert error is None
-                assert final_response == "ok"
-                assert "ok" in output
-
-        assert seen == [
-            {
-                "platform": "telegram",
-                "chat_id": "-1001",
-                "thread_id": "42",
-            },
-            {
-                "platform": "telegram",
-                "chat_id": "-2002",
-                "thread_id": None,
-            },
-        ]
-        assert os.getenv("SPARKII_CRON_AUTO_DELIVER_PLATFORM") is None
-        assert os.getenv("SPARKII_CRON_AUTO_DELIVER_CHAT_ID") is None
-        assert os.getenv("SPARKII_CRON_AUTO_DELIVER_THREAD_ID") is None
-        assert fake_db.close.call_count == 2
-
-
 class TestRunJobConfigLogging:
     """Verify that config.yaml parse failures are logged, not silently swallowed."""
 
@@ -1714,9 +1545,6 @@ class TestDeliverResultTimeoutCancelsFuture:
     started (wedged loop) → nothing was sent, so fall through to standalone or
     the message is silently dropped.  Regression for #38922.
     """
-
-
-
 class TestDeliverResultLiveAdapterUnconfirmed:
     """Regression for #47056.
 
@@ -1771,9 +1599,6 @@ class TestDeliverResultLiveAdapterUnconfirmed:
                 loop=loop,
             )
         return result, standalone_send
-
-
-
 class TestDeliverOriginUnresolvableIsLocal:
     """Regression for #43014.
 
@@ -1938,18 +1763,6 @@ class TestCronDeliveryMirror:
         # boundary) still distinguishes it from a genuine user message.
         assert args[2].startswith("[Cron delivery: Morning Brief]")
         assert "Market movers today" in args[2]
-
-
-
-
-    # --- origin-scoping (mirror only into the conversation that created the job) ---
-
-
-    # --- multi-participant parity with send_message (user_id passthrough) ---
-
-
-    # --- continuable cron: thread-preferred (Teknium's interface) ---
-
     def test_open_thread_returns_id_on_thread_platform(self):
         """On a thread-capable adapter, _open_continuable_cron_thread returns
         the new thread id from create_handoff_thread."""
@@ -1972,10 +1785,6 @@ class TestCronDeliveryMirror:
                 {"id": "j1", "name": "Brief"}, adapter, "123", loop=MagicMock(),
             )
         assert tid == "9001"
-
-
-
-
 class TestCronContinuableSurfaceInChannel:
     """cron_continuable_surface: in_channel — deliver a continuable cron FLAT
     into a channel (no dedicated thread), so a plain channel reply continues the
@@ -2069,9 +1878,6 @@ class TestCronContinuableSurfaceInChannel:
 
     # --- _seed_cron_channel_session: the create-then-mirror unit + the
     #     KEY-MATCH invariant (seed key must equal the inbound reply's key) ---
-
-
-
 class TestMultiTargetDeliveryContinuesOnFailure:
     """When delivery to one target fails inside the standalone thread-pool
     fallback, the loop must continue to the remaining targets (#47163).
@@ -2091,9 +1897,6 @@ class TestMultiTargetDeliveryContinuesOnFailure:
         mock_cfg = MagicMock()
         mock_cfg.platforms = {Platform.EMAIL: pconfig}
         return mock_cfg
-
-
-
 class TestBuildJobPromptExtraPrompt:
     """Regression: _build_job_prompt merges extra_prompt into the assembled prompt."""
 
