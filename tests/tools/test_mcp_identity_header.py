@@ -72,7 +72,7 @@ class TestResolveIdentityHeader:
         from tools.mcp_tool import _resolve_identity_header
 
         with patch(
-            "sparkii_cli.profiles.get_active_profile_name",
+            "core.profiles.get_active_profile_name",
             return_value="workbot",
         ):
             result = _resolve_identity_header("srv", {
@@ -237,7 +237,7 @@ class TestHTTPIdentityHeader:
 
         server = MCPServerTask("remote")
         with patch(
-            "sparkii_cli.profiles.get_active_profile_name",
+            "core.profiles.get_active_profile_name",
             return_value="workbot",
         ):
             captured = _drive_http(server, {

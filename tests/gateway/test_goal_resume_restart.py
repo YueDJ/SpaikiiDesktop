@@ -25,7 +25,7 @@ from gateway.config import GatewayConfig, Platform, PlatformConfig
 from gateway.platforms.base import MessageEvent, MessageType
 from gateway.run import GatewayRunner
 from gateway.session import SessionSource
-from sparkii_cli import goals
+from core import goals
 
 
 @pytest.fixture
@@ -44,7 +44,7 @@ def _exhaust_budget(session_id: str, goal_text: str = "ship the benchmark"):
     mgr = goals.GoalManager(session_id)
     mgr.set(goal_text, max_turns=1)
     with patch(
-        "sparkii_cli.goals.judge_goal",
+        "core.goals.judge_goal",
         return_value=("continue", "needs more steps", False, None, False),
     ):
         decision = mgr.evaluate_after_turn("worked a bit")

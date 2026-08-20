@@ -201,7 +201,7 @@ def test_real_run_takes_pre_snapshot(backup_env, monkeypatch):
     _write_skill(skills, "alpha")
 
     # Reload curator module against the freshly-env'd sparkii_constants
-    from agent import curator
+    from sparkii_cli import curator
     importlib.reload(curator)
 
     # Stub out LLM review and auto transitions — we only care about the

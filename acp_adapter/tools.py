@@ -1012,7 +1012,7 @@ def _build_tool_complete_content(
 
     if tool_name == "skill_manage":
         try:
-            from agent.display import extract_edit_diff
+            from sparkii_cli.display import extract_edit_diff
 
             diff_text = extract_edit_diff(
                 tool_name,

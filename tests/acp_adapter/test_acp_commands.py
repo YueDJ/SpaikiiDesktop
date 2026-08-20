@@ -97,9 +97,9 @@ def test_acp_real_agent_gets_session_db_for_recall(monkeypatch):
     )
     monkeypatch.setitem(
         sys.modules,
-        "sparkii_cli.runtime_provider",
+        "core.runtime_provider",
         mod(
-            "sparkii_cli.runtime_provider",
+            "core.runtime_provider",
             resolve_runtime_provider=lambda **_kwargs: {
                 "provider": "p",
                 "api_mode": "chat_completions",

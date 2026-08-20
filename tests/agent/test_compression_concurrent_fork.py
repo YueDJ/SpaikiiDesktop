@@ -4,7 +4,7 @@ Damien's incident (Discord, 2026-05-28): a long Sparkii session in a Discord
 gateway hit the compression threshold at the end of a turn.  The parent agent
 finished delivering the response and ``conversation_loop.py`` fired
 ``_spawn_background_review(...)`` — which builds a forked ``AIAgent`` that
-inherits ``agent.session_id`` (see ``agent/background_review.py``::
+inherits ``agent.session_id`` (see ``sparkii_cli/background_review.py``::
 ``review_agent.session_id = agent.session_id``).  Roughly two seconds later
 a synthetic ``Background process proc_… completed`` event arrived and
 started a fresh turn on the same parent ``session_id`` (still cached in the
@@ -1214,7 +1214,7 @@ def test_review_fork_disables_compression_to_prevent_stale_parent_fork(tmp_path:
     ``AIAgent.run_conversation`` patched (so no LLM call happens) and
     captures the constructed review agent to assert the flag.
     """
-    import agent.background_review as br
+    import sparkii_cli.background_review as br
 
     captured = {}
 

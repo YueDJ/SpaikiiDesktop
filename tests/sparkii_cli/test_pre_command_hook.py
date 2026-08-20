@@ -35,7 +35,7 @@ def test_pre_command_in_valid_hooks():
 
 def test_fire_helper_is_observer_only_and_never_raises(monkeypatch):
     """Directive-shaped returns are ignored; plugin exceptions don't escape."""
-    from sparkii_cli import plugins as plugins_mod
+    from core import plugins as plugins_mod
 
     calls = {}
 
@@ -65,7 +65,7 @@ def test_fire_helper_is_observer_only_and_never_raises(monkeypatch):
 
 
 def test_fire_helper_skips_when_no_plugin_listens(monkeypatch):
-    from sparkii_cli import plugins as plugins_mod
+    from core import plugins as plugins_mod
 
     class _FakeManager:
         def has_hook(self, name):
@@ -81,7 +81,7 @@ def test_fire_helper_skips_when_no_plugin_listens(monkeypatch):
 
 
 def test_fire_helper_swallows_manager_errors(monkeypatch):
-    from sparkii_cli import plugins as plugins_mod
+    from core import plugins as plugins_mod
 
     def _boom():
         raise RuntimeError("plugin discovery exploded")
@@ -108,7 +108,7 @@ def _make_cli():
 
 
 def test_cli_fires_for_recognized_command(monkeypatch):
-    from sparkii_cli import plugins as plugins_mod
+    from core import plugins as plugins_mod
 
     captured = {}
 
@@ -130,7 +130,7 @@ def test_cli_fires_for_recognized_command(monkeypatch):
 
 def test_cli_reports_canonical_name_for_alias(monkeypatch):
     """/exit is an alias of /quit — hook payload reports canonical 'quit'."""
-    from sparkii_cli import plugins as plugins_mod
+    from core import plugins as plugins_mod
 
     captured = {}
     monkeypatch.setattr(
@@ -149,7 +149,7 @@ def test_cli_reports_canonical_name_for_alias(monkeypatch):
 
 
 def test_cli_passes_raw_args(monkeypatch):
-    from sparkii_cli import plugins as plugins_mod
+    from core import plugins as plugins_mod
 
     captured = {}
     monkeypatch.setattr(
@@ -166,7 +166,7 @@ def test_cli_passes_raw_args(monkeypatch):
 
 def test_cli_hook_before_handler(monkeypatch):
     """The hook fires BEFORE the command handler runs."""
-    from sparkii_cli import plugins as plugins_mod
+    from core import plugins as plugins_mod
 
     order = []
     monkeypatch.setattr(
@@ -291,7 +291,7 @@ def _make_runner():
 
 @pytest.mark.asyncio
 async def test_gateway_fires_for_recognized_command(monkeypatch):
-    from sparkii_cli import plugins as plugins_mod
+    from core import plugins as plugins_mod
 
     captured = {}
     monkeypatch.setattr(
@@ -319,7 +319,7 @@ async def test_gateway_fires_for_recognized_command(monkeypatch):
 @pytest.mark.asyncio
 async def test_gateway_reports_canonical_name_for_alias(monkeypatch):
     """/q is an alias of /queue — payload reports canonical name."""
-    from sparkii_cli import plugins as plugins_mod
+    from core import plugins as plugins_mod
 
     captured = {}
     monkeypatch.setattr(
@@ -342,7 +342,7 @@ async def test_gateway_reports_canonical_name_for_alias(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_gateway_does_not_fire_for_plain_text(monkeypatch):
-    from sparkii_cli import plugins as plugins_mod
+    from core import plugins as plugins_mod
 
     fired = []
     monkeypatch.setattr(
@@ -365,7 +365,7 @@ async def test_gateway_does_not_fire_for_plain_text(monkeypatch):
 async def test_gateway_control_plane_intercept_excluded(monkeypatch):
     """Commands hitting the running-agent intercept path must NOT fire the
     hook — /stop et al. during an active run are control-plane operations."""
-    from sparkii_cli import plugins as plugins_mod
+    from core import plugins as plugins_mod
 
     fired = []
     monkeypatch.setattr(
@@ -388,7 +388,7 @@ async def test_gateway_control_plane_intercept_excluded(monkeypatch):
 @pytest.mark.asyncio
 async def test_gateway_hook_failure_is_non_fatal(monkeypatch):
     """A raising fire helper must not break command dispatch."""
-    from sparkii_cli import plugins as plugins_mod
+    from core import plugins as plugins_mod
 
     def _boom(**kwargs):
         raise RuntimeError("bad plugin infra")

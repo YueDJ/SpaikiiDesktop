@@ -12,7 +12,7 @@ from fastapi import HTTPException
 @pytest.fixture()
 def isolated_profiles(tmp_path, monkeypatch):
     """Give profile discovery an isolated default home with one named profile."""
-    from sparkii_cli import profiles
+    from core import profiles
 
     default_home = tmp_path / ".sparkii"
     profiles_root = default_home / "profiles"
@@ -977,7 +977,7 @@ async def test_dashboard_cron_noop_inference_fields_keep_existing_snapshots(
     isolated_profiles,
     monkeypatch,
 ):
-    from sparkii_cli import runtime_provider, web_server
+    from core import runtime_provider, web_server
 
     current_provider = {"name": "initial-provider"}
     monkeypatch.setattr(
@@ -1027,7 +1027,7 @@ async def test_update_cron_job_clears_snapshots_for_no_agent(
     isolated_profiles,
     monkeypatch,
 ):
-    from sparkii_cli import runtime_provider, web_server
+    from core import runtime_provider, web_server
 
     monkeypatch.setattr(
         runtime_provider,

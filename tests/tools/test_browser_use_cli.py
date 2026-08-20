@@ -313,7 +313,7 @@ class TestLegacyCloudMigration:
         assert "autospawn:[]" in result["output"]
 
     def test_picker_highlights_cli_row_for_migrated_config(self, monkeypatch):
-        from sparkii_cli.tools_config import TOOL_CATEGORIES, _is_provider_active
+        from core.tools_config import TOOL_CATEGORIES, _is_provider_active
 
         cli_row = next(
             r for r in TOOL_CATEGORIES["browser"]["providers"] if r.get("browser_backend")
@@ -525,7 +525,7 @@ class TestProviderPickerIntegration:
     marker) must enter/leave CLI mode cleanly and highlight correctly."""
 
     def _rows(self):
-        from sparkii_cli.tools_config import TOOL_CATEGORIES
+        from core.tools_config import TOOL_CATEGORIES
 
         return TOOL_CATEGORIES["browser"]["providers"]
 
@@ -537,14 +537,14 @@ class TestProviderPickerIntegration:
     def test_picker_row_names_stay_unique(self):
         """The CLI row is named "Browser Use"; the legacy plugin API row must
         keep a distinct name — apply_provider_selection matches by name."""
-        from sparkii_cli.tools_config import TOOL_CATEGORIES, _plugin_browser_providers
+        from core.tools_config import TOOL_CATEGORIES, _plugin_browser_providers
 
         names = [r["name"] for r in TOOL_CATEGORIES["browser"]["providers"]]
         names += [r["name"] for r in _plugin_browser_providers()]
         assert len(names) == len(set(names))
 
     def test_selecting_cli_row_writes_backend_and_keeps_cloud_provider(self):
-        from sparkii_cli.tools_config import _write_provider_config
+        from core.tools_config import _write_provider_config
 
         row = next(r for r in self._rows() if r.get("browser_backend"))
         config = {"browser": {"cloud_provider": "browserbase"}}
@@ -556,7 +556,7 @@ class TestProviderPickerIntegration:
     def test_selecting_provider_row_keeps_cli_mode(self):
         """Backend composes with the provider: switching browser source
         (local/Browserbase/Firecrawl/gateway) keeps the driver choice."""
-        from sparkii_cli.tools_config import _write_provider_config
+        from core.tools_config import _write_provider_config
 
         local_row = next(
             r for r in self._rows() if r.get("browser_provider") == "local"
@@ -567,7 +567,7 @@ class TestProviderPickerIntegration:
         assert config["browser"]["cloud_provider"] == "local"
 
     def test_provider_row_stays_active_alongside_cli_mode(self, monkeypatch):
-        from sparkii_cli.tools_config import _is_provider_active
+        from core.tools_config import _is_provider_active
 
         cli_row = next(r for r in self._rows() if r.get("browser_backend"))
         local_row = next(
@@ -702,26 +702,26 @@ class TestStepLabels:
     _CODE = "# Searching Amazon for paper towels\nnew_tab('https://amazon.com')\nwait_for_load()"
 
     def test_leading_comment_becomes_step_label(self):
-        from agent.display import _browser_exec_step_label
+        from sparkii_cli.display import _browser_exec_step_label
 
         assert _browser_exec_step_label({"code": self._CODE}) == "Searching Amazon for paper towels"
 
     def test_no_comment_returns_none(self):
-        from agent.display import _browser_exec_step_label
+        from sparkii_cli.display import _browser_exec_step_label
 
         assert _browser_exec_step_label({"code": "new_tab('x')"}) is None
         assert _browser_exec_step_label({"code": ""}) is None
         assert _browser_exec_step_label({"code": "#   "}) is None
 
     def test_label_hard_capped_regardless_of_global_setting(self):
-        from agent.display import _browser_exec_step_label
+        from sparkii_cli.display import _browser_exec_step_label
 
         long = "# " + "x" * 200
         label = _browser_exec_step_label({"code": long})
         assert len(label) <= 80 and label.endswith("…")
 
     def test_preview_prefers_comment_over_code(self):
-        from agent.display import build_tool_preview
+        from sparkii_cli.display import build_tool_preview
 
         assert build_tool_preview("browser_exec", {"code": self._CODE}) == (
             "Searching Amazon for paper towels"
@@ -729,7 +729,7 @@ class TestStepLabels:
         assert "new_tab" in build_tool_preview("browser_exec", {"code": "new_tab('x')"})
 
     def test_progress_line_shows_label(self):
-        from agent.display import get_cute_tool_message
+        from sparkii_cli.display import get_cute_tool_message
 
         line = get_cute_tool_message("browser_exec", {"code": self._CODE}, 1.2)
         assert "Searching Amazon for paper towels" in line
@@ -929,9 +929,9 @@ class TestInstallCli:
         monkeypatch.setattr(bu_cli.shutil, "which", lambda name, path=None: cli if name == "browser-use" and path is None else None)
         import sys as _sys
         import types as _types
-        fake = _types.ModuleType("sparkii_cli.managed_uv")
+        fake = _types.ModuleType("core.managed_uv")
         fake.ensure_uv = lambda **kw: None
-        monkeypatch.setitem(_sys.modules, "sparkii_cli.managed_uv", fake)
+        monkeypatch.setitem(_sys.modules, "core.managed_uv", fake)
         ok, msg = bu_cli.install_cli()
         # No uv available in this fixture, so the attempted managed install
         # fails — the point is that the PATH copy did not short-circuit.
@@ -955,9 +955,9 @@ class TestInstallCli:
         monkeypatch.setenv("PATH", str(tmp_path / "empty"))
         import sys as _sys
         import types as _types
-        fake = _types.ModuleType("sparkii_cli.managed_uv")
+        fake = _types.ModuleType("core.managed_uv")
         fake.ensure_uv = lambda **kw: None
-        monkeypatch.setitem(_sys.modules, "sparkii_cli.managed_uv", fake)
+        monkeypatch.setitem(_sys.modules, "core.managed_uv", fake)
         ok, msg = bu_cli.install_cli()
         assert ok is False
         assert "uv" in msg
@@ -983,9 +983,9 @@ class TestInstallCli:
         uv.chmod(uv.stat().st_mode | stat.S_IXUSR)
         import sys as _sys
         import types as _types
-        fake = _types.ModuleType("sparkii_cli.managed_uv")
+        fake = _types.ModuleType("core.managed_uv")
         fake.ensure_uv = lambda **kw: str(uv)
-        monkeypatch.setitem(_sys.modules, "sparkii_cli.managed_uv", fake)
+        monkeypatch.setitem(_sys.modules, "core.managed_uv", fake)
         ok, msg = bu_cli.install_cli()
         assert ok is True, msg
         assert (bin_dir / "browser-use").exists()
@@ -999,9 +999,9 @@ class TestInstallCli:
         uv.chmod(uv.stat().st_mode | stat.S_IXUSR)
         import sys as _sys
         import types as _types
-        fake = _types.ModuleType("sparkii_cli.managed_uv")
+        fake = _types.ModuleType("core.managed_uv")
         fake.ensure_uv = lambda **kw: str(uv)
-        monkeypatch.setitem(_sys.modules, "sparkii_cli.managed_uv", fake)
+        monkeypatch.setitem(_sys.modules, "core.managed_uv", fake)
         ok, msg = bu_cli.install_cli()
         assert ok is False
         assert "no network" in msg

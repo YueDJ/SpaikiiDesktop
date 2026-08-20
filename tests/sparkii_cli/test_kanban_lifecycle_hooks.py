@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from sparkii_cli import kanban_db as kb
+from core import kanban_db as kb
 from sparkii_cli.plugins import VALID_HOOKS, get_plugin_manager
 
 

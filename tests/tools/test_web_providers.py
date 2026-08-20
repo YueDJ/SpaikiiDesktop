@@ -301,7 +301,7 @@ class TestDispatchersTriggerPluginDiscovery:
 
             mock_hook = MagicMock(wraps=_register_fake)
             # Patch the helper on ``tools.web_tools`` directly rather than the
-            # underlying ``sparkii_cli.plugins._ensure_plugins_discovered`` so
+            # underlying ``core.plugins._ensure_plugins_discovered`` so
             # the test stays valid even if the import inside the helper is
             # later moved to module scope or renamed.
             monkeypatch.setattr(
@@ -423,7 +423,7 @@ class TestDisabledPluginDiagnostic:
         """Point ``get_plugin_manager()`` at a stub whose ``_plugins``
         dict is ``plugins_map`` so ``_disabled_web_plugin_for`` sees the
         simulated disabled/enabled state without touching real config."""
-        import sparkii_cli.plugins as plugins_mod
+        import core.plugins as plugins_mod
 
         class _StubMgr:
             _plugins = plugins_map

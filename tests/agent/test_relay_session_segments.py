@@ -115,14 +115,14 @@ def _fast_scope_timeout(monkeypatch):
 def _default_config(monkeypatch):
     """No config on disk by default; tests override _segments_config directly."""
     monkeypatch.setattr(
-        "gateway.run._load_gateway_config", lambda: {}, raising=False
+        "core.config.load_config_readonly", lambda: {}, raising=False
     )
     relay_runtime._reset_segments_config_for_tests()
 
 
 def _set_segments(monkeypatch, *, on_compaction=False, max_turns=0):
     monkeypatch.setattr(
-        "gateway.run._load_gateway_config",
+        "core.config.load_config_readonly",
         lambda: {
             "gateway": {
                 "telemetry": {

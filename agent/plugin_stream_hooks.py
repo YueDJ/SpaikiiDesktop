@@ -8,7 +8,7 @@ import threading
 from dataclasses import dataclass
 from typing import Any, Callable
 
-from sparkii_cli.middleware import OBSERVER_SCHEMA_VERSION
+from core.middleware import OBSERVER_SCHEMA_VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +55,7 @@ def _worker(dispatcher: _ConsumerDispatcher) -> None:
 
 def _registered_callbacks(hook_name: str) -> tuple[Callable[..., Any], ...]:
     try:
-        from sparkii_cli import plugins
+        from core import plugins
 
         return plugins.iter_hook_callbacks(hook_name)
     except Exception:

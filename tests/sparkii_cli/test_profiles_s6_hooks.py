@@ -1,4 +1,4 @@
-"""Tests for the Phase 4 s6 hooks in sparkii_cli.profiles.
+"""Tests for the Phase 4 s6 hooks in core.profiles.
 
 Specifically: _maybe_register_gateway_service,
 _maybe_unregister_gateway_service. The integration with
@@ -13,7 +13,7 @@ from typing import Any
 
 import pytest
 
-from sparkii_cli.profiles import (
+from core.profiles import (
     _maybe_register_gateway_service,
     _maybe_unregister_gateway_service,
 )

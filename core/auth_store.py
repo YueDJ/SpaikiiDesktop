@@ -1,8 +1,10 @@
 """Credential store persistence primitives for Sparkii core.
 
-Extracted verbatim from ``sparkii_cli.auth`` during the Phase 0 trim.  Holds the
+Extracted verbatim from ``sparkii_cli.auth`` (now ``core.credentials``) during
+the Phase 0 trim.  Holds the
 auth.json load/save, cross-process file locking, and the Nous portal URL
-migration.  OAuth login/token flows remain in ``sparkii_cli.auth``.
+migration.  OAuth login/token flows were removed with the OAuth trim; the
+generic api-key parsing now lives in ``core.credentials``.
 """
 
 from __future__ import annotations

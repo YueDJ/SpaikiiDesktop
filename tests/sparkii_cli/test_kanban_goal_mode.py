@@ -17,8 +17,8 @@ from pathlib import Path
 
 import pytest
 
-from sparkii_cli import kanban_db as kb
-from sparkii_cli import goals
+from core import kanban_db as kb
+from core import goals
 
 
 @pytest.fixture
@@ -183,7 +183,7 @@ class TestCLIJudgeGate:
         # Match the real judge_goal contract:
         # (verdict, reason, parse_failed, wait_directive, transport_failed)
         monkeypatch.setattr(
-            "sparkii_cli.goals.judge_goal",
+            "core.goals.judge_goal",
             lambda **kw: (verdict, reason, False, None, False),
         )
 

@@ -2,7 +2,7 @@
 
 This validates the IPC + lifecycle story that mocks can't:
   - spawn_fn returns a real PID
-  - the child process resolves sparkii_cli.kanban_db on its own
+  - the child process resolves core.kanban_db on its own
   - the child writes heartbeats via the CLI (real argparse, real init_db)
   - the child completes via the CLI with --summary + --metadata
   - the dispatcher observes all of this through the DB only
@@ -56,7 +56,7 @@ def main():
     os.environ["SPARKII_HOME"] = home
     os.environ["HOME"] = home
     sys.path.insert(0, WT)
-    from sparkii_cli import kanban_db as kb
+    from core import kanban_db as kb
 
     # Point the `sparkii` CLI child processes will run at the worktree
     # sparkii_cli.main. We do this by putting a shim on PATH.

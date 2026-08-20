@@ -571,7 +571,7 @@ class TestToolsConfigIncludeMode:
             },
         }
 
-        import sparkii_cli.tools_config as tc
+        import core.tools_config as tc
         # Mock the probe to return three tools
         monkeypatch.setattr(
             "tools.mcp_tool.probe_mcp_server_tools",

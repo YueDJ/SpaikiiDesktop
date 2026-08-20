@@ -412,7 +412,7 @@ def _merge_mcp_into_per_job_toolsets(per_job: list[str], cfg: dict) -> list[str]
     # lazy import: avoid heavy sparkii_cli import at cron module load (matches
     # _resolve_cron_enabled_toolsets' fallback) and share one MCP-membership
     # computation with the gateway/CLI platform resolver.
-    from sparkii_cli.tools_config import enabled_mcp_server_names
+    from core.tools_config import enabled_mcp_server_names
     enabled_mcp = enabled_mcp_server_names(cfg)
     if set(result) & enabled_mcp:
         return result
@@ -445,7 +445,7 @@ def _resolve_cron_enabled_toolsets(job: dict, cfg: dict) -> list[str] | None:
     if per_job:
         return _merge_mcp_into_per_job_toolsets(list(per_job), cfg or {})
     try:
-        from sparkii_cli.tools_config import _get_platform_tools  # lazy: avoid heavy import at cron module load
+        from core.tools_config import _get_platform_tools  # lazy: avoid heavy import at cron module load
         return sorted(_get_platform_tools(cfg or {}, "cron"))
     except Exception as exc:
         logger.warning(
@@ -1488,7 +1488,7 @@ def _reclaim_fds_best_effort() -> None:
     except Exception:
         pass
     try:
-        from sparkii_cli.resource_limits import apply_nofile_soft_limit
+        from core.resource_limits import apply_nofile_soft_limit
 
         apply_nofile_soft_limit(None)
     except Exception:
@@ -1904,7 +1904,7 @@ def _plugin_cron_env_var(platform_name: str) -> str:
     support without editing this module.
     """
     try:
-        from sparkii_cli.plugins import discover_plugins
+        from core.plugins import discover_plugins
         discover_plugins()  # idempotent
         from gateway.platform_registry import platform_registry
         entry = platform_registry.get(platform_name.lower())
@@ -2039,7 +2039,7 @@ def _iter_home_target_platforms():
     for name in _HOME_TARGET_ENV_VARS:
         yield name
     try:
-        from sparkii_cli.plugins import discover_plugins
+        from core.plugins import discover_plugins
         discover_plugins()  # idempotent
         from gateway.platform_registry import platform_registry
         for entry in platform_registry.plugin_entries():
@@ -4259,10 +4259,10 @@ def _preflight_check_provider_key(job: dict, cfg: dict) -> Optional[str]:
     )
     model = job.get("model") or os.getenv("SPARKII_MODEL") or ""
 
-    from sparkii_cli.auth import AuthError
+    from core.credentials import AuthError
 
     try:
-        from sparkii_cli.runtime_provider import resolve_runtime_provider
+        from core.runtime_provider import resolve_runtime_provider
 
         kwargs = {"requested": requested, "target_model": model}
         if job.get("base_url"):
@@ -5198,11 +5198,11 @@ def run_job(
         # Provider routing
         pr = _cfg.get("provider_routing") or {}
 
-        from sparkii_cli.runtime_provider import (
+        from core.runtime_provider import (
             resolve_runtime_provider,
             format_runtime_provider_error,
         )
-        from sparkii_cli.auth import AuthError
+        from core.credentials import AuthError
 
         # F8 runtime backstop: never resolve a stored provider/base_url pair that
         # would ship a named provider's stored credential to an off-host endpoint

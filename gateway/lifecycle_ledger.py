@@ -74,40 +74,9 @@ def get_lifecycle_sentinel_path(home: Optional[Path] = None) -> Path:
     return base.joinpath(*_LIFECYCLE_RELATIVE)
 
 
-def sample_memory() -> Dict[str, Any]:
-    """Cheap memory snapshot: own RSS + system availability + swap.
-
-    Pure ``/proc`` reads, Linux-only (returns ``{}`` elsewhere), never
-    raises.  Values in KiB to match the kernel's units.
-    """
-    sample: Dict[str, Any] = {}
-    try:
-        with open("/proc/self/status", encoding="utf-8") as fh:
-            for line in fh:
-                if line.startswith("VmRSS:"):
-                    sample["rss_kib"] = int(line.split()[1])
-                    break
-    except (OSError, ValueError, IndexError):
-        pass
-    try:
-        meminfo: Dict[str, int] = {}
-        wanted = {"MemTotal", "MemAvailable", "SwapTotal", "SwapFree"}
-        with open("/proc/meminfo", encoding="utf-8") as fh:
-            for line in fh:
-                key = line.split(":", 1)[0]
-                if key in wanted:
-                    meminfo[key] = int(line.split()[1])
-                    if len(meminfo) == len(wanted):
-                        break
-        if "MemTotal" in meminfo:
-            sample["mem_total_kib"] = meminfo["MemTotal"]
-        if "MemAvailable" in meminfo:
-            sample["mem_available_kib"] = meminfo["MemAvailable"]
-        if "SwapTotal" in meminfo and "SwapFree" in meminfo:
-            sample["swap_used_kib"] = meminfo["SwapTotal"] - meminfo["SwapFree"]
-    except (OSError, ValueError, IndexError):
-        pass
-    return sample
+# Block 4: memory sampling moved to the core package; keep the name
+# re-exported here for surface-side callers and patch targets.
+from core.mem_trim import sample_memory  # noqa: F401
 
 
 def _read_json(path: Path) -> Optional[Dict[str, Any]]:

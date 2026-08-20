@@ -10,7 +10,7 @@ once that provider is active.
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from sparkii_cli import memory_setup
+from core import memory_setup
 
 
 class TestMemorySetupProviderRouting:
@@ -64,8 +64,8 @@ class TestInstallDependenciesRunner:
         # tests/tools/test_lazy_deps.py uses.
         with _patch.dict(os.environ, {"SPARKII_DISABLE_LAZY_INSTALLS": "0"}), \
              patch("plugins.memory.find_provider_dir", return_value=tmp_path), \
-             patch("sparkii_cli.tools_config.shutil.which", side_effect=which_side_effect), \
-             patch("sparkii_cli.tools_config.subprocess.run", fake_run):
+             patch("core.tools_config.shutil.which", side_effect=which_side_effect), \
+             patch("core.tools_config.subprocess.run", fake_run):
             memory_setup._install_dependencies("x")
         return calls, sys.executable
 

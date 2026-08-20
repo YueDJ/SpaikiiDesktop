@@ -1,8 +1,8 @@
-"""Tests for provider-aware `/model` validation in sparkii_cli.models."""
+"""Tests for provider-aware `/model` validation in core.models."""
 
 from unittest.mock import MagicMock, patch
 
-from sparkii_cli.models import (
+from core.models import (
     azure_foundry_model_api_mode,
     copilot_model_api_mode,
     fetch_github_model_catalog,
@@ -42,8 +42,8 @@ def _validate(model, provider="openrouter", api_models=FAKE_API_MODELS, **kw):
         "suggested_base_url": None,
         "used_fallback": False,
     }
-    with patch("sparkii_cli.models.fetch_api_models", return_value=api_models), \
-         patch("sparkii_cli.models.probe_api_models", return_value=probe_payload):
+    with patch("core.models.fetch_api_models", return_value=api_models), \
+         patch("core.models.probe_api_models", return_value=probe_payload):
         return validate_requested_model(model, provider, **kw)
 
 
@@ -61,7 +61,7 @@ class TestParseModelInput:
 class TestCuratedModelsForProvider:
     def test_openrouter_returns_curated_list(self):
         with patch(
-            "sparkii_cli.models.fetch_openrouter_models",
+            "core.models.fetch_openrouter_models",
             return_value=[
                 ("anthropic/claude-opus-4.6", "recommended"),
                 ("qwen/qwen3.6-plus", ""),
@@ -91,7 +91,7 @@ class TestProviderModelIds:
             "sparkii_cli.auth.resolve_api_key_provider_credentials",
             return_value={"api_key": "***", "base_url": "https://api.stepfun.com/step_plan/v1"},
         ), patch(
-            "sparkii_cli.models.fetch_api_models",
+            "core.models.fetch_api_models",
             return_value=["step-3.5-flash", "step-3-agent-lite"],
         ):
             assert provider_model_ids("stepfun") == ["step-3.5-flash", "step-3-agent-lite"]
@@ -118,7 +118,7 @@ class TestProviderModelIds:
                 }
             },
         ), patch(
-            "sparkii_cli.models._urlopen_model_catalog_request",
+            "core.models._urlopen_model_catalog_request",
             return_value=_Resp(),
         ) as mock_urlopen:
             assert provider_model_ids("anthropic") == ["enterprise-claude"]
@@ -138,7 +138,7 @@ class TestProviderModelIds:
                 }
             },
         ), patch(
-            "sparkii_cli.models.fetch_api_models",
+            "core.models.fetch_api_models",
             return_value=["enterprise-claude"],
         ) as mock_fetch:
             assert provider_model_ids("custom") == ["enterprise-claude"]
@@ -176,7 +176,7 @@ class TestFetchApiModels:
                 return _Resp()
             raise Exception("404")
 
-        with patch("sparkii_cli.models._urlopen_model_catalog_request", side_effect=_fake_urlopen):
+        with patch("core.models._urlopen_model_catalog_request", side_effect=_fake_urlopen):
             probe = probe_api_models("key", "http://localhost:8000")
 
         assert calls == ["http://localhost:8000/models", "http://localhost:8000/v1/models"]
@@ -195,7 +195,7 @@ class TestFetchApiModels:
             def read(self):
                 return b'{"data": [{"id": "gpt-5.4", "model_picker_enabled": true, "supported_endpoints": ["/responses"], "capabilities": {"type": "chat", "supports": {"reasoning_effort": ["low", "medium", "high"]}}}, {"id": "claude-sonnet-4.6", "model_picker_enabled": true, "supported_endpoints": ["/chat/completions"], "capabilities": {"type": "chat", "supports": {"reasoning_effort": ["low", "medium", "high"]}}}, {"id": "text-embedding-3-small", "model_picker_enabled": true, "capabilities": {"type": "embedding"}}]}'
 
-        with patch("sparkii_cli.models._urlopen_model_catalog_request", return_value=_Resp()) as mock_urlopen:
+        with patch("core.models._urlopen_model_catalog_request", return_value=_Resp()) as mock_urlopen:
             probe = probe_api_models("gh-token", "https://api.githubcopilot.com")
 
         assert mock_urlopen.call_args[0][0].full_url == "https://api.githubcopilot.com/models"
@@ -269,7 +269,7 @@ class TestNormalizeOpencodeBaseUrl:
     """
 
     def test_strips_v1_for_anthropic_messages(self):
-        from sparkii_cli.models import normalize_opencode_base_url
+        from core.models import normalize_opencode_base_url
         assert normalize_opencode_base_url(
             "opencode-go", "anthropic_messages", "https://opencode.ai/zen/go/v1"
         ) == "https://opencode.ai/zen/go"
@@ -279,7 +279,7 @@ class TestNormalizeOpencodeBaseUrl:
 
 
     def test_non_opencode_provider_untouched(self):
-        from sparkii_cli.models import normalize_opencode_base_url
+        from core.models import normalize_opencode_base_url
         assert normalize_opencode_base_url(
             "openrouter", "chat_completions", "https://openrouter.ai/api"
         ) == "https://openrouter.ai/api"
@@ -389,7 +389,7 @@ class TestValidateApiFallback:
             b']}'
         )
 
-        with patch("sparkii_cli.models._urlopen_model_catalog_request", return_value=mock_resp):
+        with patch("core.models._urlopen_model_catalog_request", return_value=mock_resp):
             models = fetch_lmstudio_models(base_url="http://localhost:1234/v1")
 
         assert models == ["publisher/chat-model"]
@@ -407,7 +407,7 @@ class TestValidateApiFallback:
             fp=None,
         )
 
-        with patch("sparkii_cli.models._urlopen_model_catalog_request", side_effect=http_error):
+        with patch("core.models._urlopen_model_catalog_request", side_effect=http_error):
             result = validate_requested_model(
                 "publisher/chat-model",
                 "lmstudio",
@@ -429,7 +429,7 @@ class TestValidateCodexAutoCorrection:
         """gpt5.3-codex (missing dash) auto-corrects to gpt-5.3-codex."""
         codex_models = ["gpt-5.4-mini", "gpt-5.4", "gpt-5.3-codex",
                         "gpt-5.2-codex", "gpt-5.1-codex-max"]
-        with patch("sparkii_cli.models.provider_model_ids", return_value=codex_models):
+        with patch("core.models.provider_model_ids", return_value=codex_models):
             result = validate_requested_model("gpt5.3-codex", "openai-codex")
         assert result["accepted"] is True
         assert result["recognized"] is True
@@ -439,7 +439,7 @@ class TestValidateCodexAutoCorrection:
     def test_exact_match_no_correction(self):
         """Exact model name does not trigger auto-correction."""
         codex_models = ["gpt-5.4-mini", "gpt-5.4", "gpt-5.3-codex"]
-        with patch("sparkii_cli.models.provider_model_ids", return_value=codex_models):
+        with patch("core.models.provider_model_ids", return_value=codex_models):
             result = validate_requested_model("gpt-5.3-codex", "openai-codex")
         assert result["accepted"] is True
         assert result["recognized"] is True
@@ -473,7 +473,7 @@ class TestProbeApiModelsUserAgent:
 
         body = b'{"data":[{"id":"claude-opus-4.7"}]}'
         with patch(
-            "sparkii_cli.models._urlopen_model_catalog_request",
+            "core.models._urlopen_model_catalog_request",
             return_value=self._make_mock_response(body),
         ) as mock_urlopen:
             result = probe_api_models("sk-test", "https://example.com/v1")
@@ -495,7 +495,7 @@ class TestProbeApiModelsUserAgent:
 
         body = b'{"data":[]}'
         with patch(
-            "sparkii_cli.models._urlopen_model_catalog_request",
+            "core.models._urlopen_model_catalog_request",
             return_value=self._make_mock_response(body),
         ) as mock_urlopen:
             probe_api_models(None, "https://example.com/v1")

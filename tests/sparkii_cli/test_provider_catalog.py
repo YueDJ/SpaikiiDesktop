@@ -6,7 +6,7 @@ catalog exposes, plus how each provider's ``auth_type`` maps to a desktop tab â€
 never a specific provider count or a frozen vendor list (both change over time).
 """
 
-from sparkii_cli.models import CANONICAL_PROVIDERS
+from core.models import CANONICAL_PROVIDERS
 from sparkii_cli.provider_catalog import (
     ProviderDescriptor,
     provider_catalog,

@@ -50,7 +50,7 @@ async def test_model_picker_reads_routed_profile_config(tmp_path, monkeypatch):
     monkeypatch.setattr(gateway_run, "_sparkii_home", default_home)
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
     monkeypatch.setattr(
-        "sparkii_cli.model_switch.list_picker_providers",
+        "core.model_switch.list_picker_providers",
         lambda **_kwargs: [
             {
                 "slug": "secondary-provider",

@@ -1,6 +1,6 @@
 import pytest
 
-from sparkii_cli import kanban_db as kb
+from core import kanban_db as kb
 from sparkii_cli.kanban_swarm import (
     SwarmWorkerSpec,
     create_swarm,

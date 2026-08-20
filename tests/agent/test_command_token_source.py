@@ -158,7 +158,7 @@ class TestResolutionYieldsACallable:
     """The integration contract: a callable reaches the wire client."""
 
     def test_key_cmd_entry_resolves_to_a_callable(self, monkeypatch):
-        from sparkii_cli import runtime_provider as rp
+        from core import runtime_provider as rp
 
         config = {
             "providers": {
@@ -180,7 +180,7 @@ class TestResolutionYieldsACallable:
 
     def test_explicit_api_key_still_wins(self, monkeypatch):
         """``--api-key`` stays the one-off recovery escape hatch."""
-        from sparkii_cli import runtime_provider as rp
+        from core import runtime_provider as rp
 
         config = {
             "providers": {
@@ -308,7 +308,7 @@ class TestAuxiliaryResolverHonoursKeyCmd:
     def _resolve(monkeypatch, entry):
         """Resolve *entry* as a named custom provider; return the api_key seen."""
         import agent.auxiliary_client as ac
-        from sparkii_cli import runtime_provider as rp
+        from core import runtime_provider as rp
 
         monkeypatch.setattr(
             rp, "_get_named_custom_provider",

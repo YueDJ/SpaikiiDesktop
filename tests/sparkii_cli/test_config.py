@@ -1466,7 +1466,7 @@ class TestProviderEnabledRuntimeGate:
         from core import config as cfg_mod
         cfg_mod._cached_config = None  # type: ignore[attr-defined]
 
-        from sparkii_cli.runtime_provider import resolve_runtime_provider
+        from core.runtime_provider import resolve_runtime_provider
         with pytest.raises(ValueError, match="disabled"):
             resolve_runtime_provider(requested="my-fork")
 

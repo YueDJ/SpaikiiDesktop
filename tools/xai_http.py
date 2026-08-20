@@ -95,7 +95,7 @@ def get_env_value(name: str, default=None):
 def sparkii_xai_user_agent() -> str:
     """Return a stable Sparkii-specific User-Agent for xAI HTTP calls."""
     try:
-        from sparkii_cli import __version__
+        from core.version import __version__
     except Exception:
         __version__ = "unknown"
     return f"Sparkii-Agent/{__version__}"
@@ -275,10 +275,9 @@ def _resolve_explicit_xai_base_url(default: str = "https://api.x.ai/v1") -> str:
     """Base URL for the explicit-API-key path.
 
     Honors ``SPARKII_XAI_BASE_URL`` then ``XAI_BASE_URL`` (the same override
-    pair the OAuth branch reads) and pins the origin with
-    :func:`sparkii_cli.auth._xai_validate_inference_base_url` so a tampered
-    env override can't exfiltrate the bearer; on rejection it falls back to
-    the default rather than raising.
+    pair the OAuth branch used to read) and pins the origin to an allowed
+    xAI host so a tampered env override can't exfiltrate the bearer; on
+    rejection it falls back to the default rather than raising.
     """
     override = str(
         get_env_value("SPARKII_XAI_BASE_URL")
@@ -286,11 +285,27 @@ def _resolve_explicit_xai_base_url(default: str = "https://api.x.ai/v1") -> str:
         or ""
     ).strip().rstrip("/")
     try:
-        import sparkii_cli.auth as auth_mod
+        from urllib.parse import urlparse
 
-        return auth_mod._xai_validate_inference_base_url(override, fallback=default)
-    except Exception:  # pragma: no cover — auth is in-repo
-        return override or default
+        host = (urlparse(override).hostname or "").lower().rstrip(".")
+        if override and host in {
+            "api.x.ai",
+            "x.ai",
+            "api.grok.com",
+            "grok.com",
+        }:
+            return override
+    except Exception:
+        pass
+    try:
+        from urllib.parse import urlparse
+
+        host = (urlparse(default).hostname or "").lower().rstrip(".")
+        if host in {"api.x.ai", "api.grok.com"}:
+            return default
+    except Exception:
+        pass
+    return override or default
 
 
 def resolve_xai_http_credentials(
@@ -332,48 +347,6 @@ def resolve_xai_http_credentials(
                 "api_key": explicit_key,
                 "base_url": _resolve_explicit_xai_base_url(),
             }
-
-    try:
-        from agent.credential_pool import load_pool
-        import sparkii_cli.auth as auth_mod
-
-        pool = load_pool("xai-oauth")
-        entry = (
-            pool.try_refresh_matching(api_key_hint)
-            if force_refresh
-            else pool.select()
-        )
-        if force_refresh and entry is None:
-            # A rejected refresh may quarantine the issuing entry. Continue
-            # with the next healthy account instead of falling back to the raw
-            # singleton resolver and resurrecting the stale pool row.
-            entry = pool.select()
-        access_token = str(
-            getattr(entry, "runtime_api_key", None)
-            or getattr(entry, "access_token", "")
-        ).strip()
-        fallback_base_url = str(
-            getattr(entry, "runtime_base_url", None)
-            or getattr(entry, "base_url", "")
-            or auth_mod.DEFAULT_XAI_OAUTH_BASE_URL
-        ).strip().rstrip("/")
-        override_base_url = str(
-            get_env_value("SPARKII_XAI_BASE_URL")
-            or get_env_value("XAI_BASE_URL")
-            or ""
-        ).strip().rstrip("/")
-        base_url = auth_mod._xai_validate_inference_base_url(
-            override_base_url,
-            fallback=fallback_base_url,
-        )
-        if access_token:
-            return {
-                "provider": "xai-oauth",
-                "api_key": access_token,
-                "base_url": base_url,
-            }
-    except Exception:
-        pass
 
     try:
         from tools.tool_backend_helpers import resolve_provider_secret

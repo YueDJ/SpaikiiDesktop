@@ -8,12 +8,12 @@ not a generic "[error]".
 
 import json
 
-from agent.display import (
+from agent.tool_result_classification import (
+    _ERROR_SUFFIX_MAX_LEN,
     _detect_tool_failure,
     _trim_error,
-    _ERROR_SUFFIX_MAX_LEN,
-    get_cute_tool_message,
 )
+from sparkii_cli.display import get_cute_tool_message
 
 
 class TestTrimError:
@@ -118,4 +118,3 @@ class TestGetCuteToolMessageFailureSuffix:
         ok = json.dumps({"success": True, "data": "hi"})
         line = get_cute_tool_message("web_search", {"query": "hi"}, 0.2, result=ok)
         assert "[" not in line.split("0.2s", 1)[1]
-

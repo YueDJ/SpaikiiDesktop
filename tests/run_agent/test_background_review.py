@@ -368,7 +368,7 @@ def test_new_live_turn_cancels_still_running_background_review(monkeypatch):
 
 import json as _json
 
-from agent.background_review import summarize_background_review_actions
+from sparkii_cli.background_review import summarize_background_review_actions
 
 
 def _memory_add_review():

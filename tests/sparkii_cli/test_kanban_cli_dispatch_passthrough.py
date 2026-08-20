@@ -34,7 +34,7 @@ def test_cli_dispatch_passes_max_in_progress_from_config(isolated_kanban_home, m
     config to dispatch_once. Without this, the global concurrency cap is
     unreachable from the CLI even though it works from the gateway."""
     from sparkii_cli import kanban as kb_cli
-    from sparkii_cli import kanban_db
+    from core import kanban_db
 
     # Configure max_in_progress in the loaded config.
     fake_config = {
@@ -75,7 +75,7 @@ def test_cli_max_flag_overrides_config_max_spawn(isolated_kanban_home, monkeypat
     """--max on the CLI takes precedence over kanban.max_spawn in config.
     The CLI flag is the explicit operator signal; config is the default."""
     from sparkii_cli import kanban as kb_cli
-    from sparkii_cli import kanban_db
+    from core import kanban_db
 
     fake_config = {"kanban": {"max_spawn": 10}}
     monkeypatch.setattr("core.config.load_config", lambda: fake_config)

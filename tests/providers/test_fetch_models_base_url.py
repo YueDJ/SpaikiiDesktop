@@ -204,7 +204,7 @@ class TestModelPickerBaseUrlIntegration:
             patch("sparkii_cli.auth.resolve_api_key_provider_credentials",
                   return_value={"api_key": "sk-test", "base_url": "https://custom.proxy.com"}),
         ):
-            from sparkii_cli.models import provider_model_ids
+            from core.models import provider_model_ids
             result = provider_model_ids("test-provider")
             # Verify fetch_models was called with base_url
             mock_profile.fetch_models.assert_called_once()

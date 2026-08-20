@@ -7,7 +7,7 @@ sprite-production oriented; the identity lock and "one transparent row" framing
 matter more than flowery description.
 
 We generate the full petdex/Codex nine-state set (see
-:data:`agent.pet.generate.atlas.ROW_SPECS`) so a hatched pet is a valid
+:data:`sparkii_cli.pet.generate.atlas.ROW_SPECS`) so a hatched pet is a valid
 ``petdex submit`` spritesheet.
 """
 

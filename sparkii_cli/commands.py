@@ -2347,3 +2347,13 @@ def _file_size_label(path: str) -> str:
     if size < 1024 * 1024 * 1024:
         return f"{size / (1024 * 1024):.1f}M"
     return f"{size / (1024 * 1024 * 1024):.1f}G"
+
+
+# Register the built-in command resolver with the core plugin loader so
+# plugin-registered slash commands can detect built-in conflicts.
+try:
+    from core.plugins import set_command_resolver_provider
+
+    set_command_resolver_provider(resolve_command)
+except Exception:  # pragma: no cover - defensive
+    pass

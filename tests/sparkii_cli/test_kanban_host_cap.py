@@ -3,7 +3,7 @@
 Three gaps found in review of the original memory-guard PR:
 
 1. The standalone daemon path (``sparkii kanban daemon --force`` /
-   :func:`sparkii_cli.kanban_db.run_daemon`) never resolved
+   :func:`core.kanban_db.run_daemon`) never resolved
    ``kanban.max_in_progress`` at all — the one shipped entry point that
    could still fan out an entire backlog in a single tick.
 2. ``max_in_progress`` was enforced per-board while the gateway dispatcher
@@ -21,7 +21,7 @@ from pathlib import Path
 
 import pytest
 
-from sparkii_cli import kanban_db as kb
+from core import kanban_db as kb
 
 
 @pytest.fixture
@@ -266,7 +266,7 @@ def test_nonspawnable_review_does_not_tax_ready_budget(
 ):
     """Review tasks parked for humans (no real profile) release the slot."""
     import core.config as cfgmod
-    import sparkii_cli.profiles as profmod
+    import core.profiles as profmod
 
     monkeypatch.setattr(
         cfgmod, "load_config",

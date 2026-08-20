@@ -2213,7 +2213,7 @@ def _check_plugin_stt_provider(provider: str) -> bool:
         return False
     try:
         from agent.transcription_registry import get_provider
-        from sparkii_cli.plugins import _ensure_plugins_discovered
+        from core.plugins import _ensure_plugins_discovered
 
         _ensure_plugins_discovered()
         plugin_provider = get_provider(key)

@@ -39,8 +39,8 @@ def _fake_drafts_factory(tmp_path):
 
 def _fake_hatch_factory(captured):
     """A hatch that registers a real local pet (so the preview payload populates)."""
-    import agent.pet.generate as gen
-    from agent.pet import store
+    import sparkii_cli.pet.generate as gen
+    from sparkii_cli.pet import store
 
     def fake_hatch(*, base_image, slug, display_name="", description="", concept="", style="auto", on_progress=None, provider=None, is_cancelled=None):
         captured["base_image"] = str(base_image)

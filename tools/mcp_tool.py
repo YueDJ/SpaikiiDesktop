@@ -1140,7 +1140,7 @@ def _cache_mcp_image_block(block) -> str:
         return ""
 
     try:
-        from gateway.platforms.base import cache_image_from_bytes
+        from core.media_cache import cache_image_from_bytes
 
         image_path = cache_image_from_bytes(
             raw_bytes,
@@ -1229,7 +1229,7 @@ def _cache_mcp_audio_block(block) -> str:
     if len(raw_bytes) > _MCP_RESOURCE_MAX_BYTES:
         return f"[MCP audio resource too large to cache: {len(raw_bytes)} bytes]"
     try:
-        from gateway.platforms.base import cache_audio_from_bytes
+        from core.media_cache import cache_audio_from_bytes
         import mimetypes
 
         ext = (
@@ -1309,11 +1309,11 @@ def _render_mcp_resource_block(block, server_name: str = "") -> str:
     if len(raw_bytes) > _MCP_RESOURCE_MAX_BYTES:
         return f"[MCP embedded resource too large to cache: {len(raw_bytes)} bytes, uri={uri}]"
     try:
-        from gateway.platforms.base import cache_document_from_bytes
+        from core.media_cache import cache_document_from_bytes
 
         path = cache_document_from_bytes(raw_bytes, _mcp_resource_filename(uri, mime))
     except ImportError:
-        logger.debug("MCP resource caching skipped — gateway.platforms.base unavailable")
+        logger.debug("MCP resource caching skipped — core.media_cache unavailable")
         return f"[MCP embedded resource received ({len(raw_bytes)} bytes, {mime or 'unknown type'}) but document cache unavailable in this process]"
     except Exception as exc:
         logger.warning("MCP embedded resource cache failed: %s", exc)
@@ -1600,7 +1600,7 @@ def _resolve_identity_header(server_name: str, config: dict):
             return None
         return (name.strip(), value)
     if value_from == "profile":
-        from sparkii_cli.profiles import get_active_profile_name
+        from core.profiles import get_active_profile_name
         return (name.strip(), get_active_profile_name())
     logger.warning(
         "MCP server '%s': identity_header value_from must be 'static' or "
@@ -3176,7 +3176,7 @@ class MCPServerTask:
             # on Linux, where setsid() children escape the parent cgroup).
             # Mark them as orphans so the next cleanup sweep can reap them.
             if new_pids:
-                from gateway.status import _pid_exists
+                from core.process_utils import _pid_exists
                 _killpg = getattr(os, "killpg", None)
                 with _lock:
                     for _pid in new_pids:
@@ -5524,7 +5524,7 @@ def _load_mcp_config() -> Dict[str, dict]:
                 _warn_hidden_whitespace(name, interpolated)
                 safe_servers[name] = interpolated
         try:
-            from sparkii_cli.plugins import discover_plugins, get_plugin_manager
+            from core.plugins import discover_plugins, get_plugin_manager
 
             discover_plugins()
             portable = get_plugin_manager().get_portable_mcp_servers()
@@ -8097,7 +8097,7 @@ def _kill_orphaned_mcp_children(
     _sigkill = getattr(_signal, "SIGKILL", _signal.SIGTERM)
     # ``os.kill(pid, 0)`` is NOT a no-op on Windows. Use the cross-platform
     # existence check before escalating to SIGKILL.
-    from gateway.status import _pid_exists
+    from core.process_utils import _pid_exists
     for pid, server_name in pids.items():
         if not _pid_exists(pid):
             continue  # Good — exited after SIGTERM

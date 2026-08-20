@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from sparkii_cli import models
+from core import models
 
 
 MODEL = "publisher/model"

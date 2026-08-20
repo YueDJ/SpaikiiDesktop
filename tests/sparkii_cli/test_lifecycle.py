@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
 from agent import relay_runtime
-from sparkii_cli import lifecycle, observability, plugins
+from core import lifecycle, observability, plugins
 
 
 def test_invoke_hook_notifies_builtin_observers_before_plugins(monkeypatch):
@@ -14,7 +14,7 @@ def test_invoke_hook_notifies_builtin_observers_before_plugins(monkeypatch):
         "observe_lifecycle",
         lambda name, **kwargs: calls.append(("builtin", name, kwargs)),
     )
-    monkeypatch.setattr(plugins, "invoke_hook", manager.invoke_hook)
+    monkeypatch.setattr(plugins, "_delivery_manager", lambda: manager)
 
     result = lifecycle.invoke_hook("on_session_start", session_id="session-1")
 
@@ -35,7 +35,7 @@ def test_finalize_session_closes_core_before_plugin_export(monkeypatch):
         "observe_lifecycle",
         lambda name, **kwargs: calls.append(("builtin", name, kwargs)),
     )
-    monkeypatch.setattr(plugins, "invoke_hook", manager.invoke_hook)
+    monkeypatch.setattr(plugins, "_delivery_manager", lambda: manager)
     monkeypatch.setattr(relay_runtime, "SESSION_COORDINATOR", coordinator)
     monkeypatch.setattr(relay_runtime, "current_profile_key", lambda: "profile-1")
 

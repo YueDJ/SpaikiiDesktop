@@ -11806,7 +11806,7 @@ def _prepare_agent_startup(args) -> None:
         _hooks_cfg = load_config()
         register_from_config(_hooks_cfg, accept_hooks=_accept_hooks)
 
-        from agent.outbound_webhooks import (
+        from sparkii_cli.outbound_webhooks import (
             register_from_config as register_outbound_webhooks,
         )
 
@@ -13888,3 +13888,14 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# Register the built-in auxiliary task catalog with the core plugin loader so
+# plugin-registered auxiliary tasks can detect reserved built-in keys without
+# importing this surface module from core.
+try:
+    from core.plugins import set_builtin_aux_tasks_provider
+
+    set_builtin_aux_tasks_provider(lambda: _AUX_TASKS)
+except Exception:  # pragma: no cover - defensive
+    pass

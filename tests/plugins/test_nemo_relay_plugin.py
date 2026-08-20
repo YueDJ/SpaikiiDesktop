@@ -15,8 +15,8 @@ from types import SimpleNamespace
 import pytest
 import yaml
 
-from sparkii_cli import lifecycle, plugins as plugin_api
-from sparkii_cli.observability import relay_runtime, relay_shared_metrics
+from core import plugins as lifecycle, plugins as plugin_api
+from core.observability import relay_runtime, relay_shared_metrics
 from sparkii_cli.plugins import PluginManager
 
 
@@ -464,7 +464,7 @@ def test_relay_tool_request_rewrite_precedes_sparkii_authorization_boundary(
     tmp_path,
     monkeypatch,
 ):
-    from sparkii_cli.middleware import apply_tool_request_middleware
+    from core.middleware import apply_tool_request_middleware
 
     fake = _FakeNemoRelay()
     plugin = _fresh_plugin(monkeypatch, fake)

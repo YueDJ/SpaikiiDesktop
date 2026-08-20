@@ -199,7 +199,7 @@ def purge_env_credential_references(
         pass
     if clear_models_cache and providers:
         try:
-            from sparkii_cli.models import clear_provider_models_cache
+            from core.models import clear_provider_models_cache
 
             for provider in providers:
                 clear_provider_models_cache(provider)

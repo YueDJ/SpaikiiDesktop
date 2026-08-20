@@ -36,7 +36,7 @@ def _make_running_kanban_task(monkeypatch, tmp_path):
     monkeypatch.setenv("SPARKII_KANBAN_WORKSPACE", str(workspace))
     monkeypatch.setenv("SPARKII_KANBAN_ATTACHMENTS_ROOT", str(attachments_root))
 
-    from sparkii_cli import kanban_db as kb
+    from core import kanban_db as kb
 
     kb._INITIALIZED_PATHS.clear()
     kb.init_db()

@@ -10,7 +10,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from sparkii_cli import resource_limits
+from core import resource_limits
 
 
 class _FakeResource:
@@ -252,7 +252,7 @@ def test_serve_startup_applies_limit_before_web_server(monkeypatch):
 def test_named_profile_reroute_defers_limit_to_final_process(monkeypatch, tmp_path):
     """The launcher profile must not leak its limit across machine re-exec."""
     from sparkii_cli import main as cli_main
-    import sparkii_cli.profiles
+    import core.profiles
     import sparkii_constants
     from tools.environments import local as local_environment
 
@@ -266,7 +266,7 @@ def test_named_profile_reroute_defers_limit_to_final_process(monkeypatch, tmp_pa
         lambda: calls.append("limit"),
     )
     monkeypatch.setattr(
-        sparkii_cli.profiles,
+        core.profiles,
         "get_active_profile_name",
         lambda: "worker",
     )

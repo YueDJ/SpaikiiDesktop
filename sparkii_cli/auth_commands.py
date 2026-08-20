@@ -184,10 +184,8 @@ def auth_add_command(args) -> None:
     # Matches the Codex device_code re-link pattern that predates this.
     if not provider.startswith(CUSTOM_POOL_PREFIX):
         try:
-            from sparkii_cli.auth import (
-                _load_auth_store,
-                unsuppress_credential_source,
-            )
+            from core.auth_store import _load_auth_store
+            from core.credential_sources import unsuppress_credential_source
             suppressed = _load_auth_store().get("suppressed_sources", {})
             for src in list(suppressed.get(provider, []) or []):
                 unsuppress_credential_source(provider, src)
@@ -482,7 +480,7 @@ def auth_remove_command(args) -> None:
     # user-facing output here so every source behaves identically from
     # the user's perspective.
     from agent.credential_sources import find_removal_step
-    from sparkii_cli.auth import suppress_credential_source
+    from core.credential_sources import suppress_credential_source
 
     step = find_removal_step(provider, removed.source)
     if step is None:

@@ -58,10 +58,10 @@ class TestToolsCompletionsReadonlyConfig:
         # per-keystroke reads, not discovery's one-off startup reads.
         with patch("core.config.load_config", counting_deepcopy), \
              patch("core.config.load_config_readonly", counting_readonly), \
-             patch("sparkii_cli.plugins.get_portable_mcp_server_names_nowait", lambda: set()), \
-             patch("sparkii_cli.tools_config._get_plugin_toolset_keys", lambda: set()), \
-             patch("sparkii_cli.tools_config._homeassistant_credentials_present", lambda: False), \
-             patch("sparkii_cli.tools_config._xai_credentials_present", lambda: False):
+             patch("core.plugins.get_portable_mcp_server_names_nowait", lambda: set()), \
+             patch("core.tools_config._get_plugin_toolset_keys", lambda: set()), \
+             patch("core.tools_config._homeassistant_credentials_present", lambda: False), \
+             patch("core.tools_config._xai_credentials_present", lambda: False):
             list(commands_mod.SlashCommandCompleter._tools_completions("enable ", "enable "))
 
         assert calls["readonly"] == 1, "completer should use the readonly loader"

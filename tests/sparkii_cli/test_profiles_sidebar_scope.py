@@ -17,7 +17,7 @@ import pytest
 @pytest.fixture
 def profiles_on_disk(tmp_path, monkeypatch, _isolate_sparkii_home):
     """An isolated default home plus one named profile, each with a state.db."""
-    from sparkii_cli import profiles
+    from core import profiles
     from sparkii_constants import get_sparkii_home
 
     default_home = get_sparkii_home()
@@ -85,7 +85,7 @@ def _seed_session(home, session_id, *, source, cwd=None, tokens=None, cost=None)
 
 
 def _seed_project(home, name, folder):
-    from sparkii_cli import projects_db
+    from core import projects_db
 
     with projects_db.connect_closing(db_path=home / "projects.db") as conn:
         return projects_db.create_project(conn, name=name, folders=[str(folder)])

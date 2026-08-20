@@ -14,7 +14,7 @@ import asyncio
 
 from gateway.config import Platform
 from gateway.run import GatewayRunner
-from sparkii_cli import kanban_db as kb
+from core import kanban_db as kb
 
 
 class RecordingAdapter:

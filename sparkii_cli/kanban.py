@@ -3440,3 +3440,13 @@ def run_slash(rest: str) -> str:
     if err and out:
         return f"{out}\n{err}"
     return err if err else (out or "(no output)")
+
+
+# Block 4: register the dispatcher-presence probe for the kanban dashboard
+# plugin (core/kanban_bridge).
+try:
+    from core.kanban_bridge import set_kanban_dispatcher_probe
+
+    set_kanban_dispatcher_probe(_check_dispatcher_presence)
+except Exception:  # pragma: no cover - defensive
+    pass

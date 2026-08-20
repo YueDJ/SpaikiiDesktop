@@ -229,7 +229,7 @@ def _remove_sparkii_pkce(provider: str, removed) -> RemovalResult:
 
 def _clear_auth_store_provider(provider: str) -> bool:
     """Delete auth_store.providers[provider].  Returns True if deleted."""
-    from sparkii_cli.auth import (
+    from core.auth_store import (
         _auth_store_lock,
         _load_auth_store,
         _save_auth_store,
@@ -310,7 +310,7 @@ def _remove_codex_device_code(provider: str, removed) -> RemovalResult:
     that canonical key here; the central dispatcher also suppresses
     ``removed.source`` which is fine — belt-and-suspenders, idempotent.
     """
-    from sparkii_cli.auth import suppress_credential_source
+    from core.credential_sources import suppress_credential_source
 
     result = RemovalResult()
     if _clear_auth_store_provider(provider):
@@ -357,7 +357,7 @@ def _remove_copilot_gh(provider: str, removed) -> RemovalResult:
     # the pool entry.  The central dispatcher in auth_remove_command will
     # ALSO suppress removed.source, but it's idempotent so double-calling
     # is harmless.
-    from sparkii_cli.auth import suppress_credential_source
+    from core.credential_sources import suppress_credential_source
     suppress_credential_source(provider, "gh_cli")
     for env_var in ("COPILOT_GITHUB_TOKEN", "GH_TOKEN", "GITHUB_TOKEN"):
         suppress_credential_source(provider, f"env:{env_var}")

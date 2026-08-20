@@ -130,17 +130,6 @@ def read_nous_access_token() -> Optional[str]:
     ):
         return cached_token
 
-    try:
-        from sparkii_cli.auth import resolve_nous_access_token
-
-        refreshed_token = resolve_nous_access_token(
-            refresh_skew_seconds=_NOUS_ACCESS_TOKEN_REFRESH_SKEW_SECONDS,
-        )
-        if isinstance(refreshed_token, str) and refreshed_token.strip():
-            return refreshed_token.strip()
-    except Exception as exc:
-        logger.debug("Nous access token refresh failed: %s", exc)
-
     return cached_token
 
 
@@ -449,4 +438,3 @@ def build_managed_media_uploader(
         return f"nous-upload:{token}"
 
     return upload
-

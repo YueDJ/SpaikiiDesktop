@@ -59,7 +59,7 @@ def test_run_job_bounds_sessiondb_finalization(tmp_path):
              patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
              patch("sparkii_state.SessionDB", return_value=fake_db), \
-             patch("sparkii_cli.runtime_provider.resolve_runtime_provider", return_value=_RUNTIME), \
+             patch("core.runtime_provider.resolve_runtime_provider", return_value=_RUNTIME), \
              patch("run_agent.AIAgent") as mock_agent_cls, \
              patch("cron.scheduler._cron_cleanup_timeout_seconds", return_value=0.02):
             mock_agent = MagicMock()
@@ -119,7 +119,7 @@ def test_dispatch_guard_releases_after_sessiondb_finalization_hang(tmp_path):
              patch("sparkii_cli.env_loader.load_sparkii_dotenv"), \
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
              patch("sparkii_state.SessionDB", return_value=fake_db), \
-             patch("sparkii_cli.runtime_provider.resolve_runtime_provider", return_value=_RUNTIME), \
+             patch("core.runtime_provider.resolve_runtime_provider", return_value=_RUNTIME), \
              patch("run_agent.AIAgent") as mock_agent_cls, \
              patch("cron.scheduler._cron_cleanup_timeout_seconds", return_value=0.02), \
              patch.object(sched, "get_due_jobs", return_value=[job]), \

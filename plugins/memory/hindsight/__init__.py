@@ -933,7 +933,7 @@ class HindsightMemoryProvider(MemoryProvider):
         from core.config import save_config
         from core.secret_prompt import masked_secret_prompt
 
-        from sparkii_cli.memory_setup import _CANCELLED, _curses_select, _print_cancelled_setup
+        from core.memory_setup import _CANCELLED, _curses_select, _print_cancelled_setup
 
         print("\n  Configuring Hindsight memory:\n")
 
@@ -1146,7 +1146,7 @@ class HindsightMemoryProvider(MemoryProvider):
 
     def _offer_starter_template(self, mode: str, provider_config: dict, env_writes: dict) -> None:
         """Offer to seed the bank with a Sparkii starter template (best-effort)."""
-        from sparkii_cli.memory_setup import _CANCELLED, _curses_select
+        from core.memory_setup import _CANCELLED, _curses_select
 
         from . import templates as _hs_templates
 

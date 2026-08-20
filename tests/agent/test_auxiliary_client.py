@@ -1220,7 +1220,7 @@ class TestAuxiliaryPoolAwareness:
         with (
             patch("agent.auxiliary_client.load_pool", return_value=pool),
             patch("agent.auxiliary_client.OpenAI") as mock_openai,
-            patch("sparkii_cli.models.get_nous_recommended_aux_model", return_value=None),
+            patch("core.models.get_nous_recommended_aux_model", return_value=None),
         ):
             from agent.auxiliary_client import _try_nous
 
@@ -1431,7 +1431,7 @@ class TestRefreshNousRecommendedModel:
         def _boom(**kw):
             raise RuntimeError("portal down")
         monkeypatch.setattr(
-            "sparkii_cli.models.get_nous_recommended_aux_model", _boom)
+            "core.models.get_nous_recommended_aux_model", _boom)
         out = _refresh_nous_recommended_model(
             vision=False, stale_model="some/dead-model")
         assert out == _NOUS_MODEL
@@ -1440,7 +1440,7 @@ class TestRefreshNousRecommendedModel:
         """When the failed model IS the default and the Portal has nothing
         else, there's no usable alternative."""
         monkeypatch.setattr(
-            "sparkii_cli.models.get_nous_recommended_aux_model",
+            "core.models.get_nous_recommended_aux_model",
             lambda **kw: _NOUS_MODEL,
         )
         out = _refresh_nous_recommended_model(
@@ -1917,7 +1917,7 @@ class TestTryMainAgentModelFallback:
 def test_resolve_api_key_provider_skips_unconfigured_anthropic(monkeypatch):
     """_resolve_api_key_provider must not try anthropic when user never configured it."""
     from collections import OrderedDict
-    from sparkii_cli.auth import ProviderConfig
+    from core.provider_registry import ProviderConfig
 
     # Build a minimal registry with only "anthropic" so the loop is guaranteed
     # to reach it without being short-circuited by earlier providers.
@@ -1938,9 +1938,9 @@ def test_resolve_api_key_provider_skips_unconfigured_anthropic(monkeypatch):
         return None, None
 
     monkeypatch.setattr("agent.auxiliary_client._try_anthropic", mock_try_anthropic)
-    monkeypatch.setattr("sparkii_cli.auth.PROVIDER_REGISTRY", fake_registry)
+    monkeypatch.setattr("core.provider_registry.PROVIDER_REGISTRY", fake_registry)
     monkeypatch.setattr(
-        "sparkii_cli.auth.is_provider_explicitly_configured",
+        "core.credentials.is_provider_explicitly_configured",
         lambda pid: False,
     )
 
@@ -4527,7 +4527,7 @@ class TestFastModelTier:
             "~openai/gpt-mini-latest": {},
             "stepfun/step-3.7-flash:free": {},
         }
-        with patch("sparkii_cli.models.fetch_models_with_pricing", return_value=catalog):
+        with patch("core.models.fetch_models_with_pricing", return_value=catalog):
             assert ac._fast_model_from_catalog("nous") == "~openai/gpt-mini-latest"
 
     def test_catalog_match_skips_reasoning_batch_and_embedding_lookalikes(self):
@@ -4540,7 +4540,7 @@ class TestFastModelTier:
             "sentence-transformers/all-minilm-l6-v2": {},
             "google/gemini-3.6-flash": {},
         }
-        with patch("sparkii_cli.models.fetch_models_with_pricing", return_value=catalog):
+        with patch("core.models.fetch_models_with_pricing", return_value=catalog):
             assert ac._fast_model_from_catalog("nous") == "google/gemini-3.6-flash"
 
     def test_catalog_match_skips_the_non_chat_siblings_of_a_chat_model(self):
@@ -4554,7 +4554,7 @@ class TestFastModelTier:
             "openai/gpt-4o-mini-search-preview": {},
             "openai/gpt-4o-mini": {},
         }
-        with patch("sparkii_cli.models.fetch_models_with_pricing", return_value=catalog):
+        with patch("core.models.fetch_models_with_pricing", return_value=catalog):
             assert ac._fast_model_from_catalog("nous") == "openai/gpt-4o-mini"
 
     def test_catalog_match_takes_the_newest_of_a_family(self):
@@ -4571,7 +4571,7 @@ class TestFastModelTier:
             "openai/gpt-9-mini": {},
             "openai/gpt-10-mini": {},
         }
-        with patch("sparkii_cli.models.fetch_models_with_pricing", return_value=catalog):
+        with patch("core.models.fetch_models_with_pricing", return_value=catalog):
             assert ac._fast_model_from_catalog("nous") == "openai/gpt-10-mini"
 
     def test_catalog_fetch_is_authenticated(self):
@@ -4583,10 +4583,10 @@ class TestFastModelTier:
         from agent import auxiliary_client as ac
 
         with patch(
-            "sparkii_cli.auth.resolve_api_key_provider_credentials",
+            "core.credentials.resolve_api_key_provider_credentials",
             return_value={"api_key": "sk-test", "base_url": "https://api.example.com/v1"},
         ), patch(
-            "sparkii_cli.models.fetch_models_with_pricing", return_value={}
+            "core.models.fetch_models_with_pricing", return_value={}
         ) as fetch:
             ac._fast_model_from_catalog("openai")
 

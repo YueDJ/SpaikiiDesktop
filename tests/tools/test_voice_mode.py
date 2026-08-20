@@ -300,7 +300,7 @@ class TestCheckVoiceRequirements:
             lambda p: plugin_provider if p == "my-plugin-stt" else None,
         )
         monkeypatch.setattr(
-            "sparkii_cli.plugins._ensure_plugins_discovered",
+            "core.plugins._ensure_plugins_discovered",
             lambda force=False: None,
         )
 

@@ -95,7 +95,7 @@ def _get_project_plugins_dir() -> Optional[Path]:
     ``cd`` into must not be able to offer the agent a memory backend.
     """
     try:
-        from sparkii_cli.plugins import _env_enabled
+        from core.plugins import _env_enabled
 
         if not _env_enabled("SPARKII_ENABLE_PROJECT_PLUGINS"):
             return None
@@ -218,7 +218,7 @@ def _entry_point_package_dir(entry_point) -> Optional[Path]:
     if entry_point is None:
         return None
     try:
-        from sparkii_cli.plugins import resolve_module_origin
+        from core.plugins import resolve_module_origin
 
         module_name = (entry_point.value or "").split(":")[0].strip()
         origin = resolve_module_origin(module_name)
@@ -580,7 +580,7 @@ class _ProviderCollector:
             skill_name = args[0] if args else kwargs.get("name")
             qualified_name = f"{self.name}:{skill_name}"
 
-            from sparkii_cli.plugins import get_plugin_manager
+            from core.plugins import get_plugin_manager
 
             registered_path = get_plugin_manager().find_plugin_skill(qualified_name)
             if registered_path is not None:
@@ -636,7 +636,7 @@ class _ProviderCollector:
         plugin manager, which discovery touches on every sparkii startup.
         """
         if self._context is None:
-            from sparkii_cli.plugins import PluginContext, PluginManifest, get_plugin_manager
+            from core.plugins import PluginContext, PluginManifest, get_plugin_manager
 
             manifest = PluginManifest(name=self.name, key=self.name)
             self._context = PluginContext(manifest, get_plugin_manager())
@@ -665,7 +665,7 @@ def _prune_inactive_memory_provider_skills(
     if active_provider is None:
         active_provider = _get_active_memory_provider()
 
-    from sparkii_cli.plugins import get_plugin_manager
+    from core.plugins import get_plugin_manager
 
     manager = get_plugin_manager()
     for qualified_name, registered_path in list(

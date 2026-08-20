@@ -44,7 +44,7 @@ class TestNamedCustomProviderCatalogs:
             }
         )
         with patch("core.config.load_config", return_value=cfg), patch(
-            "sparkii_cli.model_switch._fetch_picker_live_models",
+            "core.model_switch._fetch_picker_live_models",
             return_value=["model-a", "model-b"],
         ):
             catalogs = _named_custom_provider_catalogs()
@@ -69,7 +69,7 @@ class TestNamedCustomProviderCatalogs:
             }
         )
         with patch("core.config.load_config", return_value=cfg), patch(
-            "sparkii_cli.model_switch._fetch_picker_live_models", return_value=None
+            "core.model_switch._fetch_picker_live_models", return_value=None
         ):
             assert _named_custom_provider_catalogs() == []
 
@@ -85,7 +85,7 @@ class TestNamedCustomProviderCatalogs:
             }
         )
         with patch("core.config.load_config", return_value=cfg), patch(
-            "sparkii_cli.model_switch._fetch_picker_live_models", return_value=None
+            "core.model_switch._fetch_picker_live_models", return_value=None
         ):
             assert _named_custom_provider_catalogs() == []
 
@@ -102,7 +102,7 @@ class TestNamedCustomProviderCatalogs:
             ]
         )
         with patch("core.config.load_config", return_value=cfg), patch(
-            "sparkii_cli.model_switch._fetch_picker_live_models", return_value=None
+            "core.model_switch._fetch_picker_live_models", return_value=None
         ):
             catalogs = _named_custom_provider_catalogs()
 
@@ -119,10 +119,10 @@ class TestNamedCustomProviderCatalogs:
             }
         )
         with patch("core.config.load_config", return_value=cfg), patch(
-            "sparkii_cli.models.should_use_ollama_native_catalog",
+            "core.models.should_use_ollama_native_catalog",
             return_value=True,
         ), patch(
-            "sparkii_cli.model_switch._fetch_picker_live_models",
+            "core.model_switch._fetch_picker_live_models",
             return_value=["qwen3:1.7b"],
         ) as fetch:
             catalogs = _named_custom_provider_catalogs()
@@ -147,10 +147,10 @@ class TestNamedCustomProviderCatalogs:
             ]
         )
         with patch("core.config.load_config", return_value=cfg), patch(
-            "sparkii_cli.models.should_use_ollama_native_catalog",
+            "core.models.should_use_ollama_native_catalog",
             return_value=True,
         ), patch(
-            "sparkii_cli.model_switch._fetch_picker_live_models",
+            "core.model_switch._fetch_picker_live_models",
             return_value=["qwen3:1.7b"],
         ) as fetch:
             catalogs = _named_custom_provider_catalogs()
@@ -168,13 +168,13 @@ class TestNamedCustomProviderCatalogs:
                 }
             }
         )
-        from sparkii_cli.model_switch import _NativePickerModelList
+        from core.model_switch import _NativePickerModelList
 
         with patch("core.config.load_config", return_value=cfg), patch(
-            "sparkii_cli.models.should_use_ollama_native_catalog",
+            "core.models.should_use_ollama_native_catalog",
             return_value=True,
         ), patch(
-            "sparkii_cli.model_switch._fetch_picker_live_models",
+            "core.model_switch._fetch_picker_live_models",
             return_value=_NativePickerModelList(),
         ):
             assert _named_custom_provider_catalogs() == [
@@ -192,7 +192,7 @@ class TestModelStateIncludesNamedProviders:
         )
         acp_agent = SparkiiACPAgent(session_manager=manager)
 
-        with patch("sparkii_cli.models.curated_models_for_provider", return_value=[]), patch(
+        with patch("core.models.curated_models_for_provider", return_value=[]), patch(
             "acp_adapter.server._named_custom_provider_catalogs",
             return_value=[("custom:ollama", "Ollama", [])],
         ):
@@ -215,7 +215,7 @@ class TestModelStateIncludesNamedProviders:
         acp_agent = SparkiiACPAgent(session_manager=manager)
 
         with patch(
-            "sparkii_cli.models.curated_models_for_provider",
+            "core.models.curated_models_for_provider",
             return_value=[("gpt-5.4", "recommended")],
         ), patch(
             "acp_adapter.server._named_custom_provider_catalogs",
@@ -243,7 +243,7 @@ class TestModelStateIncludesNamedProviders:
 
     def test_selector_choice_id_round_trips_through_parse_model_input(self):
         """The encoded choice id must resolve back to the named provider."""
-        from sparkii_cli.models import parse_model_input
+        from core.models import parse_model_input
 
         choice_id = "custom:bedrock-mantle:openai.gpt-5.5"
         cfg = {
@@ -261,7 +261,7 @@ class TestModelStateIncludesNamedProviders:
 
     def test_selector_choice_id_round_trips_colon_bearing_custom_identity(self):
         """Configured provider and model IDs may both contain colons."""
-        from sparkii_cli.models import parse_model_input
+        from core.models import parse_model_input
 
         cfg = {
             "providers": {

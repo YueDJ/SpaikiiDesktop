@@ -34,9 +34,9 @@ from agent.gemini_schema import sanitize_gemini_tool_parameters
 logger = logging.getLogger(__name__)
 
 try:
-    import sparkii_cli as _sparkii_cli
+    from core.version import __version__ as _SPARKII_VERSION
 
-    _SPARKII_VERSION = str(_sparkii_cli.__version__)
+    _SPARKII_VERSION = str(_SPARKII_VERSION)
 except Exception:
     _SPARKII_VERSION = "0.0.0"
 

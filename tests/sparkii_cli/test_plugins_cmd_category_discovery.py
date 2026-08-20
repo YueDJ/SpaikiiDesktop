@@ -81,7 +81,7 @@ class TestReadManifestInfo:
 
 
 class TestDiscoverAllPlugins:
-    @patch("sparkii_cli.plugins.get_bundled_plugins_dir")
+    @patch("core.plugins.get_bundled_plugins_dir")
     @patch("sparkii_cli.plugins_cmd._plugins_dir")
     def test_flat_plugins_still_discovered(self, mock_user_dir, mock_bundled_dir, tmp_path):
         from sparkii_cli.plugins_cmd import _discover_all_plugins
@@ -97,7 +97,7 @@ class TestDiscoverAllPlugins:
         assert "disk-cleanup" in keys
 
 
-    @patch("sparkii_cli.plugins.get_bundled_plugins_dir")
+    @patch("core.plugins.get_bundled_plugins_dir")
     @patch("sparkii_cli.plugins_cmd._plugins_dir")
     def test_mixed_flat_and_category(self, mock_user_dir, mock_bundled_dir, tmp_path):
         from sparkii_cli.plugins_cmd import _discover_all_plugins
@@ -121,7 +121,7 @@ class TestDiscoverAllPlugins:
         assert "web/exa" in keys
         assert len(entries) == 3
 
-    @patch("sparkii_cli.plugins.get_bundled_plugins_dir")
+    @patch("core.plugins.get_bundled_plugins_dir")
     @patch("sparkii_cli.plugins_cmd._plugins_dir")
     def test_depth_cap_at_two(self, mock_user_dir, mock_bundled_dir, tmp_path):
         """Plugins nested 3 levels deep should NOT be discovered."""
@@ -146,7 +146,7 @@ class TestDiscoverAllPlugins:
         assert "web/tavily" in keys
         assert "a/b/c" not in keys
 
-    @patch("sparkii_cli.plugins.get_bundled_plugins_dir")
+    @patch("core.plugins.get_bundled_plugins_dir")
     @patch("sparkii_cli.plugins_cmd._plugins_dir")
     def test_bundled_model_providers_skipped(self, mock_user_dir, mock_bundled_dir, tmp_path):
         """``plugins/model-providers/`` has its own provider registry loader.
@@ -184,7 +184,7 @@ class TestDiscoverAllPlugins:
         assert "context_engine/compressor" not in keys
         assert "observability/langfuse" in keys
 
-    @patch("sparkii_cli.plugins.get_bundled_plugins_dir")
+    @patch("core.plugins.get_bundled_plugins_dir")
     @patch("sparkii_cli.plugins_cmd._plugins_dir")
     def test_user_model_providers_subdir_is_still_scanned(
         self, mock_user_dir, mock_bundled_dir, tmp_path
@@ -255,7 +255,7 @@ class TestFilterPluginEntries:
 
 
 class TestCmdListJson:
-    @patch("sparkii_cli.plugins.get_bundled_plugins_dir")
+    @patch("core.plugins.get_bundled_plugins_dir")
     @patch("sparkii_cli.plugins_cmd._plugins_dir")
     def test_json_output_includes_category_plugins(self, mock_user_dir, mock_bundled_dir, tmp_path, capsys):
         from sparkii_cli.plugins_cmd import cmd_list
@@ -283,7 +283,7 @@ class TestCmdListJson:
         assert "web-tavily" in names
         assert "disk-cleanup" in names
 
-    @patch("sparkii_cli.plugins.get_bundled_plugins_dir")
+    @patch("core.plugins.get_bundled_plugins_dir")
     @patch("sparkii_cli.plugins_cmd._plugins_dir")
     def test_json_status_uses_key(self, mock_user_dir, mock_bundled_dir, tmp_path, capsys):
         from sparkii_cli.plugins_cmd import cmd_list

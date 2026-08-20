@@ -327,7 +327,7 @@ def install_cli(timeout_s: int = 600) -> Tuple[bool, str]:
 
     uv_bin: Optional[str] = None
     try:
-        from sparkii_cli.managed_uv import ensure_uv
+        from core.managed_uv import ensure_uv
 
         uv_bin = str(ensure_uv() or "") or None
     except Exception as e:

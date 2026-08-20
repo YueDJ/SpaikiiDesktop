@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from sparkii_cli import kanban as kc
-from sparkii_cli import kanban_db as kb
+from core import kanban_db as kb
 
 
 @pytest.fixture
@@ -341,7 +341,7 @@ def test_goal_mode_review_handoff_cannot_bypass_judge(
     monkeypatch.setenv("SPARKII_KANBAN_RUN_ID", str(cli_claimed.current_run_id))
 
     import agent.auxiliary_client as auxiliary_client
-    from sparkii_cli import goals
+    from core import goals
 
     monkeypatch.setattr(
         auxiliary_client,
@@ -364,7 +364,7 @@ def test_goal_mode_review_handoff_cannot_bypass_judge(
 def test_goal_loop_stops_after_reviewer_requests_changes(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from sparkii_cli import goals
+    from core import goals
 
     monkeypatch.setattr(
         goals,

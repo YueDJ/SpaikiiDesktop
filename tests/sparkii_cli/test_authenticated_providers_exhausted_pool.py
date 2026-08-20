@@ -60,7 +60,7 @@ def _strip_provider_env(monkeypatch):
 def test_exhausted_pool_provider_is_not_authenticated(monkeypatch):
     """The fix: an exhausted pool is NOT authenticated. Fails on main, where
     the gate accepted any stored pool entry regardless of usability."""
-    from sparkii_cli.model_switch import get_authenticated_provider_slugs
+    from core.model_switch import get_authenticated_provider_slugs
 
     _patch_opencode_pool(monkeypatch, available=False)
     slugs = get_authenticated_provider_slugs(current_provider="alibaba")
@@ -69,7 +69,7 @@ def test_exhausted_pool_provider_is_not_authenticated(monkeypatch):
 
 def test_opaque_legacy_pool_value_stays_visible(monkeypatch):
     """Legacy token-style auth-store values have no parsed pool entries."""
-    from sparkii_cli.model_switch import _credential_pool_is_usable
+    from core.model_switch import _credential_pool_is_usable
 
     monkeypatch.setattr(
         "agent.credential_pool.load_pool",
@@ -90,7 +90,7 @@ def test_picker_shows_exhausted_pool_provider(monkeypatch):
     """The interactive picker must include providers whose credential pool
     entries are all exhausted, so the user can still switch to a different
     model under the same provider."""
-    from sparkii_cli.model_switch import list_picker_providers
+    from core.model_switch import list_picker_providers
 
     _patch_opencode_pool(monkeypatch, available=False)
     providers = list_picker_providers(
@@ -134,7 +134,7 @@ def test_aux_task_picker_requests_exhausted_pool_visibility(monkeypatch):
 
     recorded: dict = {}
     monkeypatch.setattr(
-        "sparkii_cli.model_switch.list_authenticated_providers",
+        "core.model_switch.list_authenticated_providers",
         _spy_list_authenticated(recorded),
     )
     monkeypatch.setattr("core.config.load_config", lambda: {})

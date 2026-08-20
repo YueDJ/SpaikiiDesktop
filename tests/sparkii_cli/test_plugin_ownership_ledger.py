@@ -117,7 +117,7 @@ def test_load_force_reload_and_unload_remove_every_manager_registration(
     monkeypatch,
 ):
     """A real temporary plugin has one live registration after each reload."""
-    import sparkii_cli.plugins as plugins_mod
+    import core.plugins as plugins_mod
     from gateway.platform_registry import platform_registry
     from sparkii_cli.plugins import PluginManager
     from tools.registry import registry
@@ -1169,7 +1169,7 @@ def test_same_name_tool_and_platform_are_isolated_by_sparkii_home(
     monkeypatch,
 ):
     """Real A→B→A profile switching keeps dispatch and adapters isolated."""
-    import sparkii_cli.plugins as plugins_mod
+    import core.plugins as plugins_mod
     from gateway.platform_registry import platform_registry
     from sparkii_constants import reset_sparkii_home_override, set_sparkii_home_override
     from sparkii_cli.plugins import PluginManager
@@ -1231,7 +1231,7 @@ def test_manager_discovery_uses_its_home_not_the_ambient_profile(
     monkeypatch,
 ):
     """A retained manager cannot scan another concurrently active profile."""
-    import sparkii_cli.plugins as plugins_mod
+    import core.plugins as plugins_mod
     from gateway.platform_registry import platform_registry
     from sparkii_constants import reset_sparkii_home_override, set_sparkii_home_override
     from sparkii_cli.plugins import PluginManager
@@ -1274,7 +1274,7 @@ def test_same_slug_profiles_allocate_distinct_modules_concurrently(
     monkeypatch,
 ):
     """Policy binding and import use one atomic profile-specific namespace."""
-    import sparkii_cli.plugins as plugins_mod
+    import core.plugins as plugins_mod
     from sparkii_cli.plugins import PluginManager
 
     home_a = tmp_path / "concurrent-a"

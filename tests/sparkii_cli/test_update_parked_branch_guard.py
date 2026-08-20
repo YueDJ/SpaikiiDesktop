@@ -371,7 +371,7 @@ def test_update_up_to_date_path_does_not_repark_merged_branch(
     class _StopFlow(Exception):
         pass
 
-    import sparkii_cli.managed_uv as managed_uv
+    import core.managed_uv as managed_uv
 
     monkeypatch.setattr(
         managed_uv,

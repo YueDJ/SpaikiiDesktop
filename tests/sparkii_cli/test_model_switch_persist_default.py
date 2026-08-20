@@ -11,7 +11,7 @@ Covers:
 
 from unittest.mock import patch
 
-from sparkii_cli.model_switch import parse_model_flags, resolve_persist_behavior
+from core.model_switch import parse_model_flags, resolve_persist_behavior
 
 
 # ---------------------------------------------------------------------------

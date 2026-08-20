@@ -1,4 +1,4 @@
-"""Tests for sparkii_cli.tools_config platform tool persistence."""
+"""Tests for core.tools_config platform tool persistence."""
 
 import logging
 import subprocess
@@ -8,7 +8,7 @@ from unittest.mock import patch
 import pytest
 
 from tools.browser_tool import AGENT_BROWSER_NPX_SPEC
-from sparkii_cli.tools_config import (
+from core.tools_config import (
     _DEFAULT_OFF_TOOLSETS,
     _RECENTLY_SHIPPED_TOOLSETS,
     _apply_toolset_change,
@@ -37,13 +37,13 @@ def test_all_invalid_platform_toolsets_logs_runtime_warning(caplog):
     """#38798: an explicit platform config whose toolset names are all invalid
     (e.g. 'sparkii' instead of 'sparkii-cli') must warn at resolve time so an
     already-corrupted config is caught at runtime, not just during migration."""
-    import sparkii_cli.tools_config as _tc
+    import core.tools_config as _tc
     # The runtime warning fires once per platform per process; clear the guard
     # so this test is deterministic regardless of prior resolutions.
     _tc._warned_invalid_platform_toolsets.discard("cli")
     config = {"platform_toolsets": {"cli": ["sparkii"]}}
 
-    with caplog.at_level(logging.WARNING, logger="sparkii_cli.tools_config"):
+    with caplog.at_level(logging.WARNING, logger="core.tools_config"):
         _get_platform_tools(config, "cli")
 
     warnings = [r.getMessage() for r in caplog.records if r.levelno >= logging.WARNING]
@@ -54,7 +54,7 @@ def test_valid_platform_toolsets_no_runtime_warning(caplog):
     """A correctly-configured platform must not emit the #38798 warning."""
     config = {"platform_toolsets": {"cli": ["sparkii-cli"]}}
 
-    with caplog.at_level(logging.WARNING, logger="sparkii_cli.tools_config"):
+    with caplog.at_level(logging.WARNING, logger="core.tools_config"):
         _get_platform_tools(config, "cli")
 
     assert not any("#38798" in r.getMessage() for r in caplog.records)
@@ -66,7 +66,7 @@ def test_partially_valid_platform_toolsets_no_runtime_warning(caplog):
     flags the individual bad name)."""
     config = {"platform_toolsets": {"cli": ["sparkii-cli", "bogus"]}}
 
-    with caplog.at_level(logging.WARNING, logger="sparkii_cli.tools_config"):
+    with caplog.at_level(logging.WARNING, logger="core.tools_config"):
         _get_platform_tools(config, "cli")
 
     assert not any("#38798" in r.getMessage() for r in caplog.records)
@@ -168,7 +168,7 @@ def test_save_platform_tools_preserves_mcp_server_names():
 
     new_selection = {"web", "browser"}
 
-    with patch("sparkii_cli.tools_config.save_config"):
+    with patch("core.tools_config.save_config"):
         _save_platform_tools(config, "cli", new_selection)
 
     saved_toolsets = config["platform_toolsets"]["cli"]
@@ -211,7 +211,7 @@ class TestPlatformToolsetConsistency:
 
     def test_all_platforms_have_toolset_definitions(self):
         """Each platform's default_toolset must exist in TOOLSETS."""
-        from sparkii_cli.tools_config import PLATFORMS
+        from core.tools_config import PLATFORMS
         from toolsets import TOOLSETS
 
         for platform, meta in PLATFORMS.items():
@@ -223,7 +223,7 @@ class TestPlatformToolsetConsistency:
 
     def test_gateway_toolset_includes_all_messaging_platforms(self):
         """sparkii-gateway includes list should cover all messaging platforms."""
-        from sparkii_cli.tools_config import PLATFORMS
+        from core.tools_config import PLATFORMS
         from toolsets import TOOLSETS
 
         gateway_includes = set(TOOLSETS["sparkii-gateway"]["includes"])
@@ -240,7 +240,7 @@ class TestPlatformToolsetConsistency:
 
     def test_skills_config_covers_tools_config_platforms(self):
         """skills_config.PLATFORMS should have entries for all gateway platforms."""
-        from sparkii_cli.tools_config import PLATFORMS as TOOLS_PLATFORMS
+        from core.tools_config import PLATFORMS as TOOLS_PLATFORMS
         from sparkii_cli.skills_config import PLATFORMS as SKILLS_PLATFORMS
 
         non_messaging = {"api_server"}
@@ -308,13 +308,13 @@ class TestAgentBrowserPostSetup:
         Chromium-branch tests never bootstrap uv / hit the network, and so
         their print/subprocess assertions stay scoped to the agent-browser
         logic under test."""
-        with patch("sparkii_cli.tools_config._ensure_browser_use_cli") as stub:
+        with patch("core.tools_config._ensure_browser_use_cli") as stub:
             yield stub
 
     def test_warns_when_neither_npx_nor_agent_browser_on_path(self):
         with patch("shutil.which", return_value=None), patch(
             "subprocess.run"
-        ) as run, patch("sparkii_cli.tools_config._print_warning") as warn:
+        ) as run, patch("core.tools_config._print_warning") as warn:
             _run_post_setup("agent_browser")
 
         run.assert_not_called()
@@ -342,7 +342,7 @@ class TestAgentBrowserPostSetup:
         ) as run, patch(
             "tools.browser_tool._chromium_installed", return_value=True
         ), patch(
-            "sparkii_cli.tools_config._print_success"
+            "core.tools_config._print_success"
         ) as success:
             _run_post_setup("agent_browser")
 
@@ -360,7 +360,7 @@ class TestAgentBrowserPostSetup:
         ), patch(
             "tools.browser_tool._running_in_docker", return_value=True
         ), patch(
-            "sparkii_cli.tools_config._print_warning"
+            "core.tools_config._print_warning"
         ) as warn:
             _run_post_setup("agent_browser")
 
@@ -381,7 +381,7 @@ class TestAgentBrowserPostSetup:
             "tools.browser_tool._find_agent_browser",
             side_effect=FileNotFoundError("agent-browser CLI not found"),
         ), patch(
-            "sparkii_cli.tools_config._print_warning"
+            "core.tools_config._print_warning"
         ) as warn:
             _run_post_setup("agent_browser")
 
@@ -408,7 +408,7 @@ class TestAgentBrowserPostSetup:
         ), patch(
             "tools.browser_tool._find_agent_browser", return_value="npx agent-browser"
         ), patch(
-            "sparkii_cli.tools_config._print_success"
+            "core.tools_config._print_success"
         ):
             run.return_value = SimpleNamespace(returncode=0, stdout="", stderr="")
             _run_post_setup("agent_browser")
@@ -436,7 +436,7 @@ class TestAgentBrowserPostSetup:
         ), patch(
             "tools.browser_tool._resolve_npx_bin", return_value=sparkii_npx
         ), patch(
-            "sparkii_cli.tools_config._print_success"
+            "core.tools_config._print_success"
         ):
             run.return_value = SimpleNamespace(returncode=0, stdout="", stderr="")
             _run_post_setup("agent_browser")
@@ -462,7 +462,7 @@ class TestAgentBrowserPostSetup:
         ), patch(
             "tools.browser_tool._resolve_npx_bin", return_value=None
         ), patch(
-            "sparkii_cli.tools_config._print_warning"
+            "core.tools_config._print_warning"
         ) as warn:
             _run_post_setup("agent_browser")  # must not raise
 
@@ -483,7 +483,7 @@ class TestAgentBrowserPostSetup:
             "tools.browser_tool._find_agent_browser",
             return_value="/usr/local/bin/agent-browser",
         ), patch(
-            "sparkii_cli.tools_config._print_success"
+            "core.tools_config._print_success"
         ):
             run.return_value = SimpleNamespace(returncode=0, stdout="", stderr="")
             _run_post_setup("agent_browser")
@@ -508,7 +508,7 @@ class TestAgentBrowserPostSetup:
         ), patch(
             "tools.browser_tool._find_agent_browser", return_value="npx agent-browser"
         ), patch(
-            "sparkii_cli.tools_config._print_success"
+            "core.tools_config._print_success"
         ):
             _bt._cached_chromium_installed = True
             _run_post_setup("agent_browser")
@@ -535,9 +535,9 @@ class TestAgentBrowserPostSetup:
         ), patch(
             "tools.browser_tool._find_agent_browser", return_value="npx agent-browser"
         ), patch(
-            "sparkii_cli.tools_config._print_warning"
+            "core.tools_config._print_warning"
         ) as warn, patch(
-            "sparkii_cli.tools_config._print_info"
+            "core.tools_config._print_info"
         ) as info:
             _bt._cached_chromium_installed = "sentinel"
             _run_post_setup("agent_browser")
@@ -561,7 +561,7 @@ class TestAgentBrowserPostSetup:
         ), patch(
             "tools.browser_tool._find_agent_browser", return_value="npx agent-browser"
         ), patch(
-            "sparkii_cli.tools_config._print_warning"
+            "core.tools_config._print_warning"
         ) as warn:
             _run_post_setup("agent_browser")  # must not raise
 
@@ -576,7 +576,7 @@ class TestBrowserUseCliInstalledForAllNonCamofoxBackends:
 
     @pytest.mark.parametrize("key", ["agent_browser", "browserbase", "browser_use_cli"])
     def test_browser_post_setup_attempts_cli_install(self, key):
-        with patch("sparkii_cli.tools_config._ensure_browser_use_cli") as ensure, patch(
+        with patch("core.tools_config._ensure_browser_use_cli") as ensure, patch(
             "shutil.which", return_value=None
         ), patch("subprocess.run"):
             _run_post_setup(key)
@@ -586,7 +586,7 @@ class TestBrowserUseCliInstalledForAllNonCamofoxBackends:
         """Camofox is Firefox-based with no CDP surface; the CDP-only
         browser-use harness cannot drive it, so its setup must not pull
         the CLI in."""
-        with patch("sparkii_cli.tools_config._ensure_browser_use_cli") as ensure, patch(
+        with patch("core.tools_config._ensure_browser_use_cli") as ensure, patch(
             "sparkii_constants.find_node_executable", return_value=None
         ), patch("subprocess.run"):
             _run_post_setup("camofox")
@@ -597,12 +597,12 @@ class TestBrowserUseCliInstalledForAllNonCamofoxBackends:
         helper — install_cli() owns the managed-copy check and provisions
         $SPARKII_HOME/bin when only side installs exist."""
         with patch(
-            "sparkii_cli.tools_config.shutil.which", return_value="/usr/bin/browser-use"
+            "core.tools_config.shutil.which", return_value="/usr/bin/browser-use"
         ), patch(
             "tools.browser_use_cli.install_cli",
             return_value=(True, "browser-use CLI already installed (/managed/bin/browser-use)"),
         ) as install:
-            from sparkii_cli.tools_config import _ensure_browser_use_cli
+            from core.tools_config import _ensure_browser_use_cli
 
             _ensure_browser_use_cli()
         install.assert_called_once()
@@ -610,14 +610,14 @@ class TestBrowserUseCliInstalledForAllNonCamofoxBackends:
     def test_ensure_helper_install_failure_is_non_fatal(self):
         """A failed install must warn and fall back, never raise — the
         uvx zero-install path and the built-in tools remain available."""
-        from sparkii_cli.tools_config import _ensure_browser_use_cli
+        from core.tools_config import _ensure_browser_use_cli
 
         with patch(
-            "sparkii_cli.tools_config.shutil.which", return_value=None
+            "core.tools_config.shutil.which", return_value=None
         ), patch(
             "tools.browser_use_cli.install_cli",
             return_value=(False, "`uv tool install browser-use` failed:\nboom"),
-        ), patch("sparkii_cli.tools_config._print_warning") as warn:
+        ), patch("core.tools_config._print_warning") as warn:
             _ensure_browser_use_cli()  # must not raise
 
         assert any("failed" in c.args[0] for c in warn.call_args_list)
@@ -627,12 +627,12 @@ class TestImagegenBackendRegistry:
     """IMAGEGEN_BACKENDS tags drive the model picker flow in tools_config."""
 
     def test_fal_backend_registered(self):
-        from sparkii_cli.tools_config import IMAGEGEN_BACKENDS
+        from core.tools_config import IMAGEGEN_BACKENDS
         assert "fal" in IMAGEGEN_BACKENDS
 
     def test_fal_catalog_loads_lazily(self):
         """catalog_fn should defer import to avoid import cycles."""
-        from sparkii_cli.tools_config import IMAGEGEN_BACKENDS
+        from core.tools_config import IMAGEGEN_BACKENDS
         catalog, default = IMAGEGEN_BACKENDS["fal"]["catalog_fn"]()
         assert default == "fal-ai/flux-2/klein/9b"
         assert "fal-ai/flux-2/klein/9b" in catalog
@@ -641,7 +641,7 @@ class TestImagegenBackendRegistry:
     def test_image_gen_providers_tagged_with_fal_backend(self):
         """Both Nous Subscription and FAL.ai providers must carry the
         imagegen_backend tag so _configure_provider fires the picker."""
-        from sparkii_cli.tools_config import TOOL_CATEGORIES
+        from core.tools_config import TOOL_CATEGORIES
         providers = TOOL_CATEGORIES["image_gen"]["providers"]
         for p in providers:
             assert p.get("imagegen_backend") == "fal", (
@@ -654,10 +654,10 @@ class TestImagegenModelPicker:
     curses fallback semantics (returns default when stdin isn't a TTY)."""
 
     def test_picker_writes_chosen_model_to_config(self):
-        from sparkii_cli.tools_config import _configure_imagegen_model
+        from core.tools_config import _configure_imagegen_model
         config = {}
         # Force _prompt_choice to pick index 1 (second-in-ordered-list).
-        with patch("sparkii_cli.tools_config._prompt_choice", return_value=1):
+        with patch("core.tools_config._prompt_choice", return_value=1):
             _configure_imagegen_model("fal", config)
         # ordered[0] == current (default klein), ordered[1] == first non-default
         assert config["image_gen"]["model"] != "fal-ai/flux-2/klein/9b"
@@ -666,7 +666,7 @@ class TestImagegenModelPicker:
     def test_picker_with_gpt_image_does_not_prompt_quality(self):
         """GPT-Image quality is pinned to medium in the tool's defaults —
         no follow-up prompt, no config write for quality_setting."""
-        from sparkii_cli.tools_config import (
+        from core.tools_config import (
             _configure_imagegen_model,
             IMAGEGEN_BACKENDS,
         )
@@ -682,7 +682,7 @@ class TestImagegenModelPicker:
             return gpt_idx
 
         config = {}
-        with patch("sparkii_cli.tools_config._prompt_choice", side_effect=fake_prompt):
+        with patch("core.tools_config._prompt_choice", side_effect=fake_prompt):
             _configure_imagegen_model("fal", config)
 
         assert call_count["n"] == 1, (
@@ -695,16 +695,16 @@ class TestImagegenModelPicker:
     def test_picker_repairs_corrupt_config_section(self):
         """When image_gen is a non-dict (user-edit YAML), the picker should
         replace it with a fresh dict rather than crash."""
-        from sparkii_cli.tools_config import _configure_imagegen_model
+        from core.tools_config import _configure_imagegen_model
         config = {"image_gen": "some-garbage-string"}
-        with patch("sparkii_cli.tools_config._prompt_choice", return_value=0):
+        with patch("core.tools_config._prompt_choice", return_value=0):
             _configure_imagegen_model("fal", config)
         assert isinstance(config["image_gen"], dict)
         assert config["image_gen"]["model"] == "fal-ai/flux-2/klein/9b"
 
     def test_plugin_picker_falls_back_when_default_is_missing_from_catalog(self):
         """A stale cross-provider model must not become an unindexable row."""
-        from sparkii_cli.tools_config import _configure_imagegen_model_for_plugin
+        from core.tools_config import _configure_imagegen_model_for_plugin
 
         catalog = {
             "openai/gpt-5.4-image-2": {"strengths": "quality"},
@@ -713,10 +713,10 @@ class TestImagegenModelPicker:
         config = {"image_gen": {"model": "gpt-image-2-medium"}}
         with (
             patch(
-                "sparkii_cli.tools_config._plugin_image_gen_catalog",
+                "core.tools_config._plugin_image_gen_catalog",
                 return_value=(catalog, "also-missing"),
             ),
-            patch("sparkii_cli.tools_config._prompt_choice", return_value=0),
+            patch("core.tools_config._prompt_choice", return_value=0),
         ):
             _configure_imagegen_model_for_plugin("openrouter", config)
 
@@ -733,7 +733,7 @@ def test_get_effective_configurable_toolsets_dedupes_bundled_plugins():
     them twice — otherwise `sparkii tools` → "reconfigure existing" shows
     the same toolset two rows in a row.
     """
-    from sparkii_cli.tools_config import _get_effective_configurable_toolsets
+    from core.tools_config import _get_effective_configurable_toolsets
 
     all_ts = _get_effective_configurable_toolsets()
     keys = [ts_key for ts_key, _, _ in all_ts]
@@ -802,7 +802,7 @@ def test_kanban_not_reported_as_removed_in_diff():
 def test_vision_picker_custom_endpoint(tmp_path, monkeypatch):
     """Custom endpoint writes base_url+model to config and the key to env."""
     monkeypatch.setenv("SPARKII_HOME", str(tmp_path))
-    import sparkii_cli.tools_config as tc
+    import core.tools_config as tc
     from core.config import load_config
 
     seq = iter([2])  # Custom OpenAI-compatible endpoint
@@ -883,7 +883,7 @@ _requires_recently_shipped = pytest.mark.skipif(
 
 def _saved_list_from_before(platform="cli"):
     """A saved explicit list as it looked before the new toolsets existed."""
-    from sparkii_cli.tools_config import (
+    from core.tools_config import (
         _CONFIG_ONLY_TOOLSETS,
         _toolset_allowed_for_platform,
     )
@@ -924,7 +924,7 @@ def test_unchecking_the_new_toolset_sticks():
     decline instead of turning it back on."""
     config = {"platform_toolsets": {"cli": ["sparkii-cli"]}}
     enabled = _get_platform_tools(config, "cli", include_default_mcp_servers=False)
-    with patch("sparkii_cli.tools_config.save_config"):
+    with patch("core.tools_config.save_config"):
         _save_platform_tools(config, "cli", enabled - _RECENTLY_SHIPPED_TOOLSETS)
 
     reread = _get_platform_tools(config, "cli", include_default_mcp_servers=False)
@@ -1020,7 +1020,7 @@ def test_explicit_plugin_toolset_admitted_in_platform_toolsets(monkeypatch):
     # plugin being installed on disk. _get_plugin_toolset_keys() calls
     # discover_plugins(); we patch its source so the test is hermetic.
     import sparkii_cli.plugins as _plugins_mod
-    import sparkii_cli.tools_config as _tc_mod
+    import core.tools_config as _tc_mod
 
     class _StubMgr:
         _plugin_tool_names = {"dplat_call"}

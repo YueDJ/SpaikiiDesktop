@@ -24,17 +24,17 @@ def _inject_fake_sparkii_cli(monkeypatch):
     fake_config_mod = types.ModuleType("core.config")
     fake_config_mod.save_config = lambda c: None
 
-    fake_setup_mod = types.ModuleType("sparkii_cli.memory_setup")
+    fake_setup_mod = types.ModuleType("core.memory_setup")
     fake_setup_mod._curses_select = lambda *a, **kw: 0
     fake_setup_mod._prompt = lambda label, default=None, secret=False: default or ""
 
     fake_sparkii_cli = types.ModuleType("sparkii_cli")
     fake_core.config = fake_config_mod
-    fake_sparkii_cli.memory_setup = fake_setup_mod
+    fake_core.memory_setup = fake_setup_mod
 
     monkeypatch.setitem(sys.modules, "sparkii_cli", fake_sparkii_cli)
     monkeypatch.setitem(sys.modules, "core.config", fake_config_mod)
-    monkeypatch.setitem(sys.modules, "sparkii_cli.memory_setup", fake_setup_mod)
+    monkeypatch.setitem(sys.modules, "core.memory_setup", fake_setup_mod)
 
     monkeypatch.setattr("plugins.memory.mem0._setup._curses_select", lambda *a, **kw: 0)
     monkeypatch.setattr("plugins.memory.mem0._setup._prompt", lambda label, default=None, secret=False: default or "")

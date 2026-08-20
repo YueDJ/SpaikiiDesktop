@@ -32,7 +32,7 @@ class TestUnifiedDashboardRouting:
     def test_profile_launch_reexecs_machine_dashboard(self, main_mod, monkeypatch):
         monkeypatch.delenv("SPARKII_HOME", raising=False)
         monkeypatch.setattr(
-            "sparkii_cli.profiles.get_active_profile_name", lambda: "worker_x"
+            "core.profiles.get_active_profile_name", lambda: "worker_x"
         )
         monkeypatch.setattr(main_mod, "_dashboard_listening", lambda host, port: False)
         execs = []
@@ -68,7 +68,7 @@ class TestUnifiedDashboardRouting:
         loop. The guard keeps desktop pool backends per-profile."""
         monkeypatch.setenv("SPARKII_DESKTOP", "1")
         monkeypatch.setattr(
-            "sparkii_cli.profiles.get_active_profile_name", lambda: "worker_x"
+            "core.profiles.get_active_profile_name", lambda: "worker_x"
         )
         listening_calls = []
         monkeypatch.setattr(

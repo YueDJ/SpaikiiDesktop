@@ -186,7 +186,7 @@ class TestOneTurnNeverPersisted:
 
         import gateway.run as gateway_run
         from gateway.run import GatewayRunner
-        from sparkii_cli.model_switch import ModelSwitchResult
+        from core.model_switch import ModelSwitchResult
 
         sparkii_home = tmp_path / ".sparkii"
         sparkii_home.mkdir()
@@ -199,7 +199,7 @@ class TestOneTurnNeverPersisted:
         monkeypatch.setattr(gateway_run, "_sparkii_home", sparkii_home)
         monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
         monkeypatch.setattr(
-            "sparkii_cli.model_switch.switch_model",
+            "core.model_switch.switch_model",
             lambda **kw: ModelSwitchResult(
                 success=True,
                 new_model="gpt-5.5",

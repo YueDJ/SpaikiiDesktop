@@ -9,9 +9,9 @@ Without the strip, the SDK prepends its own ``/v1/messages`` path and
 requests hit ``https://opencode.ai/zen/go/v1/v1/messages`` — a double
 ``/v1`` that returns OpenCode's website 404 page with HTML body.
 
-``sparkii_cli.runtime_provider.resolve_runtime_provider`` already strips
+``core.runtime_provider.resolve_runtime_provider`` already strips
 ``/v1`` at fresh agent init (PR #4918), but the ``/model`` mid-session
-switch path in ``sparkii_cli.model_switch.switch_model`` was missing the
+switch path in ``core.model_switch.switch_model`` was missing the
 same logic — these tests guard against that regression.
 """
 
@@ -19,7 +19,7 @@ from unittest.mock import patch
 
 import pytest
 
-from sparkii_cli.model_switch import switch_model
+from core.model_switch import switch_model
 
 
 _MOCK_VALIDATION = {
@@ -46,10 +46,10 @@ def _run_opencode_switch(
     """
     effective_runtime_base = runtime_base_url or current_base_url
     with (
-        patch("sparkii_cli.model_switch.resolve_alias", return_value=None),
-        patch("sparkii_cli.model_switch.list_provider_models", return_value=[]),
+        patch("core.model_switch.resolve_alias", return_value=None),
+        patch("core.model_switch.list_provider_models", return_value=[]),
         patch(
-            "sparkii_cli.runtime_provider.resolve_runtime_provider",
+            "core.runtime_provider.resolve_runtime_provider",
             return_value={
                 "api_key": "sk-opencode-fake",
                 "base_url": effective_runtime_base,
@@ -57,12 +57,12 @@ def _run_opencode_switch(
             },
         ),
         patch(
-            "sparkii_cli.models.validate_requested_model",
+            "core.models.validate_requested_model",
             return_value=_MOCK_VALIDATION,
         ),
-        patch("sparkii_cli.model_switch.get_model_info", return_value=None),
-        patch("sparkii_cli.model_switch.get_model_capabilities", return_value=None),
-        patch("sparkii_cli.models.detect_provider_for_model", return_value=None),
+        patch("core.model_switch.get_model_info", return_value=None),
+        patch("core.model_switch.get_model_capabilities", return_value=None),
+        patch("core.models.detect_provider_for_model", return_value=None),
     ):
         return switch_model(
             raw_input=raw_input,

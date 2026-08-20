@@ -61,7 +61,7 @@ def _make_event(text):
 
 
 def _fake_switch_result(*, base_url="", api_mode=""):
-    from sparkii_cli.model_switch import ModelSwitchResult
+    from core.model_switch import ModelSwitchResult
 
     return ModelSwitchResult(
         success=True,
@@ -90,15 +90,15 @@ def _setup_isolated_home(tmp_path, monkeypatch, model_yaml_value, *, base_url=""
     monkeypatch.setattr(gateway_run, "_sparkii_home", sparkii_home)
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
     monkeypatch.setattr(
-        "sparkii_cli.model_switch.list_picker_providers",
+        "core.model_switch.list_picker_providers",
         lambda **kw: [{"slug": "custom", "name": "Custom", "models": ["local-llama"]}],
     )
     monkeypatch.setattr(
-        "sparkii_cli.model_switch.switch_model",
+        "core.model_switch.switch_model",
         lambda **kw: _fake_switch_result(base_url=base_url, api_mode=api_mode),
     )
     monkeypatch.setattr(
-        "sparkii_cli.model_switch.resolve_display_context_length",
+        "core.model_switch.resolve_display_context_length",
         lambda *a, **k: 8192,
     )
     monkeypatch.setattr("sparkii_constants.get_sparkii_home", lambda: sparkii_home)

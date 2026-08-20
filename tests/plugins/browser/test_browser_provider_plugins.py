@@ -288,7 +288,7 @@ class TestPickerIntegration:
 
     def test_picker_rows_match_registered_plugins(self) -> None:
         _ensure_plugins_loaded()
-        from sparkii_cli.tools_config import _plugin_browser_providers
+        from core.tools_config import _plugin_browser_providers
 
         rows = _plugin_browser_providers()
         names = sorted(r.get("browser_provider") for r in rows)

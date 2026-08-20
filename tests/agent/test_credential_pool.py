@@ -1392,7 +1392,7 @@ def test_load_pool_seeds_copilot_via_gh_auth_token(tmp_path, monkeypatch):
     _write_auth_store(tmp_path, {"version": 1, "credential_pool": {}})
 
     monkeypatch.setattr(
-        "sparkii_cli.copilot_auth.resolve_copilot_token",
+        "core.copilot_auth.resolve_copilot_token",
         lambda: ("gho_fake_token_abc123", "gh auth token"),
     )
 
@@ -1428,7 +1428,7 @@ def test_load_pool_skips_exchange_for_suppressed_copilot(tmp_path, monkeypatch):
     )
 
     monkeypatch.setattr(
-        "sparkii_cli.copilot_auth.resolve_copilot_token",
+        "core.copilot_auth.resolve_copilot_token",
         lambda: ("gho_fake_token_abc123", "gh auth token"),
     )
 
@@ -1440,7 +1440,7 @@ def test_load_pool_skips_exchange_for_suppressed_copilot(tmp_path, monkeypatch):
         raise AssertionError("exchange must not run for a suppressed source")
 
     monkeypatch.setattr(
-        "sparkii_cli.copilot_auth.get_copilot_api_token",
+        "core.copilot_auth.get_copilot_api_token",
         _boom,
     )
 
@@ -1471,7 +1471,7 @@ def test_load_pool_respects_env_var_copilot_suppression(tmp_path, monkeypatch):
     )
 
     monkeypatch.setattr(
-        "sparkii_cli.copilot_auth.resolve_copilot_token",
+        "core.copilot_auth.resolve_copilot_token",
         lambda: ("gho_fake_token_env", "GH_TOKEN"),
     )
 
@@ -1483,7 +1483,7 @@ def test_load_pool_respects_env_var_copilot_suppression(tmp_path, monkeypatch):
         raise AssertionError("exchange must not run for a suppressed env source")
 
     monkeypatch.setattr(
-        "sparkii_cli.copilot_auth.get_copilot_api_token",
+        "core.copilot_auth.get_copilot_api_token",
         _boom,
     )
 
@@ -1511,11 +1511,11 @@ def test_load_pool_gh_cli_suppression_does_not_block_env_tokens(tmp_path, monkey
     )
 
     monkeypatch.setattr(
-        "sparkii_cli.copilot_auth.resolve_copilot_token",
+        "core.copilot_auth.resolve_copilot_token",
         lambda: ("gho_fake_token_env", "GH_TOKEN"),
     )
     monkeypatch.setattr(
-        "sparkii_cli.copilot_auth.get_copilot_api_token",
+        "core.copilot_auth.get_copilot_api_token",
         lambda token: ("capi_exchanged_token", None),
     )
 
@@ -1529,7 +1529,7 @@ def test_load_pool_skips_resolve_when_all_copilot_sources_suppressed(tmp_path, m
     """With every copilot source suppressed, resolve_copilot_token (which
     shells out to ``gh auth token``) must not run at all."""
     monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "sparkii"))
-    from sparkii_cli.copilot_auth import COPILOT_ENV_VARS
+    from core.copilot_auth import COPILOT_ENV_VARS
     _write_auth_store(
         tmp_path,
         {
@@ -1544,7 +1544,7 @@ def test_load_pool_skips_resolve_when_all_copilot_sources_suppressed(tmp_path, m
     def _boom():
         raise AssertionError("resolve_copilot_token must not run when all sources are suppressed")
 
-    monkeypatch.setattr("sparkii_cli.copilot_auth.resolve_copilot_token", _boom)
+    monkeypatch.setattr("core.copilot_auth.resolve_copilot_token", _boom)
 
     from agent.credential_pool import load_pool
     pool = load_pool("copilot")

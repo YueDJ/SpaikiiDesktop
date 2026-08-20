@@ -24,7 +24,7 @@ def _write_skill(skills_dir, name, description="test skill"):
 def isolated_profiles(tmp_path, monkeypatch, _isolate_sparkii_home):
     """Isolated default home + one named profile, each with its own skills."""
     from sparkii_constants import get_sparkii_home
-    from sparkii_cli import profiles
+    from core import profiles
 
     default_home = get_sparkii_home()
     profiles_root = default_home / "profiles"

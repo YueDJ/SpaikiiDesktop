@@ -5,8 +5,8 @@ from __future__ import annotations
 import json
 from unittest.mock import MagicMock
 
-import sparkii_cli.models as models_mod
-from sparkii_cli.models import (
+import core.models as models_mod
+from core.models import (
     compute_sale_discount,
     fetch_models_with_pricing,
 )

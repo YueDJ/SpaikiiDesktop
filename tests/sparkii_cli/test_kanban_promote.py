@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 
 from sparkii_cli import kanban as kb_cli
-from sparkii_cli import kanban_db as kb
+from core import kanban_db as kb
 
 
 @pytest.fixture

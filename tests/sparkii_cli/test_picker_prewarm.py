@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-import sparkii_cli.model_switch as ms
+import core.model_switch as ms
 
 
 def _reset_guard():
@@ -70,8 +70,8 @@ def test_prewarm_warms_the_active_custom_endpoint_for_the_next_open(monkeypatch)
     ever probed live at most once, and every open after that first probe is
     served from the disk cache with zero additional network calls.
     """
-    import sparkii_cli.inventory as inventory_mod
-    import sparkii_cli.models as models_mod
+    import core.inventory as inventory_mod
+    import core.models as models_mod
 
     _reset_guard()
 

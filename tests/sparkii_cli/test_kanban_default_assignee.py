@@ -23,7 +23,7 @@ def isolated_kanban_home(monkeypatch):
     for mod in list(sys.modules.keys()):
         if mod.startswith("sparkii_cli") or mod.startswith("sparkii_state") or mod == "sparkii_constants":
             del sys.modules[mod]
-    from sparkii_cli import kanban_db
+    from core import kanban_db
     yield kanban_db, test_home
     # Cleanup is best-effort; tempfile dir survives but pytest isolation
     # gives each test its own monkeypatched SPARKII_HOME so no cross-test

@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-from sparkii_cli import kanban_db as kb
+from core import kanban_db as kb
 from sparkii_cli.plugins import VALID_HOOKS, get_plugin_manager
 
 WORKER_HOOKS = (
@@ -189,7 +189,7 @@ def test_no_subscriber_short_circuits_worker_hooks(
     kanban_home, all_assignees_spawnable, monkeypatch,
 ):
     """With nothing registered, the new observers are never invoked at all."""
-    from sparkii_cli import lifecycle
+    from core import plugins as lifecycle
 
     invoked: list[str] = []
     real_invoke = lifecycle.invoke_hook

@@ -50,7 +50,7 @@ def test_computer_use_rejects_removed_browser_approve_command() -> None:
 def test_computer_use_status_returns_zero_for_compatible_driver(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from sparkii_cli import tools_config
+    from core import tools_config
     from tools.computer_use import cua_backend
 
     driver = r"C:\Users\tester\.local\bin\cua-driver.exe"
@@ -86,7 +86,7 @@ def test_computer_use_status_returns_nonzero_for_incompatible_standard_driver(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    from sparkii_cli import tools_config
+    from core import tools_config
     from tools.computer_use import cua_backend
 
     driver = r"C:\Users\tester\.local\bin\cua-driver.exe"
@@ -111,7 +111,7 @@ def test_computer_use_status_returns_nonzero_for_incompatible_custom_driver(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    from sparkii_cli import tools_config
+    from core import tools_config
     from tools.computer_use import cua_backend
 
     driver = r"C:\custom\cmd.exe"
@@ -135,7 +135,7 @@ def test_computer_use_install_checks_resulting_runtime_contract(
     ready: bool,
     expected: int,
 ) -> None:
-    from sparkii_cli import tools_config
+    from core import tools_config
 
     install = Mock(return_value=True)
     monkeypatch.setattr(tools_config, "install_cua_driver", install)
@@ -152,7 +152,7 @@ def test_computer_use_install_checks_resulting_runtime_contract(
 def test_computer_use_install_returns_nonzero_for_unrepairable_custom_override(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from sparkii_cli import tools_config
+    from core import tools_config
 
     driver = r"C:\custom\cmd.exe"
     monkeypatch.setenv("SPARKII_CUA_DRIVER_CMD", driver)

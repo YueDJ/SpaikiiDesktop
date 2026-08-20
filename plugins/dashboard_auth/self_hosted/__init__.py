@@ -87,7 +87,7 @@ from typing import Any, Dict, Optional
 
 import httpx
 
-from sparkii_cli.dashboard_auth import (
+from core.dashboard_auth import (
     DashboardAuthProvider,
     InvalidCodeError,
     LoginStart,

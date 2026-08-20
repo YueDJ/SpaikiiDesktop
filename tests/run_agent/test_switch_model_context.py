@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from sparkii_cli.models import LMStudioLoadResult
+from core.models import LMStudioLoadResult
 from run_agent import AIAgent
 from agent.agent_init import _normalize_route_base_url
 from agent.context_compressor import ContextCompressor

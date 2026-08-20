@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from agent import account_usage
+from sparkii_cli import account_usage
 
 
 class _FakeResponse:

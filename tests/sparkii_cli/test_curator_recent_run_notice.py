@@ -29,7 +29,7 @@ def curator_env(tmp_path, monkeypatch, capsys):
 
     import sparkii_constants
     importlib.reload(sparkii_constants)
-    from agent import curator
+    from sparkii_cli import curator
     importlib.reload(curator)
     from sparkii_cli import main as sparkii_main
     importlib.reload(sparkii_main)

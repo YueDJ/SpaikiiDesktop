@@ -18,7 +18,7 @@ import time
 import pytest
 
 import agent.model_metadata as model_meta_mod
-from sparkii_cli import model_switch
+from core import model_switch
 
 PROBE_SECONDS = 0.4
 

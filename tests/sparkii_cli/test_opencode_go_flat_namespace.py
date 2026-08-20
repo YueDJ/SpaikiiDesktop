@@ -23,8 +23,8 @@ Two bugs this exercises:
 
 from unittest.mock import patch
 
-from sparkii_cli.model_normalize import normalize_model_for_provider
-from sparkii_cli.model_switch import switch_model
+from core.model_normalize import normalize_model_for_provider
+from core.model_switch import switch_model
 
 
 # Live catalog opencode-go currently returns from /v1/models (snapshot).
@@ -78,7 +78,7 @@ def _run_switch(raw_input: str, **extra):
         return []
 
     with patch(
-        "sparkii_cli.model_switch.list_provider_models",
+        "core.model_switch.list_provider_models",
         side_effect=fake_list_provider_models,
     ):
         return switch_model(raw_input=raw_input, **defaults)

@@ -2745,3 +2745,10 @@ def _apply_env_overrides(config: GatewayConfig) -> None:
 
     for platform_config in config.platforms.values():
         platform_config.extra.pop("_enabled_explicit", None)
+
+
+# Block 4: expose the parsed gateway config to core-adjacent consumers
+# (plugins/kanban, plugins/memory/honcho) without them importing this package.
+from core.config import set_gateway_config_reader  # noqa: E402
+
+set_gateway_config_reader(load_gateway_config)

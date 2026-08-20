@@ -215,7 +215,7 @@ def check_video_generation_requirements() -> bool:
     """
     try:
         from agent.video_gen_registry import list_providers
-        from sparkii_cli.plugins import _ensure_plugins_discovered
+        from core.plugins import _ensure_plugins_discovered
 
         _ensure_plugins_discovered()
         for provider in list_providers():
@@ -242,7 +242,7 @@ def _resolve_active_provider():
     """
     try:
         from agent.video_gen_registry import get_active_provider
-        from sparkii_cli.plugins import _ensure_plugins_discovered
+        from core.plugins import _ensure_plugins_discovered
 
         _ensure_plugins_discovered()
         provider = get_active_provider()

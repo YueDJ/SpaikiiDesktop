@@ -17,7 +17,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from sparkii_cli.memory_setup import _CANCELLED
+from core.memory_setup import _CANCELLED
 from plugins.memory.hindsight import (
     HindsightMemoryProvider,
     RECALL_SCHEMA,
@@ -381,7 +381,7 @@ class TestPostSetup:
         save_config = MagicMock()
         which = MagicMock(return_value="/usr/bin/uv")
         run = MagicMock()
-        monkeypatch.setattr("sparkii_cli.memory_setup._curses_select", lambda *args, **kwargs: _CANCELLED)
+        monkeypatch.setattr("core.memory_setup._curses_select", lambda *args, **kwargs: _CANCELLED)
         monkeypatch.setattr("shutil.which", which)
         monkeypatch.setattr("subprocess.run", run)
         monkeypatch.setattr("builtins.input", MagicMock(side_effect=AssertionError("prompt should not run")))
@@ -406,7 +406,7 @@ class TestPostSetup:
         monkeypatch.setenv("HOME", str(user_home))
 
         selections = iter([1, 0])  # local_embedded, openai
-        monkeypatch.setattr("sparkii_cli.memory_setup._curses_select", lambda *args, **kwargs: next(selections))
+        monkeypatch.setattr("core.memory_setup._curses_select", lambda *args, **kwargs: next(selections))
         monkeypatch.setattr("shutil.which", lambda name: None)
         monkeypatch.setattr("builtins.input", lambda prompt="": "")
         monkeypatch.setattr("sys.stdin.isatty", lambda: True)
@@ -1471,7 +1471,7 @@ class TestPostSetupEnvEncoding:
         """Drive post_setup through the cloud path with piped stdin."""
         import io
 
-        monkeypatch.setattr("sparkii_cli.memory_setup._curses_select",
+        monkeypatch.setattr("core.memory_setup._curses_select",
                             lambda *a, **kw: 0)  # cloud mode
         monkeypatch.setattr("core.config.save_config", lambda c: None)
         # Skip the dependency install (now routed through lazy_deps, NS-605).

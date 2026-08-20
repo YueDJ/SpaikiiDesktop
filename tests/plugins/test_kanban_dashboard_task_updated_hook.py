@@ -17,7 +17,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from sparkii_cli import kanban_db as kb
+from core import kanban_db as kb
 from sparkii_cli.plugins import get_plugin_manager
 
 

@@ -81,7 +81,7 @@ class ChronosCronScheduler(CronScheduler):
         refresh-aware token is resolved lazily at provision time.
         """
         try:
-            from sparkii_cli.auth import get_provider_auth_state
+            from core.credentials import get_provider_auth_state
             state = get_provider_auth_state("nous") or {}
             return bool(state.get("access_token"))
         except Exception:

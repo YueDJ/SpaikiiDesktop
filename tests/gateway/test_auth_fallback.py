@@ -43,7 +43,7 @@ class TestResolveRuntimeAgentKwargsAuthFallback:
             }
 
         with patch(
-            "sparkii_cli.runtime_provider.resolve_runtime_provider",
+            "core.runtime_provider.resolve_runtime_provider",
             side_effect=_mock_resolve,
         ):
             from gateway.run import _resolve_runtime_agent_kwargs

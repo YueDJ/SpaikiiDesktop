@@ -34,7 +34,7 @@ def curator_status_env(tmp_path, monkeypatch):
     importlib.reload(sparkii_constants)
     from tools import skill_usage
     importlib.reload(skill_usage)
-    from agent import curator
+    from sparkii_cli import curator
     importlib.reload(curator)
     from sparkii_cli import curator as curator_cli
     importlib.reload(curator_cli)
@@ -122,5 +122,4 @@ def test_list_unmanaged_itemizes_and_explains(curator_status_env):
     assert "managed-one" not in out
     assert "no marker" in out or "created_by:null" in out
     assert "curator adopt" in out
-
 

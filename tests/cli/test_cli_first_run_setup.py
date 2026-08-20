@@ -66,7 +66,7 @@ def test_credentials_ready_false_when_no_provider(monkeypatch):
     def _raise(**kwargs):
         raise AuthError("No inference provider configured.", code="no_provider_configured")
 
-    monkeypatch.setattr("sparkii_cli.runtime_provider.resolve_runtime_provider", _raise)
+    monkeypatch.setattr("core.runtime_provider.resolve_runtime_provider", _raise)
     shell = _make_shell(cli, monkeypatch)
     assert shell._runtime_credentials_ready() is False
 
@@ -76,7 +76,7 @@ def test_credentials_ready_false_on_empty_openrouter_key(monkeypatch):
     cli = _import_cli()
 
     monkeypatch.setattr(
-        "sparkii_cli.runtime_provider.resolve_runtime_provider",
+        "core.runtime_provider.resolve_runtime_provider",
         lambda **kw: {
             "provider": "openrouter",
             "api_key": "",
@@ -92,7 +92,7 @@ def test_credentials_ready_true_with_key(monkeypatch):
     cli = _import_cli()
 
     monkeypatch.setattr(
-        "sparkii_cli.runtime_provider.resolve_runtime_provider",
+        "core.runtime_provider.resolve_runtime_provider",
         lambda **kw: {
             "provider": "openrouter",
             "api_key": "sk-test",
@@ -109,7 +109,7 @@ def test_credentials_ready_true_for_keyless_local_endpoint(monkeypatch):
     cli = _import_cli()
 
     monkeypatch.setattr(
-        "sparkii_cli.runtime_provider.resolve_runtime_provider",
+        "core.runtime_provider.resolve_runtime_provider",
         lambda **kw: {
             "provider": "custom",
             "api_key": "",
@@ -125,7 +125,7 @@ def test_credentials_ready_true_for_callable_bearer_provider(monkeypatch):
     cli = _import_cli()
 
     monkeypatch.setattr(
-        "sparkii_cli.runtime_provider.resolve_runtime_provider",
+        "core.runtime_provider.resolve_runtime_provider",
         lambda **kw: {
             "provider": "azure-foundry",
             "api_key": lambda: "tok",
@@ -143,7 +143,7 @@ def test_credentials_ready_never_prints(monkeypatch, capsys):
     def _raise(**kwargs):
         raise AuthError("No inference provider configured.", code="no_provider_configured")
 
-    monkeypatch.setattr("sparkii_cli.runtime_provider.resolve_runtime_provider", _raise)
+    monkeypatch.setattr("core.runtime_provider.resolve_runtime_provider", _raise)
     shell = _make_shell(cli, monkeypatch)
     capsys.readouterr()  # drain construction output
     shell._runtime_credentials_ready()
@@ -173,7 +173,7 @@ def test_offer_first_run_setup_routes_into_shared_picker(monkeypatch):
         lambda: {"model": {"provider": "nous", "default": "sparkii-4-405b"}},
     )
     monkeypatch.setattr(
-        "sparkii_cli.runtime_provider.resolve_runtime_provider",
+        "core.runtime_provider.resolve_runtime_provider",
         lambda **kw: {
             "provider": "nous",
             "api_key": "portal-token",
@@ -224,7 +224,7 @@ def test_empty_key_error_names_actual_provider(monkeypatch, capsys):
     cli = _import_cli()
 
     monkeypatch.setattr(
-        "sparkii_cli.runtime_provider.resolve_runtime_provider",
+        "core.runtime_provider.resolve_runtime_provider",
         lambda **kw: {
             "provider": "fireworks",
             "api_key": "",
@@ -236,7 +236,7 @@ def test_empty_key_error_names_actual_provider(monkeypatch, capsys):
     # A custom base_url would get the no-key placeholder; force the
     # openrouter-shaped branch by pointing base_url at openrouter.
     monkeypatch.setattr(
-        "sparkii_cli.runtime_provider.resolve_runtime_provider",
+        "core.runtime_provider.resolve_runtime_provider",
         lambda **kw: {
             "provider": "fireworks",
             "api_key": "",

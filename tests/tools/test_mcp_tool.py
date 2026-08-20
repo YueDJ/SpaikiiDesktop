@@ -142,8 +142,8 @@ class TestLoadMCPConfig:
         manager = SimpleNamespace(get_portable_mcp_servers=lambda: portable)
         with (
             patch("core.config.load_config", return_value={"mcp_servers": native}),
-            patch("sparkii_cli.plugins.discover_plugins"),
-            patch("sparkii_cli.plugins.get_plugin_manager", return_value=manager),
+            patch("core.plugins.discover_plugins"),
+            patch("core.plugins.get_plugin_manager", return_value=manager),
             patch.dict(os.environ, {"PORT": "3000"}),
         ):
             from tools.mcp_tool import _load_mcp_config
@@ -159,7 +159,7 @@ class TestLoadMCPConfig:
         import json
         import yaml
         from sparkii_cli.agent_plugins import MCP_SCHEMA_V1, PLUGIN_SCHEMA_V1
-        from sparkii_cli import plugins as plugins_mod
+        from core import plugins as plugins_mod
 
         home = tmp_path / "home"
         plugin = home / "plugins" / "portable"

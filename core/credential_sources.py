@@ -1,6 +1,7 @@
 """Credential-source suppression markers for Sparkii core.
 
-Extracted verbatim from ``sparkii_cli.auth`` during the Phase 0 trim.  A user can
+Extracted verbatim from ``sparkii_cli.auth`` (now ``core.credentials``) during
+the Phase 0 trim.  A user can
 suppress a credential source (e.g. an env var) so it is not re-seeded into the
 credential pool on the next load.
 """

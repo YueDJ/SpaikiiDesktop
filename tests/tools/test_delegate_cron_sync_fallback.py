@@ -122,7 +122,7 @@ def test_cron_sync_fallback_returns_and_spawns_no_review_fork(monkeypatch):
     # from module globals at call time, so this records (and wedges) the
     # review replay without touching the child's own code paths.
     monkeypatch.setattr(
-        "agent.background_review._run_review_in_thread", _recording_review
+        "sparkii_cli.background_review._run_review_in_thread", _recording_review
     )
 
     done: dict = {}

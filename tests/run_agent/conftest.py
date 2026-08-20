@@ -22,6 +22,19 @@ from __future__ import annotations
 
 import pytest
 
+# Register the product-layer background-review provider once for the whole
+# test session: the core AIAgent gets the review harness injected rather than
+# importing it (dependency inversion). Registration is session-stable — like
+# the CLI/gateway/TUI surfaces — so every test in this directory sees the
+# provider regardless of collection order.
+try:
+    from run_agent import set_background_review_provider
+    from sparkii_cli.background_review import build_background_review_provider
+
+    set_background_review_provider(build_background_review_provider())
+except Exception:
+    pass
+
 
 @pytest.fixture(autouse=True)
 def _fast_retry_backoff(monkeypatch):

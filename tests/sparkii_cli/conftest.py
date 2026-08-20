@@ -15,7 +15,7 @@ def all_assignees_spawnable(monkeypatch):
     those tasks into ``skipped_nonspawnable`` instead of spawning, which
     would break tests that assert spawn behavior.
     """
-    from sparkii_cli import profiles
+    from core import profiles
     monkeypatch.setattr(profiles, "profile_exists", lambda name: True)
 
 

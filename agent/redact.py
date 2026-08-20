@@ -12,6 +12,7 @@ import os
 import re
 import shlex
 import threading
+from typing import Any
 from urllib.parse import unquote_plus
 
 # Basenames treated as ``.env`` files by _command_reads_env_file. Imported
@@ -22,6 +23,62 @@ from urllib.parse import unquote_plus
 from agent.file_safety import _BLOCKED_PROJECT_ENV_BASENAMES as _ENV_FILE_BASENAMES
 
 logger = logging.getLogger(__name__)
+
+
+def redact_browser_typed_text_for_display(value: Any, typed_text: Any) -> Any:
+    """Apply secret redaction to browser_type text in display-facing payloads.
+
+    Backends sometimes echo the attempted input in error strings or fallback
+    metadata.  When the raw typed value contains a recognizable secret (API
+    key, token, JWT, etc.) the redacted form differs from the raw value, so we
+    replace every occurrence of the raw value with its redacted form before a
+    browser_type result reaches logs, callbacks, the model, or chat history.
+
+    Normal typed text (search queries, addresses, form fields) matches no
+    secret pattern, so it passes through unchanged and stays readable.
+
+    Redaction is forced here regardless of the global ``security.redact_secrets``
+    preference: a typed credential leaking into chat history is a security
+    boundary, not mere log hygiene.
+    """
+    if typed_text is None:
+        return value
+    needle = str(typed_text)
+    if needle == "":
+        return value
+    redacted = redact_sensitive_text(needle, force=True)
+    if redacted == needle:
+        # Nothing secret-looking in the typed text; leave payload untouched.
+        return value
+    if isinstance(value, str):
+        return value.replace(needle, redacted)
+    if isinstance(value, dict):
+        return {
+            key: redact_browser_typed_text_for_display(item, typed_text)
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [redact_browser_typed_text_for_display(item, typed_text) for item in value]
+    if isinstance(value, tuple):
+        return tuple(redact_browser_typed_text_for_display(item, typed_text) for item in value)
+    return value
+
+
+def redact_tool_args_for_display(tool_name: str, args: dict | None) -> dict | None:
+    """Return a copy of tool args safe for logs/progress UI.
+
+    For ``browser_type`` the ``text`` argument is run through the same
+    secret-pattern redactor used for logs.  Recognizable credentials (API
+    keys, tokens) are masked before the value reaches tool progress
+    notifications; normal typed text is left intact for debuggability.
+    """
+    if not isinstance(args, dict):
+        return args
+    if tool_name == "browser_type" and isinstance(args.get("text"), str):
+        safe_args = dict(args)
+        safe_args["text"] = redact_sensitive_text(args["text"], force=True)
+        return safe_args
+    return args
 
 # Sensitive query-string parameter names (case-insensitive exact match).
 # Ported from nearai/ironclaw#2529 — catches tokens whose values don't match

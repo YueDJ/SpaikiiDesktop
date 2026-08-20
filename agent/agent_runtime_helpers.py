@@ -2233,7 +2233,7 @@ def anthropic_prompt_cache_policy(
         try:
             from core.config import load_config as _load_moa_cfg
             from core.moa_config import resolve_moa_preset
-            from sparkii_cli.runtime_provider import resolve_runtime_provider
+            from core.runtime_provider import resolve_runtime_provider
 
             _preset = resolve_moa_preset(
                 _load_moa_cfg().get("moa") or {}, eff_model or None
@@ -2567,7 +2567,7 @@ def create_openai_client(agent, client_kwargs: dict, *, reason: str, shared: boo
     # keys — never override headers a caller deliberately set.
     try:
         if base_url_host_matches(str(client_kwargs.get("base_url", "")), "githubcopilot.com"):
-            from sparkii_cli.models import copilot_default_headers
+            from core.models import copilot_default_headers
             existing = dict(client_kwargs.get("default_headers") or {})
             existing_lower = {k.lower() for k in existing}
             for hk, hv in copilot_default_headers().items():
@@ -2602,7 +2602,7 @@ def switch_model(agent, new_model, new_provider, api_key='', base_url='', api_mo
     change persists across turns (unlike fallback which is
     turn-scoped).
     """
-    from sparkii_cli.providers import determine_api_mode
+    from core.providers import determine_api_mode
 
     # ── Determine api_mode if not provided ──
     # Pass model so dual-wire providers (Nous Portal anthropic/* → Messages)
@@ -2777,21 +2777,6 @@ def switch_model(agent, new_model, new_provider, api_key='', base_url='', api_mo
             # API key — falling back would send Anthropic credentials to third-party endpoints.
             _is_native_anthropic = new_provider == "anthropic"
             effective_key = (api_key or agent.api_key or resolve_anthropic_token() or "") if _is_native_anthropic else (api_key or agent.api_key or "")
-
-            # MiniMax OAuth: swap static string for a per-request callable token
-            # provider so the rebuilt client survives 15-min token expiry. See
-            # the matching block in agent_init.py for the full rationale.
-            if new_provider == "minimax-oauth" and isinstance(effective_key, str) and effective_key:
-                try:
-                    from sparkii_cli.auth import build_minimax_oauth_token_provider
-                    effective_key = build_minimax_oauth_token_provider()
-                except Exception as _mm_exc:  # noqa: BLE001
-                    import logging as _logging
-                    _logging.getLogger(__name__).warning(
-                        "MiniMax OAuth: failed to install per-request token provider "
-                        "on switch (%s); using static bearer.",
-                        _mm_exc,
-                    )
 
             agent.api_key = effective_key
             agent._anthropic_api_key = effective_key
@@ -3059,7 +3044,7 @@ def invoke_tool(agent, function_name: str, function_args: dict, effective_task_i
 
     _tool_middleware_trace = list(tool_request_middleware_trace or [])
     try:
-        from sparkii_cli.middleware import apply_tool_request_middleware
+        from core.middleware import apply_tool_request_middleware
 
         if not skip_tool_request_middleware:
             _tool_request_mw = apply_tool_request_middleware(
@@ -3080,7 +3065,7 @@ def invoke_tool(agent, function_name: str, function_args: dict, effective_task_i
     block_message: Optional[str] = None
     if not pre_tool_block_checked:
         try:
-            from sparkii_cli.plugins import _dispatch_pre_tool_call_hooks
+            from core.plugins import _dispatch_pre_tool_call_hooks
             block_message, modified_args = _dispatch_pre_tool_call_hooks(
                 function_name, function_args, task_id=effective_task_id or "",
                 session_id=getattr(agent, "session_id", "") or "",
@@ -3301,7 +3286,7 @@ def invoke_tool(agent, function_name: str, function_args: dict, effective_task_i
     if skip_tool_execution_middleware:
         return _execute(function_args)
 
-    from sparkii_cli.middleware import run_tool_execution_middleware
+    from core.middleware import run_tool_execution_middleware
 
     return run_tool_execution_middleware(
         function_name,

@@ -236,3 +236,12 @@ class PlatformActions:
             result.get("ok"),
             "" if result.get("ok") else f" error={result.get('error')}",
         )
+
+
+# Register the platform-actions facade with the core plugin loader.
+try:
+    from core.plugins import set_platform_actions_provider
+
+    set_platform_actions_provider(PlatformActions)
+except Exception:  # pragma: no cover - defensive
+    pass

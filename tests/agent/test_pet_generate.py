@@ -20,7 +20,7 @@ pytestmark = pytest.mark.skipif(
     ),
 )
 
-from agent.pet.generate import atlas
+from sparkii_cli.pet.generate import atlas
 
 PIL = pytest.importorskip("PIL")
 from PIL import Image, ImageDraw  # noqa: E402
@@ -157,7 +157,7 @@ def test_normalize_cells_uses_consistent_pose_scale_for_motion_rows():
 
 
 def test_slugify_and_unique_slug():
-    from agent.pet import store
+    from sparkii_cli.pet import store
 
     assert store.slugify("My Cool Pet!") == "my-cool-pet"
     assert store.slugify("   ") == "pet"
@@ -167,7 +167,7 @@ def test_slugify_and_unique_slug():
 
 
 def test_register_local_pet_appears_and_is_adoptable():
-    from agent.pet import store
+    from sparkii_cli.pet import store
 
     sheet = atlas.compose_atlas(_frames_for_all_states())
     pet = store.register_local_pet(sheet, slug="Sparky", display_name="Sparky", description="zappy")
@@ -185,7 +185,7 @@ def test_register_local_pet_is_generated_and_exports_zip():
     import io
     import zipfile
 
-    from agent.pet import store
+    from sparkii_cli.pet import store
 
     sheet = atlas.compose_atlas(_frames_for_all_states())
     store.register_local_pet(sheet, slug="zippy", display_name="Zippy")
@@ -209,7 +209,7 @@ def test_register_local_pet_is_generated_and_exports_zip():
 
 def test_generate_base_drafts_hardens_opaque_background(monkeypatch, tmp_path):
     """A provider that ignores background=transparent still yields a cutout."""
-    from agent.pet.generate import imagegen, orchestrate
+    from sparkii_cli.pet.generate import imagegen, orchestrate
 
     def fake_generate(prompt, *, n=1, reference_images=None, provider=None, prefix="pet", aspect_ratio="square"):
         # Solid-green backdrop with a blob — i.e. the provider painted a backdrop.
@@ -234,7 +234,7 @@ def test_generate_base_drafts_hardens_opaque_background(monkeypatch, tmp_path):
 def test_harden_transparency_removes_non_png_original(tmp_path):
     """A non-PNG base draft is replaced by a hardened PNG, and the original
     draft file is not left behind in the image cache."""
-    from agent.pet.generate import orchestrate
+    from sparkii_cli.pet.generate import orchestrate
 
     src = tmp_path / "pet_base_sample.webp"
     _strip(1).save(src, format="WEBP")
@@ -249,7 +249,7 @@ def test_harden_transparency_removes_non_png_original(tmp_path):
 def test_harden_transparency_keeps_png_input_in_place(tmp_path):
     """A PNG base draft is hardened in place, so the returned path is the input
     path and there is no separate original to remove."""
-    from agent.pet.generate import orchestrate
+    from sparkii_cli.pet.generate import orchestrate
 
     src = tmp_path / "pet_base_sample.png"
     _strip(1).save(src, format="PNG")
@@ -267,7 +267,7 @@ def test_harden_transparency_keeps_mixed_case_png_in_place(tmp_path):
     on case-insensitive filesystems (macOS APFS, Windows) both resolve to the
     same file. Unlinking the input after save would delete the hardened output.
     """
-    from agent.pet.generate import orchestrate
+    from sparkii_cli.pet.generate import orchestrate
 
     src = tmp_path / "pet_base_sample.PNG"
     _strip(1).save(src, format="PNG")
@@ -281,9 +281,9 @@ def test_harden_transparency_keeps_mixed_case_png_in_place(tmp_path):
 
 
 def test_hatch_pet_end_to_end(monkeypatch, tmp_path):
-    from agent.pet import store
-    from agent.pet.generate import atlas as atlas_mod
-    from agent.pet.generate import imagegen, orchestrate
+    from sparkii_cli.pet import store
+    from sparkii_cli.pet.generate import atlas as atlas_mod
+    from sparkii_cli.pet.generate import imagegen, orchestrate
 
     base = tmp_path / "base.png"
     _strip(1).save(base)
@@ -321,8 +321,8 @@ def test_hatch_pet_removes_row_strips_after_extraction(monkeypatch, tmp_path):
     """Row strips are intermediates. Once their frames are decoded, the strip
     files are removed so the image cache does not grow on every hatch (nothing
     prunes cache/images outside the gateway housekeeping loop)."""
-    from agent.pet.generate import atlas as atlas_mod
-    from agent.pet.generate import imagegen, orchestrate
+    from sparkii_cli.pet.generate import atlas as atlas_mod
+    from sparkii_cli.pet.generate import imagegen, orchestrate
 
     base = tmp_path / "base.png"
     _strip(1).save(base)
@@ -348,8 +348,8 @@ def test_hatch_pet_removes_row_strips_after_extraction(monkeypatch, tmp_path):
 
 
 def test_hatch_pet_removes_row_strips_after_failed_attempt(monkeypatch, tmp_path):
-    from agent.pet.generate import atlas as atlas_mod
-    from agent.pet.generate import imagegen, orchestrate
+    from sparkii_cli.pet.generate import atlas as atlas_mod
+    from sparkii_cli.pet.generate import imagegen, orchestrate
 
     base = tmp_path / "base.png"
     _strip(1).save(base)
@@ -386,9 +386,9 @@ def test_hatch_pet_removes_row_strips_after_failed_attempt(monkeypatch, tmp_path
 
 
 def test_hatch_pet_idle_fallback_when_row_fails(monkeypatch, tmp_path):
-    from agent.pet.generate import atlas as atlas_mod
-    from agent.pet.generate import imagegen, orchestrate
-    from agent.pet.generate.imagegen import GenerationError
+    from sparkii_cli.pet.generate import atlas as atlas_mod
+    from sparkii_cli.pet.generate import imagegen, orchestrate
+    from sparkii_cli.pet.generate.imagegen import GenerationError
 
     base = tmp_path / "base.png"
     _strip(1).save(base)
@@ -426,7 +426,7 @@ class _FakeImgProvider:
 
 def test_list_sprite_providers_marks_default(monkeypatch):
     """Lists only available ref-capable backends, flagging the default pick."""
-    from agent.pet.generate import imagegen
+    from sparkii_cli.pet.generate import imagegen
 
     registry = {"openai": _FakeImgProvider("openai"), "nous": _FakeImgProvider("nous")}
     monkeypatch.setattr(imagegen, "_discover", lambda: None)
@@ -446,7 +446,7 @@ def test_list_sprite_providers_marks_default(monkeypatch):
 
 def test_generate_retries_without_transparent_background(monkeypatch, tmp_path):
     """A model that rejects background=transparent still produces images."""
-    from agent.pet.generate import imagegen
+    from sparkii_cli.pet.generate import imagegen
 
     saved = tmp_path / "img.png"
     _strip(1).save(saved)

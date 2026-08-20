@@ -2445,7 +2445,7 @@ def test_load_enabled_toolsets_rejects_disabled_mcp_env(monkeypatch, capsys):
     # universe); `project` is GUI-only, folded in by _load_enabled_toolsets.
     # Toolsets inside their first release (_RECENTLY_SHIPPED_TOOLSETS) are
     # back-filled onto saved lists that never offered them — allow those too.
-    from sparkii_cli.tools_config import _RECENTLY_SHIPPED_TOOLSETS
+    from core.tools_config import _RECENTLY_SHIPPED_TOOLSETS
 
     result = server._load_enabled_toolsets()
     assert result is not None
@@ -2471,7 +2471,7 @@ def test_load_enabled_toolsets_falls_back_when_tui_env_invalid(monkeypatch, caps
         config_mod, "load_config", lambda: {"platform_toolsets": {"cli": ["memory"]}}
     )
 
-    from sparkii_cli.tools_config import _RECENTLY_SHIPPED_TOOLSETS
+    from core.tools_config import _RECENTLY_SHIPPED_TOOLSETS
 
     result = server._load_enabled_toolsets()
     assert result is not None
@@ -4156,10 +4156,10 @@ def test_apply_model_switch_persist_override_false_never_persists(monkeypatch):
         error_message="",
     )
     monkeypatch.setattr(
-        "sparkii_cli.model_switch.switch_model", lambda **kw: result
+        "core.model_switch.switch_model", lambda **kw: result
     )
     monkeypatch.setattr(
-        "sparkii_cli.model_switch.resolve_persist_behavior",
+        "core.model_switch.resolve_persist_behavior",
         lambda *a: pytest.fail("persist_override must bypass resolve_persist_behavior"),
     )
     monkeypatch.setattr(
@@ -4193,7 +4193,7 @@ def test_startup_runtime_does_not_treat_inference_provider_as_explicit(monkeypat
     monkeypatch.delenv("SPARKII_TUI_PROVIDER", raising=False)
     monkeypatch.setenv("SPARKII_INFERENCE_PROVIDER", "nous")
     monkeypatch.setattr(
-        "sparkii_cli.models.detect_static_provider_for_model",
+        "core.models.detect_static_provider_for_model",
         lambda model, provider: None,
     )
 
@@ -4212,7 +4212,7 @@ def test_startup_runtime_detects_provider_for_model_env(monkeypatch):
         return "anthropic", "anthropic/claude-sonnet-4.6"
 
     monkeypatch.setattr(
-        "sparkii_cli.models.detect_static_provider_for_model", fake_detect
+        "core.models.detect_static_provider_for_model", fake_detect
     )
 
     assert server._resolve_startup_runtime() == (
@@ -4269,7 +4269,7 @@ def test_make_agent_passes_configured_fallback_chain(monkeypatch):
         },
     )
     monkeypatch.setattr(
-        "sparkii_cli.runtime_provider.resolve_runtime_provider",
+        "core.runtime_provider.resolve_runtime_provider",
         lambda requested=None, target_model=None: {
             "provider": "openai-codex",
             "base_url": "https://chatgpt.com/backend-api/codex",
@@ -4338,7 +4338,7 @@ def test_startup_runtime_resolves_short_alias_without_network(monkeypatch):
     monkeypatch.delenv("SPARKII_INFERENCE_PROVIDER", raising=False)
     monkeypatch.setattr(server, "_load_cfg", lambda: {"model": {"provider": "auto"}})
     monkeypatch.setattr(
-        "sparkii_cli.models.fetch_openrouter_models",
+        "core.models.fetch_openrouter_models",
         lambda *_args, **_kwargs: (_ for _ in ()).throw(
             AssertionError("network lookup should not run")
         ),
@@ -4356,7 +4356,7 @@ def test_startup_runtime_does_not_call_network_detector(monkeypatch):
     monkeypatch.delenv("SPARKII_INFERENCE_PROVIDER", raising=False)
     monkeypatch.setattr(server, "_load_cfg", lambda: {"model": {"provider": "auto"}})
     monkeypatch.setattr(
-        "sparkii_cli.models.detect_provider_for_model",
+        "core.models.detect_provider_for_model",
         lambda *_args, **_kwargs: (_ for _ in ()).throw(
             AssertionError("network detector called")
         ),
@@ -7347,7 +7347,7 @@ def test_config_set_fast_updates_live_agent_session_scoped(monkeypatch):
     monkeypatch.setattr(server, "_session_info", lambda _agent, *a: {"model": "x"})
     monkeypatch.setattr(server, "_emit", lambda *args: emits.append(args))
     monkeypatch.setattr(
-        "sparkii_cli.models.resolve_fast_mode_overrides",
+        "core.models.resolve_fast_mode_overrides",
         lambda _model_id: {"service_tier": "priority"},
     )
 
@@ -7426,7 +7426,7 @@ def test_config_set_fast_rejects_unsupported_model(monkeypatch):
         server, "_write_config_key", lambda path, value: writes.append((path, value))
     )
     monkeypatch.setattr(
-        "sparkii_cli.models.resolve_fast_mode_overrides",
+        "core.models.resolve_fast_mode_overrides",
         lambda _model_id: None,
     )
 
@@ -7771,7 +7771,7 @@ def test_probe_credentials_allows_keyless_custom_runtime():
 def test_setup_runtime_check_rejects_empty_runtime_key(monkeypatch):
     monkeypatch.setattr("sparkii_cli.main._has_any_provider_configured", lambda: True)
     monkeypatch.setattr(
-        "sparkii_cli.runtime_provider.resolve_runtime_provider",
+        "core.runtime_provider.resolve_runtime_provider",
         lambda requested=None: {
             "provider": "openrouter",
             "api_key": "",
@@ -7793,7 +7793,7 @@ def test_setup_runtime_check_rejects_empty_runtime_key(monkeypatch):
 def test_setup_runtime_check_allows_no_key_custom_runtime(monkeypatch):
     monkeypatch.setattr("sparkii_cli.main._has_any_provider_configured", lambda: True)
     monkeypatch.setattr(
-        "sparkii_cli.runtime_provider.resolve_runtime_provider",
+        "core.runtime_provider.resolve_runtime_provider",
         lambda requested=None: {
             "provider": "custom",
             "api_key": "no-key-required",
@@ -7810,7 +7810,7 @@ def test_setup_runtime_check_allows_no_key_custom_runtime(monkeypatch):
 def test_setup_runtime_check_rejects_implicit_bedrock_when_unconfigured(monkeypatch):
     monkeypatch.setattr("sparkii_cli.main._has_any_provider_configured", lambda: False)
     monkeypatch.setattr(
-        "sparkii_cli.runtime_provider.resolve_runtime_provider",
+        "core.runtime_provider.resolve_runtime_provider",
         lambda requested=None: {
             "provider": "bedrock",
             "api_key": "aws-sdk",
@@ -7842,7 +7842,7 @@ def test_setup_runtime_check_honors_requested_provider(monkeypatch):
         }
 
     monkeypatch.setattr(
-        "sparkii_cli.runtime_provider.resolve_runtime_provider",
+        "core.runtime_provider.resolve_runtime_provider",
         fake_resolve,
     )
 
@@ -8266,7 +8266,7 @@ def test_config_set_model_requires_confirmation_for_expensive_model(monkeypatch)
     agent = _Agent()
     server._sessions["sid"] = _session(agent=agent)
     monkeypatch.setattr(
-        "sparkii_cli.model_switch.switch_model", lambda **_kwargs: result
+        "core.model_switch.switch_model", lambda **_kwargs: result
     )
     monkeypatch.setattr(server, "_restart_slash_worker", lambda sid, session: None)
     monkeypatch.setattr(server, "_emit", lambda *args, **kwargs: None)
@@ -8332,7 +8332,7 @@ def test_config_set_model_global_persists(monkeypatch):
         return result
 
     server._sessions["sid"] = _session(agent=_Agent())
-    monkeypatch.setattr("sparkii_cli.model_switch.switch_model", _switch_model)
+    monkeypatch.setattr("core.model_switch.switch_model", _switch_model)
     monkeypatch.setattr(server, "_restart_slash_worker", lambda sid, session: None)
     monkeypatch.setattr(server, "_emit", lambda *args, **kwargs: None)
     # _persist_model_switch uses targeted save_config_value writes (#48305) so it
@@ -8381,7 +8381,7 @@ def test_config_set_model_explicit_provider_skips_broken_default_init(monkeypatc
             }
         raise RuntimeError(f"unexpected provider {requested}")
 
-    monkeypatch.setattr("sparkii_cli.runtime_provider.resolve_runtime_provider", fake_runtime_provider)
+    monkeypatch.setattr("core.runtime_provider.resolve_runtime_provider", fake_runtime_provider)
 
     try:
         resp = server.handle_request(
@@ -8422,7 +8422,7 @@ def test_config_set_model_explicit_provider_surfaces_selected_provider_errors(mo
             raise RuntimeError("missing anthropic API key")
         raise RuntimeError(f"unexpected provider {requested}")
 
-    monkeypatch.setattr("sparkii_cli.runtime_provider.resolve_runtime_provider", fake_runtime_provider)
+    monkeypatch.setattr("core.runtime_provider.resolve_runtime_provider", fake_runtime_provider)
 
     try:
         resp = server.handle_request(
@@ -8480,7 +8480,7 @@ def test_config_set_model_does_not_leak_inference_provider_env(monkeypatch):
     server._sessions["sid"] = session
     monkeypatch.setenv("SPARKII_INFERENCE_PROVIDER", "openrouter")
     monkeypatch.setattr(
-        "sparkii_cli.model_switch.switch_model", lambda **_kwargs: result
+        "core.model_switch.switch_model", lambda **_kwargs: result
     )
     monkeypatch.setattr(server, "_restart_slash_worker", lambda sid, session: None)
     monkeypatch.setattr(server, "_emit", lambda *args, **kwargs: None)
@@ -8541,7 +8541,7 @@ def test_config_set_model_records_per_session_override_not_env(monkeypatch):
     monkeypatch.delenv("SPARKII_TUI_PROVIDER", raising=False)
     monkeypatch.delenv("SPARKII_INFERENCE_PROVIDER", raising=False)
     monkeypatch.setattr(
-        "sparkii_cli.model_switch.switch_model", lambda **_kwargs: result
+        "core.model_switch.switch_model", lambda **_kwargs: result
     )
     monkeypatch.setattr(server, "_restart_slash_worker", lambda sid, session: None)
     monkeypatch.setattr(server, "_emit", lambda *args, **kwargs: None)
@@ -8639,7 +8639,7 @@ def test_config_set_model_switches_agent_without_touching_env(monkeypatch):
             warning_message="",
         )
 
-    monkeypatch.setattr("sparkii_cli.model_switch.switch_model", fake_switch_model)
+    monkeypatch.setattr("core.model_switch.switch_model", fake_switch_model)
 
     try:
         resp = server.handle_request(
@@ -8715,7 +8715,7 @@ def test_config_set_model_once_keeps_env_and_records_restore(monkeypatch):
     monkeypatch.setenv("SPARKII_INFERENCE_PROVIDER", "openrouter")
     monkeypatch.setenv("SPARKII_MODEL", "old/model")
     monkeypatch.setattr(
-        "sparkii_cli.model_switch.switch_model",
+        "core.model_switch.switch_model",
         lambda **kwargs: seen.update(kwargs) or result,
     )
     monkeypatch.setattr(server, "_restart_slash_worker", lambda *args, **kwargs: None)
@@ -8746,7 +8746,7 @@ def test_config_set_model_once_keeps_env_and_records_restore(monkeypatch):
 
 def test_config_set_model_once_requires_live_session(monkeypatch):
     monkeypatch.setattr(
-        "sparkii_cli.model_switch.switch_model",
+        "core.model_switch.switch_model",
         lambda **_: (_ for _ in ()).throw(AssertionError("switch should not run")),
     )
 
@@ -8792,7 +8792,7 @@ def test_config_set_model_session_switch_clears_pending_once_restore(monkeypatch
     session = _session(agent=Agent())
     session["one_turn_model_restore"] = {"model": "old/model"}
     server._sessions["sid"] = session
-    monkeypatch.setattr("sparkii_cli.model_switch.switch_model", lambda **_kwargs: result)
+    monkeypatch.setattr("core.model_switch.switch_model", lambda **_kwargs: result)
     monkeypatch.setattr(server, "_restart_slash_worker", lambda *args, **kwargs: None)
     monkeypatch.setattr(server, "_emit", lambda *args, **kwargs: None)
 
@@ -9984,7 +9984,7 @@ def test_command_dispatch_exec_nonzero_surfaces_error(monkeypatch):
 
 
 def test_plugins_list_surfaces_loader_error(monkeypatch):
-    with patch("sparkii_cli.plugins.get_plugin_manager", side_effect=Exception("boom")):
+    with patch("core.plugins.get_plugin_manager", side_effect=Exception("boom")):
         resp = server.handle_request(
             {"id": "1", "method": "plugins.list", "params": {}}
         )
@@ -14039,13 +14039,13 @@ def test_model_options_does_not_overwrite_curated_models(monkeypatch):
     )
 
     with patch(
-        "sparkii_cli.model_switch.list_authenticated_providers",
+        "core.model_switch.list_authenticated_providers",
         return_value=curated_providers,
     ) as listing:
         # If provider_model_ids gets called at all, the handler is still
         # overwriting curated with live — that's the regression we're
         # guarding against.
-        with patch("sparkii_cli.models.provider_model_ids") as live_fetch:
+        with patch("core.models.provider_model_ids") as live_fetch:
             resp = server._methods["model.options"](99, {"session_id": ""})
 
     assert "result" in resp, resp
@@ -14074,7 +14074,7 @@ def test_model_options_propagates_list_exception(monkeypatch):
         lambda: {"providers": {}, "custom_providers": []},
     )
     with patch(
-        "sparkii_cli.model_switch.list_authenticated_providers",
+        "core.model_switch.list_authenticated_providers",
         side_effect=RuntimeError("catalog blew up"),
     ):
         resp = server._methods["model.options"](77, {"session_id": ""})
@@ -14084,13 +14084,13 @@ def test_model_options_propagates_list_exception(monkeypatch):
 
 
 def test_model_options_hides_unconfigured_providers_by_default(monkeypatch):
-    from sparkii_cli.inventory import ConfigContext
+    from core.inventory import ConfigContext
 
     calls = []
 
     monkeypatch.setattr(server, "_resolve_model", lambda: "")
     monkeypatch.setattr(
-        "sparkii_cli.inventory.load_picker_context",
+        "core.inventory.load_picker_context",
         lambda: ConfigContext(
             current_provider="",
             current_model="",
@@ -14105,7 +14105,7 @@ def test_model_options_hides_unconfigured_providers_by_default(monkeypatch):
         return {"providers": [], "model": "", "provider": ""}
 
     monkeypatch.setattr(
-        "sparkii_cli.inventory.build_models_payload",
+        "core.inventory.build_models_payload",
         _fake_build_models_payload,
     )
 
@@ -14130,7 +14130,7 @@ def test_model_options_hides_unconfigured_providers_by_default(monkeypatch):
 
 
 def test_model_options_preserves_canonical_custom_row_after_agent_init(monkeypatch):
-    from sparkii_cli.inventory import ConfigContext
+    from core.inventory import ConfigContext
 
     class _Agent:
         provider = "custom"
@@ -14140,7 +14140,7 @@ def test_model_options_preserves_canonical_custom_row_after_agent_init(monkeypat
     server._sessions["custom-session"] = _session(agent=_Agent())
     monkeypatch.setattr(server, "_resolve_model", lambda: "")
     monkeypatch.setattr(
-        "sparkii_cli.inventory.load_picker_context",
+        "core.inventory.load_picker_context",
         lambda: ConfigContext(
             current_provider="custom:local-ollama",
             current_model="qwen3.6:35b-65k",
@@ -14151,11 +14151,11 @@ def test_model_options_preserves_canonical_custom_row_after_agent_init(monkeypat
     )
     canonical = Mock(return_value="custom:local-ollama")
     monkeypatch.setattr(
-        "sparkii_cli.runtime_provider.canonical_custom_identity",
+        "core.runtime_provider.canonical_custom_identity",
         canonical,
     )
     monkeypatch.setattr(
-        "sparkii_cli.model_switch.list_authenticated_providers",
+        "core.model_switch.list_authenticated_providers",
         lambda **_kwargs: [
             {
                 "slug": "custom:local-ollama",
@@ -14179,8 +14179,8 @@ def test_model_options_preserves_canonical_custom_row_after_agent_init(monkeypat
         "sparkii_cli.auth.is_provider_explicitly_configured",
         lambda _slug: False,
     )
-    monkeypatch.setattr("sparkii_cli.inventory._apply_pricing", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr("sparkii_cli.inventory._apply_capabilities", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr("core.inventory._apply_pricing", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr("core.inventory._apply_capabilities", lambda *_args, **_kwargs: None)
 
     resp = server._methods["model.options"](
         102,
@@ -14230,7 +14230,7 @@ def test_model_save_key_uses_credential_lifecycle_and_picker_context(monkeypatch
     monkeypatch.setattr(server, "_model_picker_context", picker_context)
     build_payload = Mock(return_value={"providers": [provider]})
     monkeypatch.setattr(
-        "sparkii_cli.inventory.build_models_payload",
+        "core.inventory.build_models_payload",
         build_payload,
     )
     monkeypatch.setenv(env_var, "previous-value")
@@ -14268,7 +14268,7 @@ def test_model_options_refresh_allows_custom_provider_probes(monkeypatch):
         lambda: {"providers": {}, "custom_providers": []},
     )
     with patch(
-        "sparkii_cli.model_switch.list_authenticated_providers",
+        "core.model_switch.list_authenticated_providers",
         return_value=[],
     ) as listing:
         resp = server._methods["model.options"](78, {"session_id": "", "refresh": True})
@@ -15727,7 +15727,7 @@ def _setup_make_agent_mocks(monkeypatch, cfg):
         server, "_resolve_startup_runtime", lambda: ("test-model", None)
     )
     monkeypatch.setattr(
-        "sparkii_cli.runtime_provider.resolve_runtime_provider",
+        "core.runtime_provider.resolve_runtime_provider",
         lambda requested=None, target_model=None: {
             "provider": None,
             "base_url": None,
@@ -15811,7 +15811,7 @@ def test_make_agent_uses_session_runtime_overrides(monkeypatch):
         }
 
     monkeypatch.setattr(
-        "sparkii_cli.runtime_provider.resolve_runtime_provider",
+        "core.runtime_provider.resolve_runtime_provider",
         fake_resolve_runtime_provider,
     )
 
@@ -17297,7 +17297,7 @@ class TestResolveRuntimeWithFallback:
         """When primary resolve succeeds, return its result directly."""
         expected = {"provider": "openai", "api_key": "tok"}
         monkeypatch.setattr(
-            "sparkii_cli.runtime_provider.resolve_runtime_provider",
+            "core.runtime_provider.resolve_runtime_provider",
             lambda **kw: expected,
         )
         resolution = server._resolve_runtime_with_fallback(
@@ -17319,7 +17319,7 @@ class TestResolveRuntimeWithFallback:
             return fallback_runtime
 
         monkeypatch.setattr(
-            "sparkii_cli.runtime_provider.resolve_runtime_provider",
+            "core.runtime_provider.resolve_runtime_provider",
             fake_resolve,
         )
         monkeypatch.setattr(
@@ -17348,7 +17348,7 @@ class TestResolveRuntimeWithFallback:
             return fallback_runtime
 
         monkeypatch.setattr(
-            "sparkii_cli.runtime_provider.resolve_runtime_provider",
+            "core.runtime_provider.resolve_runtime_provider",
             fake_resolve,
         )
         monkeypatch.setattr(
@@ -17385,7 +17385,7 @@ class TestResolveRuntimeWithFallback:
             return fallback_runtime
 
         monkeypatch.setattr(
-            "sparkii_cli.runtime_provider.resolve_runtime_provider",
+            "core.runtime_provider.resolve_runtime_provider",
             fake_resolve,
         )
         monkeypatch.setattr(
@@ -17413,7 +17413,7 @@ class TestResolveRuntimeWithFallback:
             raise AuthError("No credentials for " + str(kwargs.get("requested")))
 
         monkeypatch.setattr(
-            "sparkii_cli.runtime_provider.resolve_runtime_provider",
+            "core.runtime_provider.resolve_runtime_provider",
             fake_resolve,
         )
         monkeypatch.setattr(
@@ -17440,7 +17440,7 @@ class TestResolveRuntimeWithFallback:
             return fallback_runtime
 
         monkeypatch.setattr(
-            "sparkii_cli.runtime_provider.resolve_runtime_provider",
+            "core.runtime_provider.resolve_runtime_provider",
             fake_resolve,
         )
         monkeypatch.setattr(
@@ -17495,7 +17495,7 @@ class TestResolveRuntimeWithFallback:
             },
         )
         monkeypatch.setattr(
-            "sparkii_cli.runtime_provider.resolve_runtime_provider",
+            "core.runtime_provider.resolve_runtime_provider",
             fake_resolve,
         )
         monkeypatch.setattr("run_agent.AIAgent", fake_agent)

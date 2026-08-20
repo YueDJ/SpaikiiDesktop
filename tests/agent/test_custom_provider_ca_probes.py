@@ -8,7 +8,7 @@ cause and are covered here:
   (``agent.model_metadata.fetch_endpoint_model_metadata`` via
   ``_resolve_requests_verify``).
 * ``urllib``-based ``/models`` catalog discovery probe
-  (``sparkii_cli.models.probe_api_models`` via ``_custom_provider_ssl_context``).
+  (``core.models.probe_api_models`` via ``_custom_provider_ssl_context``).
 
 Both previously resolved TLS from process-wide env vars only, so a custom
 endpoint whose chain verifies against the provider's configured bundle (but not
@@ -29,7 +29,7 @@ import certifi
 import pytest
 
 from agent.model_metadata import _resolve_requests_verify
-from sparkii_cli.models import _custom_provider_ssl_context
+from core.models import _custom_provider_ssl_context
 
 _CA_ENV_VARS = (
     "SPARKII_CA_BUNDLE",
@@ -240,7 +240,7 @@ class TestCatalogProbeThreadsSSLContext:
     """End-to-end: the urllib catalog probe carries the provider SSL context."""
 
     def test_probe_api_models_passes_ssl_context(self, clean_env, real_ca):
-        import sparkii_cli.models as models
+        import core.models as models
 
         captured = {}
 
@@ -258,7 +258,7 @@ class TestCatalogProbeThreadsSSLContext:
         assert captured["ssl_context"].verify_mode == ssl.CERT_REQUIRED
 
     def test_probe_api_models_public_endpoint_uses_default_policy(self, clean_env):
-        import sparkii_cli.models as models
+        import core.models as models
 
         captured = {}
 
@@ -282,7 +282,7 @@ class TestCatalogProbeThreadsSSLContext:
         must keep the original 2-arg call shape when no per-provider override
         applies, so a strict 2-arg mock still works.
         """
-        import sparkii_cli.models as models
+        import core.models as models
 
         class _Resp:
             def __enter__(self):

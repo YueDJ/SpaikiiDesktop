@@ -23,6 +23,87 @@ logger = logging.getLogger(__name__)
 _DEFAULT_COOLDOWN_SECONDS = 60.0
 _DEFAULT_LOG_EVERY_N = 1
 _DEFAULT_INFO_LOG_MIN_DELTA_MB = 0.0
+
+
+# ---------------------------------------------------------------------------
+# Memory sampling + pressure classification (moved from gateway/
+# lifecycle_ledger.py + gateway/memory_status.py during the Block 4 split so
+# core consumers like kanban_db can classify memory pressure without importing
+# the messaging gateway package).
+# ---------------------------------------------------------------------------
+
+_CRITICAL_AVAILABLE_KIB = 64 * 1024  # < 64 MiB available
+_CRITICAL_AVAILABLE_FRACTION = 0.05  # < 5% of MemTotal
+_ELEVATED_AVAILABLE_KIB = 128 * 1024  # < 128 MiB available
+_ELEVATED_AVAILABLE_FRACTION = 0.15  # < 15% of MemTotal
+
+
+def sample_memory() -> dict[str, Any]:
+    """Cheap memory snapshot: own RSS + system availability + swap.
+
+    Pure ``/proc`` reads, Linux-only (returns ``{}`` elsewhere), never
+    raises.  Values in KiB to match the kernel's units.
+    """
+    sample: dict[str, Any] = {}
+    try:
+        with open("/proc/self/status", encoding="utf-8") as fh:
+            for line in fh:
+                if line.startswith("VmRSS:"):
+                    sample["rss_kib"] = int(line.split()[1])
+                    break
+    except (OSError, ValueError, IndexError):
+        pass
+    try:
+        meminfo: dict[str, int] = {}
+        wanted = {"MemTotal", "MemAvailable", "SwapTotal", "SwapFree"}
+        with open("/proc/meminfo", encoding="utf-8") as fh:
+            for line in fh:
+                key = line.split(":", 1)[0]
+                if key in wanted:
+                    meminfo[key] = int(line.split()[1])
+                    if len(meminfo) == len(wanted):
+                        break
+        if "MemTotal" in meminfo:
+            sample["mem_total_kib"] = meminfo["MemTotal"]
+        if "MemAvailable" in meminfo:
+            sample["mem_available_kib"] = meminfo["MemAvailable"]
+        if "SwapTotal" in meminfo and "SwapFree" in meminfo:
+            sample["swap_used_kib"] = meminfo["SwapTotal"] - meminfo["SwapFree"]
+    except (OSError, ValueError, IndexError):
+        pass
+    return sample
+
+
+def classify_pressure(
+    available_kib: Any, total_kib: Any
+) -> str:
+    """Map a MemAvailable/MemTotal pair to ``ok``/``elevated``/``critical``.
+
+    ``unknown`` when the sample is missing or malformed — the caller must
+    not treat "we could not read it" as "memory is fine".
+    """
+    if (
+        isinstance(available_kib, bool)
+        or not isinstance(available_kib, int)
+        or available_kib < 0
+    ):
+        return "unknown"
+    fraction: float | None = None
+    if (
+        not isinstance(total_kib, bool)
+        and isinstance(total_kib, int)
+        and total_kib > 0
+    ):
+        fraction = available_kib / total_kib
+    if available_kib < _CRITICAL_AVAILABLE_KIB or (
+        fraction is not None and fraction < _CRITICAL_AVAILABLE_FRACTION
+    ):
+        return "critical"
+    if available_kib < _ELEVATED_AVAILABLE_KIB or (
+        fraction is not None and fraction < _ELEVATED_AVAILABLE_FRACTION
+    ):
+        return "elevated"
+    return "ok"
 _trim_lock = threading.Lock()
 _last_trim_monotonic = 0.0
 _probe_done = False

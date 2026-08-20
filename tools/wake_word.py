@@ -333,7 +333,7 @@ def wake_surface_enabled(surface: str, cfg: Optional[Dict[str, Any]] = None) -> 
 
 def _active_profile_name() -> str:
     try:
-        from sparkii_cli.profiles import get_active_profile_name
+        from core.profiles import get_active_profile_name
 
         return get_active_profile_name() or "default"
     except Exception:
@@ -352,7 +352,7 @@ def enrolled_profile_phrases() -> Dict[str, str]:
     phrases: Dict[str, str] = {}
     try:
         from core.config import read_user_config_raw
-        from sparkii_cli.profiles import get_profile_dir, list_profiles
+        from core.profiles import get_profile_dir, list_profiles
 
         for info in list_profiles():
             name = getattr(info, "name", None) or str(info)

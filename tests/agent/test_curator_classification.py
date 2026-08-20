@@ -32,7 +32,7 @@ def curator_env(tmp_path, monkeypatch):
     import importlib
     import sparkii_constants
     importlib.reload(sparkii_constants)
-    from agent import curator
+    from sparkii_cli import curator
     importlib.reload(curator)
     yield curator
 
@@ -514,7 +514,6 @@ def test_rename_summary_mixed_consolidation_and_pruning(curator_env):
 # just landed against their library). The hint is gated on having at least
 # one umbrella destination — pruned-only runs skip it.
 # ---------------------------------------------------------------------------
-
 
 
 

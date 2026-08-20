@@ -46,7 +46,7 @@ class TestBlankSlateMinimalToolsets:
         terminal, read_file, write_file, etc. (#57315).
         """
         import model_tools
-        from sparkii_cli.tools_config import _get_platform_tools
+        from core.tools_config import _get_platform_tools
         cfg = {}
         _blank_slate_minimal_toolsets(cfg)
         _blank_slate_minimize_config(cfg)

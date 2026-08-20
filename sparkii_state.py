@@ -718,7 +718,7 @@ def get_last_init_error() -> Optional[str]:
 
 
 # Distinctive opening shared by both background-review harness prompts
-# (_SKILL_REVIEW_PROMPT and _MEMORY_REVIEW_PROMPT in agent/background_review.py).
+# (_SKILL_REVIEW_PROMPT and _MEMORY_REVIEW_PROMPT in sparkii_cli/background_review.py).
 # Matched case-sensitively against the leading content of a user/system message.
 _REVIEW_HARNESS_PREFIXES = (
     "Review the conversation above and update the skill library",
@@ -2735,7 +2735,7 @@ def is_zeroed_state_db(
     in constrained embed paths.
     """
     try:
-        from sparkii_cli.backup import is_zeroed_sqlite_file
+        from core.sqlite_util import is_zeroed_sqlite_file
 
         return is_zeroed_sqlite_file(path, probe_bytes=probe_bytes, force=force)
     except Exception:

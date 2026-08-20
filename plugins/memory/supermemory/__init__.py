@@ -604,7 +604,7 @@ class SupermemoryMemoryProvider(MemoryProvider):
         from pathlib import Path
 
         from core.config import save_config
-        from sparkii_cli.memory_setup import _prompt, _write_env_vars
+        from core.memory_setup import _prompt, _write_env_vars
 
         print("\n  Configuring supermemory:\n")
         print(f"  Get your API key at {_API_KEY_URL}\n")

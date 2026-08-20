@@ -595,7 +595,8 @@ def resolve_toolset(name: str, visited: Set[str] = None, *, include_registry: bo
         if include_registry and name.startswith("sparkii-"):
             platform_name = name[len("sparkii-"):]
             try:
-                from gateway.platform_registry import platform_registry
+                from core.plugins import get_platform_registry
+                platform_registry = get_platform_registry()
                 if platform_registry.is_registered(platform_name):
                     plugin_tools = set(_SPARKII_CORE_TOOLS)
                     try:

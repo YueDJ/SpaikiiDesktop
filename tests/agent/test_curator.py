@@ -24,7 +24,7 @@ def curator_env(tmp_path, monkeypatch):
 
     import tools.skill_usage as usage
     importlib.reload(usage)
-    import agent.curator as curator
+    import sparkii_cli.curator as curator
     importlib.reload(curator)
 
     # Neutralize the real LLM pass by default — tests opt in per-case.
@@ -501,7 +501,7 @@ def test_state_atomic_write_no_tmp_leftovers(curator_env):
 def test_curator_does_not_instruct_model_to_pin():
     """Pinning is a user opt-out, not a model decision. The prompt should
     not tell the reviewer to pin skills autonomously."""
-    from agent.curator import CURATOR_REVIEW_PROMPT
+    from sparkii_cli.curator import CURATOR_REVIEW_PROMPT
     # "pinned" appears in the invariant ("skip pinned skills"), but "pin"
     # as a decision verb should not.
     lines = CURATOR_REVIEW_PROMPT.split("\n")
@@ -632,7 +632,7 @@ def test_review_runtime_legacy_auxiliary_carry_credentials(curator_env, caplog):
         },
     }
     import logging
-    with caplog.at_level(logging.INFO, logger="agent.curator"):
+    with caplog.at_level(logging.INFO, logger="sparkii_cli.curator"):
         binding = curator._resolve_review_runtime(cfg)
     assert binding.explicit_api_key == "legacy-key"
     assert binding.explicit_base_url == "http://legacy/v1"
@@ -747,7 +747,7 @@ def test_review_fork_forwards_runtime_pool_and_overrides(curator_env, monkeypatc
         lambda: {"model": {"provider": "custom:hyper-charm", "default": "glm-5.2"}},
     )
     monkeypatch.setattr(
-        "sparkii_cli.runtime_provider.resolve_runtime_provider",
+        "core.runtime_provider.resolve_runtime_provider",
         _fake_resolve_runtime_provider,
     )
     monkeypatch.setattr("run_agent.AIAgent", _StubAgent)
@@ -774,7 +774,7 @@ def test_review_fork_uses_runtime_model_and_output_cap(curator_env, monkeypatch)
         lambda: {"model": {"provider": "custom:gateway", "default": "gateway"}},
     )
     monkeypatch.setattr(
-        "sparkii_cli.runtime_provider.resolve_runtime_provider",
+        "core.runtime_provider.resolve_runtime_provider",
         lambda **_kwargs: {
             "provider": "custom",
             "model": "real-model-id",

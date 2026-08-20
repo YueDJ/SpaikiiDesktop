@@ -47,7 +47,7 @@ def _runner_with_store(tmp_path, monkeypatch):
 
     import gateway.run as gateway_run
     from gateway.run import GatewayRunner
-    from sparkii_cli.model_switch import ModelSwitchResult
+    from core.model_switch import ModelSwitchResult
 
     sparkii_home = tmp_path / ".sparkii"
     sparkii_home.mkdir()
@@ -58,7 +58,7 @@ def _runner_with_store(tmp_path, monkeypatch):
     monkeypatch.setattr(gateway_run, "_sparkii_home", sparkii_home)
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
     monkeypatch.setattr(
-        "sparkii_cli.model_switch.switch_model",
+        "core.model_switch.switch_model",
         lambda **kw: ModelSwitchResult(
             success=True,
             new_model="gpt-5.5",
@@ -96,7 +96,7 @@ def _runner_with_store(tmp_path, monkeypatch):
 async def test_context_resolution_runs_off_the_loop_thread(tmp_path, monkeypatch):
     """The sync resolver must execute on a worker thread when the /model
     handler resolves the display context length for the switch reply."""
-    from sparkii_cli import model_switch
+    from core import model_switch
 
     seen = {}
     loop_thread = threading.current_thread()

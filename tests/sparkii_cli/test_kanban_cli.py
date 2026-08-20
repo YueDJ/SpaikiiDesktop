@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 
 from sparkii_cli import kanban as kc
-from sparkii_cli import kanban_db as kb
+from core import kanban_db as kb
 
 
 @pytest.fixture
@@ -43,7 +43,7 @@ def kanban_home(tmp_path, monkeypatch):
 def test_kanban_list_json_includes_session_id(kanban_home):
     """JSON output exposes `session_id` so external clients (Scarf, web
     dashboards) don't need a side query to filter by chat session."""
-    from sparkii_cli import kanban_db as kb
+    from core import kanban_db as kb
     with kb.connect() as conn:
         kb.create_task(
             conn, title="acp task", assignee="alice", session_id="acp-x"
@@ -133,7 +133,7 @@ def test_run_slash_reclaim_running_task(kanban_home):
     import re
     import time
     import secrets
-    from sparkii_cli import kanban_db as kb
+    from core import kanban_db as kb
 
     out1 = kc.run_slash("create 'stuck worker task' --assignee broken-model")
     m = re.search(r"(t_[a-f0-9]+)", out1)

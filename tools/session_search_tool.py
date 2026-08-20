@@ -355,7 +355,7 @@ def _resolve_profile_db(profile: str):
     if profile is None or not str(profile).strip():
         return None
 
-    from sparkii_cli import profiles as profiles_mod
+    from core import profiles as profiles_mod
     from sparkii_state import SessionDB
 
     canon = profiles_mod.normalize_profile_name(profile)
@@ -377,7 +377,7 @@ def _session_link(session_id: str, profile: str = None) -> str:
     name = (profile or "").strip()
     if not name:
         try:
-            from sparkii_cli.profiles import get_active_profile_name
+            from core.profiles import get_active_profile_name
 
             resolved = get_active_profile_name()
             name = "" if resolved == "custom" else resolved
@@ -400,7 +400,7 @@ def _locate_session_db(session_id: str):
     from pathlib import Path
 
     try:
-        from sparkii_cli import profiles as profiles_mod
+        from core import profiles as profiles_mod
         from sparkii_state import SessionDB
     except Exception:
         return None, None

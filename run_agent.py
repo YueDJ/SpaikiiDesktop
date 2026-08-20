@@ -47,6 +47,31 @@ import threading
 import uuid
 import warnings
 from typing import List, Dict, Any, Optional, Callable
+
+
+# Background memory/skill review provider, injected by the product surface
+# (CLI / gateway / TUI) via set_background_review_provider(). Dependency
+# inversion: the core AIAgent does not import background_review — the surface
+# owns the review harness (prompts, fork config, usage recording) and
+# registers it here. Until registered, the review methods degrade to no-ops.
+_background_review_provider = None
+
+
+def set_background_review_provider(provider) -> None:
+    """Register the product-layer background-review provider (surface side).
+
+    Also populates the AIAgent class prompt attributes so the long-standing
+    class contract (``AIAgent._*_REVIEW_PROMPT``, instance overrides) keeps
+    working with the product prompts.
+    """
+    global _background_review_provider
+    _background_review_provider = provider
+    if provider is not None:
+        AIAgent._MEMORY_REVIEW_PROMPT = getattr(provider, "memory_review_prompt", "")
+        AIAgent._SKILL_REVIEW_PROMPT = getattr(provider, "skill_review_prompt", "")
+        AIAgent._COMBINED_REVIEW_PROMPT = getattr(provider, "combined_review_prompt", "")
+
+
 # NOTE: `from openai import OpenAI` is deliberately NOT at module top — the
 # SDK pulls ~240 ms of imports. We expose `OpenAI` as a thin proxy object
 # that imports the SDK on first call/isinstance check. This preserves:
@@ -300,7 +325,7 @@ _QWEN_CODE_VERSION = "0.14.1"
 
 def _routermint_headers() -> dict:
     """Return the User-Agent RouterMint needs to avoid Cloudflare 1010 blocks."""
-    from sparkii_cli import __version__ as _SPARKII_VERSION
+    from core.version import __version__ as _SPARKII_VERSION
 
     return {
         "User-Agent": f"SparkiiAgent/{_SPARKII_VERSION}",
@@ -640,7 +665,7 @@ class AIAgent:
         source = _session_source_for_agent(self.platform)
         try:
             try:
-                from sparkii_cli.profiles import get_active_profile_name
+                from core.profiles import get_active_profile_name
                 _profile_for_session = get_active_profile_name()
                 if _profile_for_session == "default":
                     _profile_for_session = None
@@ -870,7 +895,7 @@ class AIAgent:
             logger.debug("LM Studio explicit preload skipped: lmstudio_load_mode=jit")
             return None
 
-        from sparkii_cli.models import ensure_lmstudio_model_loaded
+        from core.models import ensure_lmstudio_model_loaded
 
         if config_context_length is None:
             config_context_length = getattr(self, "_config_context_length", None)
@@ -1640,7 +1665,7 @@ class AIAgent:
             return False
         if normalized_provider == "copilot":
             try:
-                from sparkii_cli.models import _should_use_copilot_responses_api
+                from core.models import _should_use_copilot_responses_api
                 return _should_use_copilot_responses_api(model)
             except Exception:
                 # Fall back to the generic GPT-5 rule if Copilot-specific
@@ -1812,13 +1837,15 @@ class AIAgent:
         return cleanup_task_resources(self, task_id)
 
     # ------------------------------------------------------------------
-    # Background memory/skill review — prompts live in agent.background_review
+    # Background memory/skill review — prompts + harness live in the product
+    # layer (sparkii_cli.background_review). The surface injects the provider
+    # via set_background_review_provider(); until then the class keeps empty
+    # prompt placeholders so the attribute contract (AIAgent._*_REVIEW_PROMPT,
+    # instance overrides) stays intact without the product layer.
     # ------------------------------------------------------------------
-    from agent.background_review import (
-        _MEMORY_REVIEW_PROMPT,
-        _SKILL_REVIEW_PROMPT,
-        _COMBINED_REVIEW_PROMPT,
-    )
+    _MEMORY_REVIEW_PROMPT: str = ""
+    _SKILL_REVIEW_PROMPT: str = ""
+    _COMBINED_REVIEW_PROMPT: str = ""
 
     @staticmethod
     def _summarize_background_review_actions(
@@ -1826,9 +1853,11 @@ class AIAgent:
         prior_snapshot: List[Dict],
         notification_mode: str = "on",
     ) -> List[str]:
-        """Forwarder — see ``agent.background_review.summarize_background_review_actions``."""
-        from agent.background_review import summarize_background_review_actions
-        return summarize_background_review_actions(
+        """Forwarder — see ``sparkii_cli.background_review.summarize_background_review_actions``."""
+        _provider = _background_review_provider
+        if _provider is None:
+            return []
+        return _provider.summarize_background_review_actions(
             review_messages,
             prior_snapshot,
             notification_mode=notification_mode,
@@ -1844,7 +1873,7 @@ class AIAgent:
         """Spawn the background memory/skill review thread.
 
         Thin wrapper — the heavy lifting lives in
-        ``agent.background_review.spawn_background_review_thread`` which
+        ``sparkii_cli.background_review.spawn_background_review_thread`` which
         returns the thread target.  ``threading.Thread`` is constructed
         here so existing tests that patch ``run_agent.threading.Thread``
         keep working.
@@ -1863,6 +1892,9 @@ class AIAgent:
         # is a deliberate user request and still runs.
         if focus is None and getattr(self, "_delegate_depth", 0) > 0:
             return
+        _provider = _background_review_provider
+        if _provider is None:
+            return
         # Explicit off-switch for automatic post-turn forks
         # (``auxiliary.background_review.enabled: false``). Manual ``/refine``
         # still works — same contract as zeroing the nudge intervals (#87250).
@@ -1870,13 +1902,11 @@ class AIAgent:
         # aux routing does not re-read config.
         task_cfg = None
         if focus is None:
-            from agent.background_review import load_background_review_settings
-            enabled, task_cfg = load_background_review_settings()
+            enabled, task_cfg = _provider.load_background_review_settings()
             if not enabled:
                 return
-        from agent.background_review import spawn_background_review_thread
         from tools.thread_context import propagate_context_to_thread
-        target, _prompt = spawn_background_review_thread(
+        target, _prompt = _provider.spawn_background_review_thread(
             self,
             messages_snapshot,
             review_memory=review_memory,
@@ -1899,9 +1929,11 @@ class AIAgent:
         task_id: Optional[str] = None,
         tool_call_id: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Forwarder — see ``agent.background_review.build_memory_write_metadata``."""
-        from agent.background_review import build_memory_write_metadata
-        return build_memory_write_metadata(
+        """Forwarder — see ``sparkii_cli.background_review.build_memory_write_metadata``."""
+        _provider = _background_review_provider
+        if _provider is None:
+            return {}
+        return _provider.build_memory_write_metadata(
             self,
             write_origin=write_origin,
             execution_context=execution_context,
@@ -3030,7 +3062,7 @@ class AIAgent:
         # dispatch at this call site. After first call the import is a
         # ``sys.modules`` dict lookup, so retries don't repay any real cost.
         try:
-            from sparkii_cli import lifecycle as _lifecycle
+            from core import lifecycle as _lifecycle
 
             if not _lifecycle.has_hook("api_request_error"):
                 return
@@ -5315,7 +5347,7 @@ class AIAgent:
         return any(_contains_image(item) for item in candidates)
 
     def _copilot_headers_for_request(self, *, is_vision: bool) -> dict:
-        from sparkii_cli.copilot_auth import copilot_request_headers
+        from core.copilot_auth import copilot_request_headers
 
         return copilot_request_headers(is_agent_turn=True, is_vision=is_vision)
 
@@ -5737,144 +5769,24 @@ class AIAgent:
         return run_codex_create_stream_fallback(self, api_kwargs, client)
 
     def _try_refresh_codex_client_credentials(self, *, force: bool = True) -> bool:
-        if self.api_mode != "codex_responses" or self.provider not in {"openai-codex", "xai-oauth"}:
-            return False
-
-        # Guard against silent account swap.
-        #
-        # When an agent is using a non-singleton credential — e.g. a manual
-        # pool entry (``sparkii auth add xai-oauth``) whose tokens belong to
-        # a different account than the device_code singleton, or an agent
-        # constructed with an explicit ``api_key=`` arg — force-refreshing
-        # the singleton here and adopting its tokens silently re-routes the
-        # rest of the conversation onto the singleton's account.  The
-        # credential pool's reactive recovery (``_recover_with_credential_pool``)
-        # is the right channel for that case; this path is the
-        # singleton-only fallback used when the pool can't recover, and
-        # MUST only fire when the agent really is on singleton tokens.
-        try:
-            if self.provider == "openai-codex":
-                from sparkii_cli.auth import resolve_codex_runtime_credentials
-
-                singleton_now = resolve_codex_runtime_credentials(
-                    refresh_if_expiring=False,
-                )
-            else:
-                from sparkii_cli.auth import resolve_xai_oauth_runtime_credentials
-
-                singleton_now = resolve_xai_oauth_runtime_credentials(
-                    refresh_if_expiring=False,
-                )
-        except Exception as exc:
-            logger.debug("%s singleton read failed: %s", self.provider, exc)
-            return False
-
-        singleton_key = str(singleton_now.get("api_key") or "").strip()
-        active_key = str(self.api_key or "").strip()
-        if singleton_key and active_key and singleton_key != active_key:
-            logger.debug(
-                "%s singleton tokens differ from the active api_key; "
-                "skipping singleton force-refresh to avoid silent account swap. "
-                "Reactive credential rotation should go through the pool.",
-                self.provider,
-            )
-            return False
-
-        try:
-            if self.provider == "openai-codex":
-                from sparkii_cli.auth import resolve_codex_runtime_credentials
-
-                old_key = str(self.api_key or "").strip()
-                creds = resolve_codex_runtime_credentials(force_refresh=force)
-            else:
-                from sparkii_cli.auth import resolve_xai_oauth_runtime_credentials
-
-                old_key = str(self.api_key or "").strip()
-                creds = resolve_xai_oauth_runtime_credentials(force_refresh=force)
-        except Exception as exc:
-            logger.debug("%s credential refresh failed: %s", self.provider, exc)
-            return False
-
-        api_key = creds.get("api_key")
-        base_url = creds.get("base_url")
-        if not isinstance(api_key, str) or not api_key.strip():
-            return False
-        if not isinstance(base_url, str) or not base_url.strip():
-            return False
-
-        # Defect 2 fix: return False when no NEW token was actually minted.
-        # resolve_codex_runtime_credentials returns the same stale token
-        # when the underlying refresh fails (failure is debug-only).
-        # Comparing the access token (api_key) before/after detects this.
-        new_key = api_key.strip()
-        if old_key and new_key == old_key:
-            logger.debug(
-                "%s credential refresh returned the same token; "
-                "refresh likely failed silently",
-                self.provider,
-            )
-            return False
-
-        self.api_key = api_key.strip()
-        self.base_url = base_url.strip().rstrip("/")
-        self._client_kwargs["api_key"] = self.api_key
-        self._client_kwargs["base_url"] = self.base_url
-
-        if not self._replace_primary_openai_client(reason=f"{self.provider}_credential_refresh"):
-            return False
-
-        return True
-
+        """Refresh removed Codex/xAI OAuth credentials (dead path).
+        The openai-codex and xai-oauth providers were removed in the Phase 0
+        foundation trim; their OAuth resolvers no longer exist. Reactive
+        credential rotation goes through the credential pool, so this method
+        is a safe no-op.
+        """
+        return False
     def _try_refresh_nous_client_credentials(
         self,
         *,
         force: bool = True,
     ) -> bool:
-        if self.provider != "nous":
-            return False
-        # Portal serves anthropic/* on the native Messages route, so a session
-        # can be holding either client kind when its short-lived invoke JWT
-        # expires. Both need the refresh or the turn dies on a 401.
-        if self.api_mode not in ("chat_completions", "anthropic_messages"):
-            return False
-
-        try:
-            from sparkii_cli.auth import resolve_nous_runtime_credentials
-
-            creds = resolve_nous_runtime_credentials(
-                timeout_seconds=env_float("SPARKII_NOUS_TIMEOUT_SECONDS", 15),
-                force_refresh=force,
-            )
-        except Exception as exc:
-            logger.debug("Nous credential refresh failed: %s", exc)
-            return False
-
-        api_key = creds.get("api_key")
-        base_url = creds.get("base_url")
-        if not isinstance(api_key, str) or not api_key.strip():
-            return False
-        if not isinstance(base_url, str) or not base_url.strip():
-            return False
-
-        self.api_key = api_key.strip()
-        self.base_url = base_url.strip().rstrip("/")
-
-        if self.api_mode == "anthropic_messages":
-            self._anthropic_api_key = self.api_key
-            self._anthropic_base_url = self.base_url
-            self._rebuild_anthropic_client()
-            return True
-
-        self._client_kwargs["api_key"] = self.api_key
-        self._client_kwargs["base_url"] = self.base_url
-        # Nous requests should not inherit OpenRouter-only attribution headers.
-        self._client_kwargs.pop("default_headers", None)
-
-        if not self._replace_primary_openai_client(reason="nous_credential_refresh"):
-            return False
-
-        return True
-
+        """Refresh removed Nous credentials (dead path).
+        The Nous provider was removed in the Phase 0 foundation trim; its
+        OAuth/JWT resolver no longer exists. Reactive credential rotation
+        goes through the credential pool, so this method is a safe no-op.
+        """
+        return False
     def _try_refresh_env_client_credentials(self) -> bool:
         """Adopt ~/.sparkii/.env credential/base-url edits at the turn boundary.
 
@@ -5907,7 +5819,7 @@ class AIAgent:
             return False
         try:
             from agent.credential_pool import get_env_prefer_dotenv
-            from sparkii_cli.auth import PROVIDER_REGISTRY
+            from core.provider_registry import PROVIDER_REGISTRY
         except ImportError:
             return False
 
@@ -5931,13 +5843,13 @@ class AIAgent:
             default_base = (pconfig.inference_base_url or "").strip().rstrip("/")
             base_url = env_url or default_base
             if self.provider == "kimi-coding":
-                from sparkii_cli.auth import _resolve_kimi_base_url
+                from core.credentials import _resolve_kimi_base_url
 
                 base_url = _resolve_kimi_base_url(
                     api_key, pconfig.inference_base_url, env_url
                 ).rstrip("/")
             elif self.provider == "zai":
-                from sparkii_cli.auth import _resolve_zai_base_url
+                from core.credentials import _resolve_zai_base_url
 
                 base_url = _resolve_zai_base_url(
                     api_key, pconfig.inference_base_url, env_url
@@ -5950,7 +5862,7 @@ class AIAgent:
             # ``key_env`` (inline ``api_key``, pool-backed) have no
             # env-sourced credential to watch.
             try:
-                from sparkii_cli.runtime_provider import _get_named_custom_provider
+                from core.runtime_provider import _get_named_custom_provider
             except ImportError:
                 return False
             custom_provider = _get_named_custom_provider(
@@ -6117,7 +6029,7 @@ class AIAgent:
             return False
 
         try:
-            from sparkii_cli.copilot_auth import (
+            from core.copilot_auth import (
                 resolve_copilot_token,
                 get_copilot_api_token,
                 evict_cached_exchanged_token,
@@ -6181,7 +6093,7 @@ class AIAgent:
             return False
 
         try:
-            from sparkii_cli.copilot_auth import (
+            from core.copilot_auth import (
                 resolve_copilot_token,
                 get_copilot_api_token,
                 evict_cached_exchanged_token,
@@ -6298,7 +6210,7 @@ class AIAgent:
         elif base_url_host_matches(base_url, "api.routermint.com"):
             self._client_kwargs["default_headers"] = _routermint_headers()
         elif base_url_host_matches(base_url, "githubcopilot.com"):
-            from sparkii_cli.models import copilot_default_headers
+            from core.models import copilot_default_headers
 
             self._client_kwargs["default_headers"] = copilot_default_headers()
         elif base_url_host_matches(base_url, "api.kimi.com"):
@@ -7595,7 +7507,7 @@ class AIAgent:
             or base_url_host_matches(self._base_url_lower, "githubcopilot.com")
         ):
             try:
-                from sparkii_cli.models import github_model_reasoning_efforts
+                from core.models import github_model_reasoning_efforts
 
                 return bool(github_model_reasoning_efforts(self.model))
             except Exception:
@@ -7627,7 +7539,7 @@ class AIAgent:
         # cached; unknown (catalog unreachable / unlisted model) falls back
         # to the static list.
         try:
-            from sparkii_cli.models import (
+            from core.models import (
                 openrouter_model_reasoning_capabilities,
                 warm_openrouter_reasoning_caps_async,
             )
@@ -7679,7 +7591,7 @@ class AIAgent:
             if opts or (_time.monotonic() - ts) < 60:
                 return opts
         try:
-            from sparkii_cli.models import lmstudio_model_reasoning_options
+            from core.models import lmstudio_model_reasoning_options
             opts = lmstudio_model_reasoning_options(
                 self.model, self.base_url, getattr(self, "api_key", ""),
             )
@@ -7710,7 +7622,7 @@ class AIAgent:
             if supported is not None or (_time.monotonic() - ts) < 60:
                 return bool(supported)
         try:
-            from sparkii_cli.models import ollama_model_supports_thinking
+            from core.models import ollama_model_supports_thinking
             supported = ollama_model_supports_thinking(
                 self.model, self.base_url, getattr(self, "api_key", "")
             )
@@ -7735,7 +7647,7 @@ class AIAgent:
     def _github_models_reasoning_extra_body(self) -> dict | None:
         """Format reasoning payload for GitHub Models/OpenAI-compatible routes."""
         try:
-            from sparkii_cli.models import github_model_reasoning_efforts
+            from core.models import github_model_reasoning_efforts
         except Exception:
             return None
 
@@ -8431,7 +8343,7 @@ class AIAgent:
         )
         from agent import relay_runtime
         from agent.conversation_loop import run_conversation
-        from sparkii_cli.observability.relay_shared_metrics import (
+        from core.observability.relay_shared_metrics import (
             finish_task_run,
             start_task_run,
         )

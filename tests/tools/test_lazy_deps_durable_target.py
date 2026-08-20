@@ -199,7 +199,7 @@ class TestInstallArgConstruction:
 
     def test_uv_resolution_failure_does_not_fall_through_to_pip(self, monkeypatch):
         monkeypatch.delenv(ld._LAZY_TARGET_ENV, raising=False)
-        monkeypatch.setattr("sparkii_cli.managed_uv.resolve_uv", lambda: "uv")
+        monkeypatch.setattr("core.managed_uv.resolve_uv", lambda: "uv")
         calls = []
 
         def fake_run(cmd, *args, **kwargs):

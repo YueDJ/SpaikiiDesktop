@@ -1364,10 +1364,31 @@ def spawn_background_review_thread(
     return _target, prompt
 
 
+def build_background_review_provider():
+    """Return the product-layer background-review provider for the core loop.
+
+    Surfaces register it via ``run_agent.set_background_review_provider`` so
+    ``AIAgent._spawn_background_review`` and friends work without the core
+    importing this module (dependency inversion).
+    """
+    from types import SimpleNamespace
+
+    return SimpleNamespace(
+        memory_review_prompt=_MEMORY_REVIEW_PROMPT,
+        skill_review_prompt=_SKILL_REVIEW_PROMPT,
+        combined_review_prompt=_COMBINED_REVIEW_PROMPT,
+        load_background_review_settings=load_background_review_settings,
+        spawn_background_review_thread=spawn_background_review_thread,
+        summarize_background_review_actions=summarize_background_review_actions,
+        build_memory_write_metadata=build_memory_write_metadata,
+    )
+
+
 __all__ = [
     "_MEMORY_REVIEW_PROMPT",
     "_SKILL_REVIEW_PROMPT",
     "_COMBINED_REVIEW_PROMPT",
+    "build_background_review_provider",
     "is_background_review_enabled",
     "load_background_review_settings",
     "spawn_background_review_thread",

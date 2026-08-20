@@ -2,8 +2,8 @@
 
 import pytest
 
-from sparkii_cli.providers import determine_api_mode, host_mandated_api_mode
-from sparkii_cli import runtime_provider as rp
+from core.providers import determine_api_mode, host_mandated_api_mode
+from core import runtime_provider as rp
 
 
 class TestHostMandatedMetaResponses:
@@ -92,11 +92,11 @@ class TestMetaConfigRoundtrip:
     def test_providers_dict_to_custom_providers_preserves_meta_without_explicit_mode(self):
         # Without explicit api_mode, host mandate resolves via providers.determine_api_mode
         # This test ensures the providers entry survives normalization and the host still mandates
-        from sparkii_cli.providers import host_mandated_api_mode
+        from core.providers import host_mandated_api_mode
 
         assert host_mandated_api_mode("https://api.meta.ai/v1") == "codex_responses"
         # Simulate providers dict path: providers.meta.base_url stored, no api_mode field
         # The resolution layer (determine_api_mode / runtime_provider) must mandate.
-        from sparkii_cli.providers import determine_api_mode
+        from core.providers import determine_api_mode
 
         assert determine_api_mode("meta", "https://api.meta.ai/v1", "muse-spark-1.2") == "codex_responses"

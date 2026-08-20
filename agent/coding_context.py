@@ -700,7 +700,7 @@ def _enabled_mcp_servers(config: Optional[dict[str, Any]]) -> list[str]:
     """
     try:
         from core.config import read_raw_config
-        from sparkii_cli.tools_config import _parse_enabled_flag
+        from core.tools_config import _parse_enabled_flag
 
         servers = read_raw_config().get("mcp_servers") or {}
         return [

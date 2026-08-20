@@ -11,12 +11,12 @@ This package is the **single source of truth** for the feature so the base
 CLI (Python) and TUI (Ink, via ``tui_gateway``) never duplicate the hard
 parts:
 
-- :mod:`agent.pet.constants` — frame geometry + the :class:`PetState` enum.
-- :mod:`agent.pet.state`     — map agent activity → a :class:`PetState`.
-- :mod:`agent.pet.manifest`  — fetch the public petdex manifest.
-- :mod:`agent.pet.store`     — install / list / resolve pets on disk
+- :mod:`sparkii_cli.pet.constants` — frame geometry + the :class:`PetState` enum.
+- :mod:`sparkii_cli.pet.state`     — map agent activity → a :class:`PetState`.
+- :mod:`sparkii_cli.pet.manifest`  — fetch the public petdex manifest.
+- :mod:`sparkii_cli.pet.store`     — install / list / resolve pets on disk
                                (profile-aware via ``get_sparkii_home()``).
-- :mod:`agent.pet.render`    — decode a spritesheet and encode frames for a
+- :mod:`sparkii_cli.pet.render`    — decode a spritesheet and encode frames for a
                                terminal (kitty / iTerm2 / sixel graphics
                                protocols, with a Unicode half-block
                                fallback).
@@ -28,7 +28,7 @@ The whole feature is a *display* concern: it adds no model tool, mutates no
 system prompt or toolset, and therefore has zero effect on prompt caching.
 """
 
-from agent.pet.constants import (
+from sparkii_cli.pet.constants import (
     DEFAULT_SCALE,
     FRAME_H,
     FRAME_W,
@@ -37,7 +37,7 @@ from agent.pet.constants import (
     STATE_ROWS,
     PetState,
 )
-from agent.pet.state import derive_pet_state
+from sparkii_cli.pet.state import derive_pet_state
 
 __all__ = [
     "DEFAULT_SCALE",

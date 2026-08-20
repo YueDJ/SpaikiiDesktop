@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import pytest
 
-from sparkii_cli.providers import is_official_openai_host
+from core.providers import is_official_openai_host
 
 
 class TestOfficialHosts:

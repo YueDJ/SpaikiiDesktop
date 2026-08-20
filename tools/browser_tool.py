@@ -748,7 +748,7 @@ def _ensure_browser_plugins_loaded() -> None:
     calls early-return inside `_ensure_plugins_discovered`.
     """
     try:
-        from sparkii_cli.plugins import _ensure_plugins_discovered
+        from core.plugins import _ensure_plugins_discovered
 
         _ensure_plugins_discovered()
     except Exception as exc:
@@ -1993,7 +1993,7 @@ def _reap_orphaned_browser_sessions():
                 owner_pid = int(Path(owner_pid_file).read_text(encoding="utf-8").strip())
                 # ``os.kill(pid, 0)`` is NOT a no-op on Windows (bpo-14484).
                 # Use the cross-platform existence check.
-                from gateway.status import _pid_exists
+                from core.process_utils import _pid_exists
                 owner_alive = _pid_exists(owner_pid)
             except (ValueError, OSError):
                 owner_pid = None
@@ -2046,7 +2046,7 @@ def _reap_orphaned_browser_sessions():
 
         # Check if the daemon is still alive. ``os.kill(pid, 0)`` on Windows
         # is NOT a no-op — use the handle-based existence check.
-        from gateway.status import _pid_exists
+        from core.process_utils import _pid_exists
         if not _pid_exists(daemon_pid):
             shutil.rmtree(socket_dir, ignore_errors=True)
             continue
@@ -3708,7 +3708,7 @@ def browser_type(ref: str, text: str, task_id: Optional[str] = None) -> str:
     # Use fill command (clears then types)
     result = _run_browser_command(effective_task_id, "fill", [ref, text])
 
-    from agent.display import (
+    from agent.redact import (
         redact_browser_typed_text_for_display,
         redact_tool_args_for_display,
     )

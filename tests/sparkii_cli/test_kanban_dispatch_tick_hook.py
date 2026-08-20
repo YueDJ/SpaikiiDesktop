@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from sparkii_cli import kanban_db as kb
+from core import kanban_db as kb
 from sparkii_cli.plugins import VALID_HOOKS, get_plugin_manager
 
 
@@ -110,7 +110,7 @@ def test_misbehaving_subscriber_does_not_break_dispatcher(kanban_home):
 
 def test_no_subscriber_short_circuits_tick_hook(kanban_home, monkeypatch):
     """With nothing registered, the tick observer is never invoked."""
-    from sparkii_cli import lifecycle
+    from core import plugins as lifecycle
 
     invoked: list[str] = []
     real_invoke = lifecycle.invoke_hook

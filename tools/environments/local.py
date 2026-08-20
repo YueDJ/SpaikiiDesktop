@@ -228,7 +228,7 @@ def _build_provider_env_blocklist() -> frozenset:
     blocked: set[str] = set()
 
     try:
-        from sparkii_cli.auth import PROVIDER_REGISTRY
+        from core.provider_registry import PROVIDER_REGISTRY
         for pconfig in PROVIDER_REGISTRY.values():
             blocked.update(pconfig.api_key_env_vars)
             if pconfig.auth_type == "aws_sdk":
@@ -1882,7 +1882,7 @@ class LocalEnvironment(BaseEnvironment):
         try:
             if _IS_WINDOWS:
                 try:
-                    from gateway.status import terminate_pid
+                    from core.process_utils import terminate_pid
 
                     terminate_pid(proc.pid, force=True)
                 except Exception:

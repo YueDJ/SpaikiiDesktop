@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import pytest
 
-from sparkii_cli import runtime_provider as rp
+from core import runtime_provider as rp
 
 PROVIDER_KEY = "my-endpoint"
 DISPLAY_NAME = "My Endpoint Display"

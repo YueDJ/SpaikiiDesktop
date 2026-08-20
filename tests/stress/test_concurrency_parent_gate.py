@@ -38,7 +38,7 @@ def run() -> int:
     os.environ["SPARKII_HOME"] = home
     os.environ["HOME"] = home
 
-    from sparkii_cli import kanban_db as kb
+    from core import kanban_db as kb
 
     kb.init_db()
 

@@ -3,7 +3,7 @@ import pytest
 
 from pathlib import Path
 from types import SimpleNamespace
-from sparkii_cli import kanban_db as kb
+from core import kanban_db as kb
 from unittest.mock import AsyncMock, MagicMock, patch
 
 
@@ -186,7 +186,7 @@ async def test_notifier_artifact_delivery_skips_missing_files(kanban_home, tmp_p
     """Missing artifact paths are silently skipped — they may have been
     referenced by name only. The notifier must not crash and must still
     deliver any artifacts that do exist."""
-    import sparkii_cli.kanban_db as kb
+    import core.kanban_db as kb
     from gateway.run import GatewayRunner
     from gateway.config import Platform
     from tools import kanban_tools as kt

@@ -159,7 +159,7 @@ class TestStepCallback:
 
         with patch("acp_adapter.events.make_tool_call_id", return_value="tc-meta"), \
              patch("acp_adapter.events._send_update") as mock_send, \
-             patch("agent.display.capture_local_edit_snapshot", return_value="snapshot"):
+             patch("sparkii_cli.display.capture_local_edit_snapshot", return_value="snapshot"):
             cb = make_tool_progress_cb(mock_conn, "session-1", loop, tool_call_ids, tool_call_meta)
             cb("tool.started", "write_file", None, {"path": "diff-test.txt", "content": "hello"})
 

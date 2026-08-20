@@ -12,7 +12,7 @@ from core.config import (
     get_custom_provider_extra_headers,
     normalize_extra_headers,
 )
-from sparkii_cli import models as models_mod
+from core import models as models_mod
 
 
 def test_normalize_extra_headers_stringifies_and_drops_none():

@@ -1253,7 +1253,7 @@ def _dispatch_to_plugin_provider(
         return None
     try:
         from agent.transcription_registry import get_provider
-        from sparkii_cli.plugins import _ensure_plugins_discovered
+        from core.plugins import _ensure_plugins_discovered
 
         _ensure_plugins_discovered()
         plugin_provider = get_provider(key)
@@ -1427,7 +1427,7 @@ def _apply_pre_transcription_hook(
     it.
     """
     try:
-        from sparkii_cli.plugins import has_hook, invoke_hook
+        from core.plugins import has_hook, invoke_hook
 
         # No-hook short-circuit: keep the no-plugin dispatch path
         # byte-identical (no kwargs built, no invoke_hook call).
@@ -2714,7 +2714,7 @@ def _transcribe_deepinfra(
     if not api_key:
         return {"success": False, "transcript": "", "error": "DEEPINFRA_API_KEY not set"}
 
-    from sparkii_cli.models import deepinfra_base_url, deepinfra_model_ids
+    from core.models import deepinfra_base_url, deepinfra_model_ids
 
     stt_config = _load_stt_config()
     # ``stt.deepinfra: null`` in YAML yields None, not {} — coalesce so the

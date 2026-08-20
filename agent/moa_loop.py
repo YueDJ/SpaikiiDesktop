@@ -365,7 +365,7 @@ def _slot_runtime(slot: dict[str, Any]) -> dict[str, Any]:
             return cached
     out: dict[str, Any] = {"provider": provider, "model": model}
     try:
-        from sparkii_cli.runtime_provider import resolve_runtime_provider
+        from core.runtime_provider import resolve_runtime_provider
 
         rt = resolve_runtime_provider(requested=provider, target_model=model)
         if rt.get("base_url"):

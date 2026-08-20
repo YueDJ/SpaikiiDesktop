@@ -24,7 +24,7 @@ def isolated_kanban_home_with_profiles(monkeypatch):
     for mod in list(sys.modules.keys()):
         if mod.startswith("sparkii_cli") or mod.startswith("sparkii_state") or mod == "sparkii_constants":
             del sys.modules[mod]
-    from sparkii_cli import kanban_db
+    from core import kanban_db
     yield kanban_db
 
 

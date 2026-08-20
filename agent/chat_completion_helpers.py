@@ -2409,7 +2409,7 @@ def _fallback_entry_unavailable_without_network(agent, fb: dict) -> Optional[str
     if fb_provider != "nous":
         return None
     try:
-        from sparkii_cli.auth import get_provider_auth_state
+        from core.credentials import get_provider_auth_state
 
         state = get_provider_auth_state("nous") or {}
     except Exception as exc:
@@ -2583,7 +2583,7 @@ def try_activate_fallback(agent, reason: "FailoverReason | None" = None) -> bool
             unavailable.add(fb_key)
             return agent._try_activate_fallback(reason)  # try next in chain
         try:
-            from sparkii_cli.model_normalize import normalize_model_for_provider
+            from core.model_normalize import normalize_model_for_provider
 
             fb_model = normalize_model_for_provider(fb_model, fb_provider)
         except Exception as _norm_err:
@@ -2607,7 +2607,7 @@ def try_activate_fallback(agent, reason: "FailoverReason | None" = None) -> bool
                 # resolve_provider_client still returns an OpenAI client for
                 # Nous; the anthropic_messages branch below rebuilds the native
                 # client from that credential + base_url.
-                from sparkii_cli.providers import nous_api_mode
+                from core.providers import nous_api_mode
 
                 fb_api_mode = nous_api_mode(fb_model)
             elif (

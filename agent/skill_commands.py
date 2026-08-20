@@ -434,7 +434,7 @@ def scan_skill_commands() -> Dict[str, Dict[str, Any]]:
             iter_project_skill_files,
             iter_skill_index_files,
         )
-        from sparkii_cli.commands import resolve_command
+        from core.plugins import _get_command_resolver_provider
         disabled = _get_disabled_skill_names()
         seen_names: set = set()
 
@@ -492,7 +492,8 @@ def scan_skill_commands() -> Dict[str, Dict[str, Any]]:
                     # skill remains fully loadable via /skill <name>.
                     # Uses resolve_command() so aliases and case variants are
                     # covered without maintaining a separate cache.
-                    if resolve_command(cmd_name) is not None:
+                    _cmd_resolver = _get_command_resolver_provider()
+                    if _cmd_resolver is not None and _cmd_resolver(cmd_name) is not None:
                         logger.warning(
                             "Skill %r generates slash command '/%s' which "
                             "collides with a core Sparkii command; skipping "

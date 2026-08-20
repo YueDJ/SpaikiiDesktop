@@ -19,7 +19,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from sparkii_cli import kanban_db as kb
+from core import kanban_db as kb
 
 
 # ---------------------------------------------------------------------------
@@ -56,6 +56,10 @@ def kanban_home(tmp_path, monkeypatch):
 
 @pytest.fixture
 def client(kanban_home):
+    # Production wiring: the dashboard server imports gateway.config before
+    # serving, which registers the gateway-config reader for core consumers.
+    import gateway.config  # noqa: F401
+
     app = FastAPI()
     app.include_router(_load_plugin_router(), prefix="/api/plugins/kanban")
     return TestClient(app)
@@ -547,10 +551,13 @@ def test_ws_events_rejects_when_token_required(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     kb.init_db()
 
-    # Stub web_server with a loopback-mode _ws_auth_ok (auth_required False →
-    # accept only the correct ?token=). Mirrors the real gate's loopback path.
-    import sparkii_cli
+    # Stub the kanban bridge ws-auth provider with loopback-mode semantics
+    # (auth_required False → accept only the correct ?token=).  Mirrors the
+    # real gate's loopback path; the dashboard surface registers the real
+    # web_server._ws_auth_ok through this bridge at import time.
     import types
+
+    from core.kanban_bridge import set_dashboard_ws_auth_provider
 
     def _fake_ws_auth_ok(ws):
         return ws.query_params.get("token", "") == "secret-xyz"
@@ -559,8 +566,7 @@ def test_ws_events_rejects_when_token_required(tmp_path, monkeypatch):
         _SESSION_TOKEN="secret-xyz",
         _ws_auth_ok=_fake_ws_auth_ok,
     )
-    monkeypatch.setitem(sys.modules, "sparkii_cli.web_server", stub)
-    monkeypatch.setattr(sparkii_cli, "web_server", stub, raising=False)
+    set_dashboard_ws_auth_provider(_fake_ws_auth_ok)
 
     app = FastAPI()
     app.include_router(_load_plugin_router(), prefix="/api/plugins/kanban")
@@ -976,7 +982,7 @@ def test_event_dict_includes_run_id(client):
     """GET /tasks/:id returns events with run_id populated."""
     r = client.post("/api/plugins/kanban/tasks", json={"title": "e", "assignee": "worker"})
     tid = r.json()["task"]["id"]
-    from sparkii_cli import kanban_db as kb
+    from core import kanban_db as kb
     conn = kb.connect()
     try:
         kb.claim_task(conn, tid)
@@ -1228,5 +1234,3 @@ def test_specify_happy_path(client, monkeypatch):
 # ---------------------------------------------------------------------------
 # Final result visibility for Done cards
 # ---------------------------------------------------------------------------
-
-

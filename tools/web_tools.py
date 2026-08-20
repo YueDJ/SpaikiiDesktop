@@ -635,7 +635,7 @@ def _ensure_web_plugins_loaded() -> None:
     invocations.
     """
     try:
-        from sparkii_cli.plugins import _ensure_plugins_discovered
+        from core.plugins import _ensure_plugins_discovered
 
         _ensure_plugins_discovered()
     except Exception as exc:  # noqa: BLE001

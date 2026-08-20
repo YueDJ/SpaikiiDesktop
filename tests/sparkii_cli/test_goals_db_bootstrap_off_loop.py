@@ -25,7 +25,7 @@ import time
 
 import pytest
 
-import sparkii_cli.goals as goals
+import core.goals as goals
 
 
 class _RecordingDB:

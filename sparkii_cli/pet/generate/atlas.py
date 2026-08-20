@@ -8,9 +8,9 @@ renderer reads.
 
 The atlas follows the **petdex/Codex standard**: 8 columns x 9 rows of
 ``192x208`` cells (``1536x1872``), with the row order + per-row frame counts
-from OpenAI's ``hatch-pet`` skill. Our renderer (:mod:`agent.pet.render`) keys
+from OpenAI's ``hatch-pet`` skill. Our renderer (:mod:`sparkii_cli.pet.render`) keys
 frames as ``rows = states, cols = frames`` via
-:data:`agent.pet.constants.CODEX_STATE_ROWS`, and a pet built here is a valid
+:data:`sparkii_cli.pet.constants.CODEX_STATE_ROWS`, and a pet built here is a valid
 ``petdex submit`` spritesheet. Rows shorter than 8 columns leave the trailing
 cells fully transparent.
 
@@ -28,7 +28,7 @@ import logging
 import math
 from pathlib import Path
 
-from agent.pet.constants import FRAME_H, FRAME_W
+from sparkii_cli.pet.constants import FRAME_H, FRAME_W
 
 logger = logging.getLogger(__name__)
 

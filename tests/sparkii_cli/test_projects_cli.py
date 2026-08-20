@@ -7,7 +7,7 @@ import argparse
 import pytest
 
 from sparkii_cli import projects_cmd
-from sparkii_cli import projects_db as pdb
+from core import projects_db as pdb
 
 
 def _run(argv):

@@ -993,3 +993,22 @@ def _numbered_fallback(
         print()
 
     return chosen
+
+
+# Block 4: register the interactive menu namespace for core tools_config.
+try:
+    from types import SimpleNamespace as _NS
+
+    from core.tools_config import set_curses_ui_provider
+
+    def _curses_ui_context():
+        from sparkii_cli.curses_ui import curses_checklist, curses_radiolist
+
+        return _NS(
+            curses_checklist=curses_checklist,
+            curses_radiolist=curses_radiolist,
+        )
+
+    set_curses_ui_provider(_curses_ui_context)
+except Exception:  # pragma: no cover - defensive
+    pass

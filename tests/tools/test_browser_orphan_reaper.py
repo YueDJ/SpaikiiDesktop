@@ -82,7 +82,7 @@ class TestReapOrphanedBrowserSessions:
         def mock_terminate(pid):
             terminate_calls.append(pid)
 
-        with patch("gateway.status._pid_exists", return_value=True), \
+        with patch("core.process_utils._pid_exists", return_value=True), \
              patch("tools.browser_tool._verify_reapable_browser_daemon", return_value=True), \
              patch("tools.process_registry.ProcessRegistry._terminate_host_pid", side_effect=mock_terminate):
             _reap_orphaned_browser_sessions()
@@ -129,7 +129,7 @@ class TestOwnerPidCrossProcess:
             kill_calls.append(pid)
 
         # Owner alive → reaper skips without ever probing the daemon.
-        with patch("gateway.status._pid_exists", return_value=True), \
+        with patch("core.process_utils._pid_exists", return_value=True), \
              patch("tools.process_registry.ProcessRegistry._terminate_host_pid", side_effect=mock_terminate):
             _reap_orphaned_browser_sessions()
 
@@ -158,7 +158,7 @@ class TestOwnerPidCrossProcess:
 
         # Owner 22222 reported alive (PermissionError collapses to True
         # inside _pid_exists). Daemon never probed, never terminated.
-        with patch("gateway.status._pid_exists", return_value=True), \
+        with patch("core.process_utils._pid_exists", return_value=True), \
              patch("tools.process_registry.ProcessRegistry._terminate_host_pid", side_effect=mock_terminate):
             _reap_orphaned_browser_sessions()
 
@@ -321,7 +321,7 @@ class TestReaperIdentityGuard:
         terminate_calls = []
         proc = self._FakeProc(name="sleep", cmdline=["/bin/sleep", "600"])
 
-        with patch("gateway.status._pid_exists", return_value=True), \
+        with patch("core.process_utils._pid_exists", return_value=True), \
              patch("psutil.Process", return_value=proc), \
              patch("tools.process_registry.ProcessRegistry._terminate_host_pid",
                    side_effect=lambda pid: terminate_calls.append(pid)):
@@ -423,7 +423,7 @@ class TestLeakedDaemonWithLiveOwner:
         )
         kill_calls = []
 
-        with patch("gateway.status._pid_exists", return_value=True), \
+        with patch("core.process_utils._pid_exists", return_value=True), \
              patch("tools.browser_tool._verify_reapable_browser_daemon", return_value=True), \
              patch("tools.process_registry.ProcessRegistry._terminate_host_pid",
                    side_effect=kill_calls.append):
@@ -445,7 +445,7 @@ class TestLeakedDaemonWithLiveOwner:
         _age_socket_dir(d, BROWSER_ORPHAN_GRACE_SECONDS + 600)
         kill_calls = []
 
-        with patch("gateway.status._pid_exists", return_value=True), \
+        with patch("core.process_utils._pid_exists", return_value=True), \
              patch("tools.browser_tool._verify_reapable_browser_daemon", return_value=True), \
              patch("tools.process_registry.ProcessRegistry._terminate_host_pid",
                    side_effect=kill_calls.append):
@@ -473,7 +473,7 @@ class TestLeakedDaemonWithLiveOwner:
         bt._active_sessions["task-1"] = {"session_name": "h_tracked_old"}
         kill_calls = []
 
-        with patch("gateway.status._pid_exists", return_value=True), \
+        with patch("core.process_utils._pid_exists", return_value=True), \
              patch("tools.browser_tool._verify_reapable_browser_daemon", return_value=True), \
              patch("tools.process_registry.ProcessRegistry._terminate_host_pid",
                    side_effect=kill_calls.append):
@@ -491,7 +491,7 @@ class TestLeakedDaemonWithLiveOwner:
         )
         kill_calls = []
 
-        with patch("gateway.status._pid_exists", return_value=True), \
+        with patch("core.process_utils._pid_exists", return_value=True), \
              patch("tools.browser_tool._socket_dir_idle_seconds", return_value=None), \
              patch("tools.browser_tool._verify_reapable_browser_daemon", return_value=True), \
              patch("tools.process_registry.ProcessRegistry._terminate_host_pid",
@@ -518,7 +518,7 @@ class TestLeakedDaemonWithLiveOwner:
         _age_socket_dir(d, BROWSER_ORPHAN_GRACE_SECONDS + 600)
         kill_calls = []
 
-        with patch("gateway.status._pid_exists", return_value=True), \
+        with patch("core.process_utils._pid_exists", return_value=True), \
              patch("tools.browser_tool._verify_reapable_browser_daemon", return_value=False), \
              patch("tools.process_registry.ProcessRegistry._terminate_host_pid",
                    side_effect=kill_calls.append):

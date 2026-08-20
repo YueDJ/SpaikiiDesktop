@@ -13,7 +13,7 @@ can never silently drift again when a provider plugin is added.
 
 from fastapi.testclient import TestClient
 
-from sparkii_cli.models import CANONICAL_PROVIDERS
+from core.models import CANONICAL_PROVIDERS
 from sparkii_cli.provider_catalog import provider_catalog
 from sparkii_cli.web_server import _SESSION_TOKEN, app
 

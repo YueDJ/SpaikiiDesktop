@@ -4,8 +4,8 @@ import json
 import pytest
 from unittest.mock import MagicMock
 
-import agent.display as display_module
-from agent.display import (
+import sparkii_cli.display as display_module
+from sparkii_cli.display import (
     build_tool_preview,
     capture_local_edit_snapshot,
     extract_edit_diff,
@@ -215,7 +215,7 @@ class TestEditDiffPreview:
     def test_render_edit_diff_with_delta_handles_renderer_errors(self, monkeypatch):
         printer = MagicMock()
 
-        monkeypatch.setattr("agent.display._summarize_rendered_diff_sections", MagicMock(side_effect=RuntimeError("boom")))
+        monkeypatch.setattr("sparkii_cli.display._summarize_rendered_diff_sections", MagicMock(side_effect=RuntimeError("boom")))
 
         rendered = render_edit_diff_with_delta(
             "patch",
@@ -247,18 +247,18 @@ class TestBuildToolLabel:
 
     @pytest.fixture(autouse=True)
     def _enable_friendly(self):
-        from agent.display import set_friendly_tool_labels
+        from sparkii_cli.display import set_friendly_tool_labels
         set_friendly_tool_labels(True)
         yield
         set_friendly_tool_labels(True)
 
     def test_web_search_uses_for_connector(self):
-        from agent.display import build_tool_label
+        from sparkii_cli.display import build_tool_label
         label = build_tool_label("web_search", {"query": "weather in NYC"})
         assert label == 'Searching the web for weather in NYC'
 
     def test_web_extract_reads_url(self):
-        from agent.display import build_tool_label
+        from sparkii_cli.display import build_tool_label
         label = build_tool_label("web_extract", {"urls": ["https://example.com/page"]})
         assert label is not None
         assert label.startswith("Reading ")
@@ -271,7 +271,7 @@ class TestBuildToolLabel:
 
 
     def test_disabled_falls_back_to_preview(self):
-        from agent.display import (
+        from sparkii_cli.display import (
             build_tool_label,
             build_tool_preview,
             set_friendly_tool_labels,
@@ -292,14 +292,14 @@ class TestBuildStatusPhrase:
 
     def test_verb_only_when_args_none(self):
         # live_status: "verb" mode passes args=None to suppress previews.
-        from agent.display import build_status_phrase
+        from sparkii_cli.display import build_status_phrase
         assert build_status_phrase("terminal", None) == "is running…"
         assert build_status_phrase("read_file", None) == "is reading…"
 
 
 
     def test_caps_length_for_slack_status_line(self):
-        from agent.display import build_status_phrase
+        from sparkii_cli.display import build_status_phrase
         phrase = build_status_phrase(
             "terminal", {"command": "x" * 300}, max_len=49
         )
@@ -308,7 +308,7 @@ class TestBuildStatusPhrase:
 
 
     def test_respects_friendly_labels_toggle(self):
-        from agent.display import build_status_phrase, set_friendly_tool_labels
+        from sparkii_cli.display import build_status_phrase, set_friendly_tool_labels
         set_friendly_tool_labels(False)
         try:
             assert build_status_phrase("terminal", {"command": "ls"}) is None

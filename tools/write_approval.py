@@ -208,7 +208,7 @@ def current_origin() -> str:
     """Return the active write origin: ``foreground`` or ``background_review``.
 
     Reuses the skill-provenance ContextVar, which the background review fork
-    already sets (see ``agent.background_review`` /
+    already sets (see ``sparkii_cli.background_review`` /
     ``AIAgent._spawn_background_review``). Foreground agent turns leave it at
     the default ``foreground``.
     """

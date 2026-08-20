@@ -346,9 +346,9 @@ def _capture_gateway_steer_authority(
     if not owner_session_id:
         return None, None
     try:
-        from tui_gateway.server import _current_session_steer_authority
+        from core.session_steer import get_session_steer_authority
 
-        return _current_session_steer_authority(owner_session_id)
+        return get_session_steer_authority(owner_session_id)
     except Exception:
         return None, None
 
@@ -1507,9 +1507,9 @@ def _build_child_progress_callback(
                 if preview and len(preview) > 35
                 else (preview or "")
             )
-            from agent.display import get_tool_emoji
+            from agent.display_provider import get_display_provider
 
-            emoji = get_tool_emoji(tool_name or "")
+            emoji = get_display_provider().tool_emoji(tool_name or "")
             line = f" {prefix}├─ {emoji} {tool_name}"
             if short:
                 line += f'  "{short}"'
@@ -1774,7 +1774,7 @@ def _build_child_agent(
     if override_api_mode is not None:
         effective_api_mode = override_api_mode
     elif _effective_provider_norm in {"nous", "nous-portal", "nousresearch"}:
-        from sparkii_cli.providers import nous_api_mode
+        from core.providers import nous_api_mode
 
         effective_api_mode = nous_api_mode(effective_model)
     elif effective_provider != _parent_provider:
@@ -2050,7 +2050,7 @@ def _build_child_agent(
             logger.debug("spawn_requested relay failed: %s", exc)
 
     try:
-        from sparkii_cli.lifecycle import invoke_hook as _invoke_hook
+        from core.plugins import invoke_hook as _invoke_hook
         _invoke_hook(
             "subagent_start",
             parent_session_id=getattr(parent_agent, "session_id", None),
@@ -3432,7 +3432,7 @@ def _finalize_child_results(
 
         parent_session_id = getattr(parent_agent, "session_id", None)
         try:
-            from sparkii_cli.plugins import invoke_hook as invoke_hook
+            from core.plugins import invoke_hook as invoke_hook
         except Exception:
             invoke_hook = None
 
@@ -4466,7 +4466,7 @@ def _resolve_delegation_credentials(cfg: dict, parent_agent) -> dict:
         # proxies — pick the right transport automatically. Without this,
         # subagents would default to chat_completions and hit 404s on endpoints
         # that only speak the Anthropic Messages protocol. Fixes #10213.
-        from sparkii_cli.runtime_provider import _detect_api_mode_for_url
+        from core.runtime_provider import _detect_api_mode_for_url
 
         base_lower = configured_base_url.lower()
         provider = "custom"
@@ -4511,7 +4511,7 @@ def _resolve_delegation_credentials(cfg: dict, parent_agent) -> dict:
 
     # Provider is configured — resolve full credentials
     try:
-        from sparkii_cli.runtime_provider import resolve_runtime_provider
+        from core.runtime_provider import resolve_runtime_provider
 
         runtime = resolve_runtime_provider(requested=configured_provider, target_model=configured_model)
     except Exception as exc:
@@ -4587,9 +4587,9 @@ def _load_config() -> dict:
         except Exception:
             pass
     try:
-        from cli import CLI_CONFIG
+        from core.config import get_cli_config
 
-        cfg = CLI_CONFIG.get("delegation") or {}
+        cfg = get_cli_config().get("delegation") or {}
         return cfg if isinstance(cfg, dict) else {}
     except Exception:
         return {}

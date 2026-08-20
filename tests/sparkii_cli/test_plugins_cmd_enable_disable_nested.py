@@ -47,7 +47,7 @@ def nested_plugin_env(tmp_path):
 
 
 class TestResolvePluginKey:
-    @patch("sparkii_cli.plugins.get_bundled_plugins_dir")
+    @patch("core.plugins.get_bundled_plugins_dir")
     @patch("sparkii_cli.plugins_cmd._plugins_dir")
     def test_full_key_resolves_to_itself(self, mock_user, mock_bundled, nested_plugin_env):
         from sparkii_cli.plugins_cmd import _resolve_plugin_key
@@ -56,7 +56,7 @@ class TestResolvePluginKey:
         assert _resolve_plugin_key("observability/nemo_relay") == "observability/nemo_relay"
 
 
-    @patch("sparkii_cli.plugins.get_bundled_plugins_dir")
+    @patch("core.plugins.get_bundled_plugins_dir")
     @patch("sparkii_cli.plugins_cmd._plugins_dir")
     def test_unknown_returns_none(self, mock_user, mock_bundled, nested_plugin_env):
         from sparkii_cli.plugins_cmd import _resolve_plugin_key
@@ -64,7 +64,7 @@ class TestResolvePluginKey:
         mock_bundled.return_value = nested_plugin_env / "nonexistent"
         assert _resolve_plugin_key("does-not-exist") is None
 
-    @patch("sparkii_cli.plugins.get_bundled_plugins_dir")
+    @patch("core.plugins.get_bundled_plugins_dir")
     @patch("sparkii_cli.plugins_cmd._plugins_dir")
     def test_ambiguous_leaf_name_returns_none(self, mock_user, mock_bundled, tmp_path):
         """Same leaf name under two categories must NOT silently pick one."""
@@ -84,7 +84,7 @@ class TestResolvePluginKey:
 
 
 class TestEnableDisableNested:
-    @patch("sparkii_cli.plugins.get_bundled_plugins_dir")
+    @patch("core.plugins.get_bundled_plugins_dir")
     @patch("sparkii_cli.plugins_cmd._plugins_dir")
     @patch("sparkii_cli.plugins_cmd._save_disabled_set")
     @patch("sparkii_cli.plugins_cmd._save_enabled_set")
@@ -107,7 +107,7 @@ class TestEnableDisableNested:
         assert "nemo_relay" not in saved or "observability/nemo_relay" in saved
 
 
-    @patch("sparkii_cli.plugins.get_bundled_plugins_dir")
+    @patch("core.plugins.get_bundled_plugins_dir")
     @patch("sparkii_cli.plugins_cmd._plugins_dir")
     def test_enable_unknown_plugin_exits(self, mock_user, mock_bundled, nested_plugin_env):
         from sparkii_cli.plugins_cmd import cmd_enable
@@ -116,7 +116,7 @@ class TestEnableDisableNested:
         with pytest.raises(SystemExit):
             cmd_enable("does-not-exist")
 
-    @patch("sparkii_cli.plugins.get_bundled_plugins_dir")
+    @patch("core.plugins.get_bundled_plugins_dir")
     @patch("sparkii_cli.plugins_cmd._plugins_dir")
     @patch("sparkii_cli.plugins_cmd._save_disabled_set")
     @patch("sparkii_cli.plugins_cmd._save_enabled_set")
@@ -147,7 +147,7 @@ class TestEnableToolOverrideConsent:
     choice under ``plugins.entries.<key>.allow_tool_override``."""
 
 
-    @patch("sparkii_cli.plugins.get_bundled_plugins_dir")
+    @patch("core.plugins.get_bundled_plugins_dir")
     @patch("sparkii_cli.plugins_cmd._plugins_dir")
     @patch("sparkii_cli.plugins_cmd._set_plugin_entry_flag")
     @patch("sparkii_cli.plugins_cmd._save_disabled_set")
@@ -170,7 +170,7 @@ class TestEnableToolOverrideConsent:
             "disk-cleanup", "allow_tool_override", False
         )
 
-    @patch("sparkii_cli.plugins.get_bundled_plugins_dir")
+    @patch("core.plugins.get_bundled_plugins_dir")
     @patch("sparkii_cli.plugins_cmd._plugins_dir")
     @patch("sparkii_cli.plugins_cmd._set_plugin_entry_flag")
     @patch("sparkii_cli.plugins_cmd._save_disabled_set")

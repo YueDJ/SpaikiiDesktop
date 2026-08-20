@@ -11,9 +11,9 @@ import threading
 
 import pytest
 
-from agent.pet import store
-from agent.pet.constants import FRAME_H, FRAME_W
-from agent.pet.render import PetRenderer
+from sparkii_cli.pet import store
+from sparkii_cli.pet.constants import FRAME_H, FRAME_W
+from sparkii_cli.pet.render import PetRenderer
 from cli import SparkiiCLI
 
 

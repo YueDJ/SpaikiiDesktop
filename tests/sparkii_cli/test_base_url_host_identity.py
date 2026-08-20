@@ -28,7 +28,7 @@ class _Host(CLIAgentSetupMixin):
 def _ready_with(runtime: dict) -> bool:
     host = _Host()
     with patch(
-        "sparkii_cli.runtime_provider.resolve_runtime_provider",
+        "core.runtime_provider.resolve_runtime_provider",
         return_value=runtime,
     ):
         return host._runtime_credentials_ready()

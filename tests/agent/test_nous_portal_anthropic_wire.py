@@ -20,8 +20,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from sparkii_cli import runtime_provider as rp
-from sparkii_cli.providers import nous_api_mode
+from core import runtime_provider as rp
+from core.providers import nous_api_mode
 
 PORTAL_URL = "https://inference-api.nousresearch.com/v1"
 # Staging / preview hosts used via NOUS_INFERENCE_BASE_URL — not the prod
@@ -57,7 +57,7 @@ class TestApiModeRouting:
         """Callers that skip resolve_runtime_provider (fallback, switch_model
         empty-mode path) must still land Claude on Messages — the Sparkii
         overlay alone advertises openai_chat for every Nous model."""
-        from sparkii_cli.providers import determine_api_mode
+        from core.providers import determine_api_mode
 
         assert (
             determine_api_mode(

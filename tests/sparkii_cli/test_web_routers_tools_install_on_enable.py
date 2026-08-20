@@ -48,7 +48,7 @@ class TestToggleToolsetInstallOnEnable:
     def test_enable_computer_use_spawns_cua_install_when_binary_missing(
         self, monkeypatch
     ):
-        import sparkii_cli.tools_config as tools_config
+        import core.tools_config as tools_config
 
         calls = self._spawn_recorder(monkeypatch)
         # Binary missing → the cua_driver predicate reports unsatisfied.
@@ -74,7 +74,7 @@ class TestToggleToolsetInstallOnEnable:
     def test_enable_computer_use_skips_install_when_binary_present(
         self, monkeypatch
     ):
-        import sparkii_cli.tools_config as tools_config
+        import core.tools_config as tools_config
 
         calls = self._spawn_recorder(monkeypatch)
         monkeypatch.setattr(
@@ -92,7 +92,7 @@ class TestToggleToolsetInstallOnEnable:
         assert calls == []
 
     def test_disable_never_spawns_install(self, monkeypatch):
-        import sparkii_cli.tools_config as tools_config
+        import core.tools_config as tools_config
 
         calls = self._spawn_recorder(monkeypatch)
         monkeypatch.setattr(
@@ -110,7 +110,7 @@ class TestToggleToolsetInstallOnEnable:
         assert calls == []
 
     def test_spawn_failure_does_not_fail_the_toggle(self, monkeypatch):
-        import sparkii_cli.tools_config as tools_config
+        import core.tools_config as tools_config
         import sparkii_cli.web_server as web_server
 
         monkeypatch.setattr(

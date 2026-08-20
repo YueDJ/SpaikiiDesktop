@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from sparkii_cli.model_switch import ModelSwitchResult
+from core.model_switch import ModelSwitchResult
 
 
 def _bound(fn, instance):
@@ -16,7 +16,7 @@ def test_prompt_toolkit_model_picker_defers_confirmation_off_key_handler(monkeyp
         target_provider="nous",
     )
     monkeypatch.setattr(
-        "sparkii_cli.model_switch.switch_model",
+        "core.model_switch.switch_model",
         lambda **_kwargs: result,
     )
 

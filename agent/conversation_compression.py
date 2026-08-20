@@ -2430,7 +2430,7 @@ def compress_context(
     # Atomic, state.db-backed lock per session_id.  Without this, two
     # AIAgent instances that share the same session_id (most commonly the
     # parent-turn agent and its background-review fork — see
-    # ``agent/background_review.py``: ``review_agent.session_id =
+    # ``sparkii_cli/background_review.py``: ``review_agent.session_id =
     # agent.session_id``) can each call compress() on overlapping
     # snapshots of the same conversation.  Both succeed, both rotate
     # ``agent.session_id`` to a fresh id, both create child sessions in
@@ -3560,7 +3560,7 @@ def compress_context(
                     # from the parent row, covering app-global remote sessions
                     # whose thread lacks the SPARKII_HOME context.
                     try:
-                        from sparkii_cli.profiles import get_active_profile_name
+                        from core.profiles import get_active_profile_name
 
                         _profile_for_child = get_active_profile_name()
                         if _profile_for_child == "default":
@@ -3612,13 +3612,13 @@ def compress_context(
                     # per-session lookup with no parent walk, so without this an
                     # active goal silently dies at the boundary (#33618).
                     try:
-                        from sparkii_cli.goals import migrate_goal_to_session
+                        from core.goals import migrate_goal_to_session
                         migrate_goal_to_session(old_session_id, agent.session_id, reason="compression")
                     except Exception as _goal_err:
                         logger.debug("Could not migrate goal on compression: %s", _goal_err)
                     # Same boundary hazard for /heartbeat state — carry it too.
                     try:
-                        from sparkii_cli.heartbeat import migrate_heartbeat_to_session
+                        from core.heartbeat import migrate_heartbeat_to_session
                         migrate_heartbeat_to_session(old_session_id, agent.session_id)
                     except Exception as _hb_err:
                         logger.debug("Could not migrate heartbeat on compression: %s", _hb_err)
@@ -3626,7 +3626,7 @@ def compress_context(
                     # onto the continuation session so the recurring wakeups
                     # survive compression.
                     try:
-                        from sparkii_cli.loops import migrate_loop_to_session
+                        from core.loops import migrate_loop_to_session
                         migrate_loop_to_session(old_session_id, agent.session_id, reason="compression")
                     except Exception as _loop_err:
                         logger.debug("Could not migrate loop on compression: %s", _loop_err)

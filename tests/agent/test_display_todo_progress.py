@@ -5,7 +5,7 @@ todo tool call paths: read, create (merge=False), update (merge=True).
 """
 
 import json
-from agent.display import get_cute_tool_message
+from sparkii_cli.display import get_cute_tool_message
 
 
 def _todo_result(total: int, completed: int) -> str:

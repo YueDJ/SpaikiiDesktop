@@ -95,7 +95,7 @@ def provider_catalog() -> list[ProviderDescriptor]:
     # this module is on the import path of the web server and the CLI, and we
     # never want a provider-plugin import error to blank the whole catalog.
     try:
-        from sparkii_cli.auth import PROVIDER_REGISTRY
+        from core.provider_registry import PROVIDER_REGISTRY
     except Exception:
         PROVIDER_REGISTRY = {}
 

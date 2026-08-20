@@ -421,7 +421,7 @@ class TestUpdate:
 
     def test_update_missing_manifest_errors(self, profile_env):
         # Make a profile without a manifest; update must refuse
-        from sparkii_cli.profiles import create_profile
+        from core.profiles import create_profile
         create_profile(name="plain", no_alias=True)
         with pytest.raises(DistributionError, match="not a distribution"):
             update_distribution("plain")
@@ -496,7 +496,7 @@ class TestSecurity:
         with pytest.raises(DistributionError, match="symlink"):
             install_distribution(str(staged), name="clean")
 
-        from sparkii_cli.profiles import get_profile_dir
+        from core.profiles import get_profile_dir
         target = get_profile_dir("clean")
         assert not (target / "skills" / "demo" / "leak.txt").exists()
 
@@ -597,7 +597,7 @@ class TestInstalledAtStamp:
     def test_update_refreshes_installed_at(self, profile_env, monkeypatch):
         staged = _make_staging_dir(profile_env, "src")
         install_distribution(str(staged), name="demo")
-        from sparkii_cli.profiles import get_profile_dir
+        from core.profiles import get_profile_dir
         first = read_manifest(get_profile_dir("demo")).installed_at
 
         # Freeze `datetime.now()` to a fixed future time so we can observe that
@@ -633,7 +633,7 @@ class TestProfileInfoDistribution:
         )
         install_distribution(str(staged), name="telem")
 
-        from sparkii_cli.profiles import list_profiles
+        from core.profiles import list_profiles
         rows = {p.name: p for p in list_profiles()}
         assert "telem" in rows
         row = rows["telem"]
@@ -643,7 +643,7 @@ class TestProfileInfoDistribution:
 
 
     def test_malformed_manifest_does_not_break_list(self, profile_env):
-        from sparkii_cli.profiles import create_profile, list_profiles, get_profile_dir
+        from core.profiles import create_profile, list_profiles, get_profile_dir
         create_profile(name="brokenmeta", no_alias=True)
         # Write a distribution.yaml that isn't a valid mapping
         (get_profile_dir("brokenmeta") / "distribution.yaml").write_text(

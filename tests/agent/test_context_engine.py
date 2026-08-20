@@ -187,7 +187,7 @@ class TestPluginContextEngineSlot:
 
     def test_get_plugin_context_engine(self):
         from sparkii_cli.plugins import PluginManager, get_plugin_context_engine
-        import sparkii_cli.plugins as plugins_mod
+        import core.plugins as plugins_mod
 
         # Inject a test manager
         old_mgr = plugins_mod._plugin_manager
@@ -247,7 +247,7 @@ class TestInitAgentDoesNotMutatePluginSingleton:
     """
 
     def test_child_init_does_not_corrupt_parent_singleton(self, monkeypatch):
-        import sparkii_cli.plugins as plugins_mod
+        import core.plugins as plugins_mod
         from sparkii_cli.plugins import PluginManager
 
         # Register a "parent" engine as the global plugin singleton, sized for

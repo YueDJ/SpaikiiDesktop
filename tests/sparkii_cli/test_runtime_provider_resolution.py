@@ -5,7 +5,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from sparkii_cli import runtime_provider as rp
+from core import runtime_provider as rp
 
 
 def test_configured_api_key_provider_without_key_fails_closed(monkeypatch):

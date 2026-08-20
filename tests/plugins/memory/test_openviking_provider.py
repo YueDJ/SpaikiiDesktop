@@ -289,7 +289,7 @@ def test_post_setup_existing_profile_picker_validates_and_links_saved_profile(tm
     monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
     monkeypatch.setattr(openviking_module.Path, "home", staticmethod(lambda: tmp_path))
 
-    from sparkii_cli import memory_setup
+    from core import memory_setup
 
     validate_calls = []
 

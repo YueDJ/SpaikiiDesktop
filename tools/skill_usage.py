@@ -789,7 +789,7 @@ def telemetry_provenance(
         return "installed"
     if ":" in skill_name:
         try:
-            from sparkii_cli.plugins import get_plugin_manager
+            from core.plugins import get_plugin_manager
 
             if get_plugin_manager().find_plugin_skill(skill_name) is not None:
                 return "installed"
@@ -821,7 +821,7 @@ def _emit_skill_lifecycle(
 ) -> None:
     """Emit one best-effort lifecycle fact after authoritative state changes."""
     try:
-        from sparkii_cli.lifecycle import has_hook, invoke_hook
+        from core.plugins import has_hook, invoke_hook
 
         if not has_hook("on_skill_lifecycle"):
             return

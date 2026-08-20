@@ -13,7 +13,7 @@ import sys
 import pytest
 from unittest.mock import MagicMock
 
-from agent.display import KawaiiSpinner
+from sparkii_cli.display import KawaiiSpinner
 from tools.delegate_tool import _build_child_progress_callback
 
 

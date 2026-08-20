@@ -253,12 +253,10 @@ def resolve_identity() -> Dict[str, Any]:
     from the bearer regardless (contract §0.4), so this is advisory for local
     ref naming only.
     """
-    try:
-        from sparkii_cli.auth import resolve_nous_runtime_credentials
-
-        creds = resolve_nous_runtime_credentials()
-    except Exception as e:
-        raise SyncInertError(f"no Nous credentials: {e}") from e
+    # The Nous provider (and its OAuth resolver) was removed in the Phase 0
+    # foundation trim; the skills-sync service is Nous-specific, so there is
+    # no bearer to resolve anymore.
+    raise SyncInertError("no Nous credentials: Nous provider was removed")
 
     api_key = (creds or {}).get("api_key")
     if not api_key:

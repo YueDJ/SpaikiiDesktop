@@ -1,4 +1,4 @@
-"""Tests for the Kanban DB layer (sparkii_cli.kanban_db)."""
+"""Tests for the Kanban DB layer (core.kanban_db)."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 
 import sparkii_state
-from sparkii_cli import kanban_db as kb
+from core import kanban_db as kb
 
 
 @pytest.fixture
@@ -214,7 +214,7 @@ def test_stale_claim_reclaim_event_records_diagnostic_payload(
     (#23025: previous payload only had ``stale_lock`` which gives no
     timing context)."""
     import json
-    import sparkii_cli.kanban_db as _kb
+    import core.kanban_db as _kb
 
     with kb.connect() as conn:
         t = kb.create_task(conn, title="x", assignee="a")
@@ -270,7 +270,7 @@ def test_rate_limit_exit_requeues_without_counting_failure(
     """A rate-limit sentinel exit releases the task to ``ready`` and leaves
     ``consecutive_failures`` untouched — the breaker must never trip on a
     transient throttle, even across many quota-wall hits."""
-    import sparkii_cli.kanban_db as _kb
+    import core.kanban_db as _kb
 
     monkeypatch.setattr(_kb, "_pid_alive", lambda _pid: False)
     monkeypatch.setenv("SPARKII_KANBAN_CRASH_GRACE_SECONDS", "0")
@@ -334,7 +334,7 @@ def test_respawn_guard_defers_rate_limited_within_cooldown(
     """Within the cooldown after a rate-limit requeue, the guard defers the
     respawn; after the cooldown it allows a probe — and crucially does NOT
     fall into ``blocker_auth`` (which would defer forever)."""
-    import sparkii_cli.kanban_db as _kb
+    import core.kanban_db as _kb
 
     monkeypatch.setenv("SPARKII_KANBAN_RATE_LIMIT_COOLDOWN_SECONDS", "300")
     now = 5_000_000
@@ -931,7 +931,7 @@ def test_connect_falls_back_to_delete_on_locking_protocol(tmp_path, monkeypatch,
             *args, factory=_WalBlockingConnection, **kwargs
         )
 
-    with _patch("sparkii_cli.kanban_db.sqlite3.connect", side_effect=wal_blocking_connect):
+    with _patch("core.kanban_db.sqlite3.connect", side_effect=wal_blocking_connect):
         with caplog.at_level("ERROR", logger="sparkii_state"):
             conn = kb.connect()
 
@@ -985,7 +985,7 @@ def test_connect_works_when_wal_is_silently_refused(tmp_path, monkeypatch, caplo
         )
 
     with _patch(
-        "sparkii_cli.kanban_db.sqlite3.connect",
+        "core.kanban_db.sqlite3.connect",
         side_effect=wal_silent_noop_connect,
     ):
         with caplog.at_level("ERROR", logger="sparkii_state"):
@@ -1152,7 +1152,7 @@ def test_resolve_sparkii_argv_falls_back_to_module_form_when_no_path_shim(monkey
     """
     import shutil
     import sys
-    import sparkii_cli.kanban_db as kb
+    import core.kanban_db as kb
 
     monkeypatch.delenv("SPARKII_BIN", raising=False)
     monkeypatch.setattr(shutil, "which", lambda name: None)
@@ -1170,7 +1170,7 @@ def test_resolve_sparkii_argv_module_actually_runs():
     Run it as a real subprocess to catch that regression.
     """
     import subprocess
-    import sparkii_cli.kanban_db as kb
+    import core.kanban_db as kb
     import shutil
     import unittest.mock as mock
 
@@ -1408,7 +1408,7 @@ def test_maybe_emit_scratch_tip_fires_once_per_install(kanban_home, caplog):
     # Sentinel must not exist yet on a fresh install.
     assert not kb._scratch_tip_shown()
 
-    with caplog.at_level(logging.WARNING, logger="sparkii_cli.kanban_db"):
+    with caplog.at_level(logging.WARNING, logger="core.kanban_db"):
         with kb.connect() as conn:
             kb._maybe_emit_scratch_tip(conn, t1, "scratch")
 
@@ -1440,7 +1440,7 @@ def test_maybe_emit_scratch_tip_fires_once_per_install(kanban_home, caplog):
 
     # Second scratch materialization on the same install stays silent.
     caplog.clear()
-    with caplog.at_level(logging.WARNING, logger="sparkii_cli.kanban_db"):
+    with caplog.at_level(logging.WARNING, logger="core.kanban_db"):
         with kb.connect() as conn:
             kb._maybe_emit_scratch_tip(conn, t2, "scratch")
     tip_records2 = [
@@ -1550,7 +1550,7 @@ def test_write_txn_check_reads_correct_header_fields(tmp_path):
     way the file must never come back clean.
     """
     import struct
-    from sparkii_cli.kanban_db import connect
+    from core.kanban_db import connect
     from core.sqlite_safe_read import file_length_matches_header
 
     db = tmp_path / "synthetic.db"

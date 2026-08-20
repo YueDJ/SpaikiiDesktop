@@ -58,7 +58,7 @@ def main():
     os.environ["SPARKII_HOME"] = home
     os.environ["HOME"] = home
     sys.path.insert(0, WT)
-    from sparkii_cli import kanban_db as kb
+    from core import kanban_db as kb
 
     kb.init_db()
 

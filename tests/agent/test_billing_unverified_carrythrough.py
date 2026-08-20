@@ -12,11 +12,25 @@ dropped on the way out.
 
 from __future__ import annotations
 
+import pytest
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 from agent.conversation_loop import _billing_failure_result, _billing_terminal_label
 from agent.error_classifier import FailoverReason, classify_api_error
+
+
+@pytest.fixture(autouse=True)
+def _inject_billing_block_builder():
+    """Register the product-layer billing-link builder so the structured
+    billing_block path is exercised (dependency inversion: the core loop
+    receives the builder from the surface side)."""
+    from agent.conversation_loop import set_billing_block_builder
+    from sparkii_cli.billing_links import build_billing_block
+
+    set_billing_block_builder(build_billing_block)
+    yield
+    set_billing_block_builder(None)
 
 
 class MockAPIError(Exception):

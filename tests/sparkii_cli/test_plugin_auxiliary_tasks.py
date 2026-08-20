@@ -43,7 +43,7 @@ def patched_manager(monkeypatch):
 
     Restored automatically after the test by monkeypatch.
     """
-    from sparkii_cli import plugins as plugins_mod
+    from core import plugins as plugins_mod
 
     fresh = PluginManager()
     fresh._discovered = True

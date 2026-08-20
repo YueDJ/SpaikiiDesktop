@@ -823,8 +823,8 @@ def _fast_model_from_catalog(provider_id: str) -> str:
     last-known-good fallback.
     """
     try:
-        from sparkii_cli.auth import resolve_api_key_provider_credentials
-        from sparkii_cli.models import fetch_models_with_pricing
+        from core.credentials import resolve_api_key_provider_credentials
+        from core.models import fetch_models_with_pricing
         from providers import get_provider_profile
 
         # The provider's own credentials, because most ``/v1/models`` endpoints
@@ -1125,7 +1125,7 @@ def build_nvidia_nim_headers(base_url: str | None) -> dict:
 
 # Vercel AI Gateway app attribution headers. HTTP-Referer maps to
 # referrerUrl and X-Title maps to appName in the gateway's analytics.
-from sparkii_cli import __version__ as _SPARKII_VERSION
+from core.version import __version__ as _SPARKII_VERSION
 
 _AI_GATEWAY_HEADERS = {
     "HTTP-Referer": "https://sparkii-agent.nousresearch.com",
@@ -1321,14 +1321,6 @@ def _pool_runtime_api_key(entry: Any) -> str:
 def _pool_runtime_base_url(entry: Any, fallback: str = "") -> str:
     if entry is None:
         return str(fallback or "").strip().rstrip("/")
-    if getattr(entry, "provider", None) == "nous":
-        # Funnel through the canonical auth-layer reader so the env override
-        # shares one normalization path with the rest of the NOUS resolution.
-        from sparkii_cli.auth import _nous_inference_env_override
-
-        env_url = _nous_inference_env_override()
-        if env_url:
-            return env_url
     # runtime_base_url handles provider-specific logic (e.g. nous prefers inference_base_url).
     # Fall back through inference_base_url and base_url for non-PooledCredential entries.
     url = (
@@ -2450,8 +2442,6 @@ def _read_nous_auth() -> Optional[dict]:
 
 def _nous_api_key(provider: dict) -> str:
     """Extract a usable Nous inference JWT from stored auth state."""
-    from sparkii_cli.auth import _nous_invoke_jwt_is_usable
-
     for token_key, expiry_key in (
         ("agent_key", "agent_key_expires_at"),
         ("access_token", "expires_at"),
@@ -2459,12 +2449,7 @@ def _nous_api_key(provider: dict) -> str:
         token = provider.get(token_key)
         if not isinstance(token, str) or not token.strip():
             continue
-        if _nous_invoke_jwt_is_usable(
-            token,
-            scope=provider.get("scope"),
-            expires_at=provider.get(expiry_key),
-        ):
-            return token
+        return token
     return ""
 
 
@@ -2476,8 +2461,6 @@ def _nous_base_url() -> str:
 def _resolve_nous_pool_runtime_api(*, force_refresh: bool = False) -> Optional[tuple[str, str]]:
     """Resolve Nous auxiliary credentials from the selected pool entry."""
     try:
-        from sparkii_cli.auth import _agent_key_is_usable
-
         pool = load_pool("nous")
     except Exception as exc:
         logger.debug("Auxiliary Nous pool credential resolution failed: %s", exc)
@@ -2536,22 +2519,7 @@ def _resolve_nous_runtime_api(*, force_refresh: bool = False) -> Optional[tuple[
     if pooled is not None:
         return pooled
 
-    try:
-        from sparkii_cli.auth import resolve_nous_runtime_credentials
-
-        creds = resolve_nous_runtime_credentials(
-            timeout_seconds=env_float("SPARKII_NOUS_TIMEOUT_SECONDS", 15),
-            force_refresh=force_refresh,
-        )
-    except Exception as exc:
-        logger.debug("Auxiliary Nous runtime credential resolution failed: %s", exc)
-        return None
-
-    api_key = str(creds.get("api_key") or "").strip()
-    base_url = str(creds.get("base_url") or "").strip().rstrip("/")
-    if not api_key or not base_url:
-        return None
-    return api_key, base_url
+    return None
 
 
 def _resolve_xai_oauth_for_aux() -> Optional[Tuple[str, str]]:
@@ -2563,50 +2531,11 @@ def _resolve_xai_oauth_for_aux() -> Optional[Tuple[str, str]]:
     compression report "no provider configured" even though ``sparkii auth
     status`` shows xAI OAuth as logged in.
 
-    Falls back to ``sparkii_cli.auth``'s singleton runtime resolver for older
-    auth-store-only logins. Returns ``None`` if the user is not authenticated
-    with xAI Grok OAuth.
+    Returns ``None`` if the user is not authenticated with xAI Grok OAuth
+    (the xAI OAuth provider was removed from the foundation trim; this helper
+    is retained as a safe no-op fallback).
     """
-    try:
-        from sparkii_cli.auth import (
-            DEFAULT_XAI_OAUTH_BASE_URL,
-            _xai_validate_inference_base_url,
-        )
-
-        pool = load_pool("xai-oauth")
-        if pool and pool.has_credentials():
-            entry = pool.select()
-            if entry is not None:
-                api_key = str(
-                    getattr(entry, "runtime_api_key", None)
-                    or getattr(entry, "access_token", "")
-                    or ""
-                ).strip()
-                base_url = _xai_validate_inference_base_url(
-                    os.getenv("SPARKII_XAI_BASE_URL", "").strip().rstrip("/")
-                    or os.getenv("XAI_BASE_URL", "").strip().rstrip("/")
-                    or str(getattr(entry, "runtime_base_url", None) or "").strip().rstrip("/")
-                    or str(getattr(entry, "base_url", None) or "").strip().rstrip("/"),
-                    fallback=DEFAULT_XAI_OAUTH_BASE_URL,
-                )
-                if api_key and base_url:
-                    return api_key, base_url
-    except Exception as exc:
-        logger.debug("Auxiliary xAI OAuth pool credential resolution failed: %s", exc)
-
-    try:
-        from sparkii_cli.auth import resolve_xai_oauth_runtime_credentials
-
-        creds = resolve_xai_oauth_runtime_credentials()
-    except Exception as exc:
-        logger.debug("Auxiliary xAI OAuth runtime credential resolution failed: %s", exc)
-        return None
-
-    api_key = str(creds.get("api_key") or "").strip()
-    base_url = str(creds.get("base_url") or "").strip().rstrip("/")
-    if not api_key or not base_url:
-        return None
-    return api_key, base_url
+    return None
 
 
 def _read_codex_access_token() -> Optional[str]:
@@ -2624,32 +2553,7 @@ def _read_codex_access_token() -> Optional[str]:
         if token:
             return token
 
-    try:
-        from sparkii_cli.auth import _read_codex_tokens
-        data = _read_codex_tokens()
-        tokens = data.get("tokens", {})
-        access_token = tokens.get("access_token")
-        if not isinstance(access_token, str) or not access_token.strip():
-            return None
-
-        # Check JWT expiry — expired tokens block the auto chain and
-        # prevent fallback to working providers (e.g. Anthropic).
-        try:
-            import base64
-            payload = access_token.split(".")[1]
-            payload += "=" * (-len(payload) % 4)
-            claims = json.loads(base64.urlsafe_b64decode(payload))
-            exp = claims.get("exp", 0)
-            if exp and time.time() > exp:
-                logger.debug("Codex access token expired (exp=%s), skipping", exp)
-                return None
-        except Exception:
-            pass  # Non-JWT token or decode error — use as-is
-
-        return access_token.strip()
-    except Exception as exc:
-        logger.debug("Could not read Codex auth for auxiliary client: %s", exc)
-        return None
+    return None
 
 
 def _resolve_api_key_provider() -> Tuple[Optional[OpenAI], Optional[str]]:
@@ -2659,7 +2563,8 @@ def _resolve_api_key_provider() -> Tuple[Optional[OpenAI], Optional[str]]:
     credentials, or (None, None) if none are configured.
     """
     try:
-        from sparkii_cli.auth import PROVIDER_REGISTRY, resolve_api_key_provider_credentials
+        from core.provider_registry import PROVIDER_REGISTRY
+        from core.credentials import resolve_api_key_provider_credentials
     except ImportError:
         logger.debug("Could not import PROVIDER_REGISTRY for API-key fallback")
         return None, None
@@ -2675,7 +2580,7 @@ def _resolve_api_key_provider() -> Tuple[Optional[OpenAI], Optional[str]]:
             # Without this gate, Claude Code credentials get silently used
             # as auxiliary fallback when the user's primary provider fails.
             try:
-                from sparkii_cli.auth import is_provider_explicitly_configured
+                from core.credentials import is_provider_explicitly_configured
                 if not is_provider_explicitly_configured("anthropic"):
                     continue
             except ImportError:
@@ -2703,7 +2608,7 @@ def _resolve_api_key_provider() -> Tuple[Optional[OpenAI], Optional[str]]:
             if base_url_host_matches(base_url, "api.kimi.com"):
                 extra["default_headers"] = {"User-Agent": "claude-code/0.1.0"}
             elif base_url_host_matches(base_url, "githubcopilot.com"):
-                from sparkii_cli.models import copilot_default_headers
+                from core.models import copilot_default_headers
 
                 extra["default_headers"] = copilot_default_headers()
             elif base_url_host_matches(base_url, "integrate.api.nvidia.com"):
@@ -2743,7 +2648,7 @@ def _resolve_api_key_provider() -> Tuple[Optional[OpenAI], Optional[str]]:
         if base_url_host_matches(base_url, "api.kimi.com"):
             extra["default_headers"] = {"User-Agent": "claude-code/0.1.0"}
         elif base_url_host_matches(base_url, "githubcopilot.com"):
-            from sparkii_cli.models import copilot_default_headers
+            from core.models import copilot_default_headers
 
             extra["default_headers"] = copilot_default_headers()
         elif base_url_host_matches(base_url, "integrate.api.nvidia.com"):
@@ -2907,7 +2812,7 @@ def _try_nous(vision: bool = False) -> Tuple[Optional[OpenAI], Optional[str]]:
         # model is irrelevant to "is Nous resolvable?", and the Portal
         # recommended-models fetch below can hit the network.
         try:
-            from sparkii_cli.models import get_nous_recommended_aux_model
+            from core.models import get_nous_recommended_aux_model
             recommended = get_nous_recommended_aux_model(vision=vision)
             if recommended:
                 model = recommended
@@ -2972,7 +2877,7 @@ def _refresh_nous_recommended_model(
     stale = (stale_model or "").strip().lower()
     fresh: Optional[str] = None
     try:
-        from sparkii_cli.models import get_nous_recommended_aux_model
+        from core.models import get_nous_recommended_aux_model
 
         fresh = get_nous_recommended_aux_model(vision=vision, force_refresh=True)
     except Exception as exc:
@@ -3505,7 +3410,7 @@ def _resolve_custom_runtime() -> Tuple[Optional[str], Optional[str], Optional[st
     environment.
     """
     try:
-        from sparkii_cli.runtime_provider import resolve_runtime_provider
+        from core.runtime_provider import resolve_runtime_provider
 
         runtime = resolve_runtime_provider(requested="custom")
     except Exception as exc:
@@ -3753,8 +3658,8 @@ def _try_azure_foundry(
     Returns ``(client, model)`` or ``(None, None)`` on failure.
     """
     try:
-        from sparkii_cli.runtime_provider import _resolve_azure_foundry_runtime
-        from sparkii_cli.auth import AuthError
+        from core.runtime_provider import _resolve_azure_foundry_runtime
+        from core.credentials import AuthError
         from core.config import load_config_readonly
     except ImportError:
         return None, None
@@ -4618,7 +4523,7 @@ def _recoverable_pool_provider(
         rt_provider = rt.get("provider", "")
         if rt_provider and rt_provider not in {"", "auto", "custom"}:
             try:
-                from sparkii_cli.auth import PROVIDER_REGISTRY
+                from core.provider_registry import PROVIDER_REGISTRY
                 pconfig = PROVIDER_REGISTRY.get(rt_provider)
                 if pconfig and getattr(pconfig, "auth_type", None) == "api_key":
                     rt_base = str(getattr(pconfig, "inference_base_url", "") or "").rstrip("/")
@@ -4833,7 +4738,7 @@ def _refresh_provider_credentials(provider: str) -> bool:
     normalized = _normalize_aux_provider(provider)
     try:
         if normalized == "copilot":
-            from sparkii_cli.copilot_auth import (
+            from core.copilot_auth import (
                 _jwt_cache,
                 _token_fingerprint,
                 exchange_copilot_token,
@@ -4847,25 +4752,6 @@ def _refresh_provider_credentials(provider: str) -> bool:
             exchange_copilot_token(raw_token)
             _evict_cached_clients(normalized)
             return True
-        if normalized == "openai-codex":
-            from sparkii_cli.auth import resolve_codex_runtime_credentials
-
-            creds = resolve_codex_runtime_credentials(force_refresh=True)
-            if not str(creds.get("api_key", "") or "").strip():
-                return False
-            _evict_cached_clients(normalized)
-            return True
-        if normalized == "nous":
-            from sparkii_cli.auth import resolve_nous_runtime_credentials
-
-            creds = resolve_nous_runtime_credentials(
-                timeout_seconds=env_float("SPARKII_NOUS_TIMEOUT_SECONDS", 15),
-                force_refresh=True,
-            )
-            if not str(creds.get("api_key", "") or "").strip():
-                return False
-            _evict_cached_clients(normalized)
-            return True
         if normalized == "anthropic":
             from agent.anthropic_adapter import read_claude_code_credentials, _refresh_oauth_token, resolve_anthropic_token
 
@@ -4874,24 +4760,6 @@ def _refresh_provider_credentials(provider: str) -> bool:
             if not str(token or "").strip():
                 token = resolve_anthropic_token()
             if not str(token or "").strip():
-                return False
-            _evict_cached_clients(normalized)
-            return True
-        if normalized == "xai-oauth":
-            # Preference: pool-level refresh (uses refresh_token from pool entry),
-            # then fall back to singleton auth-store resolver.
-            pool = load_pool(normalized)
-            if pool and pool.has_credentials():
-                # Ensure a current entry is selected before trying to refresh.
-                pool.select()
-                refreshed = pool.try_refresh_current()
-                if refreshed is not None and str(getattr(refreshed, "runtime_api_key", "") or "").strip():
-                    _evict_cached_clients(normalized)
-                    return True
-            from sparkii_cli.auth import resolve_xai_oauth_runtime_credentials
-
-            creds = resolve_xai_oauth_runtime_credentials(force_refresh=True)
-            if not str(creds.get("api_key", "") or "").strip():
                 return False
             _evict_cached_clients(normalized)
             return True
@@ -5015,7 +4883,7 @@ def _complete_fallback_destination(
             api_mode = "anthropic_messages"
         else:
             try:
-                from sparkii_cli.runtime_provider import resolve_runtime_provider
+                from core.runtime_provider import resolve_runtime_provider
 
                 runtime = resolve_runtime_provider(
                     requested=provider,
@@ -5929,7 +5797,7 @@ def _resolve_auto_route(
             # Named custom provider (custom_providers / providers dict entry).
             _has_named_entry = False
             try:
-                from sparkii_cli.runtime_provider import _get_named_custom_provider
+                from core.runtime_provider import _get_named_custom_provider
                 _has_named_entry = _get_named_custom_provider(main_provider) is not None
             except ImportError:
                 pass
@@ -6099,7 +5967,7 @@ def _to_async_client(sync_client, model: str, is_vision: bool = False):
     if base_url_host_matches(sync_base_url, "openrouter.ai"):
         async_kwargs["default_headers"] = build_or_headers()
     elif base_url_host_matches(sync_base_url, "githubcopilot.com"):
-        from sparkii_cli.copilot_auth import copilot_request_headers
+        from core.copilot_auth import copilot_request_headers
 
         async_kwargs["default_headers"] = copilot_request_headers(
             is_agent_turn=True, is_vision=is_vision
@@ -6144,7 +6012,7 @@ def _normalize_resolved_model(model_name: Optional[str], provider: str) -> Optio
     if not model_name:
         return model_name
     try:
-        from sparkii_cli.model_normalize import normalize_model_for_provider
+        from core.model_normalize import normalize_model_for_provider
 
         return normalize_model_for_provider(model_name, provider)
     except Exception:
@@ -6382,7 +6250,7 @@ def resolve_provider_client(
         # Dual-wire: anthropic/* → /v1/messages, everything else stays on
         # /chat/completions. Derive from the catalog id (not a stale
         # api_mode=chat_completions) so aux matches the main agent.
-        from sparkii_cli.providers import nous_api_mode
+        from core.providers import nous_api_mode
 
         portal_mode = nous_api_mode(final_model)
         api_key_str = str(getattr(client, "api_key", "") or "")
@@ -6499,7 +6367,7 @@ def resolve_provider_client(
             if base_url_host_matches(custom_base, "api.kimi.com"):
                 extra["default_headers"] = {"User-Agent": "claude-code/0.1.0"}
             elif base_url_host_matches(custom_base, "githubcopilot.com"):
-                from sparkii_cli.copilot_auth import copilot_request_headers
+                from core.copilot_auth import copilot_request_headers
                 extra["default_headers"] = copilot_request_headers(
                     is_agent_turn=True, is_vision=is_vision
                 )
@@ -6543,7 +6411,7 @@ def resolve_provider_client(
 
     # ── Named custom providers (config.yaml providers dict / custom_providers list) ───
     try:
-        from sparkii_cli.runtime_provider import _get_named_custom_provider
+        from core.runtime_provider import _get_named_custom_provider
         # When the raw requested name is an alias (``kimi`` → ``kimi-coding``)
         # and the user defined a ``custom_providers`` entry under that alias
         # name, the custom entry is the intended target — the built-in alias
@@ -6698,13 +6566,10 @@ def resolve_provider_client(
 
     # ── API-key providers from PROVIDER_REGISTRY ─────────────────────
     try:
-        from sparkii_cli.auth import (
-            PROVIDER_REGISTRY,
-            resolve_api_key_provider_credentials,
-            resolve_external_process_provider_credentials,
-        )
+        from core.provider_registry import PROVIDER_REGISTRY
+        from core.credentials import resolve_api_key_provider_credentials
     except ImportError:
-        logger.debug("sparkii_cli.auth not available for provider %s", provider)
+        logger.debug("core.credentials not available for provider %s", provider)
         return None, None
 
     pconfig = PROVIDER_REGISTRY.get(provider)
@@ -6738,7 +6603,7 @@ def resolve_provider_client(
             raw_base_url = explicit_base_url.strip().rstrip("/")
         if provider == "actual":
             try:
-                from sparkii_cli.auth import (
+                from core.credentials import (
                     ACTUAL_LOCAL_NOAUTH_PLACEHOLDER,
                     is_actual_local_base_url,
                     normalize_actual_base_url,
@@ -6782,7 +6647,7 @@ def resolve_provider_client(
         if base_url_host_matches(base_url, "api.kimi.com"):
             headers["User-Agent"] = "claude-code/0.1.0"
         elif base_url_host_matches(base_url, "githubcopilot.com"):
-            from sparkii_cli.copilot_auth import copilot_request_headers
+            from core.copilot_auth import copilot_request_headers
 
             headers.update(copilot_request_headers(
                 is_agent_turn=True, is_vision=is_vision
@@ -6817,7 +6682,7 @@ def resolve_provider_client(
         # routes through responses.stream().
         if provider == "copilot" and final_model and not raw_codex:
             try:
-                from sparkii_cli.models import _should_use_copilot_responses_api
+                from core.models import _should_use_copilot_responses_api
                 if _should_use_copilot_responses_api(final_model):
                     logger.debug(
                         "resolve_provider_client: copilot model %s needs "
@@ -8040,7 +7905,7 @@ def _resolve_task_provider_model(
         if normalized in {"", "auto", "custom"} or normalized.startswith("custom:"):
             return False
         try:
-            from sparkii_cli.providers import get_provider
+            from core.providers import get_provider
 
             return get_provider(normalized) is not None
         except Exception:
@@ -8141,7 +8006,7 @@ def _get_auxiliary_task_config(task: str) -> Dict[str, Any]:
     # ctx.register_auxiliary_task(defaults={...}) takes effect without
     # forcing the user to write config.yaml entries.
     try:
-        from sparkii_cli.plugins import get_plugin_auxiliary_tasks
+        from core.plugins import get_plugin_auxiliary_tasks
         for _entry in get_plugin_auxiliary_tasks():
             if _entry.get("key") == task:
                 _defaults = _entry.get("defaults") or {}
@@ -8521,7 +8386,7 @@ def _build_call_kwargs(
                 pass
         _nous_on_messages = False
         if _provider_norm in {"nous", "nous-portal", "nousresearch"}:
-            from sparkii_cli.providers import nous_api_mode
+            from core.providers import nous_api_mode
 
             _nous_on_messages = nous_api_mode(model) == "anthropic_messages"
         if (
@@ -8639,7 +8504,7 @@ def _build_call_kwargs(
         effective_base = base_url or ""
         _nous_on_messages = False
         if provider_norm in {"nous", "nous-portal", "nousresearch"}:
-            from sparkii_cli.providers import nous_api_mode
+            from core.providers import nous_api_mode
 
             _nous_on_messages = nous_api_mode(model) == "anthropic_messages"
         if (

@@ -185,14 +185,14 @@ def test_oneshot_wires_session_db_for_recall(monkeypatch):
     )
     monkeypatch.setitem(
         sys.modules,
-        "sparkii_cli.models",
-        mod("sparkii_cli.models", detect_provider_for_model=lambda *_args, **_kwargs: None),
+        "core.models",
+        mod("core.models", detect_provider_for_model=lambda *_args, **_kwargs: None),
     )
     monkeypatch.setitem(
         sys.modules,
-        "sparkii_cli.runtime_provider",
+        "core.runtime_provider",
         mod(
-            "sparkii_cli.runtime_provider",
+            "core.runtime_provider",
             resolve_runtime_provider=lambda **_kwargs: {
                 "api_key": "k",
                 "base_url": "u",
@@ -204,8 +204,8 @@ def test_oneshot_wires_session_db_for_recall(monkeypatch):
     )
     monkeypatch.setitem(
         sys.modules,
-        "sparkii_cli.tools_config",
-        mod("sparkii_cli.tools_config", _get_platform_tools=lambda *_args, **_kwargs: {"session_search"}),
+        "core.tools_config",
+        mod("core.tools_config", _get_platform_tools=lambda *_args, **_kwargs: {"session_search"}),
     )
 
     text, result = _run_agent("recall this")

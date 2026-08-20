@@ -4576,7 +4576,7 @@ def show_config():
         value = get_env_value(env_key)
         print(f"  {name:<14} {redact_key(value)}")
     # Anthropic key lookup inlined from auth.get_anthropic_key() so config stays
-    # free of the sparkii_cli.auth surface dependency.  The var order mirrors
+    # free of the core.credentials surface dependency.  The var order mirrors
     # PROVIDER_REGISTRY["anthropic"].api_key_env_vars.
     anthropic_value = ""
     for _anthropic_var in ("ANTHROPIC_API_KEY", "ANTHROPIC_TOKEN", "CLAUDE_CODE_OAUTH_TOKEN"):
@@ -5932,3 +5932,95 @@ def _inject_platform_plugin_env_vars() -> None:
 
 # Eagerly inject so that platform plugin env vars show up in the setup wizard.
 _inject_platform_plugin_env_vars()
+
+
+# ---------------------------------------------------------------------------
+# Live CLI config bridge (Block 4: core must not import the frontend `cli`)
+#
+# ``tools/delegate_tool.py`` honors ``SPARKII_IGNORE_USER_CONFIG=1`` by reading
+# the live CLI config (defaults only, loaded under that flag) instead of the
+# user config.yaml.  The frontend ``cli.py`` registers its ``CLI_CONFIG`` here
+# at import time; kernel processes without a CLI fall back to an empty dict,
+# which matches the previous behavior when ``import cli`` was unavailable.
+# ---------------------------------------------------------------------------
+
+_cli_config_provider = None
+
+
+def set_cli_config_provider(provider) -> None:
+    """Register the live CLI config dict provider (frontend ``cli`` module)."""
+    global _cli_config_provider
+    _cli_config_provider = provider
+
+
+def get_cli_config() -> Dict[str, Any]:
+    """Return the registered live CLI config, or an empty dict when unset."""
+    provider = _cli_config_provider
+    if provider is None:
+        return {}
+    try:
+        cfg = provider()
+        return cfg if isinstance(cfg, dict) else {}
+    except Exception:  # noqa: BLE001 - provider absence must not crash the kernel
+        return {}
+
+
+# ---------------------------------------------------------------------------
+# Gateway config reader bridge (Block 4)
+#
+# Kernel-adjacent consumers (plugins/kanban, plugins/memory/honcho) need the
+# parsed ``GatewayConfig`` object — env overlays included — without importing
+# the messaging gateway package.  ``gateway/config.py`` registers
+# ``load_gateway_config`` here at import time; standalone plugin runs get
+# ``None`` and degrade gracefully.
+# ---------------------------------------------------------------------------
+
+_gateway_config_reader = None
+
+
+def set_gateway_config_reader(reader) -> None:
+    """Register the gateway config loader (frontend ``gateway.config`` module)."""
+    global _gateway_config_reader
+    _gateway_config_reader = reader
+
+
+def get_gateway_config():
+    """Return the parsed gateway config via the registered reader, or None."""
+    reader = _gateway_config_reader
+    if reader is None:
+        return None
+    try:
+        return reader()
+    except Exception:  # noqa: BLE001 - reader absence must not crash the kernel
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Live CLI config bridge (Block 4: core must not import the frontend `cli`)
+#
+# ``tools/delegate_tool.py`` honors ``SPARKII_IGNORE_USER_CONFIG=1`` by reading
+# the live CLI config (defaults only, loaded under that flag) instead of the
+# user config.yaml.  The frontend ``cli.py`` registers its ``CLI_CONFIG`` here
+# at import time; kernel processes without a CLI fall back to an empty dict,
+# which matches the previous behavior when ``import cli`` was unavailable.
+# ---------------------------------------------------------------------------
+
+_cli_config_provider = None
+
+
+def set_cli_config_provider(provider) -> None:
+    """Register the live CLI config dict provider (frontend ``cli`` module)."""
+    global _cli_config_provider
+    _cli_config_provider = provider
+
+
+def get_cli_config() -> Dict[str, Any]:
+    """Return the registered live CLI config, or an empty dict when unset."""
+    provider = _cli_config_provider
+    if provider is None:
+        return {}
+    try:
+        cfg = provider()
+        return cfg if isinstance(cfg, dict) else {}
+    except Exception:  # noqa: BLE001 - provider absence must not crash the kernel
+        return {}

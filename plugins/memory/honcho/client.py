@@ -24,7 +24,7 @@ from urllib.parse import urlparse
 
 from agent.secret_scope import get_secret
 from sparkii_constants import get_sparkii_home
-from sparkii_cli.profiles import _get_default_sparkii_home
+from core.profiles import _get_default_sparkii_home
 from plugins.plugin_utils import SingletonSlot
 from typing import Any, TYPE_CHECKING
 
@@ -88,7 +88,7 @@ def resolve_active_host() -> str:
         return explicit
 
     try:
-        from sparkii_cli.profiles import get_active_profile_name
+        from core.profiles import get_active_profile_name
         profile = get_active_profile_name()
         profile_host = profile_host_key(profile)
     except Exception:

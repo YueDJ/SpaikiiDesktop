@@ -71,7 +71,7 @@ def test_discover_all_plugins_includes_entrypoint_plugins(monkeypatch, tmp_path)
 
     monkeypatch.setattr(plugins_cmd, "_plugins_dir", lambda: user_dir)
     monkeypatch.setattr(
-        "sparkii_cli.plugins.get_bundled_plugins_dir",
+        "core.plugins.get_bundled_plugins_dir",
         lambda: bundled_dir,
     )
     monkeypatch.setattr(
@@ -114,7 +114,7 @@ def test_declared_capabilities_for_entrypoint_uses_distribution_metadata(
     )
     monkeypatch.setattr(plugins_cmd, "_plugins_dir", lambda: user_dir)
     monkeypatch.setattr(
-        "sparkii_cli.plugins.get_bundled_plugins_dir", lambda: bundled_dir
+        "core.plugins.get_bundled_plugins_dir", lambda: bundled_dir
     )
     monkeypatch.setattr(
         plugins_cmd.importlib.metadata,

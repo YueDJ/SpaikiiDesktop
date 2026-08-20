@@ -647,7 +647,7 @@ class TestWebServerEndpoints:
         outage behind a false "connected" (issue #71211).
         """
         import sparkii_cli.web_server as web_server
-        from sparkii_cli import profiles as profiles_mod
+        from core import profiles as profiles_mod
 
         worker_home = profiles_mod.get_profile_dir("worker")
         worker_home.mkdir(parents=True)
@@ -1687,7 +1687,7 @@ class TestWebServerEndpoints:
         so every custom provider silently landed in the default profile and
         never appeared for the profile the user was actually configuring.
         """
-        from sparkii_cli import profiles as profiles_mod
+        from core import profiles as profiles_mod
         from core.config import custom_endpoint_key_env
         from sparkii_constants import get_sparkii_home
 
@@ -2405,7 +2405,7 @@ class TestNewEndpoints:
         self, monkeypatch
     ):
         from sparkii_constants import get_sparkii_home
-        import sparkii_cli.profiles as profiles_mod
+        import core.profiles as profiles_mod
 
         monkeypatch.setattr(profiles_mod, "create_wrapper_script", lambda name: None)
 
@@ -2535,7 +2535,7 @@ class TestNewEndpoints:
         )
 
     def test_toolsets_resolve_subscription_features_once(self, monkeypatch):
-        import sparkii_cli.tools_config as tools_config
+        import core.tools_config as tools_config
         from sparkii_cli.nous_subscription import NousSubscriptionFeatures
 
         calls = 0
@@ -2605,7 +2605,7 @@ class TestNewEndpoints:
         never-installed KittenTTS/Piper. The endpoint now reports the honest
         state so keyless ≠ ready.
         """
-        import sparkii_cli.tools_config as tools_config
+        import core.tools_config as tools_config
         from sparkii_cli.nous_account import NousPortalAccountInfo
 
         # Logged out of Nous Portal → managed subscription rows need sign-in.

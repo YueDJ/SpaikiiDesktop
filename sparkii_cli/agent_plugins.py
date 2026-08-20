@@ -569,3 +569,19 @@ def has_enabled_agent_plugin_mcp(raw_config: Mapping[str, Any]) -> bool:
     from sparkii_cli.plugins import has_enabled_agent_plugin_mcp as _probe
 
     return _probe(raw_config)
+
+
+# Register the agent-plugin helpers with the core plugin loader.
+try:
+    from types import SimpleNamespace as _SimpleNamespace
+    from core.plugins import set_agent_plugin_provider
+
+    set_agent_plugin_provider(
+        _SimpleNamespace(
+            discover_mcp=_discover_mcp,
+            read_manifest=read_agent_plugin_manifest,
+            load=load_agent_plugin,
+        )
+    )
+except Exception:  # pragma: no cover - defensive
+    pass

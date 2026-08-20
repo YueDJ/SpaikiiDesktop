@@ -118,7 +118,7 @@ class TestDeclarationParsing:
         self, monkeypatch
     ):
         """Installed plugins can declare consent metadata in dist entry points."""
-        from sparkii_cli import plugins as plugins_mod
+        from core import plugins as plugins_mod
         from sparkii_cli.plugins import PluginManager
 
         load = MagicMock(side_effect=AssertionError("plugin code must not be imported"))

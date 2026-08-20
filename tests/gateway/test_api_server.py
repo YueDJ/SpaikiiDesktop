@@ -212,7 +212,7 @@ class TestAdapterInit:
             staticmethod(lambda model="": {"enabled": True, "effort": "xhigh"}),
         )
         monkeypatch.setattr("gateway.run.GatewayRunner._load_fallback_model", staticmethod(lambda: None))
-        monkeypatch.setattr("sparkii_cli.tools_config._get_platform_tools", lambda *_: set())
+        monkeypatch.setattr("core.tools_config._get_platform_tools", lambda *_: set())
 
         adapter = APIServerAdapter(PlatformConfig(enabled=True))
         monkeypatch.setattr(adapter, "_ensure_session_db", lambda: None)
@@ -792,14 +792,14 @@ class TestModelsEndpoint:
 
     def test_resolve_model_name_default_profile(self):
         """Default profile falls back to 'sparkii-agent'."""
-        with patch("sparkii_cli.profiles.get_active_profile_name", return_value="default"):
+        with patch("core.profiles.get_active_profile_name", return_value="default"):
             assert APIServerAdapter._resolve_model_name("") == "sparkii-agent"
 
 
     @pytest.mark.asyncio
     async def test_model_options_returns_shared_inventory(self, adapter, monkeypatch):
         """GET /api/model/options builds the shared picker payload off-loop."""
-        from sparkii_cli import inventory
+        from core import inventory
 
         ctx = object()
         payload = {
@@ -915,16 +915,16 @@ class TestToolsetsEndpoint:
         ]
         feature_snapshot = object()
         with patch(
-            "sparkii_cli.tools_config._get_effective_configurable_toolsets",
+            "core.tools_config._get_effective_configurable_toolsets",
             return_value=fake_toolsets,
         ), patch(
-            "sparkii_cli.tools_config._get_platform_tools",
+            "core.tools_config._get_platform_tools",
             return_value={"default"},
         ), patch(
-            "sparkii_cli.tools_config.get_nous_subscription_features",
+            "core.tools_config.get_nous_subscription_features",
             return_value=feature_snapshot,
         ) as resolve_features, patch(
-            "sparkii_cli.tools_config._toolset_has_keys",
+            "core.tools_config._toolset_has_keys",
             return_value=True,
         ) as has_keys, patch(
             "toolsets.resolve_toolset",
@@ -2474,7 +2474,7 @@ def _patch_create_agent_runtime(monkeypatch, captured: dict, fake_agent_cls):
         "gateway.run.GatewayRunner._load_fallback_model", staticmethod(lambda: None)
     )
     monkeypatch.setattr("gateway.run._current_max_iterations", lambda: 90)
-    monkeypatch.setattr("sparkii_cli.tools_config._get_platform_tools", lambda *_: set())
+    monkeypatch.setattr("core.tools_config._get_platform_tools", lambda *_: set())
 
 
 class TestModelRoutesParsing:
@@ -2928,7 +2928,7 @@ class TestCreateAgentModelRecovery:
         )
         monkeypatch.setattr("gateway.run._resolve_gateway_model", lambda: "")
         monkeypatch.setattr(
-            "sparkii_cli.models.get_default_model_for_provider",
+            "core.models.get_default_model_for_provider",
             lambda provider: "gpt-5.5-codex" if provider == "openai-codex" else None,
         )
 

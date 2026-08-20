@@ -17,6 +17,35 @@ from typing import Any, Dict, List, Optional
 from agent.monitoring.events import GatewayDiagnosticEvent, GatewayHealthEvent
 
 
+# Gateway-status readers, injected by the gateway surface via
+# set_gateway_status_readers() (dependency inversion). The monitoring
+# subsystem reads runtime status through these callbacks instead of importing
+# gateway.status; the defaults are the safe fallbacks used when the gateway
+# reader is unavailable.
+_parse_active_agents_reader = None
+_derive_gateway_busy_reader = None
+_derive_gateway_drainable_reader = None
+_read_runtime_status_reader = None
+
+
+def set_gateway_status_readers(
+    *,
+    parse_active_agents=None,
+    derive_gateway_busy=None,
+    derive_gateway_drainable=None,
+    read_runtime_status=None,
+) -> None:
+    """Register gateway runtime-status readers (surface side)."""
+    global _parse_active_agents_reader
+    global _derive_gateway_busy_reader
+    global _derive_gateway_drainable_reader
+    global _read_runtime_status_reader
+    _parse_active_agents_reader = parse_active_agents
+    _derive_gateway_busy_reader = derive_gateway_busy
+    _derive_gateway_drainable_reader = derive_gateway_drainable
+    _read_runtime_status_reader = read_runtime_status
+
+
 @dataclass(frozen=True, slots=True)
 class GatewayMetric:
     name: str
@@ -161,33 +190,38 @@ def platform_for_subsystem(subsystem: str) -> Optional[str]:
 
 def _parse_active_agents(raw: Any) -> int:
     try:
-        from gateway.status import parse_active_agents
-        return parse_active_agents(raw)
+        if _parse_active_agents_reader is not None:
+            return _parse_active_agents_reader(raw)
     except Exception:
-        try:
-            return max(0, int(raw))
-        except (TypeError, ValueError):
-            return 0
+        pass
+    try:
+        return max(0, int(raw))
+    except (TypeError, ValueError):
+        return 0
 
 
 def _derive_busy(gateway_running: bool, gateway_state: Any, active_agents: Any) -> bool:
     try:
-        from gateway.status import derive_gateway_busy
-        return derive_gateway_busy(
-            gateway_running=gateway_running,
-            gateway_state=gateway_state,
-            active_agents=active_agents,
-        )
+        if _derive_gateway_busy_reader is not None:
+            return _derive_gateway_busy_reader(
+                gateway_running=gateway_running,
+                gateway_state=gateway_state,
+                active_agents=active_agents,
+            )
     except Exception:
-        return bool(gateway_running and gateway_state == "running" and _parse_active_agents(active_agents) > 0)
+        pass
+    return bool(gateway_running and gateway_state == "running" and _parse_active_agents(active_agents) > 0)
 
 
 def _derive_drainable(gateway_running: bool, gateway_state: Any) -> bool:
     try:
-        from gateway.status import derive_gateway_drainable
-        return derive_gateway_drainable(gateway_running=gateway_running, gateway_state=gateway_state)
+        if _derive_gateway_drainable_reader is not None:
+            return _derive_gateway_drainable_reader(
+                gateway_running=gateway_running, gateway_state=gateway_state
+            )
     except Exception:
-        return bool(gateway_running and gateway_state == "running")
+        pass
+    return bool(gateway_running and gateway_state == "running")
 
 
 def _base_attrs(*, profile: str, install_id: str, version: str, supervision_mode: str) -> Dict[str, str]:
@@ -293,7 +327,7 @@ def build_gateway_health_snapshot(
 
 def _safe_profile() -> str:
     try:
-        from sparkii_cli.profiles import get_active_profile_name
+        from core.profiles import get_active_profile_name
         return str(get_active_profile_name() or "default")
     except Exception:
         return "default"
@@ -301,7 +335,7 @@ def _safe_profile() -> str:
 
 def _safe_version() -> str:
     try:
-        from sparkii_cli import __version__
+        from core.version import __version__
         return str(__version__)
     except Exception:
         return "unknown"

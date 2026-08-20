@@ -19,7 +19,7 @@ from unittest.mock import patch as mock_patch
 
 import pytest
 
-from sparkii_cli.runtime_provider import _fallback_api_mode
+from core.runtime_provider import _fallback_api_mode
 
 
 class TestFallbackApiMode:
@@ -47,7 +47,7 @@ class TestFallbackApiMode:
         # The spoof host must not be detected AS OpenAI by the URL lane —
         # the provider-declared transport may still apply, but host-derived
         # detection must return None for it.
-        from sparkii_cli.runtime_provider import _detect_api_mode_for_url
+        from core.runtime_provider import _detect_api_mode_for_url
 
         assert _detect_api_mode_for_url("https://api.openai.com.attacker.test/v1") is None
 
@@ -58,7 +58,7 @@ class TestFallbackApiMode:
         # Same latent bug class: minimax declares an Anthropic-compatible
         # transport but previously fell back to chat_completions when the
         # URL carried no /anthropic hint.
-        from sparkii_cli.providers import determine_api_mode
+        from core.providers import determine_api_mode
 
         expected = determine_api_mode("minimax", "https://api.minimax.io")
         assert _fallback_api_mode("minimax", "https://api.minimax.io") == expected
@@ -80,10 +80,10 @@ class TestExplicitRuntimeIntegration:
     """The explicit-runtime path resolves regional OpenAI to codex_responses."""
 
     def test_explicit_openai_api_regional_host(self):
-        from sparkii_cli.runtime_provider import _resolve_explicit_runtime
+        from core.runtime_provider import _resolve_explicit_runtime
 
         with mock_patch(
-            "sparkii_cli.runtime_provider._get_model_config",
+            "core.runtime_provider._get_model_config",
             return_value={"provider": "openai-api", "default": "gpt-5.6-terra"},
         ):
             result = _resolve_explicit_runtime(

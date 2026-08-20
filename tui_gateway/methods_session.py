@@ -1503,7 +1503,7 @@ def _(rid, params: dict) -> dict:
     # these lines regardless of `calls`. Fail-open: [] when not logged into Nous
     # or on any portal hiccup.
     try:
-        from agent.account_usage import nous_credits_lines
+        from sparkii_cli.account_usage import nous_credits_lines
 
         credits = nous_credits_lines()
         if credits:
@@ -1551,7 +1551,7 @@ def _(rid, params: dict) -> dict:
     Shared by the desktop (canvas) and the TUI (half-block). Carries the
     spritesheet bytes (base64) plus the engine's frame geometry + state-row
     taxonomy so the renderer is a thin, framework-native consumer. The
-    activity→state decision is mirrored from ``agent.pet.state`` client-side.
+    activity→state decision is mirrored from ``sparkii_cli.pet.state`` client-side.
 
     Agent-independent (reads config + disk), so it works on any session and
     before the agent finishes building. Fail-open: returns ``enabled=False``
@@ -1615,8 +1615,8 @@ def _(rid, params: dict) -> dict:
     Fail-open: ``enabled=False`` on any problem.
     """
     try:
-        from agent.pet import constants, render, store
-        from agent.pet.render import PetRenderer
+        from sparkii_cli.pet import constants, render, store
+        from sparkii_cli.pet.render import PetRenderer
 
         try:
             from core.config import load_config
@@ -1723,7 +1723,7 @@ def _(rid, params: dict) -> dict:
     """
     local_only = bool(params.get("localOnly"))
     try:
-        from agent.pet import store
+        from sparkii_cli.pet import store
 
         try:
             from core.config import load_config
@@ -1739,7 +1739,7 @@ def _(rid, params: dict) -> dict:
         gallery: list[dict] = []
         seen: set[str] = set()
         try:
-            from agent.pet.manifest import fetch_manifest, prefetch
+            from sparkii_cli.pet.manifest import fetch_manifest, prefetch
 
             # Local-only: skip the network entirely, but kick off a background
             # warm so the follow-up full request usually hits a cached manifest.
@@ -1802,8 +1802,8 @@ def _(rid, params: dict) -> dict:
     if not slug:
         return _err(rid, 4004, "missing slug")
     try:
-        from agent.pet import store
-        from agent.pet.manifest import ManifestError
+        from sparkii_cli.pet import store
+        from sparkii_cli.pet.manifest import ManifestError
         from sparkii_cli.pets import _set_active
 
         try:
@@ -1830,7 +1830,7 @@ def _(rid, params: dict) -> dict:
     if not slug:
         return _err(rid, 4004, "missing slug")
     try:
-        from agent.pet import store
+        from sparkii_cli.pet import store
         from sparkii_cli.pets import _clear_active_if
 
         removed = store.remove_pet(slug)
@@ -1862,7 +1862,7 @@ def _(rid, params: dict) -> dict:
     try:
         import base64
 
-        from agent.pet import store
+        from sparkii_cli.pet import store
 
         filename, data = store.export_pet(slug)
         return _ok(
@@ -1890,7 +1890,7 @@ def _(rid, params: dict) -> dict:
     if not name:
         return _err(rid, 4004, "missing name")
     try:
-        from agent.pet import store
+        from sparkii_cli.pet import store
 
         new_slug = store.rename_pet(slug, name)
         if not new_slug:
@@ -1928,7 +1928,7 @@ def _(rid, params: dict) -> dict:
     try:
         import base64
 
-        from agent.pet import store
+        from sparkii_cli.pet import store
 
         data = store.thumbnail_png(slug, source_url=str(params.get("url") or ""))
         if not data:
@@ -2005,7 +2005,7 @@ def _(rid, params: dict) -> dict:
     offer setup instead of a dead prompt. Cheap (config + plugin discovery).
     """
     try:
-        from agent.pet.generate.imagegen import (
+        from sparkii_cli.pet.generate.imagegen import (
             GenerationError,
             list_sprite_providers,
             resolve_provider,
@@ -2051,8 +2051,8 @@ def _(rid, params: dict) -> dict:
         import shutil
         import uuid
 
-        from agent.pet.generate import generate_base_drafts
-        from agent.pet.generate.imagegen import GenerationError, resolve_provider
+        from sparkii_cli.pet.generate import generate_base_drafts
+        from sparkii_cli.pet.generate.imagegen import GenerationError, resolve_provider
 
         root = _pet_gen_root()
         _pet_gen_sweep(root)
@@ -2172,9 +2172,9 @@ def _(rid, params: dict) -> dict:
         index = 0
 
     try:
-        from agent.pet import store
-        from agent.pet.generate import hatch_pet
-        from agent.pet.generate.imagegen import GenerationError, resolve_provider
+        from sparkii_cli.pet import store
+        from sparkii_cli.pet.generate import hatch_pet
+        from sparkii_cli.pet.generate.imagegen import GenerationError, resolve_provider
 
         base = _pet_gen_root() / token / f"draft-{index}.png"
         if not base.is_file():

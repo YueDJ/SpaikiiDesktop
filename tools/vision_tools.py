@@ -41,7 +41,7 @@ from typing import Any, Awaitable, Dict, Optional
 from urllib.parse import urlparse
 import httpx
 
-# ``agent.auxiliary_client`` pulls credential_pool → sparkii_cli.auth → httpx
+# ``agent.auxiliary_client`` pulls credential_pool → core.credentials → httpx
 # → rich (~50 ms cold); only vision handlers need it. Loaded lazily; both
 # names stay module attributes so tests can keep patching
 # ``tools.vision_tools.async_call_llm``. Truthy-skip: injected mocks win.

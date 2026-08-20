@@ -699,7 +699,7 @@ def _venv_pip_install(specs: tuple[str, ...], *, timeout: int = 300) -> _Install
         # migrating the Python runtime as a side effect of that is a far bigger
         # action than the caller asked for. Tier 2 pip covers the no-uv case.
         try:
-            from sparkii_cli.managed_uv import resolve_uv
+            from core.managed_uv import resolve_uv
 
             uv_bin = resolve_uv() or shutil.which("uv")
         except Exception:

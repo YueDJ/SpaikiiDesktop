@@ -50,7 +50,8 @@ def hooks_command(args) -> None:
 
 def _cmd_list(_args) -> None:
     from core.config import load_config
-    from agent import outbound_webhooks, shell_hooks
+    from agent import shell_hooks
+    from sparkii_cli import outbound_webhooks
 
     cfg = load_config()
     specs = shell_hooks.iter_configured_hooks(cfg)

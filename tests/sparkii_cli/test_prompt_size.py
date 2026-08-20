@@ -7,7 +7,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from sparkii_cli.prompt_size import (
+from core.prompt_size import (
     _SKILLS_BLOCK_RE,
     _build_inspection_agent,
     _compute_skills_breakdown,

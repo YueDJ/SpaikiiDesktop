@@ -4,6 +4,10 @@ import os
 from collections.abc import Mapping
 
 from core.config import DEFAULT_CONFIG
+# Block 4: supervisor detection moved to the core package; keep the name
+# re-exported here for surface-side callers and patch targets.
+from core.process_utils import EXTERNAL_GATEWAY_SUPERVISOR_ENV  # noqa: F401
+from core.process_utils import is_gateway_supervisor_process  # noqa: F401
 
 # EX_TEMPFAIL from sysexits.h — used to ask the service manager to restart
 # the gateway after a graceful drain/reload path completes.
@@ -14,11 +18,6 @@ GATEWAY_SERVICE_RESTART_EXIT_CODE = 75
 # this into exit 125 (permanent failure) so the supervisor stops
 # restarting the gateway.  See #51228.
 GATEWAY_FATAL_CONFIG_EXIT_CODE = 78
-
-# Set by ``sparkii gateway run --external-supervisor``. Unlike systemd's
-# INVOCATION_ID and launchd's XPC_SERVICE_NAME, this survives wrappers that
-# intentionally replace the child environment (for example ``sudo env -i``).
-EXTERNAL_GATEWAY_SUPERVISOR_ENV = "SPARKII_GATEWAY_EXTERNAL_SUPERVISOR"
 
 DEFAULT_GATEWAY_RESTART_DRAIN_TIMEOUT = float(
     DEFAULT_CONFIG["agent"]["restart_drain_timeout"]
@@ -50,28 +49,6 @@ DEFAULT_GATEWAY_CRON_DRAIN_TIMEOUT = float(
 # that point trades a job that is killed *and recorded* for one that is
 # SIGKILLed mid-write and stays wedged at ``last_status=running`` forever.
 CRON_DRAIN_CLEANUP_RESERVE_S = 10.0
-
-
-def is_gateway_supervisor_process(
-    environ: Mapping[str, str] | None = None,
-) -> bool:
-    """Return whether this gateway process is owned by a supervisor."""
-    env = os.environ if environ is None else environ
-    if env.get("INVOCATION_ID"):
-        return True
-    if env.get("SPARKII_S6_SUPERVISED_CHILD"):
-        return True
-    xpc_service = env.get("XPC_SERVICE_NAME", "")
-    if xpc_service and xpc_service != "0":
-        return True
-    return str(env.get(EXTERNAL_GATEWAY_SUPERVISOR_ENV, "")).strip().lower() in {
-        "1",
-        "true",
-        "yes",
-        "on",
-    }
-
-
 def is_container_restart_context() -> bool:
     """Return whether the gateway is running inside a container for restart
     routing purposes (Docker/Podman ⇒ the detached setsid path dies with the

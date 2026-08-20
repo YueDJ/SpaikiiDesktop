@@ -242,7 +242,7 @@ def main():
         for m in list(sys.modules.keys()):
             if m.startswith("sparkii_cli"):
                 del sys.modules[m]
-        from sparkii_cli import kanban_db as kb
+        from core import kanban_db as kb
 
         kb.init_db()
         conn = kb.connect()

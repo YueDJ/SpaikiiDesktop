@@ -176,7 +176,7 @@ class TestHandleReasoningCommand(unittest.TestCase):
             CLI_CONFIG,
             {"model": {"default": "config-default-model", "provider": "openrouter"}},
         ), patch(
-            "sparkii_cli.model_switch.switch_model", return_value=fake_result
+            "core.model_switch.switch_model", return_value=fake_result
         ):
             SparkiiCLI.new_session(stub, silent=True)
 

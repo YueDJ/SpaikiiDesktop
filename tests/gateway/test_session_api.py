@@ -484,7 +484,7 @@ def _patch_api_server_runtime(monkeypatch):
         staticmethod(lambda: None),
     )
     monkeypatch.setattr("gateway.run._current_max_iterations", lambda: 90)
-    monkeypatch.setattr("sparkii_cli.tools_config._get_platform_tools", lambda *_: set())
+    monkeypatch.setattr("core.tools_config._get_platform_tools", lambda *_: set())
     monkeypatch.setattr(
         "gateway.run._resolve_runtime_agent_kwargs_for_provider",
         lambda provider: {

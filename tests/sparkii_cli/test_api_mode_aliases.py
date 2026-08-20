@@ -9,7 +9,7 @@ and an unrecognized value was silently ignored at BOTH consumption sites:
 * ``core.config._normalize_custom_provider_entry`` passed the raw
   string through, so ``agent_init``'s accepted-set check dropped it and
   fell through to hostname detection.
-* ``sparkii_cli.runtime_provider._parse_api_mode`` returned None, with the
+* ``core.runtime_provider._parse_api_mode`` returned None, with the
   same fall-through.
 
 For a host with a detection rule (e.g. api.actual.inc -> codex_responses)
@@ -29,7 +29,7 @@ from __future__ import annotations
 import pytest
 
 from core.config import _canonical_api_mode, _normalize_custom_provider_entry
-from sparkii_cli.runtime_provider import _parse_api_mode, _VALID_API_MODES
+from core.runtime_provider import _parse_api_mode, _VALID_API_MODES
 
 
 class TestCanonicalApiMode:

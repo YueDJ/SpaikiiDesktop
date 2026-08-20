@@ -108,7 +108,7 @@ def test_gateway_injection_fails_closed_when_config_cannot_be_read():
     manager.set_gateway_message_injector(object(), injector)
 
     with patch(
-        "sparkii_cli.plugins.load_config_readonly",
+        "core.plugins.load_config_readonly",
         side_effect=OSError("config unavailable"),
     ):
         assert (

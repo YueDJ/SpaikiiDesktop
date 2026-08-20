@@ -42,7 +42,7 @@ def worker_loop(worker_id: int, sparkii_home: str, result_file: str) -> None:
     os.environ["SPARKII_HOME"] = sparkii_home
     os.environ["HOME"] = sparkii_home
     sys.path.insert(0, WT)
-    from sparkii_cli import kanban_db as kb
+    from core import kanban_db as kb
 
     events = []
     start = time.monotonic()
@@ -99,7 +99,7 @@ def reclaimer_loop(sparkii_home: str, result_file: str) -> None:
     os.environ["SPARKII_HOME"] = sparkii_home
     os.environ["HOME"] = sparkii_home
     sys.path.insert(0, WT)
-    from sparkii_cli import kanban_db as kb
+    from core import kanban_db as kb
 
     events = []
     start = time.monotonic()
@@ -125,7 +125,7 @@ def main():
     os.environ["SPARKII_HOME"] = home
     os.environ["HOME"] = home
     sys.path.insert(0, WT)
-    from sparkii_cli import kanban_db as kb
+    from core import kanban_db as kb
 
     kb.init_db()
     conn = kb.connect()

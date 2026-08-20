@@ -25,7 +25,7 @@ from pathlib import Path
 
 import pytest
 
-from sparkii_cli import kanban_db as kb
+from core import kanban_db as kb
 
 
 @pytest.fixture
@@ -380,7 +380,7 @@ def test_review_dispatch_gate_prevents_phantom_reviewer(
     Flipping the knob back on proves the gate, not
     something else, is what suppressed the claim."""
     import core.config as cfgmod
-    import sparkii_cli.profiles as profmod
+    import core.profiles as profmod
 
     with kb.connect() as conn:
         tid = kb.create_task(conn, title="park", assignee="worker")
@@ -426,7 +426,7 @@ def test_active_pr_guard_skipped_for_review_lane_but_defers_ready_lane(
     Rate-limit cooldown still applies in the review lane.
     """
     import core.config as cfgmod
-    import sparkii_cli.profiles as profmod
+    import core.profiles as profmod
 
     monkeypatch.setattr(profmod, "profile_exists", lambda name: True)
     monkeypatch.setattr(
@@ -479,7 +479,7 @@ def test_review_dispatch_preserves_task_skills_and_adds_reviewer_skill(
     kanban_home: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     import core.config as cfgmod
-    import sparkii_cli.profiles as profmod
+    import core.profiles as profmod
 
     monkeypatch.setattr(profmod, "profile_exists", lambda name: True)
     monkeypatch.setattr(
@@ -532,7 +532,7 @@ def test_review_dispatch_honors_global_and_per_profile_caps(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     import core.config as cfgmod
-    import sparkii_cli.profiles as profmod
+    import core.profiles as profmod
 
     monkeypatch.setattr(profmod, "profile_exists", lambda _name: True)
     monkeypatch.setattr(

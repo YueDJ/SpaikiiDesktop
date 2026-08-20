@@ -370,7 +370,7 @@ class TestDelegationCleanup:
             reset_sparkii_home_override,
             set_sparkii_home_override,
         )
-        from sparkii_cli.observability import relay_runtime
+        from core.observability import relay_runtime
         from tools.delegate_tool import _run_single_child
 
         parent = MagicMock()
@@ -415,7 +415,7 @@ class TestDelegationCleanup:
     def test_active_child_turn_owns_relay_scope_cleanup(self, monkeypatch):
         from unittest.mock import MagicMock
 
-        from sparkii_cli.observability import relay_runtime
+        from core.observability import relay_runtime
         from tools.delegate_tool import _run_single_child
 
         parent = MagicMock()

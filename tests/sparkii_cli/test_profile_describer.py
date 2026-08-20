@@ -10,8 +10,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from sparkii_cli import profiles as profiles_mod
-from sparkii_cli import profile_describer as describer
+from core import profiles as profiles_mod
+from core import profile_describer as describer
 
 
 @pytest.fixture

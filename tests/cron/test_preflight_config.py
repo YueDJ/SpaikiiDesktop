@@ -79,14 +79,14 @@ def _run_job_patched(job, tmp_path, *, resolve=None, skill_view=None):
     if resolve is None:
         patches.append(
             patch(
-                "sparkii_cli.runtime_provider.resolve_runtime_provider",
+                "core.runtime_provider.resolve_runtime_provider",
                 return_value=dict(_RUNTIME),
             )
         )
     else:
         patches.append(
             patch(
-                "sparkii_cli.runtime_provider.resolve_runtime_provider",
+                "core.runtime_provider.resolve_runtime_provider",
                 side_effect=resolve,
             )
         )
@@ -144,7 +144,7 @@ class TestMissingProviderKeyBlocks:
                      patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
                      patch("sparkii_state.SessionDB", return_value=fake_db), \
                      patch("tools.mcp_tool.discover_mcp_tools", return_value=[]), \
-                     patch("sparkii_cli.runtime_provider.resolve_runtime_provider",
+                     patch("core.runtime_provider.resolve_runtime_provider",
                            side_effect=_AuthErrorFactory()), \
                      patch.object(sched, "_deliver_result", side_effect=fake_deliver), \
                      patch("run_agent.AIAgent") as mock_agent_cls:
@@ -248,7 +248,7 @@ class TestOptOut:
                      patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
                      patch("sparkii_state.SessionDB", return_value=fake_db), \
                      patch("tools.mcp_tool.discover_mcp_tools", return_value=[]), \
-                     patch("sparkii_cli.runtime_provider.resolve_runtime_provider",
+                     patch("core.runtime_provider.resolve_runtime_provider",
                            side_effect=_AuthErrorFactory()), \
                      patch.object(sched, "_deliver_result", side_effect=fake_deliver), \
                      patch("run_agent.AIAgent") as mock_agent_cls:

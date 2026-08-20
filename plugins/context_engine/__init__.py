@@ -231,8 +231,9 @@ class _EngineCollector:
 
         # Reject conflicts with built-in commands.
         try:
-            from sparkii_cli.commands import resolve_command
-            if resolve_command(clean) is not None:
+            from core.plugins import _get_command_resolver_provider
+            _resolver = _get_command_resolver_provider()
+            if _resolver is not None and _resolver(clean) is not None:
                 logger.warning(
                     "Context engine '%s' tried to register command '/%s' which conflicts "
                     "with a built-in command. Skipping.",
@@ -243,7 +244,7 @@ class _EngineCollector:
             pass
 
         try:
-            from sparkii_cli.plugins import get_plugin_manager
+            from core.plugins import get_plugin_manager
             manager = get_plugin_manager()
             if clean in manager._plugin_commands:
                 # Don't clobber a regular plugin's command — same conflict

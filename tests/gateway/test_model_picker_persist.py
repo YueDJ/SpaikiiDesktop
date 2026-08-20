@@ -66,7 +66,7 @@ def _make_event(text):
 
 def _fake_switch_result():
     """A successful ModelSwitchResult that bypasses real provider resolution."""
-    from sparkii_cli.model_switch import ModelSwitchResult
+    from core.model_switch import ModelSwitchResult
 
     return ModelSwitchResult(
         success=True,
@@ -84,15 +84,15 @@ def _fake_switch_result():
 def _stub_picker_dependencies(monkeypatch):
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
     monkeypatch.setattr(
-        "sparkii_cli.model_switch.list_picker_providers",
+        "core.model_switch.list_picker_providers",
         lambda **kw: [{"slug": "openrouter", "name": "OpenRouter", "models": ["gpt-5.5"]}],
     )
     monkeypatch.setattr(
-        "sparkii_cli.model_switch.switch_model",
+        "core.model_switch.switch_model",
         lambda **kw: _fake_switch_result(),
     )
     monkeypatch.setattr(
-        "sparkii_cli.model_switch.resolve_display_context_length",
+        "core.model_switch.resolve_display_context_length",
         lambda *a, **k: 272000,
     )
 

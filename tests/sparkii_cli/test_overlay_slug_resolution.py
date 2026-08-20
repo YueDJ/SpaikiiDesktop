@@ -11,7 +11,7 @@ import os
 from unittest.mock import patch
 
 
-from sparkii_cli.model_switch import list_authenticated_providers
+from core.model_switch import list_authenticated_providers
 
 
 # -- Copilot slug resolution (env var path) ----------------------------------

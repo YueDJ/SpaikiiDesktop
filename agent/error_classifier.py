@@ -395,7 +395,7 @@ def _model_id_missing_known_prefix(model: str, provider: str) -> bool:
     if not name or "/" in name:
         return False
     try:
-        from sparkii_cli.model_normalize import suggest_prefixed_model_id
+        from core.model_normalize import suggest_prefixed_model_id
 
         return bool(suggest_prefixed_model_id((provider or "").strip(), name))
     except Exception:
@@ -815,7 +815,7 @@ def classify_api_error(
     # dropped by the helper, so a broken plugin can never break
     # classification — the guard here only covers import/dispatch failure.
     try:
-        from sparkii_cli.plugins import get_plugin_error_classification
+        from core.plugins import get_plugin_error_classification
         plugin_classification = get_plugin_error_classification(
             provider=provider,
             model=model,

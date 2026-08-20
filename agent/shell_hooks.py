@@ -286,7 +286,7 @@ def register_from_config(
     registered: List[ShellHookSpec] = []
 
     # Import lazily — avoids circular imports at module-load time.
-    from sparkii_cli.plugins import get_plugin_manager
+    from core.plugins import get_plugin_manager
 
     manager = get_plugin_manager()
 
@@ -375,7 +375,7 @@ def _parse_hooks_block(hooks_cfg: Any) -> List[ShellHookSpec]:
     Malformed entries warn-and-skip — we never raise from config parsing
     because a broken hook must not crash the agent.
     """
-    from sparkii_cli.plugins import SHELL_UNSUPPORTED_HOOKS, VALID_HOOKS
+    from core.plugins import SHELL_UNSUPPORTED_HOOKS, VALID_HOOKS
 
     if not isinstance(hooks_cfg, dict):
         return []

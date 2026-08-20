@@ -17,7 +17,7 @@ synchronous.
 import threading
 from types import SimpleNamespace
 
-from sparkii_cli.model_switch import ModelSwitchResult
+from core.model_switch import ModelSwitchResult
 
 
 class _FakeAgent:
@@ -77,7 +77,7 @@ def _patch_deps(monkeypatch, printed):
 
     monkeypatch.setattr(cli_mod, "_cprint", lambda s, *a, **k: printed.append(str(s)))
     monkeypatch.setattr(
-        "sparkii_cli.inventory.load_picker_context",
+        "core.inventory.load_picker_context",
         lambda: SimpleNamespace(
             user_providers=None,
             custom_providers=None,
@@ -87,10 +87,10 @@ def _patch_deps(monkeypatch, printed):
         ),
     )
     monkeypatch.setattr(
-        "sparkii_cli.model_switch.switch_model", lambda **_: _make_result()
+        "core.model_switch.switch_model", lambda **_: _make_result()
     )
     monkeypatch.setattr(
-        "sparkii_cli.model_switch.resolve_display_context_length", lambda *a, **k: None
+        "core.model_switch.resolve_display_context_length", lambda *a, **k: None
     )
     return cli_mod
 

@@ -3157,3 +3157,22 @@ def plugins_command(args) -> None:
 
         Console().print(f"[red]Unknown plugins action: {action}[/red]")
         sys.exit(1)
+
+
+# Block 4: register the plugin enable/disable store for core tools_config.
+try:
+    from types import SimpleNamespace as _NS
+
+    from core.tools_config import set_plugin_enable_store_provider
+
+    def _plugin_enable_store_context():
+        from sparkii_cli.plugins_cmd import _get_enabled_set, _save_enabled_set
+
+        return _NS(
+            get_enabled_set=_get_enabled_set,
+            save_enabled_set=_save_enabled_set,
+        )
+
+    set_plugin_enable_store_provider(_plugin_enable_store_context)
+except Exception:  # pragma: no cover - defensive
+    pass

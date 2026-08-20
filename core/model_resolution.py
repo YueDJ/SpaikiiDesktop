@@ -98,7 +98,7 @@ def normalize_provider(provider: Optional[str]) -> str:
     """Normalize provider aliases to Sparkii' canonical provider ids.
 
     Note: ``"auto"`` passes through unchanged — use
-    ``sparkii_cli.auth.resolve_provider()`` to resolve it to a concrete
+    ``core.credentials.resolve_provider()`` to resolve it to a concrete
     provider based on credentials and environment.
     """
     normalized = (provider or "openrouter").strip().lower()

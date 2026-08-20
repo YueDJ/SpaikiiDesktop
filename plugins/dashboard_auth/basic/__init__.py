@@ -67,7 +67,7 @@ import secrets
 import time
 from typing import Any, Optional
 
-from sparkii_cli.dashboard_auth import (
+from core.dashboard_auth import (
     DashboardAuthProvider,
     InvalidCredentialsError,
     LoginStart,

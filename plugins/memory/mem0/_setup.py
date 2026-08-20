@@ -26,7 +26,11 @@ from ._oss_providers import (
 
 def _curses_select(title: str, items: list[tuple[str, str]], default: int = 0) -> int:
     """Interactive single-select with arrow keys."""
-    from sparkii_cli.curses_ui import curses_radiolist
+    from core.tools_config import get_curses_ui
+    ui = get_curses_ui()
+    if ui is None:
+        raise RuntimeError("interactive curses UI unavailable")
+    curses_radiolist = ui.curses_radiolist
     display_items = [
         f"{label}  {desc}" if desc else label
         for label, desc in items

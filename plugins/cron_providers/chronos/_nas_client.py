@@ -42,8 +42,9 @@ class NasCronClient:
 
     def _access_token(self) -> str:
         """The agent's existing Nous Portal access token (refresh-aware)."""
-        from sparkii_cli.auth import resolve_nous_access_token
-        return resolve_nous_access_token()
+        # Nous Portal credential resolution was removed with the product trim;
+        # NAS client calls fail auth downstream instead of raising at import.
+        return ""
 
     def _headers(self) -> Dict[str, str]:
         return {

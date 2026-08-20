@@ -360,7 +360,7 @@ def _resolve_task_ownership(plugin_id: str) -> tuple[frozenset, frozenset]:
     owned: set = set()
     builtin: set = set()
     try:
-        from sparkii_cli.plugins import get_plugin_auxiliary_tasks
+        from core.plugins import get_plugin_auxiliary_tasks
 
         for entry in get_plugin_auxiliary_tasks():
             if entry.get("plugin") == plugin_id:
@@ -370,7 +370,10 @@ def _resolve_task_ownership(plugin_id: str) -> tuple[frozenset, frozenset]:
     except Exception:  # pragma: no cover — registry unavailable
         pass
     try:
-        from sparkii_cli.main import _AUX_TASKS
+        from core.plugins import _get_builtin_aux_tasks_provider
+
+        _aux_provider = _get_builtin_aux_tasks_provider()
+        _AUX_TASKS = _aux_provider() if _aux_provider is not None else ()
 
         builtin = {k for k, _name, _desc in _AUX_TASKS}
     except Exception:  # pragma: no cover — main import failure

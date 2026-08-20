@@ -39,7 +39,7 @@ def _make_event(text):
 
 def _fake_switch_result():
     """Build a successful ModelSwitchResult that bypasses real provider resolution."""
-    from sparkii_cli.model_switch import ModelSwitchResult
+    from core.model_switch import ModelSwitchResult
 
     return ModelSwitchResult(
         success=True,
@@ -69,7 +69,7 @@ def _setup_isolated_home(tmp_path, monkeypatch, model_yaml_value):
     monkeypatch.setattr(gateway_run, "_sparkii_home", sparkii_home)
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
     monkeypatch.setattr(
-        "sparkii_cli.model_switch.switch_model",
+        "core.model_switch.switch_model",
         lambda **kw: _fake_switch_result(),
     )
     # save_config writes to ``get_sparkii_home() / config.yaml`` — point it here.
@@ -120,7 +120,7 @@ async def test_model_global_persists_when_config_has_missing_model(tmp_path, mon
     monkeypatch.setattr(gateway_run, "_sparkii_home", sparkii_home)
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
     monkeypatch.setattr(
-        "sparkii_cli.model_switch.switch_model",
+        "core.model_switch.switch_model",
         lambda **kw: _fake_switch_result(),
     )
     monkeypatch.setattr("sparkii_constants.get_sparkii_home", lambda: sparkii_home)

@@ -79,7 +79,7 @@ class TestCustomProviderModelSwitch:
         )
 
         with patch(
-            "sparkii_cli.models.probe_api_models",
+            "core.models.probe_api_models",
             return_value={
                 "models": ["new-model"],
                 "used_fallback": False,
@@ -145,7 +145,7 @@ class TestCustomProviderModelSwitch:
             "model": "qwen3.6-35b-fast",
         }
 
-        with patch("sparkii_cli.models.fetch_api_models", return_value=["qwen3.6-35b-fast"]) as mock_fetch, \
+        with patch("core.models.fetch_api_models", return_value=["qwen3.6-35b-fast"]) as mock_fetch, \
              patch("sparkii_cli.curses_ui.curses_radiolist", side_effect=ImportError), \
              patch("builtins.input", return_value="1"), \
              patch("builtins.print"):
@@ -187,7 +187,7 @@ class TestCustomProviderModelSwitch:
             "model": "qwen3.6-35b-fast",
         }
 
-        with patch("sparkii_cli.models.fetch_api_models", return_value=["qwen3.6-35b-fast"]), \
+        with patch("core.models.fetch_api_models", return_value=["qwen3.6-35b-fast"]), \
              patch("sparkii_cli.curses_ui.curses_radiolist", side_effect=ImportError), \
              patch("builtins.input", return_value="1"), \
              patch("builtins.print"):
@@ -244,7 +244,7 @@ class TestCustomProviderModelSwitch:
 
         with patch("sparkii_cli.main._prompt_provider_choice",
                    side_effect=_pick_neuralwatt), \
-             patch("sparkii_cli.models.fetch_api_models",
+             patch("core.models.fetch_api_models",
                    return_value=["qwen3.6-35b-fast"]) as mock_fetch, \
              patch("sparkii_cli.curses_ui.curses_radiolist", side_effect=ImportError), \
              patch("builtins.input", return_value="1"), \
@@ -310,7 +310,7 @@ class TestCustomProviderModelSwitch:
         }
 
         with patch(
-            "sparkii_cli.models.fetch_api_models",
+            "core.models.fetch_api_models",
             return_value=["claude-opus-4-7"],
         ) as mock_fetch, \
              patch("sparkii_cli.curses_ui.curses_radiolist", side_effect=ImportError), \
@@ -423,7 +423,7 @@ class TestCustomProviderModelSwitch:
         }
 
         with patch(
-            "sparkii_cli.models.fetch_api_models",
+            "core.models.fetch_api_models",
             return_value=["claude-opus-4-7"],
         ), \
              patch("sparkii_cli.curses_ui.curses_radiolist", side_effect=ImportError), \
@@ -458,8 +458,8 @@ class TestCustomProviderDiscoverModels:
             "model": "qwen3:8b",
         }
 
-        with patch("sparkii_cli.models.fetch_api_models") as mock_fetch, \
-             patch("sparkii_cli.models.fetch_ollama_local_models") as mock_ollama, \
+        with patch("core.models.fetch_api_models") as mock_fetch, \
+             patch("core.models.fetch_ollama_local_models") as mock_ollama, \
              patch("sparkii_cli.curses_ui.curses_radiolist", side_effect=ImportError), \
              patch("builtins.input", return_value="1"), \
              patch("builtins.print"):
@@ -482,7 +482,7 @@ class TestCustomProviderDiscoverModels:
             "model": "kimi-k2.5",
         }
 
-        with patch("sparkii_cli.models.fetch_api_models") as mock_fetch, \
+        with patch("core.models.fetch_api_models") as mock_fetch, \
              patch("sparkii_cli.curses_ui.curses_radiolist", side_effect=ImportError), \
              patch("builtins.input", return_value="2"), \
              patch("builtins.print"):
@@ -509,7 +509,7 @@ class TestCustomProviderDiscoverModels:
             "model": "fallback-a",
         }
 
-        with patch("sparkii_cli.models.fetch_api_models", return_value=[]), \
+        with patch("core.models.fetch_api_models", return_value=[]), \
              patch("sparkii_cli.curses_ui.curses_radiolist", side_effect=ImportError), \
              patch("builtins.input", return_value="2"), \
              patch("builtins.print"):
@@ -533,7 +533,7 @@ class TestCustomProviderDiscoverModels:
             "model": "kimi-k2.5",
         }
 
-        with patch("sparkii_cli.models.fetch_api_models") as mock_fetch, \
+        with patch("core.models.fetch_api_models") as mock_fetch, \
              patch("sparkii_cli.curses_ui.curses_radiolist", side_effect=ImportError), \
              patch("builtins.input", return_value="1"), \
              patch("builtins.print"):

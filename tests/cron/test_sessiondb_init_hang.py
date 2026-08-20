@@ -87,7 +87,7 @@ class TestSessionDbInitTimeout:
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
              patch("sparkii_state.SessionDB"), \
              patch(
-                 "sparkii_cli.runtime_provider.resolve_runtime_provider",
+                 "core.runtime_provider.resolve_runtime_provider",
                  return_value=_RUNTIME,
              ), \
              patch("run_agent.AIAgent") as mock_agent_cls, \
@@ -122,7 +122,7 @@ class TestSessionDbInitTimeout:
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
              patch("sparkii_state.SessionDB", return_value=fake_db), \
              patch(
-                 "sparkii_cli.runtime_provider.resolve_runtime_provider",
+                 "core.runtime_provider.resolve_runtime_provider",
                  return_value=_RUNTIME,
              ), \
              patch("run_agent.AIAgent") as mock_agent_cls, \
@@ -165,7 +165,7 @@ class TestSessionDbInitTimeout:
              patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
              patch("sparkii_state.SessionDB"), \
              patch(
-                 "sparkii_cli.runtime_provider.resolve_runtime_provider",
+                 "core.runtime_provider.resolve_runtime_provider",
                  return_value=_RUNTIME,
              ), \
              patch("run_agent.AIAgent") as mock_agent_cls, \
@@ -215,7 +215,7 @@ class TestDispatchGuardReleasedAfterHang:
                  patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
                  patch("sparkii_state.SessionDB"), \
                  patch(
-                     "sparkii_cli.runtime_provider.resolve_runtime_provider",
+                     "core.runtime_provider.resolve_runtime_provider",
                      return_value=_RUNTIME,
                  ), \
                  patch("run_agent.AIAgent") as mock_agent_cls, \
@@ -313,7 +313,7 @@ class TestLateSessionDbClosedAfterTimeout:
                  patch("sparkii_cli.env_loader.reset_secret_source_cache"), \
                  patch("sparkii_state.SessionDB", side_effect=_hanging_then_capture), \
                  patch(
-                     "sparkii_cli.runtime_provider.resolve_runtime_provider",
+                     "core.runtime_provider.resolve_runtime_provider",
                      return_value={
                          "api_key": "test-key",
                          "base_url": "https://example.invalid/v1",

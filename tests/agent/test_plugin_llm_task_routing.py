@@ -81,7 +81,7 @@ def _async_capturing_caller(captured: Dict[str, Any]):
 def _set_registry(monkeypatch, entries: List[Dict[str, Any]]) -> None:
     """Point ``_resolve_task_ownership`` at a controlled plugin registry."""
     monkeypatch.setattr(
-        "sparkii_cli.plugins.get_plugin_auxiliary_tasks", lambda: list(entries)
+        "core.plugins.get_plugin_auxiliary_tasks", lambda: list(entries)
     )
 
 
@@ -442,7 +442,7 @@ class TestOwnershipIntegration:
         manager = self._make_manager()
         self._register(manager, name="Display Name", key="my_key", task_key="classifier")
         monkeypatch.setattr(
-            "sparkii_cli.plugins._ensure_plugins_discovered", lambda: manager
+            "core.plugins._ensure_plugins_discovered", lambda: manager
         )
         _set_builtins(monkeypatch, ["vision"])
 
@@ -457,7 +457,7 @@ class TestOwnershipIntegration:
         manager = self._make_manager()
         self._register(manager, name="p", key="", task_key="classifier")
         monkeypatch.setattr(
-            "sparkii_cli.plugins._ensure_plugins_discovered", lambda: manager
+            "core.plugins._ensure_plugins_discovered", lambda: manager
         )
         _set_builtins(monkeypatch, ["vision"])
 
@@ -493,7 +493,7 @@ auxiliary:
 
         manager = self._make_manager()
         ctx = self._register(manager, name="my-plugin", key="my-plugin", task_key="classifier")
-        monkeypatch.setattr("sparkii_cli.plugins._ensure_plugins_discovered", lambda: manager)
+        monkeypatch.setattr("core.plugins._ensure_plugins_discovered", lambda: manager)
         _set_builtins(monkeypatch, [])
         monkeypatch.setattr("agent.auxiliary_client._read_main_provider", lambda: "")
         monkeypatch.setattr("agent.auxiliary_client._read_main_model", lambda: "")

@@ -193,7 +193,7 @@ class TestSigkillFallback:
     @pytest.mark.parametrize(
         "module_path, line_pattern",
         [
-            ("sparkii_cli.kanban_db", 'getattr(signal, "SIGKILL", signal.SIGTERM)'),
+            ("core.kanban_db", 'getattr(signal, "SIGKILL", signal.SIGTERM)'),
         ],
     )
     def test_module_uses_getattr_fallback(self, module_path, line_pattern):

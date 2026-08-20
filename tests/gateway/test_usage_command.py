@@ -152,7 +152,7 @@ class TestUsageAccountSection:
         )
         # The credits block routes through the shared nous_credits_lines() helper;
         # stub it so this account-section test stays hermetic (no portal/auth lookup).
-        monkeypatch.setattr("agent.account_usage.nous_credits_lines", lambda markdown=False: [])
+        monkeypatch.setattr("sparkii_cli.account_usage.nous_credits_lines", lambda markdown=False: [])
 
         event = MagicMock()
         result = await runner._handle_usage_command(event)
@@ -193,7 +193,7 @@ class TestUsageAccountSection:
             "gateway.slash_commands.render_account_usage_lines",
             lambda snapshot, markdown=False: ["account limits"],
         )
-        monkeypatch.setattr("agent.account_usage.nous_credits_lines", lambda markdown=False: [])
+        monkeypatch.setattr("sparkii_cli.account_usage.nous_credits_lines", lambda markdown=False: [])
 
         await runner._handle_usage_command(MagicMock())
 
@@ -220,10 +220,10 @@ class TestUsageReset:
 
         def fake_redeem(*, base_url=None, api_key=None, force=False):
             seen.update(base_url=base_url, api_key=api_key, force=force)
-            from agent.account_usage import CodexResetRedeemResult
+            from sparkii_cli.account_usage import CodexResetRedeemResult
             return CodexResetRedeemResult(status="reset", message="✅ redeemed", available_count=1)
 
-        monkeypatch.setattr("agent.account_usage.redeem_codex_reset_credit", fake_redeem)
+        monkeypatch.setattr("sparkii_cli.account_usage.redeem_codex_reset_credit", fake_redeem)
 
         result = await runner._handle_usage_command(self._event("reset"))
 
@@ -274,4 +274,3 @@ class TestUsageContextBreakdown:
         assert "60%" in result     # 6000 / 10000
         # Zero-token category is dropped, not rendered.
         assert "Conversation" not in result
-

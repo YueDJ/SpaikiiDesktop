@@ -116,7 +116,7 @@ def _setup_monkeypatches(monkeypatch, tmp_path):
         },
     )
 
-    import sparkii_cli.tools_config as tools_config
+    import core.tools_config as tools_config
     monkeypatch.setattr(tools_config, "_get_platform_tools", lambda user_config, platform_key: {"core"})
 
 

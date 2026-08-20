@@ -36,7 +36,12 @@ from utils import is_truthy_value
 from tools.environments.local import sparkii_subprocess_env
 from agent.replay_cleanup import sanitize_replay_history
 from agent.skill_commands import describe_skill_invocation
-from agent.conversation_loop import INTERRUPT_WAITING_FOR_MODEL_PREFIX
+from agent.conversation_loop import (
+    INTERRUPT_WAITING_FOR_MODEL_PREFIX,
+    set_billing_block_builder,
+)
+from agent.display_provider import set_display_provider
+from run_agent import set_background_review_provider
 from tui_gateway import git_probe
 from tui_gateway.turn_marker import (
     clear_turn_marker,
@@ -52,6 +57,17 @@ from tui_gateway.transport import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Dependency inversion: the surface injects the product-layer billing-link
+# builder + display provider into the core loop (conversation_loop /
+# tool_executor stay product-agnostic).
+from sparkii_cli.billing_links import build_billing_block
+from sparkii_cli.background_review import build_background_review_provider
+from sparkii_cli.display import build_display_provider
+
+set_billing_block_builder(build_billing_block)
+set_display_provider(build_display_provider())
+set_background_review_provider(build_background_review_provider())
 
 _sparkii_home = get_sparkii_home()
 load_sparkii_dotenv(
@@ -5827,7 +5843,7 @@ def _tool_ctx(name: str, args: dict) -> str:
     from ``build_tool_label`` at its own call sites.
     """
     try:
-        from agent.display import build_tool_preview
+        from sparkii_cli.display import build_tool_preview
 
         return build_tool_preview(name, args, max_len=80) or ""
     except Exception:
@@ -5985,7 +6001,7 @@ def _on_tool_start(sid: str, tool_call_id: str, name: str, args: dict):
     session = _sessions.get(sid)
     if session is not None:
         try:
-            from agent.display import capture_local_edit_snapshot
+            from sparkii_cli.display import capture_local_edit_snapshot
 
             snapshot = capture_local_edit_snapshot(name, args)
             if snapshot is not None:
@@ -6045,7 +6061,7 @@ def _on_tool_complete(sid: str, tool_call_id: str, name: str, args: dict, result
         except Exception:
             pass
     try:
-        from agent.display import render_edit_diff_with_delta
+        from sparkii_cli.display import render_edit_diff_with_delta
 
         rendered: list[str] = []
         if render_edit_diff_with_delta(
@@ -8976,7 +8992,7 @@ def _pet_frame_counts(spritesheet) -> dict:
     static ``framesPerState`` rather than breaking the (cosmetic) pet.
     """
     try:
-        from agent.pet import render
+        from sparkii_cli.pet import render
 
         return render.state_frame_counts(str(spritesheet))
     except Exception:  # noqa: BLE001 - cosmetic, never break the surface
@@ -9029,7 +9045,7 @@ def _pet_row_frame_counts(spritesheet) -> dict:
     try:
         from PIL import Image
 
-        from agent.pet import constants, render
+        from sparkii_cli.pet import constants, render
 
         with Image.open(spritesheet) as opened:
             image = opened.convert("RGBA")
@@ -9054,7 +9070,7 @@ def _pet_row_frame_counts(spritesheet) -> dict:
 
 def _pet_config_scale() -> float:
     """Configured ``display.pet.scale`` (or the engine default), never raises."""
-    from agent.pet import constants
+    from sparkii_cli.pet import constants
 
     try:
         from core.config import load_config
@@ -9075,7 +9091,7 @@ def _pet_sprite_payload(pet, *, scale: float) -> dict:
     """
     import base64
 
-    from agent.pet import constants
+    from sparkii_cli.pet import constants
 
     cache_key = _pet_payload_cache_key(pet, scale=scale)
     if cache_key is not None:
@@ -9112,7 +9128,7 @@ def _pet_sprite_payload(pet, *, scale: float) -> dict:
 
 def _pet_active_selection():
     """Resolve configured active pet + scale from config."""
-    from agent.pet import constants, store
+    from sparkii_cli.pet import constants, store
 
     try:
         from core.config import load_config
@@ -9140,13 +9156,13 @@ def _pet_state_rows(spritesheet) -> list[str]:
     try:
         from PIL import Image
 
-        from agent.pet import constants
+        from sparkii_cli.pet import constants
 
         with Image.open(spritesheet) as image:
             row_count = max(1, image.height // constants.FRAME_H)
         return list(constants.state_rows_for_grid(row_count))
     except Exception:  # noqa: BLE001 - cosmetic, never break the surface
-        from agent.pet import constants
+        from sparkii_cli.pet import constants
 
         return list(constants.STATE_ROWS)
 
@@ -15524,3 +15540,13 @@ for _m in (
 ):
     _m.register(sys.modules[__name__])
 del _m
+
+
+# Block 4: register the session-steer authority resolver for core consumers
+# (tools/delegate_tool.py) without them importing the TUI gateway package.
+try:
+    from core.session_steer import set_session_steer_authority_provider
+
+    set_session_steer_authority_provider(_current_session_steer_authority)
+except Exception:  # pragma: no cover - defensive
+    pass

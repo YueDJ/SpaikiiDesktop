@@ -414,7 +414,7 @@ def test_post_setup_writes_config_and_prints_summary(monkeypatch, tmp_path, caps
     config: dict = {"memory": {}}
     monkeypatch.setenv("SUPERMEMORY_API_KEY", "")
     monkeypatch.setattr(
-        "sparkii_cli.memory_setup._prompt",
+        "core.memory_setup._prompt",
         lambda label, secret=True, default=None: "new-api-key",
     )
     monkeypatch.setattr(

@@ -28,7 +28,7 @@ _WORKTREE = Path(__file__).resolve().parents[2]
 if str(_WORKTREE) not in sys.path:
     sys.path.insert(0, str(_WORKTREE))
 
-from sparkii_cli import kanban_db as kb
+from core import kanban_db as kb
 
 
 # ---------------------------------------------------------------------------

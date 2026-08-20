@@ -58,9 +58,15 @@ from agent.conversation_compression import (
     PRE_API_COMPRESSION_STATUS_TEMPLATE,
     PREFLIGHT_COMPRESSION_STATUS_TEMPLATE,
 )
-from agent.conversation_loop import INTERRUPT_WAITING_FOR_MODEL_PREFIX
+from agent.conversation_loop import (
+    INTERRUPT_WAITING_FOR_MODEL_PREFIX,
+    set_billing_block_builder,
+)
+from agent.display_provider import set_display_provider
 from agent.i18n import t
 from agent.interrupt_compat import request_hard_interrupt
+from agent.monitoring.gateway_health import set_gateway_status_readers
+from run_agent import set_background_review_provider
 from agent.turn_context import (
     compression_made_progress,
 )
@@ -2587,6 +2593,34 @@ from gateway.whatsapp_identity import (
 logger = logging.getLogger(__name__)
 
 
+# Dependency inversion: the surface injects the product-layer billing-link
+# builder + display provider into the core loop (conversation_loop /
+# tool_executor stay product-agnostic).
+from sparkii_cli.billing_links import build_billing_block
+from sparkii_cli.background_review import build_background_review_provider
+from sparkii_cli.display import build_display_provider
+
+set_billing_block_builder(build_billing_block)
+set_display_provider(build_display_provider())
+set_background_review_provider(build_background_review_provider())
+try:
+    from gateway.status import (
+        derive_gateway_busy,
+        derive_gateway_drainable,
+        parse_active_agents,
+        read_runtime_status,
+    )
+
+    set_gateway_status_readers(
+        parse_active_agents=parse_active_agents,
+        derive_gateway_busy=derive_gateway_busy,
+        derive_gateway_drainable=derive_gateway_drainable,
+        read_runtime_status=read_runtime_status,
+    )
+except Exception:
+    pass
+
+
 _OWN_POLICY_OPEN_ENV = {
     Platform.WECOM: ("WECOM_DM_POLICY", "WECOM_GROUP_POLICY", "WECOM_ALLOW_ALL_USERS"),
     Platform.WEIXIN: ("WEIXIN_DM_POLICY", "WEIXIN_GROUP_POLICY", "WEIXIN_ALLOW_ALL_USERS"),
@@ -4190,7 +4224,7 @@ class TurnRunner:
         ):
             try:
                 if event_type == "tool.started" and tool_name and ctx._run_still_current():
-                    from agent.display import build_status_phrase
+                    from sparkii_cli.display import build_status_phrase
                     _phrase = build_status_phrase(
                         tool_name,
                         args if ctx._live_status_mode == "full" else None,
@@ -4310,7 +4344,7 @@ class TurnRunner:
         ctx.last_tool[0] = tool_name
 
         # Build progress message with primary argument preview
-        from agent.display import get_tool_emoji
+        from sparkii_cli.display import get_tool_emoji
         emoji = get_tool_emoji(tool_name, default="⚙️")
 
         # Markdown-capable platforms render a terminal command as a fenced
@@ -4339,7 +4373,7 @@ class TurnRunner:
             and isinstance(args.get("command"), str)
             and args["command"].strip()
         ):
-            from agent.display import get_tool_preview_max_len
+            from sparkii_cli.display import get_tool_preview_max_len
             _cmd_full = args["command"].rstrip()
             # Consecutive terminal calls: drop the repeated
             # "💻 terminal" header so back-to-back commands render as
@@ -4368,7 +4402,7 @@ class TurnRunner:
                 return
             ctx.last_was_terminal_block[0] = False
             if args:
-                from agent.display import get_tool_preview_max_len
+                from sparkii_cli.display import get_tool_preview_max_len
                 _pl = get_tool_preview_max_len()
                 args_str = json.dumps(args, ensure_ascii=False, default=str)
                 # When tool_preview_length is 0 (default), don't truncate
@@ -4393,7 +4427,7 @@ class TurnRunner:
             msg = _code_block_short
             ctx.last_was_terminal_block[0] = True
         elif preview:
-            from agent.display import (
+            from sparkii_cli.display import (
                 get_tool_preview_max_len,
                 get_tool_verb,
                 prepare_tool_preview,
@@ -5025,7 +5059,7 @@ class TurnRunner:
                 return
         except Exception:
             pass
-        from agent.display import build_tool_preview
+        from sparkii_cli.display import build_tool_preview
 
         ctx.progress_queue.put(
             {
@@ -5050,7 +5084,7 @@ class TurnRunner:
                 return
         except Exception:
             pass
-        from agent.display import _detect_tool_failure
+        from sparkii_cli.display import _detect_tool_failure
 
         is_error, _ = _detect_tool_failure(str(tool_name or "tool"), result)
         ctx.progress_queue.put(
@@ -12469,7 +12503,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
             _hooks_cfg = load_config()
             register_from_config(_hooks_cfg, accept_hooks=False)
 
-            from agent.outbound_webhooks import (
+            from sparkii_cli.outbound_webhooks import (
                 register_from_config as register_outbound_webhooks,
             )
             register_outbound_webhooks(_hooks_cfg)
@@ -27784,7 +27818,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
 
         # Apply tool preview length config (0 = no limit)
         try:
-            from agent.display import set_tool_preview_max_len
+            from sparkii_cli.display import set_tool_preview_max_len
             _tpl = resolve_display_setting(user_config, platform_key, "tool_preview_length", 0)
             set_tool_preview_max_len(int(_tpl) if _tpl else 0)
         except Exception:
@@ -27792,7 +27826,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
 
         # Apply friendly tool labels config (default on) — per-platform aware
         try:
-            from agent.display import set_friendly_tool_labels
+            from sparkii_cli.display import set_friendly_tool_labels
             _ftl = resolve_display_setting(user_config, platform_key, "friendly_tool_labels", True)
             set_friendly_tool_labels(bool(_ftl))
         except Exception:
@@ -29735,7 +29769,7 @@ def _start_gateway_housekeeping(stop_event: threading.Event, adapters=None, loop
         # real work only fires once per config interval.
         if tick_count % CURATOR_EVERY == 0:
             try:
-                from agent.curator import maybe_run_curator
+                from sparkii_cli.curator import maybe_run_curator
                 maybe_run_curator(
                     idle_for_seconds=float("inf"),
                     on_summary=lambda msg: logger.info("curator: %s", msg),

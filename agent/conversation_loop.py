@@ -36,7 +36,7 @@ from agent.conversation_compression import (
     conversation_history_after_compression,
 )
 from agent.context_engine import automatic_compaction_status_message
-from agent.display import KawaiiSpinner
+from agent.display_provider import get_display_provider
 from agent.error_classifier import FailoverReason, classify_api_error
 from agent.message_metadata import append_message
 from agent.turn_context import (
@@ -100,6 +100,20 @@ from tools.skill_provenance import set_current_write_origin
 from utils import base_url_host_matches, env_var_enabled
 
 logger = logging.getLogger(__name__)
+
+
+# Billing-link builder, injected by the product surface (CLI / gateway / TUI)
+# via set_billing_block_builder(). Dependency inversion: the core loop does not
+# import billing_links — the surface owns the provider-link policy and
+# registers a builder that turns (provider, base_url, model, message) into a
+# structured BillingBlock (or None when no surface has registered).
+_billing_block_builder = None
+
+
+def set_billing_block_builder(builder) -> None:
+    """Register the product-layer billing-block builder for this process."""
+    global _billing_block_builder
+    _billing_block_builder = builder
 
 
 # Scaffold marker used by _apply_active_turn_redirect and the ghost-row filter
@@ -543,20 +557,8 @@ def _ra():
 
 
 def _nous_entitlement_message(capability: str) -> str:
-    try:
-        from sparkii_cli.nous_account import (
-            format_nous_portal_entitlement_message,
-            get_nous_portal_account_info,
-        )
-
-        account_info = get_nous_portal_account_info(force_fresh=True)
-        message = format_nous_portal_entitlement_message(
-            account_info,
-            capability=capability,
-        )
-        return message or ""
-    except Exception:
-        return ""
+    # Nous portal entitlement messaging was removed with the product trim.
+    return ""
 
 
 def _print_nous_entitlement_guidance(agent, capability: str) -> bool:
@@ -661,15 +663,19 @@ def _billing_or_entitlement_message(
     # Provider-agnostic billing URL derivation (OpenAI, DeepSeek, xAI, Groq,
     # OpenRouter, …) so every text surface — CLI, gateway messaging, TUI
     # transcript — shows the same actionable link, not just OpenRouter.
-    try:
-        from agent.billing_links import build_billing_block
-
-        _link = build_billing_block(provider=provider, base_url=base_url, model=model)
-        if _link.provider_label:
-            provider_label = _link.provider_label
-        billing_url = _link.billing_url
-    except Exception:
+    # The builder is injected by the surface (set_billing_block_builder); the
+    # core loop stays product-agnostic.
+    _builder = _billing_block_builder
+    if _builder is None:
         billing_url = None
+    else:
+        try:
+            _link = _builder(provider=provider, base_url=base_url, model=model)
+            if _link.provider_label:
+                provider_label = _link.provider_label
+            billing_url = _link.billing_url
+        except Exception:
+            billing_url = None
 
     lines = [
         (
@@ -688,10 +694,11 @@ def _billing_block_dict(
     provider, base_url, model, message="", *, unverified: bool = False
 ) -> Optional[dict]:
     """Best-effort structured billing descriptor (None if billing_links is unavailable)."""
+    _builder = _billing_block_builder
+    if _builder is None:
+        return None
     try:
-        from agent.billing_links import build_billing_block
-
-        block = build_billing_block(
+        block = _builder(
             provider=provider, base_url=str(base_url), model=model, message=message
         ).to_dict()
     except Exception:
@@ -789,17 +796,8 @@ def _print_billing_or_entitlement_guidance(
 
 def _try_refresh_nous_paid_entitlement_credentials(agent) -> bool:
     """Refresh Nous runtime credentials after a fresh paid-entitlement check."""
-    try:
-        from sparkii_cli.nous_account import get_nous_portal_account_info
-
-        account_info = get_nous_portal_account_info(force_fresh=True)
-        if account_info.paid_service_access is not True:
-            return False
-        return agent._try_refresh_nous_client_credentials(
-            force=True,
-        )
-    except Exception:
-        return False
+    # Nous paid-entitlement refresh was removed with the product trim.
+    return False
 
 
 def _restore_or_build_system_prompt(agent, system_message, conversation_history):
@@ -985,7 +983,7 @@ def _restore_or_build_system_prompt(agent, system_message, conversation_history)
     # session is created (not on continuation).  Plugins can use this
     # to initialise session-scoped state (e.g. warm a memory cache).
     try:
-        from sparkii_cli.lifecycle import invoke_hook as _invoke_hook
+        from core.plugins import invoke_hook as _invoke_hook
         _invoke_hook(
             "on_session_start",
             session_id=agent.session_id,
@@ -1821,7 +1819,7 @@ def run_conversation(
     agent._last_compression_attempt_in_place = None
 
     # If a background memory/skill review spawned at the end of a PRIOR turn
-    # (agent/background_review.py) is still running its own run_conversation()
+    # (sparkii_cli/background_review.py) is still running its own run_conversation()
     # when THIS turn starts, cancel it now rather than letting both make
     # outbound API calls concurrently against the same session_id/credentials.
     # That concurrency can produce doubled prompt-token accounting on this
@@ -2775,8 +2773,9 @@ def run_conversation(
             agent._vprint(f"{agent.log_prefix}   🔧 Available tools: {len(agent.tools) if agent.tools else 0}")
         else:
             # Animated thinking spinner in quiet mode
-            face = random.choice(KawaiiSpinner.get_thinking_faces())
-            verb = random.choice(KawaiiSpinner.get_thinking_verbs())
+            _display_provider = get_display_provider()
+            face = random.choice(_display_provider.thinking_faces())
+            verb = random.choice(_display_provider.thinking_verbs())
             if agent.thinking_callback:
                 # CLI TUI mode: use prompt_toolkit widget instead of raw spinner
                 # (works in both streaming and non-streaming modes)
@@ -2785,7 +2784,9 @@ def run_conversation(
                 # Raw KawaiiSpinner only when no streaming consumers and the
                 # spinner output has a safe sink.
                 spinner_type = random.choice(['brain', 'sparkle', 'pulse', 'moon', 'star'])
-                thinking_spinner = KawaiiSpinner(f"{face} {verb}...", spinner_type=spinner_type, print_fn=agent._print_fn)
+                thinking_spinner = _display_provider.spinner(
+                    f"{face} {verb}...", spinner_type=spinner_type, print_fn=agent._print_fn
+                )
                 thinking_spinner.start()
         
         # Log request details if verbose
@@ -2915,7 +2916,7 @@ def run_conversation(
                     api_kwargs["extra_headers"] = _xh
                     agent._is_user_initiated_turn = False
                 try:
-                    from sparkii_cli.middleware import apply_llm_request_middleware
+                    from core.middleware import apply_llm_request_middleware
 
                     _llm_request_mw = apply_llm_request_middleware(
                         api_kwargs,
@@ -2938,7 +2939,7 @@ def run_conversation(
                     _llm_middleware_trace = []
 
                 try:
-                    from sparkii_cli.lifecycle import (
+                    from core.plugins import (
                         has_hook,
                         invoke_hook as _invoke_hook,
                     )
@@ -3118,7 +3119,7 @@ def run_conversation(
                         defer_logical_completion=True,
                     )
 
-                from sparkii_cli.middleware import run_llm_execution_middleware
+                from core.middleware import run_llm_execution_middleware
 
                 _model_request_active = getattr(agent, "_model_request_active", None)
                 _redirect_lock = getattr(agent, "_pending_redirect_lock", None)
@@ -5126,7 +5127,7 @@ def run_conversation(
                 # failure.  Name the real cause and the exact id to use (#78796).
                 if getattr(api_error, "status_code", None) == 404:
                     try:
-                        from sparkii_cli.model_normalize import suggest_prefixed_model_id
+                        from core.model_normalize import suggest_prefixed_model_id
 
                         _suggestion = suggest_prefixed_model_id(_provider, _model)
                     except Exception:
@@ -6638,7 +6639,7 @@ def run_conversation(
                     assistant_message.content = str(raw)
 
             try:
-                from sparkii_cli.lifecycle import (
+                from core.plugins import (
                     has_hook,
                     invoke_hook as _invoke_hook,
                 )
@@ -8142,8 +8143,8 @@ def run_conversation(
                 _attempt = getattr(agent, "_pre_verify_nudges", 0)
                 try:
                     from agent.verify_hooks import max_verify_nudges
-                    from sparkii_cli.lifecycle import has_hook
-                    from sparkii_cli.plugins import get_pre_verify_continue_message
+                    from core.plugins import has_hook
+                    from core.plugins import get_pre_verify_continue_message
 
                     if _edited and has_hook("pre_verify") and _attempt < max_verify_nudges():
                         # Posture is fixed for the session — resolve once + cache.

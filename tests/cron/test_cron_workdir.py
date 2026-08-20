@@ -233,7 +233,7 @@ class TestRunJobTerminalCwd:
         monkeypatch.setitem(sys.modules, "run_agent", fake_mod)
 
         # Bypass the real provider resolver — it reads ~/.sparkii and credentials.
-        from sparkii_cli import runtime_provider as _rtp
+        from core import runtime_provider as _rtp
         monkeypatch.setattr(
             _rtp,
             "resolve_runtime_provider",

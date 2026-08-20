@@ -918,7 +918,7 @@ def _dispatch_to_plugin_provider(
         return None
     try:
         from agent.tts_registry import get_provider
-        from sparkii_cli.plugins import _ensure_plugins_discovered
+        from core.plugins import _ensure_plugins_discovered
 
         _ensure_plugins_discovered()
         plugin_provider = get_provider(key)
@@ -1960,7 +1960,7 @@ def _generate_deepinfra_tts(text: str, output_path: str, tts_config: Dict[str, A
     if not isinstance(di_config, dict):
         di_config = {}
 
-    from sparkii_cli.models import deepinfra_base_url, deepinfra_model_ids
+    from core.models import deepinfra_base_url, deepinfra_model_ids
 
     model = di_config.get("model")
     if not isinstance(model, str) or not model.strip():
@@ -2675,9 +2675,9 @@ def _generate_gemini_tts(text: str, output_path: str, tts_config: Dict[str, Any]
     headers = {"Content-Type": "application/json"}
     if urlparse(base_url).hostname == "generativelanguage.googleapis.com":
         try:
-            import sparkii_cli as _sparkii_cli
+            from core.version import __version__ as _sparkii_version
 
-            _sparkii_version = str(_sparkii_cli.__version__)
+            _sparkii_version = str(_sparkii_version)
         except Exception:
             _sparkii_version = "0.0.0"
         # Include Sparkii client context following Gemini's partner
@@ -3780,7 +3780,7 @@ def check_tts_requirements() -> bool:
 
     try:
         from agent.tts_registry import get_provider
-        from sparkii_cli.plugins import _ensure_plugins_discovered
+        from core.plugins import _ensure_plugins_discovered
 
         _ensure_plugins_discovered()
         plugin = get_provider(provider)

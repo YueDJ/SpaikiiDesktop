@@ -5,7 +5,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 from sparkii_cli.context_switch_guard import merge_preflight_compression_warning
-from sparkii_cli.model_switch import ModelSwitchResult
+from core.model_switch import ModelSwitchResult
 
 
 def _result(*, model: str = "small-model") -> ModelSwitchResult:

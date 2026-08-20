@@ -116,7 +116,7 @@ def _fire_approval_hook(hook_name: str, **kwargs) -> None:
     pre_approval_request, post_approval_response.
     """
     try:
-        from sparkii_cli.lifecycle import invoke_hook
+        from core.plugins import invoke_hook
     except Exception:
         # Plugin system not available in this execution context
         # (e.g. bare tool-only imports, minimal test environments).
@@ -3918,7 +3918,7 @@ def _format_tirith_description(tirith_result: dict) -> str:
 
 def get_plugin_manager():
     """Lazy plugin-manager seam used by tests and early tool-only imports."""
-    from sparkii_cli.plugins import discover_plugins, get_plugin_manager as _get_manager
+    from core.plugins import discover_plugins, get_plugin_manager as _get_manager
 
     # Approval can be imported before model_tools, whose import normally
     # triggers general plugin discovery. Ensure an explicitly selected
@@ -3978,7 +3978,7 @@ def _present_with_selected_transport(
 
     try:
         from agent.redact import redact_sensitive_text
-        from sparkii_cli.approval_transport import ApprovalRequest, invoke_approval_transport
+        from core.approval_transport import ApprovalRequest, invoke_approval_transport
 
         timeout_seconds = _get_approval_timeout()
         request = ApprovalRequest.create(

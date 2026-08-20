@@ -135,7 +135,7 @@ def test_refresh_uses_pre_rebuild_snapshot_when_provided(monkeypatch):
 
 
 def test_capture_active_tool_dependencies_uses_tools_status_probes(monkeypatch):
-    from sparkii_cli import tools_config
+    from core import tools_config
 
     monkeypatch.setattr(
         tools_config,
@@ -168,7 +168,7 @@ def test_cmd_update_captures_and_propagates_pre_rebuild_snapshot(
     tmp_path, monkeypatch
 ):
     """The updater must carry pre-rebuild state into its repair refresh."""
-    from sparkii_cli import managed_uv, update_cmd
+    from core import managed_uv, update_cmd
 
     (tmp_path / ".git").mkdir()
     snapshot = ["platform.telegram"]

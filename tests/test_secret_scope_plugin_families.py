@@ -96,7 +96,7 @@ class TestMemoryFamily:
         monkeypatch.delenv("SUPERMEMORY_API_KEY", raising=False)
 
         import core.config as cli_config
-        import sparkii_cli.memory_setup as memory_setup
+        import core.memory_setup as memory_setup
         import plugins.memory.supermemory as sm
 
         monkeypatch.setattr(memory_setup, "_prompt", lambda *a, **k: "sm-fresh-key")
@@ -121,7 +121,7 @@ class TestMemoryFamily:
         monkeypatch.delenv("SUPERMEMORY_API_KEY", raising=False)
 
         import core.config as cli_config
-        import sparkii_cli.memory_setup as memory_setup
+        import core.memory_setup as memory_setup
         import plugins.memory.supermemory as sm
 
         monkeypatch.setattr(memory_setup, "_prompt", lambda *a, **k: "sm-fresh-key")

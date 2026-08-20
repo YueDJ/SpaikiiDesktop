@@ -261,7 +261,7 @@ def test_multihop_redirects_never_resurrect_credentials():
 
 
 def test_probe_api_models_drops_custom_credentials_on_wire():
-    from sparkii_cli.models import probe_api_models
+    from core.models import probe_api_models
 
     source = _server()
     sink = _server()

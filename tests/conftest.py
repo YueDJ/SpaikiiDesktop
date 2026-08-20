@@ -584,7 +584,7 @@ def _neutralize_kanban_memory_guard(request, monkeypatch):
     if request.node.get_closest_marker("real_memory_guard"):
         return
     try:
-        from sparkii_cli import kanban_db as _kb_mod
+        from core import kanban_db as _kb_mod
     except Exception:
         return
     monkeypatch.setattr(_kb_mod, "_system_memory_sample", lambda: {}, raising=False)
@@ -690,19 +690,19 @@ def _kanban_write_guard(_hermetic_environment, monkeypatch):
     ``~/.sparkii`` captured at import time. Hermetic tests that legitimately
     move SPARKII_HOME to sibling tempdirs are unaffected.
 
-    Only patches when ``sparkii_cli.kanban_db`` is *already imported* — a
+    Only patches when ``core.kanban_db`` is *already imported* — a
     ``sys.modules`` probe, not an import — so the guard never drags the
     kanban module into unrelated test processes.
 
     Uses ``monkeypatch.setattr`` so pytest restores ``connect`` automatically
     after each test (no stacked wrappers or state leakage across tests).
     """
-    _kdb = sys.modules.get("sparkii_cli.kanban_db")
+    _kdb = sys.modules.get("core.kanban_db")
     if _kdb is None:
         return
 
     # The sys.modules probe can observe the module MID-IMPORT: a fixture
-    # boundary firing while another test's lazy `import sparkii_cli.kanban_db`
+    # boundary firing while another test's lazy `import core.kanban_db`
     # is still executing sees a partially initialized module whose `connect`
     # doesn't exist yet (AttributeError flake, caught in a full-suite run).
     # A half-imported module has no callers yet either — nothing to guard

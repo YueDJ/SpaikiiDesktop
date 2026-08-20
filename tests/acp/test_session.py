@@ -96,7 +96,7 @@ class TestCreateSession:
             },
         )
         monkeypatch.setattr(
-            "sparkii_cli.runtime_provider.resolve_runtime_provider",
+            "core.runtime_provider.resolve_runtime_provider",
             lambda requested=None: {
                 "provider": requested,
                 "api_mode": "codex_app_server",
@@ -359,7 +359,7 @@ class TestPersistence:
             "model": {"provider": "openrouter", "default": "test-model"}
         })
         monkeypatch.setattr(
-            "sparkii_cli.runtime_provider.resolve_runtime_provider",
+            "core.runtime_provider.resolve_runtime_provider",
             fake_resolve_runtime_provider,
         )
         db = SessionDB(tmp_path / "state.db")

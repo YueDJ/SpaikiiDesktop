@@ -19,7 +19,7 @@ _VALID_BODY_BOT_TOKEN = "987654321:ZYXWVUTSRQPONMLKJIHGFEDCBA_4321"
 def isolated_profiles(tmp_path, monkeypatch, _isolate_sparkii_home):
     """Isolated default home + one named profile, each with its own .env."""
     from sparkii_constants import get_sparkii_home
-    from sparkii_cli import profiles
+    from core import profiles
 
     default_home = get_sparkii_home()
     profiles_root = default_home / "profiles"

@@ -504,7 +504,7 @@ class TestManagedKreaRouting:
             "agent.image_gen_registry.get_provider", lambda name: fake_provider
         )
         monkeypatch.setattr(
-            "sparkii_cli.plugins._ensure_plugins_discovered", lambda *a, **k: None
+            "core.plugins._ensure_plugins_discovered", lambda *a, **k: None
         )
 
         out = image_tool._maybe_route_managed_krea("a cat", "portrait")
@@ -624,7 +624,7 @@ class TestUpscaleDispatchForwarding:
             "agent.image_gen_registry.get_provider", lambda name: fake_provider
         )
         monkeypatch.setattr(
-            "sparkii_cli.plugins._ensure_plugins_discovered", lambda *a, **k: None
+            "core.plugins._ensure_plugins_discovered", lambda *a, **k: None
         )
 
         out = image_tool._dispatch_to_plugin_provider("a cat", "square", upscale=True)
@@ -642,7 +642,7 @@ class TestUpscaleDispatchForwarding:
             "agent.image_gen_registry.get_provider", lambda name: fake_provider
         )
         monkeypatch.setattr(
-            "sparkii_cli.plugins._ensure_plugins_discovered", lambda *a, **k: None
+            "core.plugins._ensure_plugins_discovered", lambda *a, **k: None
         )
 
         image_tool._dispatch_to_plugin_provider("a cat", "square")

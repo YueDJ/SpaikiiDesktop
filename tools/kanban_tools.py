@@ -34,7 +34,7 @@ import os
 from typing import Any, Optional
 
 from agent.redact import redact_sensitive_text
-from sparkii_cli.goals import judge_goal
+from core.goals import judge_goal
 from tools.registry import registry, tool_error
 from core.config import cfg_get, load_config
 
@@ -223,7 +223,7 @@ def _connect(board: Optional[str] = None):
     → ``default``). Per-tool ``board`` lets a Telegram-side agent override
     the env-pinned active board without restarting Sparkii.
     """
-    from sparkii_cli import kanban_db as kb
+    from core import kanban_db as kb
     return kb, kb.connect(board=board)
 
 
@@ -1123,7 +1123,7 @@ def _handle_attach(args: dict, **kw) -> str:
     attachments dir, and record the metadata row — all via
     ``kanban_db.store_attachment_bytes`` so the three surfaces stay in lockstep.
     """
-    from sparkii_cli import kanban_db as kb
+    from core import kanban_db as kb
 
     delegated_err = _reject_delegated_child_mutation("kanban_attach")
     if delegated_err:
@@ -1245,7 +1245,7 @@ def _handle_attach_url(args: dict, **kw) -> str:
     and stores it as a real attachment. Useful when the agent has a link
     rather than the bytes. Only http/https URLs are accepted.
     """
-    from sparkii_cli import kanban_db as kb
+    from core import kanban_db as kb
 
     delegated_err = _reject_delegated_child_mutation("kanban_attach_url")
     if delegated_err:
@@ -1569,7 +1569,7 @@ def _maybe_auto_subscribe(conn: Any, task_id: str) -> bool:
         )
         if not notifier_profile:
             try:
-                from sparkii_cli.profiles import get_active_profile_name
+                from core.profiles import get_active_profile_name
                 notifier_profile = get_active_profile_name() or "default"
             except Exception:
                 notifier_profile = "default"
@@ -1590,7 +1590,7 @@ def _maybe_auto_subscribe(conn: Any, task_id: str) -> bool:
                 delivery_metadata["telegram_reply_to_message_id"] = str(message_id)
 
         # Lazy-import to keep the module-level dependency light
-        from sparkii_cli import kanban_db as _kb
+        from core import kanban_db as _kb
         _kb.add_notify_sub(
             conn, task_id=task_id,
             platform=platform, chat_id=chat_id,

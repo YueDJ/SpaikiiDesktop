@@ -785,10 +785,10 @@ def test_auth_remove_copilot_suppresses_all_variants(tmp_path, monkeypatch):
     from sparkii_cli.auth_commands import auth_remove_command
 
     with patch(
-        "sparkii_cli.copilot_auth.resolve_copilot_token",
+        "core.copilot_auth.resolve_copilot_token",
         return_value=("ghp_fake", "gh"),
     ), patch(
-        "sparkii_cli.copilot_auth.get_copilot_api_token",
+        "core.copilot_auth.get_copilot_api_token",
         return_value=("ghu_fake_api", None),
     ):
         auth_remove_command(SimpleNamespace(provider="copilot", target="1"))

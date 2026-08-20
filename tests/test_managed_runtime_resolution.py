@@ -201,7 +201,7 @@ def test_managed_node_helpers_exist(helper):
 
 
 def test_managed_uv_helpers_exist():
-    from sparkii_cli.managed_uv import ensure_uv, managed_uv_path, resolve_uv
+    from core.managed_uv import ensure_uv, managed_uv_path, resolve_uv
 
     assert callable(resolve_uv)
     assert callable(ensure_uv)

@@ -60,7 +60,7 @@ class TestBasicProviderLoadsAfterUnblock:
             },
         )
 
-        import sparkii_cli.plugins as plugins_mod
+        import core.plugins as plugins_mod
 
         with patch.object(plugins_mod, "_plugin_manager", None):
             discover_plugins(force=True)
@@ -86,7 +86,7 @@ class TestBasicProviderLoadsAfterUnblock:
         assert ensure_basic_auth_plugin_enabled_in_config(cfg) is True
         _write_config(sparkii_home, cfg)
 
-        import sparkii_cli.plugins as plugins_mod
+        import core.plugins as plugins_mod
 
         with patch.object(plugins_mod, "_plugin_manager", None):
             discover_plugins(force=True)

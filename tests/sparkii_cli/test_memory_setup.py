@@ -1,8 +1,8 @@
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
-import sparkii_cli.memory_setup as memory_setup
-from sparkii_cli.memory_setup import _CANCELLED, _curses_select
+import core.memory_setup as memory_setup
+from core.memory_setup import _CANCELLED, _curses_select
 
 
 

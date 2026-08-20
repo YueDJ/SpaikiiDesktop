@@ -230,7 +230,7 @@ def test_persist_model_switch_heals_bare_custom(monkeypatch):
         base_url = "https://my-endpoint/v1"
         api_mode = ""
 
-    import sparkii_cli.runtime_provider as rp
+    import core.runtime_provider as rp
     monkeypatch.setattr(rp, "canonical_custom_identity",
                         lambda base_url=None, model=None: "custom:myendpoint")
     stub = _make_stub(_session_db=_DB(), session_id="s1")
@@ -249,7 +249,7 @@ def test_persist_model_switch_heals_bare_custom(monkeypatch):
 
 def test_restore_session_model_heals_bare_custom_stored_rows(monkeypatch):
     """Rows persisted by older builds may carry bare 'custom' — heal or drop."""
-    import sparkii_cli.runtime_provider as rp
+    import core.runtime_provider as rp
     monkeypatch.setattr(rp, "canonical_custom_identity",
                         lambda base_url=None, model=None: None)
     stub = _make_stub()

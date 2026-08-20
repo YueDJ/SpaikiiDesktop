@@ -96,7 +96,7 @@ class TestInboundCacheUsesSniffer:
     def test_wrong_ext_repaired(self, tmp_path, data, claimed, expected_suffix):
         from gateway.platforms.base import cache_audio_from_bytes
 
-        with patch("gateway.platforms.base.AUDIO_CACHE_DIR", tmp_path):
+        with patch("core.media_cache.AUDIO_CACHE_DIR", tmp_path):
             result = cache_audio_from_bytes(data, ext=claimed)
 
         saved = tmp_path / os.path.basename(result)
@@ -108,8 +108,9 @@ class TestInboundCacheUsesSniffer:
     async def test_cache_audio_from_url_sniffs_too(self, tmp_path, monkeypatch):
         """The URL download path routes through the same sniffer."""
         import gateway.platforms.base as base
+        import core.media_cache as media_cache
 
-        monkeypatch.setattr(base, "AUDIO_CACHE_DIR", tmp_path)
+        monkeypatch.setattr(media_cache, "AUDIO_CACHE_DIR", tmp_path)
 
         class _FakeResponse:
             status_code = 200

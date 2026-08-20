@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from agent.pet import store
-from agent.pet.constants import FRAME_H, FRAME_W
+from sparkii_cli.pet import store
+from sparkii_cli.pet.constants import FRAME_H, FRAME_W
 
 
 @pytest.fixture
@@ -88,7 +88,7 @@ def empty_home(tmp_path, monkeypatch):
 
 
 def test_set_pet_scale_writes_clamped_value(empty_home):
-    from agent.pet.constants import MAX_SCALE, MIN_SCALE
+    from sparkii_cli.pet.constants import MAX_SCALE, MIN_SCALE
     from sparkii_cli.pets import _pet_config, set_pet_scale
 
     applied, err = set_pet_scale("0.5")

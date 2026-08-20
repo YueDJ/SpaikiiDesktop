@@ -4,7 +4,7 @@ import time
 
 import pytest
 
-from sparkii_cli.heartbeat import (
+from core.heartbeat import (
     HeartbeatManager,
     HeartbeatState,
     MIN_INTERVAL_SECONDS,

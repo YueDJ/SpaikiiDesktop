@@ -258,12 +258,14 @@ def _is_supervised_gateway_process() -> bool:
         return False
 
     try:
-        from gateway.restart import is_gateway_supervisor_process
-        from gateway.status import get_running_pid
+        from core.process_utils import (
+            is_gateway_running_pid,
+            is_gateway_supervisor_process,
+        )
 
         return (
             is_gateway_supervisor_process()
-            and get_running_pid(cleanup_stale=False) == os.getpid()
+            and is_gateway_running_pid(os.getpid())
         )
     except Exception as exc:
         logger.debug("Could not verify supervised gateway process identity: %s", exc)
@@ -739,7 +741,7 @@ class ProcessRegistry:
             return False
         # ``os.kill(pid, 0)`` is NOT a no-op on Windows (bpo-14484) — use
         # the cross-platform existence check.
-        from gateway.status import _pid_exists
+        from core.process_utils import _pid_exists
         return _pid_exists(pid)
 
     @staticmethod
@@ -748,7 +750,7 @@ class ProcessRegistry:
         if not pid:
             return None
         try:
-            from gateway.status import get_process_start_time
+            from core.process_utils import get_process_start_time
             return get_process_start_time(pid)
         except Exception:
             return None

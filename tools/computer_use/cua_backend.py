@@ -1248,7 +1248,7 @@ def _maybe_repair_runtime_contract(contract: Dict[str, Any]) -> Dict[str, Any]:
         contract.get("reason") or "runtime contract is incomplete",
     )
     try:
-        from sparkii_cli.tools_config import install_cua_driver
+        from core.tools_config import install_cua_driver
 
         if not install_cua_driver(upgrade=False, show_installer_progress=False):
             return contract

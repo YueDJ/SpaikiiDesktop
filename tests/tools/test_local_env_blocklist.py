@@ -833,7 +833,7 @@ class TestPythonpathSelectiveStrip:
         repo-root entry is stripped.
         """
         import tools.environments.local as local
-        from sparkii_cli.profiles import resolve_profile_env
+        from core.profiles import resolve_profile_env
 
         physical_home = tmp_path / "physical-home"
         physical_root = physical_home / "sparkii-agent"

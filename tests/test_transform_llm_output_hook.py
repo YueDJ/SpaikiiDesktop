@@ -19,7 +19,7 @@ from pathlib import Path
 
 import yaml
 
-import sparkii_cli.plugins as plugins_mod
+import core.plugins as plugins_mod
 from sparkii_cli.plugins import PluginManager, VALID_HOOKS
 
 

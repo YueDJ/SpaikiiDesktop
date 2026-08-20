@@ -21,24 +21,26 @@ from agent.credential_persistence import (
     is_borrowed_credential_source,
     sanitize_borrowed_credential_payload,
 )
-import sparkii_cli.auth as auth_mod
-from sparkii_cli.auth import (
-    PROVIDER_REGISTRY,
-    _auth_store_lock,
+import core.credentials as auth_mod
+from core.credentials import (
     _decode_jwt_claims,
     _global_auth_file_path,
-    _load_auth_store,
     _load_provider_state,
     _load_provider_state_with_source,
     _resolve_kimi_base_url,
     _resolve_zai_base_url,
-    _same_path,
-    _save_auth_store,
     _save_provider_state,
     _store_provider_state,
     read_credential_pool,
     write_credential_pool,
 )
+from core.auth_store import (
+    _auth_store_lock,
+    _load_auth_store,
+    _same_path,
+    _save_auth_store,
+)
+from core.provider_registry import PROVIDER_REGISTRY
 
 logger = logging.getLogger(__name__)
 
@@ -607,7 +609,7 @@ def _write_through_provider_state_to_global_root(
     the profile store (the caller already saved that). Swallows all errors — a
     failed write-through degrades to the pre-existing behavior (root stale), it
     must never break the profile's own successful save. Mirrors
-    ``sparkii_cli.auth._write_through_xai_oauth_to_global_root`` (which covers
+    ``core.credentials``'s provider-state persistence (which covers
     the non-pool xAI refresh path) for the credential-pool refresh path.
     """
     try:
@@ -2504,7 +2506,7 @@ def _seed_from_singletons(provider: str, entries: List[PooledCredential]) -> Tup
     # Shared suppression gate — used at every upsert site so
     # `sparkii auth remove <provider> <N>` is stable across all source types.
     try:
-        from sparkii_cli.auth import is_source_suppressed as _is_suppressed
+        from core.credential_sources import is_source_suppressed as _is_suppressed
     except ImportError:
         def _is_suppressed(_p, _s):  # type: ignore[misc]
             return False
@@ -2515,7 +2517,7 @@ def _seed_from_singletons(provider: str, entries: List[PooledCredential]) -> Tup
         # Without this gate, auxiliary client fallback chains silently read
         # ~/.claude/.credentials.json without user consent.  See PR #4210.
         try:
-            from sparkii_cli.auth import is_provider_explicitly_configured
+            from core.credentials import is_provider_explicitly_configured
             if not is_provider_explicitly_configured("anthropic"):
                 return changed, active_sources
         except ImportError:
@@ -2653,7 +2655,7 @@ def _seed_from_singletons(provider: str, entries: List[PooledCredential]) -> Tup
         # env vars (COPILOT_GITHUB_TOKEN / GH_TOKEN).  They don't live in
         # the auth store or credential pool, so we resolve them here.
         try:
-            from sparkii_cli.copilot_auth import (
+            from core.copilot_auth import (
                 COPILOT_ENV_VARS,
                 resolve_copilot_token,
                 get_copilot_api_token,
@@ -2725,145 +2727,6 @@ def _seed_from_singletons(provider: str, entries: List[PooledCredential]) -> Tup
         except Exception as exc:
             logger.debug("Copilot token seed failed: %s", exc)
 
-    elif provider == "qwen-oauth":
-        # Qwen OAuth tokens live in ~/.qwen/oauth_creds.json, written by
-        # the Qwen CLI (`qwen auth qwen-oauth`).  They aren't in the
-        # Sparkii auth store or env vars, so resolve them here.
-        # Use refresh_if_expiring=False to avoid network calls during
-        # pool loading / provider discovery.
-        try:
-            from sparkii_cli.auth import resolve_qwen_runtime_credentials
-            creds = resolve_qwen_runtime_credentials(refresh_if_expiring=False)
-            token = creds.get("api_key", "")
-            if token:
-                source_name = creds.get("source", "qwen-cli")
-                if not _is_suppressed(provider, source_name):
-                    active_sources.add(source_name)
-                    changed |= _upsert_entry(
-                        entries,
-                        provider,
-                        source_name,
-                        {
-                            "source": source_name,
-                            "auth_type": AUTH_TYPE_OAUTH,
-                            "access_token": token,
-                            "expires_at_ms": creds.get("expires_at_ms"),
-                            "base_url": creds.get("base_url", ""),
-                            "label": creds.get("auth_file", source_name),
-                        },
-                    )
-        except Exception as exc:
-            logger.debug("Qwen OAuth token seed failed: %s", exc)
-
-    elif provider == "minimax-oauth":
-        # MiniMax OAuth tokens live in ~/.sparkii/auth.json providers.minimax-oauth.
-        # Seed the pool so `/auth list` reflects the logged-in state and the
-        # standard `sparkii auth remove minimax-oauth <N>` flow works.
-        # Use refresh_if_expiring=False equivalent: resolve_minimax_oauth_runtime_credentials
-        # always refreshes on expiry, so instead read raw state here to avoid
-        # surprise network calls during provider discovery.
-        try:
-            from sparkii_cli.auth import get_provider_auth_state
-            state = get_provider_auth_state("minimax-oauth")
-            if state and state.get("access_token"):
-                source_name = "oauth"
-                if not _is_suppressed(provider, source_name):
-                    active_sources.add(source_name)
-                    expires_at_ms = None
-                    try:
-                        from datetime import datetime as _dt
-                        raw = state.get("expires_at", "")
-                        if raw:
-                            expires_at_ms = int(_dt.fromisoformat(raw).timestamp() * 1000)
-                    except Exception:
-                        expires_at_ms = None
-                    base_url = str(state.get("inference_base_url", "") or "").rstrip("/")
-                    changed |= _upsert_entry(
-                        entries,
-                        provider,
-                        source_name,
-                        {
-                            "source": source_name,
-                            "auth_type": AUTH_TYPE_OAUTH,
-                            "access_token": state["access_token"],
-                            "refresh_token": state.get("refresh_token"),
-                            "expires_at_ms": expires_at_ms,
-                            "base_url": base_url,
-                            "label": state.get("label", "") or label_from_token(
-                                state.get("access_token", ""), source_name
-                            ),
-                        },
-                    )
-        except Exception as exc:
-            logger.debug("MiniMax OAuth token seed failed: %s", exc)
-
-    elif provider == "openai-codex":
-        # Respect user suppression — `sparkii auth remove openai-codex` marks
-        # the device_code source as suppressed so it won't be re-seeded from
-        # the Sparkii auth store.  Without this gate the removal is instantly
-        # undone on the next load_pool() call.
-        if _is_suppressed(provider, "device_code"):
-            return changed, active_sources
-
-        state = _load_provider_state(auth_store, "openai-codex")
-        tokens = state.get("tokens") if isinstance(state, dict) else None
-        # Sparkii owns its own Codex auth state — we do NOT auto-import from
-        # ~/.codex/auth.json at pool-load time.  OAuth refresh tokens are
-        # single-use, so sharing them with Codex CLI / VS Code causes
-        # refresh_token_reused race failures.  Users who want to adopt
-        # existing Codex CLI credentials get a one-time, explicit prompt
-        # via `sparkii auth openai-codex`.
-        if isinstance(tokens, dict) and tokens.get("access_token"):
-            active_sources.add("device_code")
-            custom_label = str(state.get("label") or "").strip()
-            changed |= _upsert_entry(
-                entries,
-                provider,
-                "device_code",
-                {
-                    "source": "device_code",
-                    "auth_type": AUTH_TYPE_OAUTH,
-                    "access_token": tokens.get("access_token", ""),
-                    "refresh_token": tokens.get("refresh_token"),
-                    "base_url": "https://chatgpt.com/backend-api/codex",
-                    "last_refresh": state.get("last_refresh"),
-                    "label": custom_label or label_from_token(tokens.get("access_token", ""), "device_code"),
-                },
-            )
-
-    elif provider == "xai-oauth":
-        # When the user logs in via ``sparkii model`` -> xAI Grok OAuth,
-        # tokens are written to the auth.json singleton
-        # (``providers["xai-oauth"]``).  Surface them in the pool too so
-        # ``sparkii auth list`` reflects the logged-in state and so the pool
-        # is the single source of truth for refresh during runtime resolution.
-        state = _load_provider_state(auth_store, "xai-oauth")
-        tokens = state.get("tokens") if isinstance(state, dict) else None
-        if isinstance(tokens, dict) and tokens.get("access_token"):
-            # Device code is the only supported xAI OAuth flow; the singleton is
-            # always surfaced as ``device_code`` (consistent with nous/codex).
-            source = "device_code"
-            if _is_suppressed(provider, source):
-                return changed, active_sources
-            active_sources.add(source)
-            from sparkii_cli.auth import DEFAULT_XAI_OAUTH_BASE_URL
-
-            base_url = DEFAULT_XAI_OAUTH_BASE_URL
-            changed |= _upsert_entry(
-                entries,
-                provider,
-                source,
-                {
-                    "source": source,
-                    "auth_type": AUTH_TYPE_OAUTH,
-                    "access_token": tokens.get("access_token", ""),
-                    "refresh_token": tokens.get("refresh_token"),
-                    "base_url": base_url,
-                    "last_refresh": state.get("last_refresh"),
-                    "label": label_from_token(tokens.get("access_token", ""), source),
-                },
-            )
-
     return changed, active_sources
 
 
@@ -2921,7 +2784,7 @@ def _seed_from_env(provider: str, entries: List[PooledCredential]) -> Tuple[bool
     # Without this gate the removal is silently undone on the next
     # load_pool() call whenever the var is still exported by the shell.
     try:
-        from sparkii_cli.auth import is_source_suppressed as _is_source_suppressed
+        from core.credential_sources import is_source_suppressed as _is_source_suppressed
     except ImportError:
         def _is_source_suppressed(_p, _s):  # type: ignore[misc]
             return False
@@ -3061,7 +2924,7 @@ def _seed_custom_pool(pool_key: str, entries: List[PooledCredential]) -> Tuple[b
 
     # Shared suppression gate — same pattern as _seed_from_env/_seed_from_singletons.
     try:
-        from sparkii_cli.auth import is_source_suppressed as _is_suppressed
+        from core.credential_sources import is_source_suppressed as _is_suppressed
     except ImportError:
         def _is_suppressed(_p, _s):  # type: ignore[misc]
             return False

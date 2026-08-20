@@ -4,10 +4,10 @@ from unittest.mock import patch
 
 
 class TestGetDefaultModelForProvider:
-    """Unit tests for sparkii_cli.models.get_default_model_for_provider."""
+    """Unit tests for core.models.get_default_model_for_provider."""
 
     def test_known_provider_returns_first_model(self):
-        from sparkii_cli.models import get_default_model_for_provider
+        from core.models import get_default_model_for_provider
         result = get_default_model_for_provider("openai-codex")
         # Should return first model from _PROVIDER_MODELS["openai-codex"]
         assert result
@@ -23,10 +23,10 @@ class TestGetDefaultModelForProvider:
         without shipping a release."""
         from unittest.mock import patch
 
-        from sparkii_cli import models as models_mod
+        from core import models as models_mod
 
         with patch(
-            "sparkii_cli.model_catalog.get_default_model_from_cache",
+            "core.model_catalog.get_default_model_from_cache",
             return_value="qwen/qwen3.8-max",
         ):
             assert (

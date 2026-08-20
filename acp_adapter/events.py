@@ -156,7 +156,7 @@ def make_tool_progress_cb(
         snapshot = None
         if name in {"write_file", "patch", "skill_manage"}:
             try:
-                from agent.display import capture_local_edit_snapshot
+                from sparkii_cli.display import capture_local_edit_snapshot
 
                 snapshot = capture_local_edit_snapshot(name, args)
             except Exception:

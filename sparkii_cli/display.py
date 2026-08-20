@@ -17,8 +17,12 @@ from typing import Any
 from urllib.parse import urlsplit
 
 from utils import safe_json_loads
-from agent.redact import redact_sensitive_text
-from agent.tool_result_classification import file_mutation_result_landed
+from agent.redact import (
+    redact_browser_typed_text_for_display,
+    redact_sensitive_text,
+    redact_tool_args_for_display,
+)
+from agent.tool_result_classification import _detect_tool_failure, file_mutation_result_landed
 
 # ANSI escape codes for coloring tool failure indicators
 _RED = "\033[31m"
@@ -356,62 +360,6 @@ def _read_file_line_label(args: dict) -> str:
     if not isinstance(limit, int) or limit <= 1:
         return f"L{offset}"
     return f"L{offset}-{offset + limit - 1}"
-
-
-def redact_browser_typed_text_for_display(value: Any, typed_text: Any) -> Any:
-    """Apply secret redaction to browser_type text in display-facing payloads.
-
-    Backends sometimes echo the attempted input in error strings or fallback
-    metadata.  When the raw typed value contains a recognizable secret (API
-    key, token, JWT, etc.) the redacted form differs from the raw value, so we
-    replace every occurrence of the raw value with its redacted form before a
-    browser_type result reaches logs, callbacks, the model, or chat history.
-
-    Normal typed text (search queries, addresses, form fields) matches no
-    secret pattern, so it passes through unchanged and stays readable.
-
-    Redaction is forced here regardless of the global ``security.redact_secrets``
-    preference: a typed credential leaking into chat history is a security
-    boundary, not mere log hygiene.
-    """
-    if typed_text is None:
-        return value
-    needle = str(typed_text)
-    if needle == "":
-        return value
-    redacted = redact_sensitive_text(needle, force=True)
-    if redacted == needle:
-        # Nothing secret-looking in the typed text; leave payload untouched.
-        return value
-    if isinstance(value, str):
-        return value.replace(needle, redacted)
-    if isinstance(value, dict):
-        return {
-            key: redact_browser_typed_text_for_display(item, typed_text)
-            for key, item in value.items()
-        }
-    if isinstance(value, list):
-        return [redact_browser_typed_text_for_display(item, typed_text) for item in value]
-    if isinstance(value, tuple):
-        return tuple(redact_browser_typed_text_for_display(item, typed_text) for item in value)
-    return value
-
-
-def redact_tool_args_for_display(tool_name: str, args: dict | None) -> dict | None:
-    """Return a copy of tool args safe for logs/progress UI.
-
-    For ``browser_type`` the ``text`` argument is run through the same
-    secret-pattern redactor used for logs.  Recognizable credentials (API
-    keys, tokens) are masked before the value reaches tool progress
-    notifications; normal typed text is left intact for debuggability.
-    """
-    if not isinstance(args, dict):
-        return args
-    if tool_name == "browser_type" and isinstance(args.get("text"), str):
-        safe_args = dict(args)
-        safe_args["text"] = redact_sensitive_text(args["text"], force=True)
-        return safe_args
-    return args
 
 
 def _delegate_task_goal_parts(tasks: Any, *, per_goal_len: int) -> tuple[int, list[str]]:
@@ -1311,77 +1259,6 @@ class KawaiiSpinner:
 # Cute tool message (completion line that replaces the spinner)
 # =========================================================================
 
-_ERROR_SUFFIX_MAX_LEN = 48
-
-
-def _trim_error(msg: str) -> str:
-    """Shrink an error message for inline display in a tool status line.
-
-    Strips overly long absolute paths down to just the filename so the
-    suffix stays readable on narrow terminals.
-    """
-    msg = msg.strip()
-    # Common case: "File not found: /very/long/absolute/path/foo.py"
-    if "File not found:" in msg:
-        _, _, tail = msg.partition("File not found:")
-        tail = tail.strip()
-        if "/" in tail:
-            msg = f"File not found: {tail.rsplit('/', 1)[-1]}"
-    if len(msg) > _ERROR_SUFFIX_MAX_LEN:
-        msg = msg[: _ERROR_SUFFIX_MAX_LEN - 3] + "..."
-    return msg
-
-
-def _detect_tool_failure(tool_name: str, result: str | None) -> tuple[bool, str]:
-    """Inspect a tool result string for signs of failure.
-
-    Returns ``(is_failure, suffix)`` where *suffix* is a short informational
-    tag like ``" [exit 1]"`` for terminal failures, ``" [full]"`` for memory
-    overflow, or a trimmed error message (``" [File not found: foo.py]"``).
-    On success returns ``(False, "")``.
-    """
-    if result is None:
-        return False, ""
-    if file_mutation_result_landed(tool_name, result):
-        return False, ""
-
-    data = safe_json_loads(result)
-
-    # Terminal: non-zero exit code is the canonical failure signal.
-    if tool_name == "terminal":
-        if isinstance(data, dict):
-            exit_code = data.get("exit_code")
-            if exit_code is not None and exit_code != 0:
-                err_msg = data.get("error")
-                if err_msg:
-                    return True, f" [{_trim_error(str(err_msg))}]"
-                return True, f" [exit {exit_code}]"
-        return False, ""
-
-    # Memory: distinguish "store full" from real errors.
-    if tool_name == "memory":
-        if isinstance(data, dict):
-            if data.get("success") is False and "exceed the limit" in data.get("error", ""):
-                return True, " [full]"
-
-    # Structured error in JSON result (any tool that surfaces {"error": ...}).
-    if isinstance(data, dict):
-        err = data.get("error") or data.get("message")
-        if err and (data.get("success") is False or "error" in data):
-            return True, f" [{_trim_error(str(err))}]"
-
-    # Generic heuristic for non-terminal tools
-    # Multimodal tool results (dicts with _multimodal=True) are not strings —
-    # treat them as successes since failures would be JSON-encoded strings.
-    if not isinstance(result, str):
-        return False, ""
-    lower = result[:500].lower()
-    if '"error"' in lower or '"failed"' in lower or result.startswith("Error"):
-        return True, " [error]"
-
-    return False, ""
-
-
 def _get_cute_tool_message(
     tool_name: str, args: dict, duration: float, result: str | None = None,
 ) -> str:
@@ -1582,6 +1459,42 @@ def get_cute_tool_message(
         safe_name = tool_name[:9] if isinstance(tool_name, str) and tool_name else "tool"
         safe_duration = f"{duration:.1f}s" if isinstance(duration, (int, float)) else "done"
         return f"┊ ⚡ {safe_name:9} completed  {safe_duration}"
+
+
+class _SurfaceDisplayProvider:
+    """Adapter from this module's functions to the core display-provider
+    interface (see agent/display_provider.py).  Surfaces register it via
+    ``set_display_provider(build_display_provider())`` so the core loop
+    renders tool activity without importing the product layer."""
+
+    def spinner(self, message: str = "", *, spinner_type: str = "dots", print_fn=None):
+        return KawaiiSpinner(message, spinner_type=spinner_type, print_fn=print_fn)
+
+    def thinking_faces(self):
+        return KawaiiSpinner.get_thinking_faces()
+
+    def thinking_verbs(self):
+        return KawaiiSpinner.get_thinking_verbs()
+
+    def waiting_faces(self):
+        return KawaiiSpinner.get_waiting_faces()
+
+    def build_tool_preview(self, tool_name, args, max_len=None):
+        return build_tool_preview(tool_name, args, max_len=max_len)
+
+    def build_tool_label(self, tool_name, args, max_len=None):
+        return build_tool_label(tool_name, args, max_len=max_len)
+
+    def cute_tool_message(self, tool_name, args, duration, *, result=None):
+        return get_cute_tool_message(tool_name, args, duration, result=result)
+
+    def tool_emoji(self, tool_name, default="⚡"):
+        return get_tool_emoji(tool_name, default=default)
+
+
+def build_display_provider():
+    """Return the surface display provider for the core loop."""
+    return _SurfaceDisplayProvider()
 
 
 # =========================================================================

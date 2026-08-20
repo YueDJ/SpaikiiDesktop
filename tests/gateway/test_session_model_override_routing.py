@@ -119,7 +119,7 @@ fallback_providers:
             "credential_pool": None,
         }
 
-    import sparkii_cli.runtime_provider as runtime_provider
+    import core.runtime_provider as runtime_provider
 
     monkeypatch.setattr(runtime_provider, "resolve_runtime_provider", fake_resolve_runtime_provider)
 

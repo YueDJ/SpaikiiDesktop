@@ -52,7 +52,7 @@ def scenario(name):
                 if m.startswith(("sparkii_cli", "plugins", "gateway")):
                     del sys.modules[m]
             sys.path.insert(0, str(WT))
-            from sparkii_cli import kanban_db as kb  # noqa: F401
+            from core import kanban_db as kb  # noqa: F401
             print(f"\n═══ {name} ═══")
             try:
                 fn(home, kb)
@@ -432,7 +432,7 @@ def _(home, kb):
         # Verify resolve_workspace (which the dispatcher calls) doesn't
         # allow escape.
         try:
-            from sparkii_cli.kanban_db import resolve_workspace
+            from core.kanban_db import resolve_workspace
             resolved = resolve_workspace(task)
             # If resolve succeeded, check it's actually escape-safe.
             resolved_abs = str(Path(resolved).resolve())
@@ -691,7 +691,7 @@ def _idempotency_race_worker(sparkii_home: str, key: str, result_file: str,
     os.environ["SPARKII_HOME"] = sparkii_home
     os.environ["HOME"] = sparkii_home
     sys.path.insert(0, str(WT))
-    from sparkii_cli import kanban_db as kb
+    from core import kanban_db as kb
 
     # Spin until the barrier file exists (crude sync across processes)
     while not os.path.exists(barrier_path):

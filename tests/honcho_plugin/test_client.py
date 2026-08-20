@@ -8,7 +8,7 @@ import types
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-from sparkii_cli.profiles import _get_default_sparkii_home
+from core.profiles import _get_default_sparkii_home
 
 import pytest
 
@@ -320,16 +320,16 @@ class TestResolveActiveHost:
             return_value=Path("/nonexistent/test-honcho-config.json"),
         ):
             os.environ.pop("SPARKII_HONCHO_HOST", None)
-            # Temporarily remove sparkii_cli.profiles to simulate import failure
-            saved = sys.modules.get("sparkii_cli.profiles")
-            sys.modules["sparkii_cli.profiles"] = None  # type: ignore
+            # Temporarily remove core.profiles to simulate import failure
+            saved = sys.modules.get("core.profiles")
+            sys.modules["core.profiles"] = None  # type: ignore
             try:
                 assert resolve_active_host() == "sparkii"
             finally:
                 if saved is not None:
-                    sys.modules["sparkii_cli.profiles"] = saved
+                    sys.modules["core.profiles"] = saved
                 else:
-                    sys.modules.pop("sparkii_cli.profiles", None)
+                    sys.modules.pop("core.profiles", None)
 
 
 class TestProfileScopedConfig:
@@ -712,7 +712,7 @@ class TestGetHonchoClientBaseUrlDoublePrefixFix:
         }))
 
         with patch.dict(os.environ, {}, clear=True), \
-             patch("sparkii_cli.profiles.get_active_profile_name", return_value="default"), \
+             patch("core.profiles.get_active_profile_name", return_value="default"), \
              patch("plugins.memory.honcho.client.resolve_config_path", return_value=config_file):
             cfg = HonchoClientConfig.from_global_config(config_path=config_file)
 

@@ -14,7 +14,7 @@ from unittest.mock import patch
 
 import pytest
 
-from agent import background_review
+from sparkii_cli import background_review
 from sparkii_state import SessionDB
 
 
@@ -159,7 +159,7 @@ def test_enabled_config_failure_logs_warning(caplog):
     with patch(
         "core.config.load_config_readonly",
         side_effect=RuntimeError("boom"),
-    ), caplog.at_level(logging.WARNING, logger="agent.background_review"):
+    ), caplog.at_level(logging.WARNING, logger="sparkii_cli.background_review"):
         assert background_review.is_background_review_enabled() is True
     assert any(
         "fail-open" in r.message.lower() or "leaving automatic" in r.message.lower()
@@ -185,7 +185,7 @@ def test_spawn_reuses_provided_task_cfg_without_rereading():
         assert callable(_target)
 
 def test_log_review_completion_emits_thread_tag(caplog):
-    with caplog.at_level(logging.INFO, logger="agent.background_review"):
+    with caplog.at_level(logging.INFO, logger="sparkii_cli.background_review"):
         background_review._log_review_completion(
             _usage(api_calls=8, input_tokens=53000, output_tokens=400),
             "skill",

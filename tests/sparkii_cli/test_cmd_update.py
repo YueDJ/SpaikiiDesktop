@@ -65,9 +65,9 @@ def _patch_managed_uv(request):
     def _fake_update_managed_uv(**_kwargs):
         return None  # never actually self-update in tests
 
-    with patch("sparkii_cli.managed_uv.resolve_uv", side_effect=_fake_resolve_uv), \
-         patch("sparkii_cli.managed_uv.ensure_uv", side_effect=_fake_ensure_uv), \
-         patch("sparkii_cli.managed_uv.update_managed_uv", side_effect=_fake_update_managed_uv):
+    with patch("core.managed_uv.resolve_uv", side_effect=_fake_resolve_uv), \
+         patch("core.managed_uv.ensure_uv", side_effect=_fake_ensure_uv), \
+         patch("core.managed_uv.update_managed_uv", side_effect=_fake_update_managed_uv):
         yield
 
 
@@ -207,7 +207,7 @@ class TestCmdUpdateTermuxUvBootstrap:
         monkeypatch.setattr(hm, "_is_termux_env", lambda env=None: True)
         # Production resolve_uv only checks $SPARKII_HOME/bin/uv; model an empty
         # managed dir so the PATH probe is what surfaces the packaged uv.
-        monkeypatch.setattr("sparkii_cli.managed_uv.resolve_uv", lambda: None)
+        monkeypatch.setattr("core.managed_uv.resolve_uv", lambda: None)
         monkeypatch.setattr("shutil.which", lambda name: pkg_uv if name == "uv" else None)
 
         uv_bin = hm._ensure_uv_for_termux(["/termux/python", "-m", "pip"])
@@ -471,8 +471,8 @@ class TestCmdUpdateProfileSkillSync:
         empty_sync = {"copied": [], "updated": [], "user_modified": [], "cleaned": []}
 
         with (
-            patch("sparkii_cli.profiles.list_profiles", return_value=all_profiles),
-            patch("sparkii_cli.profiles.seed_profile_skills", side_effect=fake_seed),
+            patch("core.profiles.list_profiles", return_value=all_profiles),
+            patch("core.profiles.seed_profile_skills", side_effect=fake_seed),
             patch("tools.skills_sync.sync_skills", return_value=empty_sync),
         ):
             cmd_update(mock_args)
@@ -505,8 +505,8 @@ class TestCmdUpdateProfileSkillSync:
         empty_sync = {"copied": [], "updated": [], "user_modified": [], "cleaned": []}
 
         with (
-            patch("sparkii_cli.profiles.list_profiles", return_value=[default_p]),
-            patch("sparkii_cli.profiles.seed_profile_skills", side_effect=fake_seed),
+            patch("core.profiles.list_profiles", return_value=[default_p]),
+            patch("core.profiles.seed_profile_skills", side_effect=fake_seed),
             patch("tools.skills_sync.sync_skills", return_value=empty_sync),
         ):
             cmd_update(mock_args)
@@ -952,8 +952,8 @@ class TestNodeRuntimeNpmResolution:
             patch("core.config.load_config", return_value={}),
             patch("subprocess.run", side_effect=fail_git_fetch),
             patch("urllib.request.urlretrieve", side_effect=write_source_zip),
-            patch("sparkii_cli.managed_uv.ensure_uv", return_value="uv"),
-            patch("sparkii_cli.managed_uv.update_managed_uv"),
+            patch("core.managed_uv.ensure_uv", return_value="uv"),
+            patch("core.managed_uv.update_managed_uv"),
             patch(
                 "tools.skills_sync.sync_skills",
                 return_value={
@@ -964,7 +964,7 @@ class TestNodeRuntimeNpmResolution:
                     "relocated": [],
                 },
             ),
-            patch("sparkii_cli.model_catalog.seed_cache_from_checkout", return_value=False),
+            patch("core.model_catalog.seed_cache_from_checkout", return_value=False),
         ):
             update_cmd._cmd_update_impl(
                 SimpleNamespace(yes=True, force=True, force_venv=True, branch=None),

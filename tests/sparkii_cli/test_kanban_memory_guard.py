@@ -7,8 +7,8 @@ and the whole machine (dashboard included) became unreachable.
 
 Covers the two safeguards added in response:
 
-1. :func:`sparkii_cli.kanban_db.derive_default_max_in_progress` /
-   :func:`sparkii_cli.kanban_db.resolve_max_in_progress` — memory-derived
+1. :func:`core.kanban_db.derive_default_max_in_progress` /
+   :func:`core.kanban_db.resolve_max_in_progress` — memory-derived
    default global concurrency cap when the operator never set one.
 2. The live memory-pressure guard inside ``dispatch_once`` — critical
    pressure spawns nothing; elevated pressure spawns at most one; unknown
@@ -21,7 +21,7 @@ from pathlib import Path
 
 import pytest
 
-from sparkii_cli import kanban_db as kb
+from core import kanban_db as kb
 
 
 @pytest.fixture

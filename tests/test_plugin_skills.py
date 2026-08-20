@@ -58,7 +58,7 @@ class TestIsValidNamespace:
 class TestPluginSkillRegistry:
     @pytest.fixture
     def pm(self, monkeypatch):
-        from sparkii_cli import plugins as plugins_mod
+        from core import plugins as plugins_mod
         from sparkii_cli.plugins import PluginManager
 
         fresh = PluginManager()
@@ -107,7 +107,7 @@ class TestPluginSkillRegistry:
 class TestPluginContextRegisterSkill:
     @pytest.fixture
     def ctx(self, tmp_path, monkeypatch):
-        from sparkii_cli import plugins as plugins_mod
+        from core import plugins as plugins_mod
         from sparkii_cli.plugins import PluginContext, PluginManager, PluginManifest
 
         pm = PluginManager()
@@ -172,7 +172,7 @@ class TestSkillViewQualifiedName:
     @pytest.fixture(autouse=True)
     def _isolate(self, tmp_path, monkeypatch):
         """Fresh plugin manager + empty SKILLS_DIR for each test."""
-        from sparkii_cli import plugins as plugins_mod
+        from core import plugins as plugins_mod
         from sparkii_cli.plugins import PluginManager
 
         self.pm = PluginManager()
@@ -255,14 +255,12 @@ class TestSkillViewQualifiedName:
         tmp_path,
         monkeypatch,
     ):
-        from sparkii_cli import lifecycle
         from tools.skills_tool import _skill_view_with_bump
 
         events = []
-        monkeypatch.setattr(lifecycle, "has_hook", lambda name: True)
+        monkeypatch.setattr("core.plugins.has_hook", lambda name: True)
         monkeypatch.setattr(
-            lifecycle,
-            "invoke_hook",
+            "core.plugins.invoke_hook",
             lambda name, **kwargs: events.append((name, kwargs)),
         )
         self._register_skill(tmp_path)
@@ -402,7 +400,7 @@ class TestSkillViewPluginGuards:
     def _isolate(self, tmp_path, monkeypatch):
         import sys
 
-        from sparkii_cli import plugins as plugins_mod
+        from core import plugins as plugins_mod
         from sparkii_cli.plugins import PluginManager
 
         self.pm = PluginManager()
@@ -426,7 +424,7 @@ class TestSkillViewPluginGuards:
         from tools.skills_tool import skill_view
 
         self._reg(tmp_path, "---\nname: foo\n---\nBody.\n")
-        monkeypatch.setattr("sparkii_cli.plugins._get_disabled_plugins", lambda: {"myplugin"})
+        monkeypatch.setattr("core.plugins._get_disabled_plugins", lambda: {"myplugin"})
 
         result = json.loads(skill_view("myplugin:foo"))
         assert result["success"] is False
@@ -459,7 +457,7 @@ class TestSkillViewPluginGuards:
 class TestBundleContextBanner:
     @pytest.fixture(autouse=True)
     def _isolate(self, tmp_path, monkeypatch):
-        from sparkii_cli import plugins as plugins_mod
+        from core import plugins as plugins_mod
         from sparkii_cli.plugins import PluginManager
 
         self.pm = PluginManager()

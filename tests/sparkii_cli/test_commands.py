@@ -414,12 +414,12 @@ class TestSubcommandCompletion:
     def test_tools_enable_skips_already_listed(self, monkeypatch):
         """If the user already typed a name, don't suggest it again."""
         monkeypatch.setattr(
-            "sparkii_cli.tools_config._get_platform_tools",
+            "core.tools_config._get_platform_tools",
             lambda *_a, **_k: set(),
         )
         monkeypatch.setattr("core.config.load_config", lambda: {})
         monkeypatch.setattr(
-            "sparkii_cli.tools_config._get_plugin_toolset_keys",
+            "core.tools_config._get_plugin_toolset_keys",
             lambda: set(),
         )
 
@@ -997,7 +997,7 @@ class TestPluginCommandEnumeration:
     """
 
     def _patch_plugin_commands(self, monkeypatch, commands):
-        """Monkeypatch sparkii_cli.plugins.get_plugin_commands() to a fixed dict."""
+        """Monkeypatch core.plugins.get_plugin_commands() to a fixed dict."""
         from sparkii_cli import plugins as _plugins_mod
 
         monkeypatch.setattr(

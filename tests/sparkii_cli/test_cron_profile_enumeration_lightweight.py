@@ -17,11 +17,11 @@ class CronProfileEnumerationTests(unittest.TestCase):
             ]
             with (
                 mock.patch(
-                    "sparkii_cli.profiles.profiles_to_serve",
+                    "core.profiles.profiles_to_serve",
                     return_value=homes,
                 ) as lightweight,
                 mock.patch(
-                    "sparkii_cli.profiles.list_profiles",
+                    "core.profiles.list_profiles",
                     side_effect=AssertionError("full profile scan is forbidden"),
                 ),
             ):

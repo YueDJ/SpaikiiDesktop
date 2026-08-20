@@ -23,8 +23,8 @@ from unittest.mock import patch
 
 import pytest
 
-from sparkii_cli import models as M
-from sparkii_cli.providers import SPARKII_OVERLAYS
+from core import models as M
+from core.providers import SPARKII_OVERLAYS
 
 
 # --- Bug 2: overlay no longer lists OPENAI_API_KEY --------------------------

@@ -244,7 +244,7 @@ def _logs_endpoint(endpoint: str) -> str:
 
 def _version() -> str:
     try:
-        from sparkii_cli import __version__
+        from core.version import __version__
         return str(__version__)
     except Exception:
         return "unknown"
@@ -252,7 +252,7 @@ def _version() -> str:
 
 def _profile() -> str:
     try:
-        from sparkii_cli.profiles import get_active_profile_name
+        from core.profiles import get_active_profile_name
         return str(get_active_profile_name() or "default")
     except Exception:
         return "default"
@@ -280,9 +280,12 @@ def _supervision_mode() -> str:
 
 def _read_gateway_snapshot(config: Dict[str, Any]):
     from agent.monitoring.gateway_health import build_gateway_health_snapshot
+    from agent.monitoring.gateway_health import _read_runtime_status_reader
     try:
-        from gateway.status import read_runtime_status
-        runtime = read_runtime_status() or {}
+        if _read_runtime_status_reader is not None:
+            runtime = _read_runtime_status_reader() or {}
+        else:
+            runtime = {}
     except Exception:
         runtime = {}
     return build_gateway_health_snapshot(

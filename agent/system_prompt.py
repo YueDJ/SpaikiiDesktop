@@ -171,7 +171,7 @@ def _plugin_session_info(agent: Any) -> Dict[str, str]:
         if _home is not None:
             profile_name = _profile_name_for_home(_home)
         else:
-            from sparkii_cli.profiles import get_active_profile_name
+            from core.profiles import get_active_profile_name
 
             profile_name = str(get_active_profile_name() or "default")
     except Exception:
@@ -203,7 +203,7 @@ def _frozen_plugin_prompt_sections(agent: Any) -> tuple:
         setattr(agent, attr, rendered)
         return rendered
     try:
-        from sparkii_cli.plugins import render_system_prompt_sections
+        from core.plugins import render_system_prompt_sections
 
         rendered = tuple(render_system_prompt_sections(_plugin_session_info(agent)))
     except Exception as exc:
@@ -215,7 +215,7 @@ def _frozen_plugin_prompt_sections(agent: Any) -> tuple:
 
 def _restore_plugin_prompt_sections(prompt: str) -> tuple:
     """Recover frozen section bytes from the already-persisted full prompt."""
-    from sparkii_cli.plugins import (
+    from core.plugins import (
         MAX_SYSTEM_PROMPT_SECTION_CHARS,
         PLUGIN_SECTIONS_END,
         PLUGIN_SECTIONS_START,
@@ -264,7 +264,7 @@ def restore_plugin_prompt_sections(agent: Any, prompt: str) -> None:
 
 
 def _plugin_section_blocks(sections: tuple, position: str) -> List[str]:
-    from sparkii_cli.plugins import format_system_prompt_sections
+    from core.plugins import format_system_prompt_sections
 
     selected = [section for section in sections if section.position == position]
     block = format_system_prompt_sections(selected)
@@ -719,7 +719,8 @@ def build_system_prompt_parts(agent: Any, system_message: Optional[str] = None) 
     elif platform_key:
         # Check plugin registry for platform-specific LLM guidance
         try:
-            from gateway.platform_registry import platform_registry
+            from core.plugins import get_platform_registry
+            platform_registry = get_platform_registry()
             _entry = platform_registry.get(platform_key)
             if _entry and _entry.platform_hint:
                 _default_hint = _entry.platform_hint

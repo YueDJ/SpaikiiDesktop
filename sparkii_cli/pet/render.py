@@ -26,7 +26,7 @@ import sys
 from functools import lru_cache
 from pathlib import Path
 
-from agent.pet.constants import (
+from sparkii_cli.pet.constants import (
     DEFAULT_SCALE,
     FRAME_H,
     FRAME_W,

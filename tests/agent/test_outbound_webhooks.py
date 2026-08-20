@@ -1,4 +1,4 @@
-"""Tests for the outbound webhook dispatcher (agent.outbound_webhooks).
+"""Tests for the outbound webhook dispatcher (sparkii_cli.outbound_webhooks).
 
 Covers config parsing, matcher behaviour, HMAC signing, payload shape,
 idempotent registration on the plugin manager, and end-to-end delivery
@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pytest
 
-from agent import outbound_webhooks
+from sparkii_cli import outbound_webhooks
 
 
 # ── helpers ───────────────────────────────────────────────────────────────
@@ -511,7 +511,7 @@ class TestDelivery:
         script.write_text(
             "import sys\n"
             f"sys.path.insert(0, {repr(str(Path(outbound_webhooks.__file__).resolve().parents[1]))})\n"
-            "from agent import outbound_webhooks\n"
+            "from sparkii_cli import outbound_webhooks\n"
             "from sparkii_cli.plugins import get_plugin_manager\n"
             f"cfg = {repr(cfg)}\n"
             "outbound_webhooks.register_from_config(cfg)\n"

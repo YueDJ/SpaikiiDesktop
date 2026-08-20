@@ -20,7 +20,7 @@ appear in ``/model`` without a Sparkii release.
 from unittest.mock import patch
 
 
-from sparkii_cli.models import (
+from core.models import (
     _MODELS_DEV_PREFERRED,
     _PROVIDER_MODELS,
     _merge_with_models_dev,

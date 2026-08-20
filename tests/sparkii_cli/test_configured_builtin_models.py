@@ -2,7 +2,7 @@
 
 from unittest.mock import patch
 
-from sparkii_cli.model_switch import list_authenticated_providers
+from core.model_switch import list_authenticated_providers
 
 
 def _provider_row(configured_models, *, max_models=None):
@@ -16,10 +16,10 @@ def _provider_row(configured_models, *, max_models=None):
             {"deepseek": "deepseek"},
         ),
         patch(
-            "sparkii_cli.models.cached_provider_model_ids",
+            "core.models.cached_provider_model_ids",
             return_value=["live-a", "shared"],
         ),
-        patch("sparkii_cli.providers.SPARKII_OVERLAYS", {}),
+        patch("core.providers.SPARKII_OVERLAYS", {}),
         patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-key"}),
     ):
         rows = list_authenticated_providers(

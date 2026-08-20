@@ -16,7 +16,7 @@ from sparkii_cli.auth import (
     STEPFUN_STEP_PLAN_CN_BASE_URL,
     _resolve_kimi_base_url,
 )
-from sparkii_cli.copilot_auth import _try_gh_cli_token
+from core.copilot_auth import _try_gh_cli_token
 
 
 # =============================================================================
@@ -144,13 +144,13 @@ class TestResolveApiKeyProviderCredentials:
 
 
     def test_try_gh_cli_token_uses_homebrew_path_when_not_on_path(self, monkeypatch):
-        monkeypatch.setattr("sparkii_cli.copilot_auth.shutil.which", lambda command: None)
+        monkeypatch.setattr("core.copilot_auth.shutil.which", lambda command: None)
         monkeypatch.setattr(
-            "sparkii_cli.copilot_auth.os.path.isfile",
+            "core.copilot_auth.os.path.isfile",
             lambda path: path == "/opt/homebrew/bin/gh",
         )
         monkeypatch.setattr(
-            "sparkii_cli.copilot_auth.os.access",
+            "core.copilot_auth.os.access",
             lambda path, mode: path == "/opt/homebrew/bin/gh" and mode == os.X_OK,
         )
 
@@ -164,7 +164,7 @@ class TestResolveApiKeyProviderCredentials:
             calls.append(cmd)
             return _Result()
 
-        monkeypatch.setattr("sparkii_cli.copilot_auth.subprocess.run", _fake_run)
+        monkeypatch.setattr("core.copilot_auth.subprocess.run", _fake_run)
 
         assert _try_gh_cli_token() == "gh-cli-secret"
         assert calls == [["/opt/homebrew/bin/gh", "auth", "token"]]
@@ -208,7 +208,7 @@ class TestHasAnyProviderConfigured:
         sparkii_home.mkdir()
         monkeypatch.setattr(config_module, "get_env_path", lambda: sparkii_home / ".env")
         monkeypatch.setattr(config_module, "get_sparkii_home", lambda: sparkii_home)
-        monkeypatch.setattr("sparkii_cli.copilot_auth.resolve_copilot_token", lambda: ("", ""))
+        monkeypatch.setattr("core.copilot_auth.resolve_copilot_token", lambda: ("", ""))
         # Clear all provider env vars so earlier checks don't short-circuit
         _all_vars = {"OPENROUTER_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY",
                       "ANTHROPIC_TOKEN", "OPENAI_BASE_URL"}
@@ -410,7 +410,7 @@ class TestZaiParallelProbe:
         last_model = coding_global[2][-1]
         # Only the LAST candidate model of coding-global succeeds.
         monkeypatch.setattr(
-            "sparkii_cli.auth.httpx.post",
+            "core.credentials.httpx.post",
             self._mock_post({(base, last_model): True}),
         )
         result = detect_zai_endpoint("test-key", timeout=1.0)
@@ -438,7 +438,7 @@ class TestZaiParallelProbe:
                 _time.sleep(0.15)  # first-priority endpoint finishes LAST
             return inner(url, headers=headers, json=json, timeout=timeout)
 
-        monkeypatch.setattr("sparkii_cli.auth.httpx.post", _slow_first)
+        monkeypatch.setattr("core.credentials.httpx.post", _slow_first)
         result = detect_zai_endpoint("test-key", timeout=1.0)
         assert result is not None
         assert result["id"] == first[0]
@@ -446,7 +446,7 @@ class TestZaiParallelProbe:
     def test_all_fail_returns_none(self, monkeypatch):
         from sparkii_cli.auth import detect_zai_endpoint
 
-        monkeypatch.setattr("sparkii_cli.auth.httpx.post", self._mock_post({}))
+        monkeypatch.setattr("core.credentials.httpx.post", self._mock_post({}))
         assert detect_zai_endpoint("bad-key", timeout=1.0) is None
 
     def test_early_exit_does_not_wait_for_slow_losers(self, monkeypatch):
@@ -464,7 +464,7 @@ class TestZaiParallelProbe:
                 _time.sleep(2.0)  # slow lower-priority endpoints
             return inner(url, headers=headers, json=json, timeout=timeout)
 
-        monkeypatch.setattr("sparkii_cli.auth.httpx.post", _slow_losers)
+        monkeypatch.setattr("core.credentials.httpx.post", _slow_losers)
         t0 = _time.perf_counter()
         result = detect_zai_endpoint("test-key", timeout=5.0)
         elapsed = _time.perf_counter() - t0
@@ -515,7 +515,7 @@ def _deepinfra_cache_isolation(monkeypatch):
     reset too, so a test that simulates an unreachable catalog can't suppress
     a later test's fetch within the failure TTL.
     """
-    import sparkii_cli.models as _models_mod
+    import core.models as _models_mod
     monkeypatch.setattr(_models_mod, "_deepinfra_catalog_cache", {})
     monkeypatch.setattr(_models_mod, "_deepinfra_catalog_neg_cache", {})
     yield
@@ -541,11 +541,11 @@ class TestFetchDeepInfraModels:
                     {"id": "stabilityai/stable-diffusion-xl-base-1.0", "metadata": {}},
                 ]}).encode()
 
-        import sparkii_cli.models as models
+        import core.models as models
         monkeypatch.setattr(
             models, "_urlopen_model_catalog_request", lambda *a, **kw: _Resp()
         )
-        from sparkii_cli.models import _fetch_deepinfra_models
+        from core.models import _fetch_deepinfra_models
         result = _fetch_deepinfra_models()
 
         assert result is not None
@@ -558,7 +558,7 @@ class TestFetchDeepInfraModels:
 
 
     def test_catalog_uses_credential_safe_opener(self, monkeypatch):
-        import sparkii_cli.models as models
+        import core.models as models
 
         seen = {}
 
@@ -629,8 +629,8 @@ class TestDeepInfraTagFiltering:
             # null metadata — stub model, must be skipped
             {"id": "stub-model", "metadata": None},
         ]}
-        from sparkii_cli.models import _fetch_deepinfra_models_by_tag
-        import sparkii_cli.models as _m
+        from core.models import _fetch_deepinfra_models_by_tag
+        import core.models as _m
 
         for surface in ("chat", "image-gen", "tts", "stt", "embed"):
             monkeypatch.setattr(
@@ -682,13 +682,13 @@ class TestDeepInfraPricingFetcher:
             # non-chat — must not appear
             {"id": "vendor/model-image", "metadata": {"tags": ["image-gen"], "pricing": {"per_image_unit": 0.05}}},
         ]}
-        import sparkii_cli.models as models
+        import core.models as models
         monkeypatch.setattr(
             models,
             "_urlopen_model_catalog_request",
             _make_urlopen_returning(payload),
         )
-        from sparkii_cli.models import get_pricing_for_provider
+        from core.models import get_pricing_for_provider
 
         # get_pricing_for_provider → _fetch_deepinfra_pricing dispatch path
         result = get_pricing_for_provider("deepinfra")

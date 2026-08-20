@@ -25,7 +25,7 @@ from sparkii_cli.plugins import (
     resolve_plugin_command_result,
     _portable_skill_namespace,
 )
-from sparkii_cli.middleware import (
+from core.middleware import (
     VALID_MIDDLEWARE,
     apply_llm_request_middleware,
     apply_tool_request_middleware,
@@ -124,7 +124,7 @@ class TestPluginDiscovery:
         self, tmp_path, monkeypatch
     ):
         from sparkii_cli.agent_plugins import MCP_SCHEMA_V1, PLUGIN_SCHEMA_V1
-        from sparkii_cli import plugins as plugins_mod
+        from core import plugins as plugins_mod
 
         home = tmp_path / "home"
         plugin = home / "plugins" / "portable"
@@ -176,7 +176,7 @@ class TestPluginDiscovery:
 
     def test_disabled_portable_plugin_registers_nothing(self, tmp_path, monkeypatch):
         from sparkii_cli.agent_plugins import PLUGIN_SCHEMA_V1
-        from sparkii_cli import plugins as plugins_mod
+        from core import plugins as plugins_mod
 
         home = tmp_path / "home"
         plugin = home / "plugins" / "portable"
@@ -211,7 +211,7 @@ class TestPluginDiscovery:
         self, tmp_path, monkeypatch
     ):
         from sparkii_cli.agent_plugins import PLUGIN_SCHEMA_V1
-        from sparkii_cli import plugins as plugins_mod
+        from core import plugins as plugins_mod
 
         home = tmp_path / "home"
         plugin = home / "plugins" / "portable"
@@ -293,7 +293,7 @@ class TestPluginDiscovery:
 
     def test_middleware_helpers_skip_no_listener_work(self, monkeypatch):
         manager = types.SimpleNamespace(_middleware={})
-        monkeypatch.setattr("sparkii_cli.plugins.get_plugin_manager", lambda: manager)
+        monkeypatch.setattr("core.plugins.get_plugin_manager", lambda: manager)
 
         request = {"messages": []}
         args = {"path": "README.md"}
@@ -502,7 +502,7 @@ class TestPluginLoading:
             group=ENTRY_POINTS_GROUP,
         )
         monkeypatch.setattr(
-            "sparkii_cli.plugins.importlib.metadata.entry_points",
+            "core.plugins.importlib.metadata.entry_points",
             lambda: SimpleNamespace(
                 select=lambda group: [ep] if group == ENTRY_POINTS_GROUP else []
             ),
@@ -555,7 +555,7 @@ class TestPluginLoading:
             group=ENTRY_POINTS_GROUP,
         )
         monkeypatch.setattr(
-            "sparkii_cli.plugins.importlib.metadata.entry_points",
+            "core.plugins.importlib.metadata.entry_points",
             lambda: SimpleNamespace(
                 select=lambda group: [ep] if group == ENTRY_POINTS_GROUP else []
             ),
@@ -617,7 +617,7 @@ class TestPluginLoading:
             group=ENTRY_POINTS_GROUP,
         )
         monkeypatch.setattr(
-            "sparkii_cli.plugins.importlib.metadata.entry_points",
+            "core.plugins.importlib.metadata.entry_points",
             lambda: SimpleNamespace(
                 select=lambda group: [ep] if group == ENTRY_POINTS_GROUP else []
             ),
@@ -710,7 +710,7 @@ class TestPluginLoading:
             group=ENTRY_POINTS_GROUP,
         )
         monkeypatch.setattr(
-            "sparkii_cli.plugins.importlib.metadata.entry_points",
+            "core.plugins.importlib.metadata.entry_points",
             lambda: SimpleNamespace(
                 select=lambda group: [ep] if group == ENTRY_POINTS_GROUP else []
             ),
@@ -817,7 +817,7 @@ class TestDeliveryParity:
 
     def _fresh_manager(self, monkeypatch, register_body):
         """Build an undiscovered manager whose sweep registers via plugins."""
-        import sparkii_cli.plugins as plugins_mod
+        import core.plugins as plugins_mod
 
         mgr = PluginManager()
         assert mgr._discovered is False
@@ -830,7 +830,7 @@ class TestDeliveryParity:
         return mgr
 
     def test_module_invoke_hook_lazily_discovers(self, monkeypatch):
-        import sparkii_cli.plugins as plugins_mod
+        import core.plugins as plugins_mod
 
         fired = []
         mgr = self._fresh_manager(
@@ -850,7 +850,7 @@ class TestDeliveryParity:
         assert results == ["ok"]
 
     def test_module_invoke_middleware_lazily_discovers(self, monkeypatch):
-        import sparkii_cli.plugins as plugins_mod
+        import core.plugins as plugins_mod
 
         mgr = self._fresh_manager(
             monkeypatch,
@@ -865,7 +865,7 @@ class TestDeliveryParity:
         assert results == ["mw-ok"]
 
     def test_module_has_hook_and_has_middleware_lazily_discover(self, monkeypatch):
-        import sparkii_cli.plugins as plugins_mod
+        import core.plugins as plugins_mod
 
         def _register(m):
             m._hooks.setdefault("post_llm_call", []).append(lambda **kw: None)
@@ -883,7 +883,7 @@ class TestDeliveryParity:
         """Test doubles without _discovered are invoked untouched."""
         import types
 
-        import sparkii_cli.plugins as plugins_mod
+        import core.plugins as plugins_mod
 
         stub = types.SimpleNamespace(invoke_hook=lambda name, **kw: ["stubbed"])
         monkeypatch.setattr(plugins_mod, "get_plugin_manager", lambda: stub)
@@ -978,7 +978,7 @@ class TestPreToolCallBlocking:
 
     def test_block_message_returned_for_valid_directive(self, monkeypatch):
         monkeypatch.setattr(
-            "sparkii_cli.plugins.invoke_hook",
+            "core.plugins.invoke_hook",
             lambda hook_name, **kwargs: [{"action": "block", "message": "blocked by plugin"}],
         )
         assert get_pre_tool_call_block_message("todo", {}, task_id="t1") == "blocked by plugin"
@@ -988,7 +988,9 @@ class TestPreToolCallDirective:
     """Tests for the extended (block | approve) directive helper."""
 
     def test_first_party_observer_receives_pre_tool_call(self, monkeypatch):
-        from sparkii_cli import observability
+        import types
+
+        from core import observability
         from sparkii_cli.plugins import get_pre_tool_call_directive
 
         observed = []
@@ -997,9 +999,10 @@ class TestPreToolCallDirective:
             "observe_lifecycle",
             lambda hook_name, **kwargs: observed.append((hook_name, kwargs)),
         )
+        stub = types.SimpleNamespace(invoke_hook=lambda *a, **kw: [])
         monkeypatch.setattr(
-            "sparkii_cli.plugins.invoke_hook",
-            lambda hook_name, **kwargs: [],
+            "core.plugins._delivery_manager",
+            lambda: stub,
         )
 
         assert get_pre_tool_call_directive(
@@ -1028,7 +1031,7 @@ class TestPreToolCallDirective:
     def test_approve_directive_returned(self, monkeypatch):
         from sparkii_cli.plugins import get_pre_tool_call_directive
         monkeypatch.setattr(
-            "sparkii_cli.plugins.invoke_hook",
+            "core.plugins.invoke_hook",
             lambda hook_name, **kwargs: [
                 {"action": "approve", "message": "needs human ok"}
             ],
@@ -1040,7 +1043,7 @@ class TestPreToolCallDirective:
         """approve may omit a message (block may not)."""
         from sparkii_cli.plugins import get_pre_tool_call_directive
         monkeypatch.setattr(
-            "sparkii_cli.plugins.invoke_hook",
+            "core.plugins.invoke_hook",
             lambda hook_name, **kwargs: [{"action": "approve"}],
         )
         assert get_pre_tool_call_directive("write_file", {}) == ("approve", None)
@@ -1057,7 +1060,7 @@ class TestResolvePreToolBlock:
 
         seen = {}
         monkeypatch.setattr(
-            "sparkii_cli.plugins.invoke_hook",
+            "core.plugins.invoke_hook",
             lambda hook_name, **kwargs: [
                 {"action": "approve", "message": "why"}
             ],
@@ -1084,7 +1087,7 @@ class TestResolvePreToolBlock:
         seen = {}
 
         monkeypatch.setattr(
-            "sparkii_cli.plugins.invoke_hook",
+            "core.plugins.invoke_hook",
             lambda hook_name, **kwargs: [
                 {
                     "action": "approve",
@@ -1113,7 +1116,7 @@ class TestResolvePreToolBlock:
     def test_approve_gate_exception_fails_closed(self, monkeypatch):
         from sparkii_cli.plugins import resolve_pre_tool_block
         monkeypatch.setattr(
-            "sparkii_cli.plugins.invoke_hook",
+            "core.plugins.invoke_hook",
             lambda hook_name, **kwargs: [{"action": "approve", "message": "why"}],
         )
         def _boom(*a, **k):
@@ -1129,7 +1132,7 @@ class TestPreToolCallModify:
     def test_modify_returns_merged_args(self, monkeypatch):
         """A single modify hook should return merged args."""
         monkeypatch.setattr(
-            "sparkii_cli.plugins.invoke_hook",
+            "core.plugins.invoke_hook",
             lambda hook_name, **kwargs: [
                 {"action": "modify", "args": {"path": "/safe/dir"}}
             ],
@@ -1143,7 +1146,7 @@ class TestPreToolCallModify:
     def test_modify_accumulates_multiple_hooks(self, monkeypatch):
         """Multiple modify hooks should accumulate — hook A + hook B both survive."""
         monkeypatch.setattr(
-            "sparkii_cli.plugins.invoke_hook",
+            "core.plugins.invoke_hook",
             lambda hook_name, **kwargs: [
                 {"action": "modify", "args": {"path": "/safe"}},
                 {"action": "modify", "args": {"content": "fixed"}},
@@ -1158,7 +1161,7 @@ class TestPreToolCallModify:
     def test_modify_last_wins_on_same_key(self, monkeypatch):
         """When two hooks modify the same key, the later hook wins."""
         monkeypatch.setattr(
-            "sparkii_cli.plugins.invoke_hook",
+            "core.plugins.invoke_hook",
             lambda hook_name, **kwargs: [
                 {"action": "modify", "args": {"path": "/first"}},
                 {"action": "modify", "args": {"path": "/second"}},
@@ -1172,7 +1175,7 @@ class TestPreToolCallModify:
     def test_modify_with_block_returns_both(self, monkeypatch):
         """When a modify precedes a block, both are returned."""
         monkeypatch.setattr(
-            "sparkii_cli.plugins.invoke_hook",
+            "core.plugins.invoke_hook",
             lambda hook_name, **kwargs: [
                 {"action": "modify", "args": {"path": "/safe"}},
                 {"action": "block", "message": "still blocked"},
@@ -1187,7 +1190,7 @@ class TestPreToolCallModify:
     def test_modify_after_block_is_invisible(self, monkeypatch):
         """A modify after a block is never reached — first block wins."""
         monkeypatch.setattr(
-            "sparkii_cli.plugins.invoke_hook",
+            "core.plugins.invoke_hook",
             lambda hook_name, **kwargs: [
                 {"action": "block", "message": "stopped"},
                 {"action": "modify", "args": {"path": "/invisible"}},
@@ -1202,7 +1205,7 @@ class TestPreToolCallModify:
     def test_modify_with_none_args(self, monkeypatch):
         """Modify should handle None args gracefully."""
         monkeypatch.setattr(
-            "sparkii_cli.plugins.invoke_hook",
+            "core.plugins.invoke_hook",
             lambda hook_name, **kwargs: [
                 {"action": "modify", "args": {"path": "/safe"}}
             ],
@@ -1214,7 +1217,7 @@ class TestPreToolCallModify:
     def test_modify_none_when_no_hooks(self, monkeypatch):
         """No hooks → both return values are None."""
         monkeypatch.setattr(
-            "sparkii_cli.plugins.invoke_hook",
+            "core.plugins.invoke_hook",
             lambda hook_name, **kwargs: [],
         )
         block_msg, modified = _dispatch_pre_tool_call_hooks(
@@ -1226,7 +1229,7 @@ class TestPreToolCallModify:
     def test_modify_invalid_args_ignored(self, monkeypatch):
         """Non-dict args and empty dicts should be silently ignored."""
         monkeypatch.setattr(
-            "sparkii_cli.plugins.invoke_hook",
+            "core.plugins.invoke_hook",
             lambda hook_name, **kwargs: [
                 {"action": "modify", "args": "not a dict"},
                 {"action": "modify", "args": {}},          # empty
@@ -1244,7 +1247,7 @@ class TestGetPreVerifyContinueMessage:
 
 
     def test_none_when_no_hooks(self, monkeypatch):
-        monkeypatch.setattr("sparkii_cli.plugins.invoke_hook", lambda hook_name, **kwargs: [])
+        monkeypatch.setattr("core.plugins.invoke_hook", lambda hook_name, **kwargs: [])
         assert get_pre_verify_continue_message() is None
 
     def test_forwards_scope_signals_to_hooks(self, monkeypatch):
@@ -1254,7 +1257,7 @@ class TestGetPreVerifyContinueMessage:
             seen.update(kwargs)
             return []
 
-        monkeypatch.setattr("sparkii_cli.plugins.invoke_hook", capture)
+        monkeypatch.setattr("core.plugins.invoke_hook", capture)
         get_pre_verify_continue_message(coding=True, attempt=2, changed_paths=["a.py"])
         assert seen["coding"] is True
         assert seen["attempt"] == 2
@@ -1271,7 +1274,7 @@ class TestThreadToolWhitelist:
         )
 
         monkeypatch.setattr(
-            "sparkii_cli.plugins.invoke_hook",
+            "core.plugins.invoke_hook",
             lambda hook_name, **kwargs: [],
         )
         set_thread_tool_whitelist({"memory", "skill_manage"})
@@ -1288,7 +1291,7 @@ class TestThreadToolWhitelist:
         )
 
         monkeypatch.setattr(
-            "sparkii_cli.plugins.invoke_hook",
+            "core.plugins.invoke_hook",
             lambda hook_name, **kwargs: [],
         )
         set_thread_tool_whitelist({"memory"})
@@ -1307,7 +1310,7 @@ class TestThreadToolWhitelist:
         )
 
         monkeypatch.setattr(
-            "sparkii_cli.plugins.invoke_hook",
+            "core.plugins.invoke_hook",
             lambda hook_name, **kwargs: [],
         )
 
@@ -1490,7 +1493,7 @@ class TestPluginToolVisibility:
         listing. 'Reachable' therefore means: present directly OR listed
         in the tool_search bridge description.
         """
-        import sparkii_cli.plugins as plugins_mod
+        import core.plugins as plugins_mod
 
         plugins_dir = tmp_path / "sparkii_test" / "plugins"
         plugin_dir = plugins_dir / "vis_plugin"
@@ -1736,7 +1739,7 @@ class TestPluginCommands:
         )
         monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
 
-        import sparkii_cli.plugins as plugins_mod
+        import core.plugins as plugins_mod
 
         with patch.object(plugins_mod, "_plugin_manager", None):
             engine = plugins_mod.get_plugin_context_engine()
@@ -1755,7 +1758,7 @@ class TestPluginCommands:
         ``SPARKII_HOME`` env var never exercises this path.
         """
         from sparkii_constants import set_sparkii_home_override, reset_sparkii_home_override
-        import sparkii_cli.plugins as plugins_mod
+        import core.plugins as plugins_mod
 
         def write_engine_plugin(home: Path) -> None:
             _make_plugin_dir(
@@ -1839,7 +1842,7 @@ class TestPluginCommands:
         the new profile.
         """
         from sparkii_constants import set_sparkii_home_override, reset_sparkii_home_override
-        import sparkii_cli.plugins as plugins_mod
+        import core.plugins as plugins_mod
 
         def write_stateful_plugin(home: Path, marker: str) -> None:
             plugin_dir = (home / "plugins" / "stateful-plugin")
@@ -1918,7 +1921,7 @@ class TestPluginCommandResultResolution:
         async def _handler():
             return "threaded-ok"
 
-        monkeypatch.setattr("sparkii_cli.plugins.asyncio.get_running_loop", lambda: _Loop())
+        monkeypatch.setattr("core.plugins.asyncio.get_running_loop", lambda: _Loop())
         assert resolve_plugin_command_result(_handler()) == "threaded-ok"
 
     def test_running_loop_timeout_does_not_hang_forever(self, monkeypatch):
@@ -1932,8 +1935,8 @@ class TestPluginCommandResultResolution:
             await _asyncio.sleep(10)
             return "should-not-reach"
 
-        monkeypatch.setattr("sparkii_cli.plugins.asyncio.get_running_loop", lambda: _Loop())
-        monkeypatch.setattr("sparkii_cli.plugins._PLUGIN_COMMAND_AWAIT_TIMEOUT_SECS", 0.1)
+        monkeypatch.setattr("core.plugins.asyncio.get_running_loop", lambda: _Loop())
+        monkeypatch.setattr("core.plugins._PLUGIN_COMMAND_AWAIT_TIMEOUT_SECS", 0.1)
 
         with pytest.raises(TimeoutError):
             resolve_plugin_command_result(_slow_handler())
@@ -1954,7 +1957,7 @@ class TestPluginDispatchTool:
         mock_registry = MagicMock()
         mock_registry.dispatch.return_value = '{"result": "ok"}'
 
-        with patch("sparkii_cli.plugins.PluginContext.dispatch_tool.__module__", "sparkii_cli.plugins"):
+        with patch("core.plugins.PluginContext.dispatch_tool.__module__", "sparkii_cli.plugins"):
             with patch.dict("sys.modules", {}):
                 with patch("tools.registry.registry", mock_registry):
                     result = ctx.dispatch_tool("web_search", {"query": "test"})
@@ -1991,7 +1994,7 @@ class TestPluginDebugLogging:
     def test_debug_handler_not_installed_when_env_var_absent(self, monkeypatch):
         """Without the env var, no stderr handler is attached."""
         monkeypatch.delenv("SPARKII_PLUGINS_DEBUG", raising=False)
-        from sparkii_cli import plugins as plugins_mod
+        from core import plugins as plugins_mod
 
         # Snapshot, then force a re-evaluation.
         original_installed = plugins_mod._DEBUG_HANDLER_INSTALLED

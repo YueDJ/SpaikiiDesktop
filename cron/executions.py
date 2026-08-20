@@ -105,7 +105,7 @@ def _emit_execution_state(
 
 def _process_start_time(pid: int) -> Optional[int]:
     try:
-        from gateway.status import get_process_start_time
+        from core.process_utils import get_process_start_time
         return get_process_start_time(pid)
     except Exception:
         return None
@@ -113,7 +113,7 @@ def _process_start_time(pid: int) -> Optional[int]:
 
 def _owner_is_live(pid: int, started_at: Optional[int]) -> bool:
     try:
-        from gateway.status import _pid_exists
+        from core.process_utils import _pid_exists
         if not _pid_exists(pid):
             return False
     except Exception:

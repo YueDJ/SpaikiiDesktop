@@ -279,7 +279,7 @@ class TestPlatformsMerge:
 
 
     def test_get_all_platforms_includes_plugin(self):
-        from sparkii_cli.platforms import get_all_platforms
+        from core.platforms import get_all_platforms
         from gateway.platform_registry import platform_registry as _reg
 
         _reg.register(PlatformEntry(

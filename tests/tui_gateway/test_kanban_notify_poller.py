@@ -14,7 +14,7 @@ unsubscribe) and ``_format_kanban_event_text``.
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from sparkii_cli import kanban_db as kb
+from core import kanban_db as kb
 from tui_gateway.server import (
     _collect_kanban_notifications,
     _format_kanban_event_text,

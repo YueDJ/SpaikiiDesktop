@@ -41,7 +41,7 @@ class TestCredentialPoolPreservedOnAutoDetect:
              patch('agent.anthropic_adapter.resolve_anthropic_token', return_value=''), \
              patch('agent.anthropic_adapter._is_oauth_token', return_value=False), \
              patch('agent.azure_identity_adapter.is_token_provider', return_value=False), \
-             patch('sparkii_cli.model_normalize.normalize_model_for_provider', return_value='test-model'), \
+             patch('core.model_normalize.normalize_model_for_provider', return_value='test-model'), \
              patch('agent.credential_pool.load_pool', return_value=MagicMock()), \
              patch('core.config.load_config', return_value={}), \
              patch('core.config.get_compatible_custom_providers', return_value=[]), \

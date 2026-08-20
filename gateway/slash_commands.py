@@ -29,7 +29,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional, Union
 
-from agent.account_usage import fetch_account_usage, render_account_usage_lines
+from sparkii_cli.account_usage import fetch_account_usage, render_account_usage_lines
 from agent.i18n import t
 from agent.turn_context import extract_api_content_sidecar
 from gateway.config import HomeChannel, Platform, PlatformConfig, persist_home_channel
@@ -5301,7 +5301,7 @@ class GatewaySlashCommandsMixin:
             if normalized_provider != "openai-codex":
                 return t("gateway.usage.reset_wrong_provider")
             force = "--force" in args[1:]
-            from agent.account_usage import redeem_codex_reset_credit
+            from sparkii_cli.account_usage import redeem_codex_reset_credit
 
             result = await asyncio.to_thread(
                 redeem_codex_reset_credit,
@@ -5337,7 +5337,7 @@ class GatewaySlashCommandsMixin:
         # still sees their balance. NO recovery trigger: messaging binds no notice
         # consumer, so /usage only displays. Fail-open: never break /usage.
         try:
-            from agent.account_usage import nous_credits_lines
+            from sparkii_cli.account_usage import nous_credits_lines
 
             credits_lines = await asyncio.to_thread(nous_credits_lines, markdown=True)
         except Exception:

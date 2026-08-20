@@ -26,7 +26,7 @@ def curator_env(tmp_path, monkeypatch):
     import importlib
     import sparkii_constants
     importlib.reload(sparkii_constants)
-    from agent import curator
+    from sparkii_cli import curator
     importlib.reload(curator)
     from tools import skill_usage
     importlib.reload(skill_usage)
@@ -202,7 +202,6 @@ def test_curator_rewrites_cron_skills_when_skill_consolidated(curator_env_with_c
     assert "Cron job skill references rewritten" in md
     assert "foo-watcher" in md
     assert "foo-umbrella" in md
-
 
 
 

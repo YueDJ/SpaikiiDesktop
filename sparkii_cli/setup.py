@@ -3462,3 +3462,27 @@ def _run_quick_setup(config: dict, sparkii_home):
 
     # Jump to summary
     _print_setup_summary(config, sparkii_home)
+
+
+# Block 4: register the setup-wizard helpers for core tools_config.
+try:
+    from types import SimpleNamespace as _NS
+
+    from core.tools_config import set_setup_helpers_provider
+
+    def _setup_helpers_context():
+        from sparkii_cli.setup import (
+            _run_xai_oauth_login_from_setup,
+            prompt,
+            prompt_choice,
+        )
+
+        return _NS(
+            run_xai_oauth_login_from_setup=_run_xai_oauth_login_from_setup,
+            prompt=prompt,
+            prompt_choice=prompt_choice,
+        )
+
+    set_setup_helpers_provider(_setup_helpers_context)
+except Exception:  # pragma: no cover - defensive
+    pass

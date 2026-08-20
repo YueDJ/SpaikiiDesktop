@@ -27,9 +27,9 @@ from utils import base_url_host_matches, base_url_hostname, normalize_proxy_env_
 from agent.secret_scope import get_secret as _get_secret
 
 try:
-    import sparkii_cli as _sparkii_cli
+    from core.version import __version__ as _SPARKII_VERSION
 
-    _SPARKII_VERSION = str(_sparkii_cli.__version__)
+    _SPARKII_VERSION = str(_SPARKII_VERSION)
 except Exception:
     _SPARKII_VERSION = "0.0.0"
 
@@ -588,18 +588,10 @@ def _is_nous_portal_endpoint(base_url: str | None) -> bool:
     """
     if base_url_host_matches(base_url or "", "inference-api.nousresearch.com"):
         return True
-    try:
-        from sparkii_cli.auth import _nous_inference_env_override
-
-        override = _nous_inference_env_override()
-    except Exception:
-        return False
-    if not override:
-        return False
-    # Exact host equality (not subdomain) so the env override can't broaden
-    # into sibling hosts the operator did not set.
-    override_host = base_url_hostname(override)
-    return bool(override_host) and base_url_hostname(base_url or "") == override_host
+    # The operator-set NOUS_INFERENCE_BASE_URL override (and the Nous OAuth
+    # resolver behind it) was removed with the Nous provider in the Phase 0
+    # foundation trim, so only the production hostname is trusted.
+    return False
 
 
 def _requires_bearer_auth(base_url: str | None) -> bool:
@@ -1567,7 +1559,7 @@ def run_sparkii_oauth_login_pure() -> Optional[Dict[str, Any]]:
     print()
 
     try:
-        from sparkii_cli.auth import _can_open_graphical_browser as _can_open_gui
+        from core.credentials import _can_open_graphical_browser as _can_open_gui
     except Exception:
         _can_open_gui = lambda: True  # noqa: E731 — degrade to prior behavior
 

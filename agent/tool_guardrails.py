@@ -271,7 +271,7 @@ def canonical_tool_args(args: Mapping[str, Any]) -> str:
 def classify_tool_failure(tool_name: str, result: str | None) -> tuple[bool, str]:
     """Safety-fallback classifier used only when callers don't pass ``failed``.
 
-    Mirrors ``agent.display._detect_tool_failure`` exactly so the guardrail
+    Mirrors ``agent.tool_result_classification._detect_tool_failure`` exactly so the guardrail
     never disagrees with the CLI's user-visible ``[error]`` tag. Production
     callers in ``run_agent.py`` always pass an explicit ``failed=`` derived
     from ``_detect_tool_failure``; this function exists so standalone callers

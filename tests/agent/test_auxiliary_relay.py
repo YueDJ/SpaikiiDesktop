@@ -5,9 +5,9 @@ import pytest
 pytest.importorskip("nemo_relay")
 
 from agent import auxiliary_client, relay_llm, relay_runtime
-from sparkii_cli.observability.shared_metrics import SharedMetricsStore
-from sparkii_cli.observability.shared_metrics_contract import MODEL_ROUTE_METRIC
-from sparkii_cli.observability.shared_metrics_subscriber import SharedMetricsSubscriber
+from core.observability.shared_metrics import SharedMetricsStore
+from core.observability.shared_metrics_contract import MODEL_ROUTE_METRIC
+from core.observability.shared_metrics_subscriber import SharedMetricsSubscriber
 
 
 @pytest.fixture()

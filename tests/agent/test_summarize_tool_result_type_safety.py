@@ -149,14 +149,14 @@ class TestDisplayPreviewTypeSafety:
 
 
     def test_process_preview_non_string_data(self):
-        from agent.display import build_tool_preview
+        from sparkii_cli.display import build_tool_preview
         result = build_tool_preview(
             "process", {"action": "submit", "session_id": "abc", "data": 42}
         )
         assert result == 'submit abc "42"'
 
     def test_process_preview_none_action(self):
-        from agent.display import build_tool_preview
+        from sparkii_cli.display import build_tool_preview
         result = build_tool_preview("process", {"action": None, "session_id": "abc"})
         assert isinstance(result, str)
 

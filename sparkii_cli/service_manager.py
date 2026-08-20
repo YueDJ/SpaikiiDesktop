@@ -1131,3 +1131,27 @@ class S6ServiceManager:
                 continue
             profiles.append(entry.name[len(S6_SERVICE_PREFIX):])
         return profiles
+
+
+# Block 4: register the gateway-service namespace for core consumers
+# (core/profiles.py profile lifecycle management).  The namespace lazily
+# imports sparkii_cli.gateway for service-name/plist helpers so there is no
+# import cycle at module load.
+try:
+    from types import SimpleNamespace as _NS
+
+    from core.gateway_service import set_gateway_service_provider
+
+    def _gateway_service_context():
+        from sparkii_cli import gateway as _gw
+
+        return _NS(
+            detect_service_manager=detect_service_manager,
+            get_service_manager=get_service_manager,
+            get_service_name=_gw.get_service_name,
+            get_launchd_plist_path=_gw.get_launchd_plist_path,
+        )
+
+    set_gateway_service_provider(_gateway_service_context)
+except Exception:  # pragma: no cover - defensive
+    pass

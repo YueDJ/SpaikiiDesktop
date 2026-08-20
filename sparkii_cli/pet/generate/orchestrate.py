@@ -22,8 +22,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
-from agent.pet.generate import atlas, imagegen, prompts
-from agent.pet.generate.imagegen import GenerationError, SpriteProvider
+from sparkii_cli.pet.generate import atlas, imagegen, prompts
+from sparkii_cli.pet.generate.imagegen import GenerationError, SpriteProvider
 
 logger = logging.getLogger(__name__)
 
@@ -368,7 +368,7 @@ def hatch_pet(
             f"only {len(filled_states)}/{len(atlas.ROW_SPECS)} animation rows were usable; regenerate"
         )
 
-    from agent.pet import store
+    from sparkii_cli.pet import store
 
     progress("save", slug)
     logger.info("pet hatch %r: saving pet", slug)

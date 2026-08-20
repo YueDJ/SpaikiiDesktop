@@ -1,4 +1,4 @@
-"""Tests for sparkii_cli.kanban_diagnostics — rule-engine that produces
+"""Tests for core.kanban_diagnostics — rule-engine that produces
 structured distress signals (diagnostics) for kanban tasks.
 
 These tests exercise each rule in isolation using minimal in-memory
@@ -14,8 +14,8 @@ from pathlib import Path
 
 import pytest
 
-from sparkii_cli import kanban_db as kb
-from sparkii_cli import kanban_diagnostics as kd
+from core import kanban_db as kb
+from core import kanban_diagnostics as kd
 
 
 # ---------------------------------------------------------------------------

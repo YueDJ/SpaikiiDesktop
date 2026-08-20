@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from sparkii_cli import kanban_db as kb
+from core import kanban_db as kb
 
 
 # ---------------------------------------------------------------------------
@@ -104,7 +104,7 @@ def test_connect_auto_repairs_index_only_corruption(tmp_path, caplog):
     assert any(m.startswith("wrong # of entries in index") for m in messages)
     assert kb._repairable_index_names(messages) == ["idx_tasks_status"]
 
-    with caplog.at_level(logging.WARNING, logger="sparkii_cli.kanban_db"):
+    with caplog.at_level(logging.WARNING, logger="core.kanban_db"):
         conn = kb.connect(db_path=db_path)
     try:
         # DB is clean again and data survived.

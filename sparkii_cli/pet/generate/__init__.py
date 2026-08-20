@@ -14,8 +14,8 @@ atlas assembly is fully deterministic so it's testable without any API calls.
 
 from __future__ import annotations
 
-from agent.pet.generate.imagegen import GenerationError
-from agent.pet.generate.orchestrate import (
+from sparkii_cli.pet.generate.imagegen import GenerationError
+from sparkii_cli.pet.generate.orchestrate import (
     HatchResult,
     generate_base_drafts,
     hatch_pet,

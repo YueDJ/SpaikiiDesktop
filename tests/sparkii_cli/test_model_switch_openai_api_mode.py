@@ -17,8 +17,8 @@ reasoning_effort into a live one that OpenAI 400s on the chat_completions path.
 
 from unittest.mock import patch
 
-from sparkii_cli.model_switch import switch_model
-from sparkii_cli.providers import host_mandated_api_mode
+from core.model_switch import switch_model
+from core.providers import host_mandated_api_mode
 
 _MOCK_VALIDATION = {
     "accepted": True,
@@ -38,10 +38,10 @@ def _run_openai_switch(
 ):
     """Run switch_model with OpenAI-direct mocks and return the result."""
     with (
-        patch("sparkii_cli.model_switch.resolve_alias", return_value=None),
-        patch("sparkii_cli.model_switch.list_provider_models", return_value=[]),
+        patch("core.model_switch.resolve_alias", return_value=None),
+        patch("core.model_switch.list_provider_models", return_value=[]),
         patch(
-            "sparkii_cli.runtime_provider.resolve_runtime_provider",
+            "core.runtime_provider.resolve_runtime_provider",
             return_value={
                 "api_key": "sk-test",
                 "base_url": runtime_base_url,
@@ -49,12 +49,12 @@ def _run_openai_switch(
             },
         ),
         patch(
-            "sparkii_cli.models.validate_requested_model",
+            "core.models.validate_requested_model",
             return_value=_MOCK_VALIDATION,
         ),
-        patch("sparkii_cli.model_switch.get_model_info", return_value=None),
-        patch("sparkii_cli.model_switch.get_model_capabilities", return_value=None),
-        patch("sparkii_cli.models.detect_provider_for_model", return_value=None),
+        patch("core.model_switch.get_model_info", return_value=None),
+        patch("core.model_switch.get_model_capabilities", return_value=None),
+        patch("core.models.detect_provider_for_model", return_value=None),
     ):
         return switch_model(
             raw_input=raw_input,

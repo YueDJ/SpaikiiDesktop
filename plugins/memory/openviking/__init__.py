@@ -2487,7 +2487,7 @@ class OpenVikingMemoryProvider(MemoryProvider):
     def post_setup(self, sparkii_home: str, config: dict) -> None:
         """Custom setup that can reuse OpenViking's shared CLI config."""
         from core.config import save_config
-        from sparkii_cli.memory_setup import _CANCELLED, _curses_select, _print_cancelled_setup, _prompt
+        from core.memory_setup import _CANCELLED, _curses_select, _print_cancelled_setup, _prompt
 
         sparkii_home_path = Path(sparkii_home)
         env_path = sparkii_home_path / ".env"

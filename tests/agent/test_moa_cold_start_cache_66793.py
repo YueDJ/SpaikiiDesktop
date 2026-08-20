@@ -136,7 +136,7 @@ def test_slot_runtime_is_cached_across_create_calls(monkeypatch, tmp_path):
         calls["n"] += 1
         return {"base_url": None, "api_key": None, "api_mode": None}
 
-    import sparkii_cli.runtime_provider as rt_mod
+    import core.runtime_provider as rt_mod
     monkeypatch.setattr(rt_mod, "resolve_runtime_provider", counting_resolve)
     import core.config as cfg_mod
     cfg_file = tmp_path / "config.yaml"
@@ -169,7 +169,7 @@ def test_slot_runtime_cache_expires_after_ttl(monkeypatch):
         return {"base_url": "http://x", "api_key": f"key-{calls['n']}",
                 "api_mode": None}
 
-    import sparkii_cli.runtime_provider as rt_mod
+    import core.runtime_provider as rt_mod
     monkeypatch.setattr(rt_mod, "resolve_runtime_provider", counting_resolve)
 
     slot = {"provider": "openai", "model": "gpt-5"}
@@ -205,7 +205,7 @@ def test_slot_runtime_resolution_error_is_not_cached(monkeypatch):
             raise RuntimeError("catalog hiccup")
         return {"base_url": "http://ok", "api_key": None, "api_mode": None}
 
-    import sparkii_cli.runtime_provider as rt_mod
+    import core.runtime_provider as rt_mod
     monkeypatch.setattr(rt_mod, "resolve_runtime_provider", flaky_resolve)
 
     slot = {"provider": "openai", "model": "gpt-5"}

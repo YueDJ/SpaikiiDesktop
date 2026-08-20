@@ -244,7 +244,7 @@ discover_builtin_tools()
 
 # Plugin tool discovery (user/project/pip plugins)
 try:
-    from sparkii_cli.plugins import discover_plugins
+    from core.plugins import discover_plugins
     discover_plugins()
 except Exception as e:
     logger.debug("Plugin discovery failed: %s", e)
@@ -662,7 +662,7 @@ def _resolve_active_context_length() -> int:
         api_key = ""
         if provider:
             try:
-                from sparkii_cli.runtime_provider import resolve_runtime_provider
+                from core.runtime_provider import resolve_runtime_provider
                 rt = resolve_runtime_provider(
                     requested=provider, target_model=model_id
                 ) or {}
@@ -1095,7 +1095,7 @@ def _tool_result_observer_fields(
     except Exception:
         pass
     try:
-        from agent.display import _detect_tool_failure
+        from agent.tool_result_classification import _detect_tool_failure
 
         failed, suffix = _detect_tool_failure(tool_name, result)
         if failed:
@@ -1133,7 +1133,7 @@ def _emit_post_tool_call_hook(
     if _post_tool_call_hook_suppressed.get():
         return
     try:
-        from sparkii_cli.lifecycle import has_hook, invoke_hook
+        from core.plugins import has_hook, invoke_hook
         if not has_hook("post_tool_call"):
             return
         if status is None:
@@ -1321,7 +1321,7 @@ def handle_function_call(
     _tool_original_args = dict(function_args)
     if not skip_tool_request_middleware:
         try:
-            from sparkii_cli.middleware import apply_tool_request_middleware
+            from core.middleware import apply_tool_request_middleware
 
             _tool_request_mw = apply_tool_request_middleware(
                 function_name,
@@ -1356,7 +1356,7 @@ def handle_function_call(
         if not skip_pre_tool_call_hook:
             block_message: Optional[str] = None
             try:
-                from sparkii_cli.plugins import _dispatch_pre_tool_call_hooks
+                from core.plugins import _dispatch_pre_tool_call_hooks
                 block_message, modified_args = _dispatch_pre_tool_call_hooks(
                     function_name,
                     function_args,
@@ -1394,7 +1394,7 @@ def handle_function_call(
         # is bound via ContextVar only for ACP sessions, so CLI/gateway paths
         # are unaffected when it is unset.
         try:
-            from acp_adapter.edit_approval import maybe_require_edit_approval
+            from core.edit_approval import maybe_require_edit_approval
 
             edit_block_message = maybe_require_edit_approval(function_name, function_args)
             if edit_block_message is not None:
@@ -1484,7 +1484,7 @@ def handle_function_call(
             if skip_tool_execution_middleware:
                 result = _dispatch(function_args)
             else:
-                from sparkii_cli.middleware import run_tool_execution_middleware
+                from core.middleware import run_tool_execution_middleware
 
                 result = run_tool_execution_middleware(
                     function_name,
@@ -1527,7 +1527,7 @@ def handle_function_call(
         # Gated on has_hook so the no-listener path skips both the result
         # field derivation and the payload dispatch.
         try:
-            from sparkii_cli.lifecycle import has_hook, invoke_hook
+            from core.plugins import has_hook, invoke_hook
             if has_hook("transform_tool_result"):
                 status, error_type, error_message = _tool_result_observer_fields(
                     function_name,

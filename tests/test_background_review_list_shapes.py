@@ -1,5 +1,5 @@
 """Regression tests for the list-shape AttributeError guards in
-``agent.background_review.summarize_background_review_actions`` (#59437).
+``sparkii_cli.background_review.summarize_background_review_actions`` (#59437).
 
 The outer ``_run_review_in_thread`` used to crash with
 ``'list' object has no attribute 'get'`` every time a tool response
@@ -58,7 +58,7 @@ def _load_module():
     if REPO_ROOT not in sys.path:
         sys.path.insert(0, REPO_ROOT)
     try:
-        return importlib.import_module("agent.background_review")
+        return importlib.import_module("sparkii_cli.background_review")
     except Exception:
         return None
 
@@ -277,7 +277,7 @@ def test_e_call_does_not_unwind_module_callables():
     blind regression test — keeping it text-anchored guards the
     ``_run_review_in_thread`` invariant without a real LLM.
     """
-    src_path = os.path.join(REPO_ROOT, "agent", "background_review.py")
+    src_path = os.path.join(REPO_ROOT, "sparkii_cli", "background_review.py")
     src = open(src_path, encoding="utf-8").read()
     # The fix added: ``try: actions = summarize_background_review_actions(...)``
     # followed by ``except Exception as e: ... actions = []``.

@@ -9,7 +9,7 @@ custom/unknown providers in ``resolve_custom_provider``.
 
 from __future__ import annotations
 
-from sparkii_cli.providers import determine_api_mode
+from core.providers import determine_api_mode
 
 
 class TestOpenAIHostHardening:

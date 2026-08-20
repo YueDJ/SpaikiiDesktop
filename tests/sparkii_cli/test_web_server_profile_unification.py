@@ -16,7 +16,7 @@ import yaml
 def isolated_profiles(tmp_path, monkeypatch, _isolate_sparkii_home):
     """Isolated default home + one named profile, each with config + .env."""
     from sparkii_constants import get_sparkii_home
-    from sparkii_cli import profiles
+    from core import profiles
 
     default_home = get_sparkii_home()
     profiles_root = default_home / "profiles"
@@ -380,7 +380,7 @@ class TestProfileScopedPostSetup:
             lambda subcommand, name: calls.append(list(subcommand)) or _FakeProc(),
         )
         monkeypatch.setattr(
-            "sparkii_cli.tools_config.valid_post_setup_keys",
+            "core.tools_config.valid_post_setup_keys",
             lambda: {"agent_browser"},
         )
         resp = client.post(
@@ -408,7 +408,7 @@ class TestProfileScopedPostSetup:
             lambda subcommand, name: calls.append(list(subcommand)) or _FakeProc(),
         )
         monkeypatch.setattr(
-            "sparkii_cli.tools_config.valid_post_setup_keys",
+            "core.tools_config.valid_post_setup_keys",
             lambda: {"agent_browser"},
         )
         resp = client.post(

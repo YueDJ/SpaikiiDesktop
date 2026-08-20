@@ -332,7 +332,7 @@ def test_profile_route_and_nonmultiplexed_resolution_preserve_boundaries(
 ):
     runner = _runner(default_mode="interrupt")
     monkeypatch.setattr(
-        "sparkii_cli.profiles.profiles_to_serve",
+        "core.profiles.profiles_to_serve",
         lambda **_: [("research", tmp_path / "research")],
     )
     runner._snapshot_profile_busy_modes(
@@ -356,7 +356,7 @@ def test_profile_route_and_nonmultiplexed_resolution_preserve_boundaries(
     # before the busy-mode snapshot is consulted. Sibling coverage in
     # tests/gateway/test_profile_resolution.py patches the same seam.
     with patch(
-        "sparkii_cli.profiles.profiles_to_serve",
+        "core.profiles.profiles_to_serve",
         return_value=[
             ("default", Path("/profiles/default")),
             ("research", Path("/profiles/research")),

@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from sparkii_cli import kanban_db as kb
+from core import kanban_db as kb
 from sparkii_cli.plugins import VALID_HOOKS, get_plugin_manager
 
 
@@ -98,7 +98,7 @@ def test_raising_callback_does_not_break_assign(kanban_home):
 
 
 def test_no_subscriber_short_circuits_task_updated(kanban_home, monkeypatch):
-    from sparkii_cli import lifecycle
+    from core import plugins as lifecycle
 
     invoked: list[str] = []
     real_invoke = lifecycle.invoke_hook

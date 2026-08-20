@@ -45,13 +45,13 @@ class TestInboundMediaSizeCap:
 
     def test_default_cap_is_128_mib(self, monkeypatch):
         # No config override -> default. Patch loader to return empty config.
-        import gateway.platforms.base as base
-        monkeypatch.setattr(base, "get_inbound_media_max_bytes", lambda: base.DEFAULT_INBOUND_MEDIA_MAX_BYTES)
-        assert base.DEFAULT_INBOUND_MEDIA_MAX_BYTES == 128 * 1024 * 1024
+        import core.media_cache as media_cache
+        monkeypatch.setattr(media_cache, "get_inbound_media_max_bytes", lambda: media_cache.DEFAULT_INBOUND_MEDIA_MAX_BYTES)
+        assert media_cache.DEFAULT_INBOUND_MEDIA_MAX_BYTES == 128 * 1024 * 1024
 
     def test_image_bytes_rejected_when_oversized(self, monkeypatch):
-        import gateway.platforms.base as base
-        monkeypatch.setattr(base, "get_inbound_media_max_bytes", lambda: 16)
+        import core.media_cache as media_cache
+        monkeypatch.setattr(media_cache, "get_inbound_media_max_bytes", lambda: 16)
         with pytest.raises(ValueError, match="Inbound image payload is too large"):
             cache_image_from_bytes(self._PNG, ext=".png")
 
@@ -79,7 +79,7 @@ class TestSafeUrlForLog:
 class TestCacheAudioFromBytes:
     def test_sniffs_mp4_quicktime_audio_even_when_ext_is_ogg(self, tmp_path):
         payload = b"\x00\x00\x00\x14ftypqt  " + b"\x00" * 32
-        with patch("gateway.platforms.base.AUDIO_CACHE_DIR", tmp_path):
+        with patch("core.media_cache.AUDIO_CACHE_DIR", tmp_path):
             result = cache_audio_from_bytes(payload, ext=".ogg")
 
         saved = tmp_path / os.path.basename(result)

@@ -1,4 +1,4 @@
-"""Behavior tests for sparkii_cli.inventory.
+"""Behavior tests for core.inventory.
 
 Locks the invariants the three migrated consumers (web_server.py
 /api/model/options, tui_gateway model.options, tui_gateway model.save_key)
@@ -22,7 +22,7 @@ from __future__ import annotations
 from unittest.mock import patch
 
 
-from sparkii_cli.inventory import (
+from core.inventory import (
     ConfigContext,
     build_models_payload,
     load_picker_context,
@@ -67,7 +67,7 @@ def _empty_ctx(provider="orig", model="orig-model", base_url="orig-url"):
 def _list_auth_returning(rows: list[dict]):
     """Patch list_authenticated_providers to return a fixed row list."""
     return patch(
-        "sparkii_cli.model_switch.list_authenticated_providers",
+        "core.model_switch.list_authenticated_providers",
         return_value=rows,
     )
 
@@ -97,7 +97,7 @@ def test_cli_model_picker_forwards_force_refresh_to_probe_flags():
     # Normal open — skip non-current probes
     force_refresh = False
     with patch(
-        "sparkii_cli.model_switch.list_authenticated_providers",
+        "core.model_switch.list_authenticated_providers",
         return_value=[],
     ) as mock_list:
         build_models_payload(
@@ -111,7 +111,7 @@ def test_cli_model_picker_forwards_force_refresh_to_probe_flags():
     # Refresh open — probe everything
     force_refresh = True
     with patch(
-        "sparkii_cli.model_switch.list_authenticated_providers",
+        "core.model_switch.list_authenticated_providers",
         return_value=[],
     ) as mock_list:
         build_models_payload(
@@ -133,7 +133,7 @@ def test_list_authenticated_providers_force_fresh_is_keyword_only():
     """
     import inspect
 
-    from sparkii_cli.model_switch import list_authenticated_providers
+    from core.model_switch import list_authenticated_providers
 
     sig = inspect.signature(list_authenticated_providers)
     param = sig.parameters["force_fresh_nous_tier"]
@@ -157,7 +157,7 @@ def test_include_unconfigured_appends_canonical_skeletons():
         payload = build_models_payload(ctx, include_unconfigured=True)
     # All canonical providers other than openrouter should appear as
     # skeleton rows.
-    from sparkii_cli.models import CANONICAL_PROVIDERS
+    from core.models import CANONICAL_PROVIDERS
 
     seen_slugs = {r["slug"] for r in payload["providers"]}
     for entry in CANONICAL_PROVIDERS:
@@ -251,7 +251,7 @@ def test_canonical_order_uses_slug_not_is_user_defined_flag():
     canonical providers configured via the keyed schema get demoted to
     the tail.
     """
-    from sparkii_cli.models import CANONICAL_PROVIDERS
+    from core.models import CANONICAL_PROVIDERS
 
     canonical_slug = CANONICAL_PROVIDERS[2].slug  # any canonical
     rows = [
@@ -503,11 +503,11 @@ def test_build_models_payload_forwards_refresh_flag():
         captured["refresh"] = kwargs.get("refresh")
         return []
 
-    with patch("sparkii_cli.model_switch.list_authenticated_providers", side_effect=_capture):
+    with patch("core.model_switch.list_authenticated_providers", side_effect=_capture):
         build_models_payload(_empty_ctx())
     assert captured["refresh"] is False
 
-    with patch("sparkii_cli.model_switch.list_authenticated_providers", side_effect=_capture):
+    with patch("core.model_switch.list_authenticated_providers", side_effect=_capture):
         build_models_payload(_empty_ctx(), refresh=True)
     assert captured["refresh"] is True
 
@@ -515,9 +515,9 @@ def test_build_models_payload_forwards_refresh_flag():
 def test_list_authenticated_providers_refresh_busts_cache():
     """refresh=True clears the provider-model disk cache exactly once;
     refresh=False leaves it untouched (so normal picker opens stay snappy)."""
-    from sparkii_cli import model_switch
+    from core import model_switch
 
-    with patch("sparkii_cli.models.clear_provider_models_cache") as clear:
+    with patch("core.models.clear_provider_models_cache") as clear:
         model_switch.list_authenticated_providers(refresh=False)
         assert clear.call_count == 0
         model_switch.list_authenticated_providers(refresh=True)
@@ -534,7 +534,7 @@ class _FakeInfo:
 
 def _apply_featured_with_dates(rows, dates: dict[str, str]):
     """Run _apply_featured with a deterministic models.dev stub."""
-    from sparkii_cli import inventory
+    from core import inventory
 
     def _fake_get_model_info(provider, model):
         return _FakeInfo(dates[model]) if model in dates else None

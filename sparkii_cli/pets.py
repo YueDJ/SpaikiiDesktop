@@ -1,6 +1,6 @@
 """CLI subcommand: ``sparkii pets <subcommand>``.
 
-Thin shell around :mod:`agent.pet`.  Browses the public petdex gallery,
+Thin shell around :mod:`sparkii_cli.pet`.  Browses the public petdex gallery,
 installs pets into the profile's ``pets/`` directory, selects the active
 mascot (writes ``display.pet.*`` to config.yaml), and runs a doctor check.
 
@@ -26,7 +26,7 @@ def _err(msg: str) -> None:
 
 def _cmd_list(args) -> int:
     """List gallery pets (or only installed ones with ``--installed``)."""
-    from agent.pet import store
+    from sparkii_cli.pet import store
 
     if getattr(args, "installed", False):
         pets = store.installed_pets()
@@ -38,7 +38,7 @@ def _cmd_list(args) -> int:
             _print(f"  {pet.slug:<24} {pet.display_name}")
         return 0
 
-    from agent.pet.manifest import ManifestError, fetch_manifest
+    from sparkii_cli.pet.manifest import ManifestError, fetch_manifest
 
     try:
         entries = fetch_manifest()
@@ -69,8 +69,8 @@ def _cmd_list(args) -> int:
 
 
 def _cmd_install(args) -> int:
-    from agent.pet import store
-    from agent.pet.manifest import ManifestError
+    from sparkii_cli.pet import store
+    from sparkii_cli.pet.manifest import ManifestError
 
     slug = args.slug.strip()
     try:
@@ -90,7 +90,7 @@ def _cmd_install(args) -> int:
 
 
 def _cmd_remove(args) -> int:
-    from agent.pet import store
+    from sparkii_cli.pet import store
 
     slug = args.slug.strip()
     if store.remove_pet(slug):
@@ -101,7 +101,7 @@ def _cmd_remove(args) -> int:
 
 
 def _cmd_select(args) -> int:
-    from agent.pet import store
+    from sparkii_cli.pet import store
 
     slug = (getattr(args, "slug", "") or "").strip()
     if not slug:
@@ -142,15 +142,15 @@ def _cmd_scale(args) -> int:
 def _cmd_show(args) -> int:
     """Animate the active (or named) pet in the terminal.
 
-    Uses the shared :class:`~agent.pet.render.PetRenderer` — full graphics
+    Uses the shared :class:`~sparkii_cli.pet.render.PetRenderer` — full graphics
     protocol (kitty/iTerm2/sixel) when the terminal supports it, else a
     truecolor Unicode half-block fallback.  Ctrl+C to stop.
     """
     import time
 
-    from agent.pet import store
-    from agent.pet.constants import DEFAULT_SCALE, LOOP_MS, STATE_ROWS, PetState, resolve_cols
-    from agent.pet.render import build_renderer
+    from sparkii_cli.pet import store
+    from sparkii_cli.pet.constants import DEFAULT_SCALE, LOOP_MS, STATE_ROWS, PetState, resolve_cols
+    from sparkii_cli.pet.render import build_renderer
 
     cfg = _pet_config()
     slug = (getattr(args, "slug", "") or "").strip() or str(cfg.get("slug", "") or "")
@@ -247,8 +247,8 @@ def _cmd_show(args) -> int:
 
 def _cmd_doctor(args) -> int:
     """Report install state, active pet, config, and terminal capability."""
-    from agent.pet import store
-    from agent.pet.render import detect_terminal_graphics, resolve_mode
+    from sparkii_cli.pet import store
+    from sparkii_cli.pet.render import detect_terminal_graphics, resolve_mode
 
     cfg = _pet_config()
     enabled = is_truthy_value(cfg.get("enabled"), default=False)
@@ -345,7 +345,7 @@ def set_pet_scale(value: float | str) -> tuple[float, str | None]:
     surface that resolves scale from config picks it up identically. *error* is
     set (and nothing written) only when *value* isn't a number.
     """
-    from agent.pet.constants import clamp_scale
+    from sparkii_cli.pet.constants import clamp_scale
 
     try:
         scale = clamp_scale(float(value))
@@ -362,7 +362,7 @@ def toggle_pet_display() -> tuple[bool, str | None, str | None]:
     Returns ``(enabled, display_name, error_message)``. *error_message* is set
     when turning on but nothing is installed to show.
     """
-    from agent.pet import store
+    from sparkii_cli.pet import store
 
     cfg = _pet_config()
     slug = str(cfg.get("slug", "") or "")
@@ -385,8 +385,8 @@ def toggle_pet_display() -> tuple[bool, str | None, str | None]:
 
 def print_pet_gallery(*, limit: int = 20) -> None:
     """Print a slice of the public petdex gallery (CLI/TUI text fallback)."""
-    from agent.pet import store
-    from agent.pet.manifest import ManifestError, fetch_manifest
+    from sparkii_cli.pet import store
+    from sparkii_cli.pet.manifest import ManifestError, fetch_manifest
 
     try:
         entries = fetch_manifest()

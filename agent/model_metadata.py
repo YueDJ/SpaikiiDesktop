@@ -2673,7 +2673,7 @@ def get_model_context_length(
                 load_config,
             )
             from core.moa_config import resolve_moa_preset
-            from sparkii_cli.runtime_provider import resolve_runtime_provider
+            from core.runtime_provider import resolve_runtime_provider
 
             config = load_config()
             effective_custom_providers = custom_providers
@@ -3002,7 +3002,7 @@ def get_model_context_length(
     # returns the provider-enforced limit which is what users can actually use.
     if effective_provider in {"copilot", "copilot-acp", "github-copilot"}:
         try:
-            from sparkii_cli.models import get_copilot_model_context
+            from core.models import get_copilot_model_context
             ctx = get_copilot_model_context(model, api_key=api_key)
             if ctx:
                 return ctx

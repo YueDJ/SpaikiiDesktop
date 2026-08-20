@@ -5,7 +5,7 @@ import sqlite3
 import threading
 from pathlib import Path
 
-from sparkii_cli import kanban_db as kb
+from core import kanban_db as kb
 
 
 def _make_legacy_db(path: Path) -> None:

@@ -21,7 +21,7 @@ Hermetic: the model-resolution chain is fully mocked (no network), mirroring
 
 from unittest.mock import patch
 
-from sparkii_cli.model_switch import switch_model
+from core.model_switch import switch_model
 
 _ACCEPTED = {"accepted": True, "persist": True, "recognized": True, "message": None}
 _REJECTED = {"accepted": False, "persist": False, "recognized": False, "message": "not found"}
@@ -57,15 +57,15 @@ def _run_switch(
     resolution, normalization, and model metadata.  This isolates the new
     configured-provider detection step.
     """
-    with patch("sparkii_cli.model_switch.resolve_alias", return_value=None), \
-         patch("sparkii_cli.model_switch.list_provider_models", return_value=[]), \
-         patch("sparkii_cli.model_switch.normalize_model_for_provider", side_effect=lambda model, provider: model), \
-         patch("sparkii_cli.models.validate_requested_model", return_value=validation), \
-         patch("sparkii_cli.models.detect_provider_for_model", return_value=None), \
-         patch("sparkii_cli.model_switch.get_model_info", return_value=None), \
-         patch("sparkii_cli.model_switch.get_model_capabilities", return_value=None), \
+    with patch("core.model_switch.resolve_alias", return_value=None), \
+         patch("core.model_switch.list_provider_models", return_value=[]), \
+         patch("core.model_switch.normalize_model_for_provider", side_effect=lambda model, provider: model), \
+         patch("core.models.validate_requested_model", return_value=validation), \
+         patch("core.models.detect_provider_for_model", return_value=None), \
+         patch("core.model_switch.get_model_info", return_value=None), \
+         patch("core.model_switch.get_model_capabilities", return_value=None), \
          patch(
-             "sparkii_cli.runtime_provider.resolve_runtime_provider",
+             "core.runtime_provider.resolve_runtime_provider",
              return_value={
                  "api_key": "***",
                  "base_url": current_base_url or "http://resolved/v1",

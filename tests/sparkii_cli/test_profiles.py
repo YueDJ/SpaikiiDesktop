@@ -1,4 +1,4 @@
-"""Comprehensive tests for sparkii_cli.profiles module.
+"""Comprehensive tests for core.profiles module.
 
 Tests cover: validation, directory resolution, CRUD operations, active profile
 management, export/import, renaming, alias collision checks, profile isolation,
@@ -18,8 +18,8 @@ from unittest.mock import patch, MagicMock
 import pytest
 import yaml
 
-from sparkii_cli import profiles
-from sparkii_cli.profiles import (
+from core import profiles
+from core.profiles import (
     normalize_profile_name,
     validate_profile_name,
     get_profile_dir,
@@ -264,9 +264,9 @@ class TestDeleteProfile:
         profile_dir = create_profile("coder", no_alias=True)
         set_active_profile("coder")
 
-        with patch("sparkii_cli.profiles._cleanup_gateway_service"), \
-             patch("sparkii_cli.profiles.time.sleep"), \
-             patch("sparkii_cli.profiles.shutil.rmtree", side_effect=PermissionError("locked")):
+        with patch("core.profiles._cleanup_gateway_service"), \
+             patch("core.profiles.time.sleep"), \
+             patch("core.profiles.shutil.rmtree", side_effect=PermissionError("locked")):
             with pytest.raises(RuntimeError, match="Could not remove profile directory"):
                 delete_profile("coder", yes=True)
 
@@ -571,8 +571,8 @@ class TestWrapperScript:
     """Tests for create_wrapper_script() and remove_wrapper_script()."""
 
     def test_creates_sh_on_posix(self, profile_env, monkeypatch):
-        monkeypatch.setattr("sparkii_cli.profiles.shutil.which", lambda name: "/opt/sparkii/bin/sparkii")
-        from sparkii_cli.profiles import create_wrapper_script
+        monkeypatch.setattr("core.profiles.shutil.which", lambda name: "/opt/sparkii/bin/sparkii")
+        from core.profiles import create_wrapper_script
         wrapper = create_wrapper_script("mybot")
         assert wrapper is not None
         assert wrapper.name == "mybot"
@@ -583,7 +583,7 @@ class TestWrapperScript:
 
     @pytest.mark.windows_only
     def test_remove_finds_bat_on_windows(self, profile_env):
-        from sparkii_cli.profiles import create_wrapper_script, remove_wrapper_script
+        from core.profiles import create_wrapper_script, remove_wrapper_script
         wrapper = create_wrapper_script("mybot")
         assert wrapper is not None
         assert wrapper.exists()
@@ -630,14 +630,14 @@ class TestFindAliasForProfile:
     """Tests for find_alias_for_profile() and alias display in list/show."""
 
     def test_profile_named_alias(self, profile_env):
-        from sparkii_cli.profiles import create_wrapper_script, find_alias_for_profile
+        from core.profiles import create_wrapper_script, find_alias_for_profile
         create_wrapper_script("steve")
         assert find_alias_for_profile("steve") == "steve"
 
 
     def test_ignores_unrelated_files(self, profile_env):
         # ~/.local/bin commonly holds unrelated binaries; they must not match.
-        from sparkii_cli.profiles import _get_wrapper_dir, find_alias_for_profile
+        from core.profiles import _get_wrapper_dir, find_alias_for_profile
         wrapper_dir = _get_wrapper_dir()
         wrapper_dir.mkdir(parents=True, exist_ok=True)
         (wrapper_dir / "pip").write_text("#!/bin/sh\nexec python -m pip \"$@\"\n")
@@ -645,7 +645,7 @@ class TestFindAliasForProfile:
 
 
     def test_list_profiles_surfaces_custom_alias(self, profile_env):
-        from sparkii_cli.profiles import (
+        from core.profiles import (
             create_profile,
             create_wrapper_script,
             list_profiles,
@@ -672,7 +672,7 @@ class TestRenameProfile:
         assert old_dir.is_dir()
 
         # Mock alias collision to avoid subprocess calls
-        with patch("sparkii_cli.profiles.check_alias_collision", return_value="skip"):
+        with patch("core.profiles.check_alias_collision", return_value="skip"):
             new_dir = rename_profile("oldname", "newname")
 
         assert not old_dir.is_dir()
@@ -698,7 +698,7 @@ class TestRenameProfile:
             }
         }))
 
-        with patch("sparkii_cli.profiles.check_alias_collision", return_value="skip"):
+        with patch("core.profiles.check_alias_collision", return_value="skip"):
             rename_profile("ssi_health", "heimdall")
 
         cfg = json.loads(honcho_path.read_text())
@@ -971,7 +971,7 @@ class TestEdgeCases:
         """
         import os
         import gateway.status as gw_status
-        from sparkii_cli.profiles import _check_gateway_running
+        from core.profiles import _check_gateway_running
 
         tmp_path = profile_env
         default_home = tmp_path / ".sparkii"

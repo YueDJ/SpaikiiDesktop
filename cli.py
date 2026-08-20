@@ -207,7 +207,7 @@ def realign_markdown_tables(*args, **kwargs):
     from agent.markdown_tables import realign_markdown_tables as _realign_markdown_tables
 
     return _realign_markdown_tables(*args, **kwargs)
-# NOTE: `from agent.account_usage import ...` is deliberately NOT at module
+# NOTE: `from sparkii_cli.account_usage import ...` is deliberately NOT at module
 # top — it transitively pulls the OpenAI SDK chain (~230 ms cold) and is only
 # needed when the user runs `/limits`. Lazy-imported inside the handler below.
 from sparkii_cli.banner import _format_context_length, format_banner_version_label
@@ -787,6 +787,18 @@ def load_cli_config() -> Dict[str, Any]:
 # Load configuration at module startup
 CLI_CONFIG = load_cli_config()
 
+# Block 4: expose the live CLI config to core consumers (delegate_tool's
+# SPARKII_IGNORE_USER_CONFIG path) without them importing the frontend `cli`.
+from core.config import set_cli_config_provider
+
+set_cli_config_provider(lambda: CLI_CONFIG)
+
+# Block 4: expose the live CLI config to core consumers (delegate_tool's
+# SPARKII_IGNORE_USER_CONFIG path) without them importing the frontend `cli`.
+from core.config import set_cli_config_provider
+
+set_cli_config_provider(lambda: CLI_CONFIG)
+
 
 # Initialize centralized logging early — agent.log + errors.log in ~/.sparkii/logs/.
 # This ensures CLI sessions produce a log trail even before AIAgent is instantiated.
@@ -812,7 +824,7 @@ except Exception:
 
 # Initialize tool preview length from config
 try:
-    from agent.display import set_tool_preview_max_len
+    from sparkii_cli.display import set_tool_preview_max_len
     _tpl = CLI_CONFIG.get("display", {}).get("tool_preview_length", 0)
     set_tool_preview_max_len(int(_tpl) if _tpl else 0)
 except Exception:
@@ -820,7 +832,7 @@ except Exception:
 
 # Initialize friendly tool labels from config (default on)
 try:
-    from agent.display import set_friendly_tool_labels
+    from sparkii_cli.display import set_friendly_tool_labels
     _ftl = CLI_CONFIG.get("display", {}).get("friendly_tool_labels", True)
     set_friendly_tool_labels(bool(_ftl))
 except Exception:
@@ -1054,7 +1066,7 @@ def _prepare_deferred_agent_startup() -> None:
         _hooks_cfg = load_config()
         register_from_config(_hooks_cfg, accept_hooks=_accept_hooks)
 
-        from agent.outbound_webhooks import (
+        from sparkii_cli.outbound_webhooks import (
             register_from_config as register_outbound_webhooks,
         )
 
@@ -1999,64 +2011,10 @@ def _setup_worktree(repo_root: str = None, sync_base: bool = True,
     return info
 
 
-def _worktree_has_unpushed_commits(worktree_path: str, timeout: int = 10) -> bool:
-    """Return whether a worktree has commits not reachable from any remote branch.
-
-    ``git log HEAD --not --remotes`` compares against remote-tracking refs under
-    ``refs/remotes/*``. If a repo has no remote-tracking refs yet, there is no
-    usable remote baseline to compare against, so treat it as having no
-    "unpushed" commits.
-
-    SHALLOW-CLONE CAVEAT: in a shallow clone (the installer default) the
-    shallow boundary can disconnect an older worktree HEAD from origin/*,
-    making already-public commits look unpushed. The verdict here stays
-    conservative (True) on purpose — deleting on unverifiable history would
-    risk real work. Callers that can afford it should deepen first via
-    ``_deepen_shallow_repo`` (the startup pruner does) or check
-    ``_repo_is_shallow`` before presenting this verdict as fact.
-    """
-    import subprocess
-
-    try:
-        remote_refs = subprocess.run(
-            ["git", "for-each-ref", "--format=%(refname)", "refs/remotes"],
-            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout, cwd=worktree_path,
-        )
-        if remote_refs.returncode != 0:
-            return True
-        if not remote_refs.stdout.strip():
-            return False
-
-        result = subprocess.run(
-            ["git", "log", "--oneline", "HEAD", "--not", "--remotes"],
-            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout, cwd=worktree_path,
-        )
-        if result.returncode != 0:
-            return True
-        return bool(result.stdout.strip())
-    except Exception:
-        return True
-
-
-def _worktree_is_dirty(worktree_path: str, timeout: int = 10) -> bool:
-    """Return whether a worktree has uncommitted changes (staged, unstaged, or
-    untracked).
-
-    Fails SAFE: on any error returns True so callers do not delete a worktree
-    whose state they cannot determine.
-    """
-    import subprocess
-
-    try:
-        result = subprocess.run(
-            ["git", "status", "--porcelain"],
-            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout, cwd=worktree_path,
-        )
-        if result.returncode != 0:
-            return True
-        return bool(result.stdout.strip())
-    except Exception:
-        return True
+# Block 4: worktree safety predicates moved to the core package; keep the
+# names re-exported here for surface-side callers and patch targets.
+from core.git_worktree import _worktree_has_unpushed_commits  # noqa: F401
+from core.git_worktree import _worktree_is_dirty  # noqa: F401
 
 
 def _repo_is_shallow(repo_path: str, timeout: int = 5) -> bool:
@@ -5378,7 +5336,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin):
         # Petdex mascot (opt-in via display.pet). The base CLI mirrors the TUI's
         # PetPane: a half-block sprite above the prompt that reacts to agent
         # activity. Lazily resolved; an invalidate timer drives the animation.
-        self._pet_renderer = None  # agent.pet.render.PetRenderer | None
+        self._pet_renderer = None  # sparkii_cli.pet.render.PetRenderer | None
         self._pet_slug: str = ""
         self._pet_enabled: bool = False
         self._pet_cols: int = 18
@@ -6575,8 +6533,8 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin):
         the TUI's steady poll. Cheap and fail-open: any problem disables the pet.
         """
         try:
-            from agent.pet import constants, store
-            from agent.pet.render import PetRenderer
+            from sparkii_cli.pet import constants, store
+            from sparkii_cli.pet.render import PetRenderer
             from core.config import load_config
 
             cfg = load_config()
@@ -6642,7 +6600,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin):
         """Flash the end-of-turn beat: failed on error, jump on a finished plan, else wave."""
         if not self._pet_enabled:
             return
-        from agent.pet.state import todos_all_done
+        from sparkii_cli.pet.state import todos_all_done
 
         if self._pet_turn_error:
             self._pet_flash("failed")
@@ -6659,13 +6617,13 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin):
 
         A transient reaction beat (wave/jump/failed) wins while it's live;
         otherwise the steady state comes from the shared
-        :func:`agent.pet.state.derive_pet_state` so the CLI can't drift from the
+        :func:`sparkii_cli.pet.state.derive_pet_state` so the CLI can't drift from the
         TUI/desktop priority order.
         """
         if self._pet_event and time.monotonic() < self._pet_event_until:
             return self._pet_event
         self._pet_event = ""
-        from agent.pet.state import derive_pet_state
+        from sparkii_cli.pet.state import derive_pet_state
 
         # A live blocking modal (approval / clarify / sudo / secret / slash
         # confirm) means the agent is paused on the user → the `waiting` pose,
@@ -13058,7 +13016,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin):
         base_url = getattr(agent, "base_url", None) or getattr(self, "base_url", None)
         api_key = getattr(agent, "api_key", None) or getattr(self, "api_key", None)
         # Lazy import — pulls the OpenAI SDK chain, only needed here.
-        from agent.account_usage import fetch_account_usage, render_account_usage_lines
+        from sparkii_cli.account_usage import fetch_account_usage, render_account_usage_lines
         account_snapshot = None
         if provider:
             with concurrent.futures.ThreadPoolExecutor(max_workers=1) as _pool:
@@ -13628,7 +13586,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin):
             self._stream_box_opened = False
         self._close_reasoning_box()
 
-        from agent.display import get_tool_emoji
+        from sparkii_cli.display import get_tool_emoji
         emoji = get_tool_emoji(tool_name, default="⚡")
         _cprint(f"  ┊ {emoji} preparing {tool_name}…")
 
@@ -13728,7 +13686,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin):
                     return
                 self._last_scrollback_tool = function_name
                 try:
-                    from agent.display import get_cute_tool_message
+                    from sparkii_cli.display import get_cute_tool_message
                     line = get_cute_tool_message(function_name, stored_args, duration, result=kwargs.get("result"))
                     _cprint(f"  {line}")
                 except Exception:
@@ -13763,10 +13721,10 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin):
         if event_type != "tool.started":
             return
         if function_name and not function_name.startswith("_"):
-            from agent.display import get_tool_emoji
+            from sparkii_cli.display import get_tool_emoji
             emoji = get_tool_emoji(function_name)
             label = preview or function_name
-            from agent.display import get_tool_preview_max_len
+            from sparkii_cli.display import get_tool_preview_max_len
             _pl = get_tool_preview_max_len()
             if _pl > 0 and len(label) > _pl:
                 label = label[:_pl - 3] + "..."
@@ -13781,7 +13739,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin):
     def _on_tool_start(self, tool_call_id: str, function_name: str, function_args: dict):
         """Capture local before-state for write-capable tools."""
         try:
-            from agent.display import capture_local_edit_snapshot
+            from sparkii_cli.display import capture_local_edit_snapshot
 
             snapshot = capture_local_edit_snapshot(function_name, function_args)
             if snapshot is not None:
@@ -13808,7 +13766,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin):
                     pass
         snapshot = self._pending_edit_snapshots.pop(tool_call_id, None)
         try:
-            from agent.display import render_edit_diff_with_delta
+            from sparkii_cli.display import render_edit_diff_with_delta
 
             render_edit_diff_with_delta(
                 function_name,
@@ -16953,7 +16911,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin):
         # never blocks the interactive loop.  Best-effort; any failure is
         # swallowed to avoid breaking session startup.
         try:
-            from agent.curator import maybe_run_curator
+            from sparkii_cli.curator import maybe_run_curator
             maybe_run_curator(
                 idle_for_seconds=float("inf"),  # CLI startup = fully idle
                 on_summary=lambda msg: self._console_print(
@@ -20182,6 +20140,22 @@ def main(
     try:
         from sparkii_cli.stdio import configure_windows_stdio
         configure_windows_stdio()
+    except Exception:
+        pass
+
+    # Dependency inversion: inject the product-layer billing-link builder
+    # into the core loop (conversation_loop stays product-agnostic).
+    try:
+        from agent.conversation_loop import set_billing_block_builder
+        from agent.display_provider import set_display_provider
+        from run_agent import set_background_review_provider
+        from sparkii_cli.billing_links import build_billing_block
+        from sparkii_cli.background_review import build_background_review_provider
+        from sparkii_cli.display import build_display_provider
+
+        set_billing_block_builder(build_billing_block)
+        set_display_provider(build_display_provider())
+        set_background_review_provider(build_background_review_provider())
     except Exception:
         pass
 

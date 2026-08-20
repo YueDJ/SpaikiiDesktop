@@ -16,13 +16,13 @@ network or auth state is required.
 """
 
 import pytest
-from sparkii_cli import model_switch
+from core import model_switch
 
 
 @pytest.fixture(autouse=True)
 def _disable_live_custom_provider_model_probe(monkeypatch):
     """Keep custom-provider picker fixtures independent of local model servers."""
-    monkeypatch.setattr("sparkii_cli.models.fetch_api_models", lambda *_a, **_kw: None)
+    monkeypatch.setattr("core.models.fetch_api_models", lambda *_a, **_kw: None)
 
 
 def _make_provider(slug, name=None, models=None, *, is_current=False,
@@ -72,7 +72,7 @@ def test_passthrough_kwargs_to_base(monkeypatch):
         return []
 
     monkeypatch.setattr(model_switch, "list_authenticated_providers", _capture)
-    monkeypatch.setattr("sparkii_cli.models.fetch_openrouter_models",
+    monkeypatch.setattr("core.models.fetch_openrouter_models",
                         lambda *a, **kw: [])
 
     model_switch.list_picker_providers(
@@ -97,8 +97,8 @@ def test_current_custom_endpoint_passthrough_marks_current_row(monkeypatch):
     """Interactive picker should preserve current custom endpoint semantics."""
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
     monkeypatch.setattr("agent.models_dev.PROVIDER_TO_MODELS_DEV", {})
-    monkeypatch.setattr("sparkii_cli.providers.SPARKII_OVERLAYS", {})
-    monkeypatch.setattr("sparkii_cli.models.fetch_openrouter_models",
+    monkeypatch.setattr("core.providers.SPARKII_OVERLAYS", {})
+    monkeypatch.setattr("core.models.fetch_openrouter_models",
                         lambda *a, **kw: [])
 
     result = model_switch.list_picker_providers(
@@ -157,7 +157,7 @@ def _stub_kimi_discovery(monkeypatch, *, canonical):
     the 2b cross-check pass should iterate.
     """
     import agent.models_dev as md
-    import sparkii_cli.models as hm
+    import core.models as hm
 
     kimi_map = {
         "kimi": "kimi-for-coding",
@@ -177,7 +177,7 @@ def _stub_kimi_discovery(monkeypatch, *, canonical):
         name = "Kimi For Coding"
 
     monkeypatch.setattr(md, "get_provider_info", lambda _pid: _PInfo())
-    monkeypatch.setattr("sparkii_cli.providers.SPARKII_OVERLAYS", {})
+    monkeypatch.setattr("core.providers.SPARKII_OVERLAYS", {})
     monkeypatch.setattr(hm, "CANONICAL_PROVIDERS", canonical)
     monkeypatch.setattr(hm, "cached_provider_model_ids",
                         lambda *a, **k: ["kimi-k2.6", "kimi-k2.5"])

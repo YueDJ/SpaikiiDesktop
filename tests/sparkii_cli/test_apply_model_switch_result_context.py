@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from sparkii_cli.model_switch import ModelSwitchResult
+from core.model_switch import ModelSwitchResult
 
 
 class _FakeModelInfo:

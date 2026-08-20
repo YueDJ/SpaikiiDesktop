@@ -72,7 +72,7 @@ moa:
 
 
 def test_moa_runtime_provider_uses_virtual_endpoint():
-    from sparkii_cli.runtime_provider import resolve_runtime_provider
+    from core.runtime_provider import resolve_runtime_provider
 
     runtime = resolve_runtime_provider(requested="moa", target_model="review")
 
@@ -708,7 +708,7 @@ def test_slot_runtime_anthropic_oauth_routes_through_provider_branch(monkeypatch
         }
 
     monkeypatch.setattr(
-        "sparkii_cli.runtime_provider.resolve_runtime_provider", fake_resolve
+        "core.runtime_provider.resolve_runtime_provider", fake_resolve
     )
 
     # _slot_runtime forwards the resolved endpoint for anthropic like any slot.

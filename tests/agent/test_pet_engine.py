@@ -11,8 +11,8 @@ import io
 
 import pytest
 
-from agent.pet import constants, render, state, store
-from agent.pet.constants import FRAME_H, FRAME_W, PetState
+from sparkii_cli.pet import constants, render, state, store
+from sparkii_cli.pet.constants import FRAME_H, FRAME_W, PetState
 
 
 # ─────────────────────────────────────────────────────────────────────────

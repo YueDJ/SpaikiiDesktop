@@ -12,7 +12,7 @@ import pytest
 
 from agent import tts_registry
 from agent.tts_provider import TTSProvider
-from sparkii_cli import tools_config
+from core import tools_config
 
 
 class _FakeTTSProvider(TTSProvider):

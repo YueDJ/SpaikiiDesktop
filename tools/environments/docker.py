@@ -138,7 +138,7 @@ def _get_active_profile_name() -> str:
     same process don't retroactively relabel running containers.
     """
     try:
-        from sparkii_cli.profiles import get_active_profile_name
+        from core.profiles import get_active_profile_name
 
         return get_active_profile_name() or "default"
     except Exception:

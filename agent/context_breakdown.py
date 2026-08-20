@@ -196,7 +196,7 @@ def compute_context_details(agent: Any) -> Dict[str, Any]:
     canonical tool→toolset map. Byte figures are converted to the same
     chars/4 token heuristic the categories above use.
     """
-    from sparkii_cli.prompt_size import (
+    from core.prompt_size import (
         _compute_skills_breakdown,
         _compute_toolsets_breakdown,
     )

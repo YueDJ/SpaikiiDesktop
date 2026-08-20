@@ -150,7 +150,7 @@ def _provider_default_routes(provider: str) -> set[str]:
     """Return known exact default routes for a canonical provider id."""
     routes: set[str] = set()
     try:
-        from sparkii_cli.providers import SPARKII_OVERLAYS, get_provider
+        from core.providers import SPARKII_OVERLAYS, get_provider
 
         overlay = SPARKII_OVERLAYS.get(provider)
         provider_def = get_provider(provider, allow_network=False)
@@ -177,9 +177,9 @@ def _provider_default_routes(provider: str) -> set[str]:
         pass
 
     try:
-        from sparkii_cli.auth import PROVIDER_REGISTRY
+        from core.provider_registry import PROVIDER_REGISTRY
         from core.model_resolution import normalize_provider as normalize_model_provider
-        from sparkii_cli.providers import normalize_provider as normalize_registry_provider
+        from core.providers import normalize_provider as normalize_registry_provider
 
         for provider_id, config in PROVIDER_REGISTRY.items():
             canonical_id = normalize_registry_provider(
@@ -234,7 +234,7 @@ def _context_route_mismatch(
         configured_provider = configured_provider.lower()
         active_provider = active_provider.lower()
     try:
-        from sparkii_cli.providers import normalize_provider as normalize_registry_provider
+        from core.providers import normalize_provider as normalize_registry_provider
 
         configured_provider = normalize_registry_provider(configured_provider)
         active_provider = normalize_registry_provider(active_provider)
@@ -732,7 +732,7 @@ def init_agent(
         # forcing `codex_responses` on the provider name alone would break custom endpoints
         # named "meta" that do not host the Responses API.
         try:
-            from sparkii_cli.providers import host_mandated_api_mode as _host_mandated_api_mode
+            from core.providers import host_mandated_api_mode as _host_mandated_api_mode
 
             _mandated = _host_mandated_api_mode(base_url or "")
         except Exception:
@@ -768,7 +768,7 @@ def init_agent(
         pass  # Non-fatal — transport may not exist for all modes yet
 
     try:
-        from sparkii_cli.model_normalize import (
+        from core.model_normalize import (
             _AGGREGATOR_PROVIDERS,
             normalize_model_for_provider,
         )
@@ -900,7 +900,7 @@ def init_agent(
     agent._active_children = []      # Running child AIAgents (for interrupt propagation)
     agent._active_children_lock = threading.Lock()
 
-    # Background memory/skill review state (agent/background_review.py). Holds
+    # Background memory/skill review state (sparkii_cli/background_review.py). Holds
     # the forked review AIAgent while its run_conversation() is in flight, so
     # the NEXT live turn can proactively interrupt a still-running review
     # instead of letting the two race concurrently against the same
@@ -1153,27 +1153,6 @@ def init_agent(
             # MiniMax OAuth issues short-lived (~15-min) access tokens. The
             # Anthropic SDK caches ``api_key`` as a static string at client
             # construction time, so a session that resolves the bearer once
-            # at startup will keep sending the same token until MiniMax
-            # returns 401 mid-session. Swap the static string for a callable
-            # token provider — ``build_anthropic_client`` recognizes the
-            # callable and installs an httpx event hook that mints a fresh
-            # bearer per outbound request (re-reading auth.json so a refresh
-            # persisted by another process is visible immediately).
-            # The cached refresh path is a no-op when the token still has
-            # ``MINIMAX_OAUTH_REFRESH_SKEW_SECONDS`` of life left, so steady-
-            # state cost is one file read + one timestamp compare per request.
-            if agent.provider == "minimax-oauth" and isinstance(effective_key, str) and effective_key:
-                try:
-                    from sparkii_cli.auth import build_minimax_oauth_token_provider
-                    effective_key = build_minimax_oauth_token_provider()
-                except Exception as _mm_exc:  # noqa: BLE001 — never block startup on this
-                    import logging as _logging
-                    _logging.getLogger(__name__).warning(
-                        "MiniMax OAuth: failed to install per-request token provider "
-                        "(%s); falling back to static bearer that will expire ~15min in.",
-                        _mm_exc,
-                    )
-
             agent.api_key = effective_key
             agent._anthropic_api_key = effective_key
             agent._anthropic_base_url = base_url
@@ -1284,7 +1263,7 @@ def init_agent(
             elif base_url_host_matches(effective_base, "api.routermint.com"):
                 client_kwargs["default_headers"] = _ra()._routermint_headers()
             elif base_url_host_matches(effective_base, "githubcopilot.com"):
-                from sparkii_cli.models import copilot_default_headers
+                from core.models import copilot_default_headers
 
                 client_kwargs["default_headers"] = copilot_default_headers()
             elif base_url_host_matches(effective_base, "api.kimi.com"):
@@ -1345,7 +1324,7 @@ def init_agent(
                     # (e.g. alibaba → DASHSCOPE_API_KEY, not ALIBABA_API_KEY).
                     _env_hint = f"{_explicit.upper()}_API_KEY"
                     try:
-                        from sparkii_cli.auth import PROVIDER_REGISTRY
+                        from core.provider_registry import PROVIDER_REGISTRY
                         _pcfg = PROVIDER_REGISTRY.get(_explicit)
                         if _pcfg and _pcfg.api_key_env_vars:
                             _env_hint = _pcfg.api_key_env_vars[0]
@@ -1528,7 +1507,7 @@ def init_agent(
     # ``model_tools`` was first imported. Ensure that profile's keyed plugin
     # manager has discovered its registrations before taking the tool snapshot.
     try:
-        from sparkii_cli.plugins import discover_plugins
+        from core.plugins import discover_plugins
 
         discover_plugins()
     except Exception:
@@ -1881,7 +1860,7 @@ def init_agent(
                         _init_kwargs["gateway_session_key"] = agent._gateway_session_key
                     # Profile identity for per-profile provider scoping
                     try:
-                        from sparkii_cli.profiles import get_active_profile_name
+                        from core.profiles import get_active_profile_name
                         _profile = get_active_profile_name()
                         _init_kwargs["agent_identity"] = _profile
                         _init_kwargs["agent_workspace"] = "sparkii"
@@ -2370,7 +2349,7 @@ def init_agent(
         _active_runtime_model = agent.model
         if _configured_default_model:
             try:
-                from sparkii_cli.model_normalize import normalize_model_for_provider
+                from core.model_normalize import normalize_model_for_provider
 
                 _configured_default_runtime_model = normalize_model_for_provider(
                     _configured_default_model, agent.provider
@@ -2405,7 +2384,7 @@ def init_agent(
             and not _configured_provider_norm.startswith("custom:")
         ):
             try:
-                from sparkii_cli.auth import resolve_provider as resolve_auth_provider
+                from core.credentials import resolve_provider as resolve_auth_provider
 
                 _resolved_auth_provider = resolve_auth_provider(
                     _configured_provider_norm
@@ -2613,7 +2592,7 @@ def init_agent(
         if _selected_engine is None:
             _candidate = None
             try:
-                from sparkii_cli.plugins import get_plugin_context_engine
+                from core.plugins import get_plugin_context_engine
                 _candidate = get_plugin_context_engine()
             except Exception:
                 _candidate = None
@@ -2763,7 +2742,7 @@ def init_agent(
     # non-CLI surface to still surface the warning.)
     if not agent.quiet_mode and (agent.platform or "cli") != "cli":
         try:
-            from sparkii_cli.model_switch import _check_sparkii_model_warning
+            from core.model_switch import _check_sparkii_model_warning
 
             _sparkii_warn = _check_sparkii_model_warning(agent.model or "")
             if _sparkii_warn:

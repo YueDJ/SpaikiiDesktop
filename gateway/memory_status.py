@@ -80,36 +80,9 @@ def _parse_iso(value: Any) -> Optional[datetime]:
     return parsed
 
 
-def classify_pressure(
-    available_kib: Any, total_kib: Any
-) -> str:
-    """Map a MemAvailable/MemTotal pair to ``ok``/``elevated``/``critical``.
-
-    ``unknown`` when the sample is missing or malformed — the caller must
-    not treat "we could not read it" as "memory is fine".
-    """
-    if (
-        isinstance(available_kib, bool)
-        or not isinstance(available_kib, int)
-        or available_kib < 0
-    ):
-        return "unknown"
-    fraction: Optional[float] = None
-    if (
-        not isinstance(total_kib, bool)
-        and isinstance(total_kib, int)
-        and total_kib > 0
-    ):
-        fraction = available_kib / total_kib
-    if available_kib < _CRITICAL_AVAILABLE_KIB or (
-        fraction is not None and fraction < _CRITICAL_AVAILABLE_FRACTION
-    ):
-        return "critical"
-    if available_kib < _ELEVATED_AVAILABLE_KIB or (
-        fraction is not None and fraction < _ELEVATED_AVAILABLE_FRACTION
-    ):
-        return "elevated"
-    return "ok"
+# Block 4: pressure classification moved to the core package; keep the name
+# re-exported here for surface-side callers and patch targets.
+from core.mem_trim import classify_pressure  # noqa: F401
 
 
 def _read_heartbeat(home: Optional[Path]) -> Optional[Dict[str, Any]]:

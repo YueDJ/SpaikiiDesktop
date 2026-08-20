@@ -1,6 +1,7 @@
 """Provider metadata registry for Sparkii core.
 
-Extracted verbatim from `sparkii_cli.auth` during the Phase 0 trim.
+Extracted verbatim from `sparkii_cli.auth` (now `core.credentials`) during the
+Phase 0 trim.
 """
 
 from __future__ import annotations

@@ -143,7 +143,7 @@ def test_provider_flag_uses_named_custom_default_model(monkeypatch):
         },
     }
     monkeypatch.setattr("core.config.load_config", lambda: config)
-    monkeypatch.setattr("sparkii_cli.runtime_provider.load_config", lambda: config)
+    monkeypatch.setattr("core.runtime_provider.load_config", lambda: config)
 
     shell = cli.SparkiiCLI(provider="gmk-lan", compact=True, max_turns=1)
 
@@ -171,7 +171,7 @@ def test_explicit_model_wins_over_provider_default_model(monkeypatch):
         },
     }
     monkeypatch.setattr("core.config.load_config", lambda: config)
-    monkeypatch.setattr("sparkii_cli.runtime_provider.load_config", lambda: config)
+    monkeypatch.setattr("core.runtime_provider.load_config", lambda: config)
 
     shell = cli.SparkiiCLI(
         provider="gmk-lan",
@@ -196,7 +196,7 @@ def test_provider_flag_logs_when_custom_default_model_cannot_resolve(monkeypatch
         raise RuntimeError("catalog unavailable")
 
     monkeypatch.setattr(
-        "sparkii_cli.runtime_provider._get_named_custom_provider",
+        "core.runtime_provider._get_named_custom_provider",
         _boom,
     )
 
@@ -218,8 +218,8 @@ def test_sparkii_cli_init_does_not_eagerly_resolve_runtime_provider(monkeypatch)
         calls["count"] += 1
         raise AssertionError("resolve_runtime_provider should not be called in SparkiiCLI.__init__")
 
-    monkeypatch.setattr("sparkii_cli.runtime_provider.resolve_runtime_provider", _unexpected_runtime_resolve)
-    monkeypatch.setattr("sparkii_cli.runtime_provider.format_runtime_provider_error", lambda exc: str(exc))
+    monkeypatch.setattr("core.runtime_provider.resolve_runtime_provider", _unexpected_runtime_resolve)
+    monkeypatch.setattr("core.runtime_provider.format_runtime_provider_error", lambda exc: str(exc))
 
     shell = cli.SparkiiCLI(model="gpt-5", compact=True, max_turns=1)
 
@@ -247,8 +247,8 @@ def test_runtime_resolution_failure_is_not_sticky(monkeypatch):
         def __init__(self, *args, **kwargs):
             self.kwargs = kwargs
 
-    monkeypatch.setattr("sparkii_cli.runtime_provider.resolve_runtime_provider", _runtime_resolve)
-    monkeypatch.setattr("sparkii_cli.runtime_provider.format_runtime_provider_error", lambda exc: str(exc))
+    monkeypatch.setattr("core.runtime_provider.resolve_runtime_provider", _runtime_resolve)
+    monkeypatch.setattr("core.runtime_provider.format_runtime_provider_error", lambda exc: str(exc))
     monkeypatch.setattr(cli, "AIAgent", _DummyAgent)
 
     shell = cli.SparkiiCLI(model="gpt-5", compact=True, max_turns=1)
@@ -342,8 +342,8 @@ def test_codex_provider_uses_config_model(monkeypatch):
             "source": "env/config",
         }
 
-    monkeypatch.setattr("sparkii_cli.runtime_provider.resolve_runtime_provider", _runtime_resolve)
-    monkeypatch.setattr("sparkii_cli.runtime_provider.format_runtime_provider_error", lambda exc: str(exc))
+    monkeypatch.setattr("core.runtime_provider.resolve_runtime_provider", _runtime_resolve)
+    monkeypatch.setattr("core.runtime_provider.format_runtime_provider_error", lambda exc: str(exc))
     # Prevent live API call from overriding the config model
     monkeypatch.setattr(
         "sparkii_cli.codex_models.get_codex_model_ids",
@@ -379,7 +379,7 @@ def test_model_flow_custom_saves_verified_v1_base_url(monkeypatch, capsys):
     monkeypatch.setattr("sparkii_cli.auth.deactivate_provider", lambda: None)
     monkeypatch.setattr("sparkii_cli.main._save_custom_provider", lambda *args, **kwargs: None)
     monkeypatch.setattr(
-        "sparkii_cli.models.probe_api_models",
+        "core.models.probe_api_models",
         lambda api_key, base_url: {
             "models": ["llm"],
             "probed_url": "http://localhost:8000/v1/models",
@@ -422,7 +422,7 @@ def test_model_flow_custom_persists_selected_api_mode(monkeypatch):
     monkeypatch.setattr("sparkii_cli.auth._save_model_choice", lambda model: None)
     monkeypatch.setattr("sparkii_cli.auth.deactivate_provider", lambda: None)
     monkeypatch.setattr(
-        "sparkii_cli.models.probe_api_models",
+        "core.models.probe_api_models",
         lambda api_key, base_url: {
             "models": [],
             "probed_url": f"{base_url.rstrip('/')}/models",

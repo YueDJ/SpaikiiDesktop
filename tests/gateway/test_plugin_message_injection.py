@@ -121,7 +121,7 @@ async def test_plugin_context_routes_through_live_gateway_to_existing_session(
         manager,
     )
 
-    with patch("sparkii_cli.plugins.get_plugin_manager", return_value=manager):
+    with patch("core.plugins.get_plugin_manager", return_value=manager):
         runner._install_plugin_message_injector()
         assert (
             context.inject_message(
@@ -543,7 +543,7 @@ def test_install_and_clear_gateway_injector_preserves_newer_owner():
     runner = _runner(_entry())
     manager = PluginManager()
 
-    with patch("sparkii_cli.plugins.get_plugin_manager", return_value=manager):
+    with patch("core.plugins.get_plugin_manager", return_value=manager):
         runner._install_plugin_message_injector()
         assert manager.has_gateway_message_injector is True
 

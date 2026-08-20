@@ -237,7 +237,7 @@ def test_emit_returns_before_blocking_subscriber_finishes():
 
 
 def test_pending_budget_drops_new_event_without_blocking(monkeypatch, caplog):
-    from sparkii_cli import plugins as plugins_mod
+    from core import plugins as plugins_mod
 
     monkeypatch.setattr(plugins_mod, "_EVENT_PENDING_CAP", 1)
     manager = _fresh_manager()
@@ -469,7 +469,7 @@ def test_manifest_parse_absent_emits_listens(tmp_path):
 
 
 def test_get_plugin_subscriptions_accessor(monkeypatch):
-    from sparkii_cli import plugins as plugins_mod
+    from core import plugins as plugins_mod
 
     fresh = _fresh_manager()
     monkeypatch.setattr(plugins_mod, "_ensure_plugins_discovered", lambda force=False: fresh)

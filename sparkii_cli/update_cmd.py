@@ -405,7 +405,7 @@ def _print_curator_first_run_notice() -> None:
     to preview or disable before then. Silent on steady state.
     """
     try:
-        from agent import curator
+        from sparkii_cli import curator
     except Exception:
         return
     try:
@@ -563,7 +563,7 @@ def _print_curator_recent_run_notice() -> None:
     no rename information to display (no archives).
     """
     try:
-        from agent import curator
+        from sparkii_cli import curator
     except Exception:
         return
     try:

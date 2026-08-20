@@ -153,10 +153,10 @@ def install_pet(slug: str, *, force: bool = False, timeout: float = _DOWNLOAD_TI
     """Download *slug* from the manifest into the pets directory.
 
     Idempotent: a fully-installed pet is returned as-is unless *force*.  Raises
-    :class:`PetStoreError` / :class:`~agent.pet.manifest.ManifestError` on
+    :class:`PetStoreError` / :class:`~sparkii_cli.pet.manifest.ManifestError` on
     failure.
     """
-    from agent.pet.manifest import find_entry
+    from sparkii_cli.pet.manifest import find_entry
 
     slug = _safe_slug(slug)
     if not slug:

@@ -834,7 +834,7 @@ class OpenRouterCompatImageProvider(ImageGenProvider):
 
     def _resolve_runtime(self) -> Dict[str, Any]:
         """Resolve ``(base_url, api_key)`` via the shared runtime resolver."""
-        from sparkii_cli.runtime_provider import resolve_runtime_provider
+        from core.runtime_provider import resolve_runtime_provider
 
         return resolve_runtime_provider(requested=self._runtime_name)
 

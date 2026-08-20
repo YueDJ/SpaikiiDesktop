@@ -4103,7 +4103,7 @@ async def get_system_stats():
 @app.get("/api/curator")
 async def get_curator_status():
     try:
-        from agent import curator
+        from sparkii_cli import curator
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Curator unavailable: {exc}")
     try:
@@ -4123,7 +4123,7 @@ async def get_curator_status():
 
 @app.put("/api/curator/paused")
 async def set_curator_paused(body: CuratorPause):
-    from agent import curator
+    from sparkii_cli import curator
 
     curator.set_paused(bool(body.paused))
     return {"ok": True, "paused": bool(body.paused)}
@@ -19206,3 +19206,13 @@ def start_server(
             asyncio.run(_serve())
     except KeyboardInterrupt:
         return
+
+
+# Block 4: register the dashboard ws-auth check for the kanban dashboard
+# plugin (core/kanban_bridge).
+try:
+    from core.kanban_bridge import set_dashboard_ws_auth_provider
+
+    set_dashboard_ws_auth_provider(_ws_auth_ok)
+except Exception:  # pragma: no cover - defensive
+    pass

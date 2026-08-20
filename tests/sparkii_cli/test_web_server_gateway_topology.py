@@ -55,7 +55,7 @@ def _patch_topology(monkeypatch, homes, running, runtimes):
     ``homes``: list of (name, Path); ``running``: set of profile names with a
     live gateway; ``runtimes``: {name: runtime dict}.
     """
-    import sparkii_cli.profiles as profiles_mod
+    import core.profiles as profiles_mod
     import gateway.status as status_mod
 
     monkeypatch.setattr(profiles_mod, "profiles_to_serve", lambda multiplex: homes)
@@ -214,7 +214,7 @@ class TestCollectProfileGatewayTopology:
 
 
     def test_enumeration_failure_degrades_gracefully(self, monkeypatch):
-        import sparkii_cli.profiles as profiles_mod
+        import core.profiles as profiles_mod
 
         def _boom(multiplex):
             raise RuntimeError("no profiles root")
@@ -394,7 +394,7 @@ class TestStatusEndpointTopology:
         # (gateway_mode == "multiple"). Each profile's failures live in its
         # own gateway_state.json; the machine-level /api/status must fold
         # them in as <profile>:<platform> so NAS health monitoring sees them.
-        import sparkii_cli.profiles as profiles_mod
+        import core.profiles as profiles_mod
 
         monkeypatch.setattr(web_server, "get_running_pid_cached", lambda: 123)
         monkeypatch.setattr(
@@ -470,7 +470,7 @@ class TestStatusEndpointTopology:
     def test_profile_scoped_status_does_not_merge_other_profiles(self, monkeypatch):
         # ?profile=<name> targets one profile's view — merging every other
         # profile's failures into it would misattribute state.
-        import sparkii_cli.profiles as profiles_mod
+        import core.profiles as profiles_mod
 
         monkeypatch.setattr(web_server, "get_running_pid_cached", lambda: 123)
         monkeypatch.setattr(

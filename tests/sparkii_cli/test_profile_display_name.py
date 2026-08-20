@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from sparkii_cli.profiles import (
+from core.profiles import (
     create_profile,
     format_profile_label,
     get_profile_dir,
@@ -101,7 +101,7 @@ class TestRenameDefault:
         self, profile_env, monkeypatch
     ):
         monkeypatch.setattr(
-            "sparkii_cli.profiles.check_alias_collision", lambda name: "skip"
+            "core.profiles.check_alias_collision", lambda name: "skip"
         )
         create_profile("oldname", no_alias=True)
         write_profile_meta(get_profile_dir("oldname"), display_name="Old Friend")

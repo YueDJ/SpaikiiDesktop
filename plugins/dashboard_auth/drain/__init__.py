@@ -60,7 +60,7 @@ import os
 from collections import Counter
 from typing import Optional
 
-from sparkii_cli.dashboard_auth import (
+from core.dashboard_auth import (
     DashboardAuthProvider,
     LoginStart,
     Session,
@@ -275,7 +275,11 @@ def register(ctx) -> None:
     # Opt the begin/cancel-drain endpoint into the generic token-auth seam so
     # the dashboard's interactive cookie gate doesn't bounce NAS's bearer call.
     try:
-        from sparkii_cli.dashboard_auth.token_auth import register_token_route
+        from core.plugins import _get_dashboard_auth_provider as _dash_auth_provider2
+        _dash_auth2 = _dash_auth_provider2()
+        register_token_route = _dash_auth2.register_token_route if _dash_auth2 is not None else None
+        if register_token_route is None:
+            raise RuntimeError("dashboard_auth framework not registered")
 
         register_token_route(DRAIN_ROUTE_PATH)
     except Exception as exc:  # noqa: BLE001 — seam import must not crash plugin load

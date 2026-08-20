@@ -36,7 +36,7 @@ def _isolate_kanban_board_env():
 def test_pin_writes_resolved_board_when_env_unset(monkeypatch):
     main_mod = importlib.import_module("sparkii_cli.main")
 
-    import sparkii_cli.kanban_db as kdb
+    import core.kanban_db as kdb
     monkeypatch.setattr(kdb, "get_current_board", lambda: "space")
 
     main_mod._pin_kanban_board_env()
@@ -48,7 +48,7 @@ def test_pin_does_not_overwrite_existing_env(monkeypatch):
     monkeypatch.setenv("SPARKII_KANBAN_BOARD", "preset")
     main_mod = importlib.import_module("sparkii_cli.main")
 
-    import sparkii_cli.kanban_db as kdb
+    import core.kanban_db as kdb
 
     def _explode():
         raise AssertionError("get_current_board must not be called when env is set")

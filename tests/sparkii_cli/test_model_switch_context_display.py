@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from sparkii_cli.model_switch import resolve_display_context_length
+from core.model_switch import resolve_display_context_length
 
 
 class _FakeModelInfo:

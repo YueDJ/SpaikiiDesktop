@@ -2,7 +2,7 @@
 
 Every aux picker (``sparkii model`` → Configure auxiliary models, the
 ``sparkii tools`` vision picker, and any future one) must route through
-``sparkii_cli.inventory.build_aux_picker_rows()`` so it shows the same
+``core.inventory.build_aux_picker_rows()`` so it shows the same
 provider universe as ``/model``.
 
 Two independent contributor PRs fixed the same two call sites for exactly
@@ -74,7 +74,7 @@ def test_aux_picker_surfaces_user_defined_providers(configured_home):
     neither ``user_providers`` nor ``custom_providers``, so a user who had
     configured their own endpoint could not route any auxiliary task to it.
     """
-    from sparkii_cli.inventory import build_aux_picker_rows
+    from core.inventory import build_aux_picker_rows
 
     slugs = {r["slug"] for r in build_aux_picker_rows()}
 
@@ -90,7 +90,7 @@ def test_aux_picker_requests_exhausted_pool_visibility(configured_home):
     """#66624: a provider whose credential pool is entirely rate-limited
     must stay visible. Rate limits are per-model and the aux picker writes a
     config the user runs later, once the cooldown has cleared."""
-    from sparkii_cli import inventory
+    from core import inventory
 
     seen = {}
 
@@ -98,7 +98,7 @@ def test_aux_picker_requests_exhausted_pool_visibility(configured_home):
         seen.update(kwargs)
         return []
 
-    with patch("sparkii_cli.model_switch.list_authenticated_providers", _capture):
+    with patch("core.model_switch.list_authenticated_providers", _capture):
         inventory.build_aux_picker_rows()
 
     assert seen.get("for_picker") is True
@@ -124,7 +124,7 @@ def test_aux_pickers_route_through_the_shared_substrate(configured_home):
     the provider list only through ``build_aux_picker_rows``.
     """
     import sparkii_cli.main as main
-    import sparkii_cli.tools_config as tools_config
+    import core.tools_config as tools_config
 
     direct_calls = []
     substrate_calls = []
@@ -141,8 +141,8 @@ def test_aux_pickers_route_through_the_shared_substrate(configured_home):
     # provider list. The vision picker returns early on empty rows; the
     # aux-task picker still renders auto/custom/back, so cancel its menu.
     with (
-        patch("sparkii_cli.model_switch.list_authenticated_providers", _direct),
-        patch("sparkii_cli.inventory.build_aux_picker_rows", _substrate),
+        patch("core.model_switch.list_authenticated_providers", _direct),
+        patch("core.inventory.build_aux_picker_rows", _substrate),
         patch("sparkii_cli.main._prompt_provider_choice", return_value=None),
     ):
         main._aux_select_for_task("compression")
@@ -154,6 +154,6 @@ def test_aux_pickers_route_through_the_shared_substrate(configured_home):
     )
     assert direct_calls == [], (
         "aux pickers must not call list_authenticated_providers directly — "
-        "route through sparkii_cli.inventory.build_aux_picker_rows so custom "
+        "route through core.inventory.build_aux_picker_rows so custom "
         "providers, exclusions, and picker visibility stay consistent"
     )

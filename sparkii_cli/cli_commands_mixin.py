@@ -1549,8 +1549,8 @@ class CLICommandsMixin:
         Writes ``display.pet.*`` to config; the CLI/TUI/desktop pet surfaces
         pick the change up on their next poll, so the pet appears shortly.
         """
-        from agent.pet import store
-        from agent.pet.manifest import ManifestError
+        from sparkii_cli.pet import store
+        from sparkii_cli.pet.manifest import ManifestError
         from sparkii_cli.pets import _set_active, _set_enabled, print_pet_gallery, set_pet_scale, toggle_pet_display
 
         parts = cmd.split(maxsplit=1)
@@ -1604,9 +1604,9 @@ class CLICommandsMixin:
         (it's ~a minute of image-model calls). In the desktop app this command
         opens the richer generate overlay instead; here we run it directly.
         """
-        from agent.pet import store
-        from agent.pet.generate import orchestrate
-        from agent.pet.generate.imagegen import GenerationError
+        from sparkii_cli.pet import store
+        from sparkii_cli.pet.generate import orchestrate
+        from sparkii_cli.pet.generate.imagegen import GenerationError
         from sparkii_cli.pets import _set_active
 
         parts = cmd.split(maxsplit=1)
