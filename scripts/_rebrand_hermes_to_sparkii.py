@@ -32,10 +32,10 @@ SKIP_DIR_NAMES = {
 # Placeholder protects third-party product names during bulk replace.
 # Tokens must NOT contain hermes/Hermes/HERMES — the final substring sweep
 # would corrupt them before unprotect.
-HERMESCLAW_TOKEN = "HermesClaw"
-HERMESCLAW_URL_TOKEN = "hermesclaw"
-HERMESBENCH_TOKEN = "HermesBench"
-HERMESBENCH_URL_TOKEN = "hermesbench"
+HERMESCLAW_TOKEN = "___THIRDPARTY_CLAW_PRESERVE___"
+HERMESCLAW_URL_TOKEN = "___THIRDPARTY_CLAW_URL_PRESERVE___"
+HERMESBENCH_TOKEN = "___THIRDPARTY_BENCH_PRESERVE___"
+HERMESBENCH_URL_TOKEN = "___THIRDPARTY_BENCH_URL_PRESERVE___"
 
 # Ordered content replacements (apply after third-party protection).
 # Longer / more specific first.
@@ -231,6 +231,8 @@ def rename_paths(root: Path) -> int:
         name = path.name
         new_name = transform_content(name)
         # Also handle CamelCase file stems already covered; ensure hermes→sparkii
+        if path.name.startswith("_rebrand_"):
+            continue
         if new_name == name:
             continue
         dest = path.with_name(new_name)
