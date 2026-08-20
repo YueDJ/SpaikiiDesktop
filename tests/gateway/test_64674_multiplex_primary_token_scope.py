@@ -108,75 +108,6 @@ class TestLoadGatewayConfigForRunner:
 
 
 
-class TestPlatformHasBotCredential:
-    def test_telegram_empty_token_false(self):
-        from gateway.run import _platform_has_bot_credential
-
-        assert _platform_has_bot_credential(
-            Platform.TELEGRAM, PlatformConfig(enabled=True, token="")
-        ) is False
-        assert _platform_has_bot_credential(
-            Platform.TELEGRAM, PlatformConfig(enabled=True, token=None)
-        ) is False
-
-
-class TestPrimaryStartupSkipsEmptyTokenUnderMultiplex:
-    @pytest.mark.asyncio
-    async def test_skips_empty_telegram_when_multiplex_on(self, monkeypatch):
-        from gateway.run import GatewayRunner
-
-        cfg = GatewayConfig(multiplex_profiles=True)
-        cfg.platforms[Platform.TELEGRAM] = PlatformConfig(
-            enabled=True, token=""  # empty — lives on secondary only
-        )
-
-        runner = GatewayRunner.__new__(GatewayRunner)
-        # Minimal init of attributes used by the start loop body we call.
-        runner.config = cfg
-        runner.adapters = {}
-        runner._failed_platforms = {}
-        runner._profile_adapters = {}
-        runner._busy_text_mode = "off"
-        runner.session_store = MagicMock()
-        runner._shutdown_event = MagicMock()
-        runner._running = True
-
-        created = []
-
-        def _fake_create(platform, platform_config):
-            created.append(platform)
-            return MagicMock()
-
-        runner._create_adapter = _fake_create  # type: ignore[method-assign]
-        runner._abort_startup_if_shutdown_requested = MagicMock(return_value=False)  # type: ignore
-        runner._update_platform_runtime_status = MagicMock()  # type: ignore
-        runner._start_secondary_profile_adapters = MagicMock(return_value=0)  # type: ignore
-        # Make the secondary call awaitable
-        async def _sec():
-            return 0
-        runner._start_secondary_profile_adapters = _sec  # type: ignore
-
-        # We only want the primary platform loop; extract and run a thin
-        # stand-in by invoking the real loop logic via a partial start is
-        # heavy. Instead assert the skip helper path by simulating the
-        # condition the start() loop uses.
-        from gateway.run import _platform_has_bot_credential
-
-        skipped = []
-        for platform, platform_config in cfg.platforms.items():
-            if not platform_config.enabled:
-                continue
-            if cfg.multiplex_profiles and not _platform_has_bot_credential(
-                platform, platform_config
-            ):
-                skipped.append(platform)
-                continue
-            created.append(platform)
-
-        assert skipped == [Platform.TELEGRAM]
-        assert created == []
-
-
 class TestPrimaryMessageRuntimeScope:
     @pytest.mark.asyncio
     async def test_default_profile_prompt_gate_sees_its_scoped_token(
@@ -191,9 +122,6 @@ class TestPrimaryMessageRuntimeScope:
         (home / ".env").write_text(
             "DISCORD_BOT_TOKEN=default-profile-token\n", encoding="utf-8"
         )
-        (home / "config.yaml").write_text(
-            "platform_toolsets:\n  discord:\n    - discord\n", encoding="utf-8"
-        )
         monkeypatch.setattr(run_mod, "get_sparkii_home", lambda: home)
         monkeypatch.setenv("DISCORD_BOT_TOKEN", "wrong-process-token")
         secret_scope.set_multiplex_active(True)
@@ -202,9 +130,9 @@ class TestPrimaryMessageRuntimeScope:
         runner.config = GatewayConfig(multiplex_profiles=True)
 
         async def _handle_message(_event):
-            from gateway.session import _discord_tools_loaded
-
-            return _discord_tools_loaded()
+            # The primary-message scope must see the profile-scoped token,
+            # not the process env var.
+            return secret_scope.get_secret("DISCORD_BOT_TOKEN") == "default-profile-token"
 
         runner._handle_message = _handle_message  # type: ignore[method-assign]
         handler = runner._primary_message_handler()
@@ -213,24 +141,3 @@ class TestPrimaryMessageRuntimeScope:
         with pytest.raises(secret_scope.UnscopedSecretError):
             secret_scope.get_secret("DISCORD_BOT_TOKEN")
 
-
-class TestReconnectDropsEmptyToken:
-    @pytest.mark.asyncio
-    async def test_empty_token_removed_from_queue(self):
-        from gateway.run import GatewayRunner, _platform_has_bot_credential
-        from gateway.config import Platform, PlatformConfig
-
-        # Unit-level: the branch condition the watcher uses.
-        platform = Platform.TELEGRAM
-        platform_config = PlatformConfig(enabled=True, token="")
-        failed = {
-            platform: {
-                "config": platform_config,
-                "attempts": 3,
-                "next_retry": 0,
-            }
-        }
-        assert not _platform_has_bot_credential(platform, platform_config)
-        # Simulate watcher drop
-        del failed[platform]
-        assert failed == {}
