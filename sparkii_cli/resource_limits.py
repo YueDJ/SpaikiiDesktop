@@ -11,7 +11,7 @@ import logging
 from collections.abc import Mapping
 from typing import Any
 
-from sparkii_cli.config_defaults import DEFAULT_CONFIG
+from core.config_defaults import DEFAULT_CONFIG
 
 try:  # ``resource`` is POSIX-only (and unavailable on Windows).
     import resource as _resource
@@ -37,7 +37,7 @@ def _configured_nofile_soft_limit(
         try:
             # Use Sparkii's real, profile-aware loader rather than reading YAML
             # here. This also applies managed-scope overlays and defaults.
-            from sparkii_cli.config import load_config_readonly
+            from core.config import load_config_readonly
 
             config = load_config_readonly()
         except Exception:

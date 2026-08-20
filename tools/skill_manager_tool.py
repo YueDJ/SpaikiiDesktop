@@ -42,7 +42,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from sparkii_constants import get_sparkii_home, display_sparkii_home
 from utils import atomic_write_text, is_truthy_value
-from sparkii_cli.config import cfg_get
+from core.config import cfg_get
 from agent.skill_utils import (
     extract_skill_description,
     is_skill_description_truncated_for_prompt,
@@ -112,7 +112,7 @@ def _guard_agent_created_enabled() -> bool:
     on via `sparkii config set skills.guard_agent_created true`.
     """
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         cfg = load_config()
         return is_truthy_value(
             cfg_get(cfg, "skills", "guard_agent_created"),

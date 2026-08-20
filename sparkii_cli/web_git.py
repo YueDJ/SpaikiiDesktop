@@ -19,7 +19,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from sparkii_cli._subprocess_compat import noninteractive_git_env
+from core._subprocess_compat import noninteractive_git_env
 
 _GIT_TIMEOUT = 30
 _GH_TIMEOUT = 30

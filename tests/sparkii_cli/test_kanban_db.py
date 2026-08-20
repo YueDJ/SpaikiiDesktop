@@ -807,7 +807,7 @@ class TestSharedBoardPaths:
         default_home.mkdir()
         self._set_home(monkeypatch, tmp_path, default_home)
 
-        from gateway import session_context as sc
+        from core import session_context as sc
 
         # A dispatcher can launch before the gateway binds its first session.
         monkeypatch.setattr(sc, "_session_context_engaged", False)
@@ -1551,7 +1551,7 @@ def test_write_txn_check_reads_correct_header_fields(tmp_path):
     """
     import struct
     from sparkii_cli.kanban_db import connect
-    from sparkii_cli.sqlite_safe_read import file_length_matches_header
+    from core.sqlite_safe_read import file_length_matches_header
 
     db = tmp_path / "synthetic.db"
     conn = connect(db_path=db)

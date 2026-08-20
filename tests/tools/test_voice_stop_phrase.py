@@ -51,7 +51,7 @@ class TestIsVoiceStopPhrase:
 class TestLoadVoiceStopPhrases:
     def _with_cfg(self, voice_cfg):
         return patch(
-            "sparkii_cli.config.load_config",
+            "core.config.load_config",
             return_value={"voice": voice_cfg},
         )
 
@@ -61,7 +61,7 @@ class TestLoadVoiceStopPhrases:
 
 
     def test_config_error_falls_back(self):
-        with patch("sparkii_cli.config.load_config", side_effect=RuntimeError):
+        with patch("core.config.load_config", side_effect=RuntimeError):
             assert _load_voice_stop_phrases() == DEFAULT_VOICE_STOP_PHRASES
 
 

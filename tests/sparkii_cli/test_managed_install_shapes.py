@@ -10,7 +10,7 @@ import os
 
 import pytest
 
-from sparkii_cli import config as config_mod
+from core import config as config_mod
 
 
 @pytest.fixture

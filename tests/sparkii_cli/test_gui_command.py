@@ -587,7 +587,7 @@ def test_gui_skips_desktop_entry_off_linux(tmp_path, monkeypatch):
 )
 def test_desktop_launch_options_normalizes_password_store(raw, expected):
     cfg = {"desktop": {"password_store": raw}}
-    with patch("sparkii_cli.config.load_config", return_value=cfg):
+    with patch("core.config.load_config", return_value=cfg):
         _, _, store = cli_main._desktop_launch_options()
     assert store == expected
 
@@ -663,7 +663,7 @@ def test_gui_linux_packaged_launch_bridges_detected_password_store(tmp_path, mon
          patch("sparkii_cli.main._write_desktop_build_stamp"), \
          patch("sparkii_cli.main._desktop_macos_relaunchable_fixup"), \
          patch("sparkii_cli.main._desktop_linux_sandbox_fixup", return_value=True), \
-         patch("sparkii_cli.config.load_config", return_value={}), \
+         patch("core.config.load_config", return_value={}), \
          patch("sparkii_cli.linux_desktop_entry.install_desktop_entry", return_value=None), \
          patch("sparkii_cli.main._detect_linux_password_store", return_value="gnome-libsecret"), \
          patch("sparkii_cli.main.subprocess.run", side_effect=[ok, ok]) as mock_run, \
@@ -686,7 +686,7 @@ def test_gui_linux_source_launch_bridges_detected_password_store(tmp_path, monke
          patch("sparkii_cli.main._run_npm_install_deterministic", return_value=ok), \
          patch("sparkii_cli.main._desktop_build_needed", return_value=True), \
          patch("sparkii_cli.main._write_desktop_build_stamp"), \
-         patch("sparkii_cli.config.load_config", return_value={}), \
+         patch("core.config.load_config", return_value={}), \
          patch("sparkii_cli.linux_desktop_entry.install_desktop_entry", return_value=None), \
          patch("sparkii_cli.main._detect_linux_password_store", return_value="kwallet6"), \
          patch("sparkii_cli.main.subprocess.run", side_effect=[ok, ok]) as mock_run, \
@@ -714,7 +714,7 @@ def test_gui_config_password_store_skips_detection(tmp_path, monkeypatch):
          patch("sparkii_cli.main._write_desktop_build_stamp"), \
          patch("sparkii_cli.main._desktop_macos_relaunchable_fixup"), \
          patch("sparkii_cli.main._desktop_linux_sandbox_fixup", return_value=True), \
-         patch("sparkii_cli.config.load_config", return_value=cfg), \
+         patch("core.config.load_config", return_value=cfg), \
          patch("sparkii_cli.linux_desktop_entry.install_desktop_entry", return_value=None), \
          patch("sparkii_cli.main._detect_linux_password_store") as mock_detect, \
          patch("sparkii_cli.main.subprocess.run", side_effect=[ok, ok]) as mock_run, \
@@ -743,7 +743,7 @@ def test_gui_explicit_password_store_env_wins_over_config_and_detection(tmp_path
          patch("sparkii_cli.main._write_desktop_build_stamp"), \
          patch("sparkii_cli.main._desktop_macos_relaunchable_fixup"), \
          patch("sparkii_cli.main._desktop_linux_sandbox_fixup", return_value=True), \
-         patch("sparkii_cli.config.load_config", return_value=cfg), \
+         patch("core.config.load_config", return_value=cfg), \
          patch("sparkii_cli.linux_desktop_entry.install_desktop_entry", return_value=None), \
          patch("sparkii_cli.main._detect_linux_password_store") as mock_detect, \
          patch("sparkii_cli.main.subprocess.run", side_effect=[ok, ok]) as mock_run, \
@@ -769,7 +769,7 @@ def test_gui_password_store_bridge_is_linux_only(tmp_path, monkeypatch):
          patch("sparkii_cli.main._desktop_build_needed", return_value=True), \
          patch("sparkii_cli.main._write_desktop_build_stamp"), \
          patch("sparkii_cli.main._desktop_macos_relaunchable_fixup"), \
-         patch("sparkii_cli.config.load_config", return_value={}), \
+         patch("core.config.load_config", return_value={}), \
          patch("sparkii_cli.linux_desktop_entry.install_desktop_entry", return_value=None), \
          patch("sparkii_cli.main._detect_linux_password_store") as mock_detect, \
          patch("sparkii_cli.main.subprocess.run", side_effect=[ok, ok]) as mock_run, \

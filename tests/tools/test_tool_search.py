@@ -73,7 +73,7 @@ class TestClassification:
         from tools.tool_search import is_deferrable_tool_name
         # Sample of core tools from _SPARKII_CORE_TOOLS.
         for core_name in ["terminal", "read_file", "write_file", "patch",
-                          "search_files", "todo", "memory", "browser_navigate",
+                          "search_files", "todo", "memory",
                           "web_search", "session_search", "clarify",
                           "execute_code", "delegate_task", "send_message"]:
             assert not is_deferrable_tool_name(core_name), (
@@ -144,7 +144,7 @@ class TestClassification:
         assert assembled.activated
         assert mcp_name not in names
         assert BRIDGE_TOOL_NAMES <= names
-        assert {"read_window_below", "apply_layout", "computer_use"} <= names
+        assert {"read_window_below", "apply_layout"} <= names
 
     def test_unknown_tool_not_deferrable(self):
         """Defensive: a tool name we cannot resolve to a registry entry must

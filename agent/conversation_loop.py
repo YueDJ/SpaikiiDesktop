@@ -1802,7 +1802,7 @@ def run_conversation(
     """
     if moa_config is None:
         try:
-            from sparkii_cli.moa_config import decode_moa_turn
+            from core.moa_config import decode_moa_turn
 
             _decoded_message, _decoded_moa_config = decode_moa_turn(user_message)
             if _decoded_moa_config is not None:

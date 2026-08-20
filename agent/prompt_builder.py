@@ -1472,7 +1472,7 @@ def build_environment_hints() -> str:
     extra = (os.getenv("SPARKII_ENVIRONMENT_HINT") or "").strip()
     if not extra:
         try:
-            from sparkii_cli.config import load_config_readonly
+            from core.config import load_config_readonly
 
             extra = str(
                 (load_config_readonly().get("agent", {}) or {}).get("environment_hint", "")
@@ -1526,7 +1526,7 @@ def _get_context_file_max_chars(context_length: Optional[int] = None) -> int:
       3. ``CONTEXT_FILE_MAX_CHARS`` (20K) as the upstream-compatible fallback.
     """
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
 
         val = load_config_readonly().get("context_file_max_chars")
         if isinstance(val, (int, float)) and val > 0:
@@ -2318,7 +2318,7 @@ def load_soul_md(
     same class as the skills-index leak fixed in #86313).
     """
     try:
-        from sparkii_cli.config import ensure_sparkii_home
+        from core.config import ensure_sparkii_home
         ensure_sparkii_home()
     except Exception as e:
         logger.debug("Could not ensure SPARKII_HOME before loading SOUL.md: %s", e)

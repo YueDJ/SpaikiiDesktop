@@ -6,7 +6,7 @@ tool registry nor a running Sparkii.
 
 import pytest
 
-from sparkii_cli.toolset_validation import validate_platform_toolsets
+from core.toolset_validation import validate_platform_toolsets
 
 # A representative set of real toolset names. `sparkii` is deliberately absent —
 # that is the corruption #38798 reported (`sparkii-cli` rewritten to `sparkii`).

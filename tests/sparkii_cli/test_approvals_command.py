@@ -42,8 +42,8 @@ def test_approvals_registry_drives_help_menu_and_autocomplete():
 def _isolate_config(monkeypatch, home):
     monkeypatch.setenv("SPARKII_HOME", str(home))
     monkeypatch.setenv("SPARKII_MANAGED_DIR", str(home / "missing-managed"))
-    from sparkii_cli import managed_scope
-    from sparkii_cli.config import _LOAD_CONFIG_CACHE, _RAW_CONFIG_CACHE
+    from core import managed_scope
+    from core.config import _LOAD_CONFIG_CACHE, _RAW_CONFIG_CACHE
 
     _LOAD_CONFIG_CACHE.clear()
     _RAW_CONFIG_CACHE.clear()
@@ -55,7 +55,7 @@ def _isolate_config(monkeypatch, home):
 
 
 def test_shared_command_refuses_managed_mode_override(tmp_path, monkeypatch):
-    from sparkii_cli import managed_scope
+    from core import managed_scope
     from sparkii_cli.approval_mode import run_approval_mode_command
 
     home = tmp_path / "home"

@@ -574,7 +574,7 @@ def _cmd_purge(args) -> int:
     each purged skill is captured (before-blobs) and recorded as a 'purge'
     entry, so even a purge is auditable and blob-recoverable.
     """
-    from sparkii_cli.config import cfg_get, load_config
+    from core.config import cfg_get, load_config
     from tools import skill_ledger
     from tools.skill_usage import _archive_dir
 

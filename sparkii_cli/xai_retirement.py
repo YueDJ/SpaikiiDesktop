@@ -243,7 +243,7 @@ def apply_migration(
         )
         shutil.copy2(config_path, backup_path)
 
-    from sparkii_cli.config import require_readable_config_before_write
+    from core.config import require_readable_config_before_write
     from utils import atomic_write_text
 
     require_readable_config_before_write(config_path)

@@ -314,7 +314,7 @@ def _scan_cron_skill_assembled(assembled: str) -> tuple[str, str]:
 
 
 def _origin_from_env() -> Optional[Dict[str, str]]:
-    from gateway.session_context import get_session_env
+    from core.session_context import get_session_env
     origin_platform = get_session_env("SPARKII_SESSION_PLATFORM")
     origin_chat_id = get_session_env("SPARKII_SESSION_CHAT_ID")
     if origin_platform and origin_chat_id:
@@ -471,7 +471,7 @@ def _resolve_cron_context_deliver(deliver: Optional[str]) -> Optional[str]:
     * Every other element (``local``, ``all``, explicit ``platform:...``)
       passes through verbatim, including inside comma lists.
     """
-    from gateway.session_context import get_session_env
+    from core.session_context import get_session_env
     from utils import is_truthy_value
 
     if not is_truthy_value(get_session_env("SPARKII_CRON_SESSION", "")):
@@ -955,7 +955,7 @@ def _try_dispatch_background_run(
     # Finite sessions cannot route a detached result back after the turn
     # ends — mirror delegate_task's gate and fall back to sync execution.
     try:
-        from gateway.session_context import async_delivery_supported
+        from core.session_context import async_delivery_supported
 
         if not async_delivery_supported():
             return None
@@ -1057,7 +1057,7 @@ def _try_dispatch_background_run(
 
     origin_ui_session_id = ""
     try:
-        from gateway.session_context import get_session_env
+        from core.session_context import get_session_env
 
         origin_ui_session_id = get_session_env("SPARKII_UI_SESSION_ID", "") or ""
     except Exception:

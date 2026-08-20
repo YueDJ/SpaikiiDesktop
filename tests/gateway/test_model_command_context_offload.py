@@ -71,7 +71,7 @@ def _runner_with_store(tmp_path, monkeypatch):
         ),
     )
     monkeypatch.setattr("sparkii_constants.get_sparkii_home", lambda: sparkii_home)
-    monkeypatch.setattr("sparkii_cli.config.get_sparkii_home", lambda: sparkii_home)
+    monkeypatch.setattr("core.config.get_sparkii_home", lambda: sparkii_home)
     # No expensive-model confirmation detour.
     monkeypatch.setattr(
         "sparkii_cli.model_cost_guard.expensive_model_warning",

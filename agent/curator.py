@@ -138,7 +138,7 @@ def is_paused() -> bool:
 def _load_config() -> Dict[str, Any]:
     """Read curator.* config from ~/.sparkii/config.yaml. Tolerates missing file."""
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
         cfg = load_config_readonly()
     except Exception as e:
         logger.debug("Failed to load config for curator: %s", e)
@@ -1890,7 +1890,7 @@ def _run_llm_review(prompt: str) -> Dict[str, Any]:
     _acp_args = None
     _model_name = ""
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
         from sparkii_cli.runtime_provider import resolve_runtime_provider
         _cfg = load_config_readonly()
         _binding = _resolve_review_runtime(_cfg)

@@ -109,7 +109,7 @@ class TestInstallHangupProtection:
     def test_wraps_stdout_and_stderr_with_mirror(self, tmp_path, monkeypatch):
         monkeypatch.setenv("SPARKII_HOME", str(tmp_path))
         # Nuke any cached home path
-        import sparkii_cli.config as _cfg
+        import core.config as _cfg
         if hasattr(_cfg, "_SPARKII_HOME_CACHE"):
             _cfg._SPARKII_HOME_CACHE = None  # type: ignore[attr-defined]
 
@@ -147,7 +147,7 @@ class TestInstallHangupProtection:
 
         # Patch the import inside _install_hangup_protection.
         monkeypatch.setattr(
-            "sparkii_cli.config.get_sparkii_home", _boom, raising=True
+            "core.config.get_sparkii_home", _boom, raising=True
         )
 
         original_handler = (

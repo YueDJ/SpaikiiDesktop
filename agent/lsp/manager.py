@@ -190,13 +190,13 @@ class LSPService:
 
     @classmethod
     def create_from_config(cls) -> Optional["LSPService"]:
-        """Build a service from ``sparkii_cli.config`` settings.
+        """Build a service from ``core.config`` settings.
 
         Returns ``None`` if the config can't be loaded.  The service
         itself returns ``is_active()`` False when LSP is disabled.
         """
         try:
-            from sparkii_cli.config import load_config_readonly
+            from core.config import load_config_readonly
             cfg = load_config_readonly()
         except Exception as e:  # noqa: BLE001
             logger.debug("LSP config load failed: %s", e)

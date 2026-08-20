@@ -237,7 +237,7 @@ async def test_windows_detached_restart_scrubs_gateway_marker(monkeypatch, tmp_p
     monkeypatch.setenv("_SPARKII_GATEWAY", "1")
     monkeypatch.setenv("VIRTUAL_ENV", str(venv_dir))
 
-    import sparkii_cli._subprocess_compat as subprocess_compat
+    import core._subprocess_compat as subprocess_compat
 
     monkeypatch.setattr(
         subprocess_compat,
@@ -285,7 +285,7 @@ async def test_windows_detached_restart_watcher_keeps_console_python(monkeypatch
     monkeypatch.setattr(gateway_run.os, "getpid", lambda: 321)
     monkeypatch.setenv("VIRTUAL_ENV", str(venv_dir))
 
-    import sparkii_cli._subprocess_compat as subprocess_compat
+    import core._subprocess_compat as subprocess_compat
 
     monkeypatch.setattr(
         subprocess_compat,

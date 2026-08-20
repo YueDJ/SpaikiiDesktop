@@ -89,7 +89,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Optional
 
-from sparkii_cli.sqlite_util import add_column_if_missing as _add_column_if_missing
+from core.sqlite_util import add_column_if_missing as _add_column_if_missing
 from toolsets import get_toolset_names
 
 _log = logging.getLogger(__name__)
@@ -1580,7 +1580,7 @@ def _sqlite_connect(path: Path) -> sqlite3.Connection:
     advisory locks on the database (see ``sparkii_cli.sqlite_safe_read``).
     The registration is released automatically when the connection closes.
     """
-    from sparkii_cli.sqlite_safe_read import connect_tracked
+    from core.sqlite_safe_read import connect_tracked
 
     busy_timeout_ms = _resolve_busy_timeout_ms()
     conn = connect_tracked(
@@ -1856,7 +1856,7 @@ def _validate_sqlite_header(path: Path) -> None:
     # exists (connect() calls it under the init lock, ahead of _sqlite_connect).
     # read_header_bytes_preopen refuses once a connection is live, because the
     # close() would cancel this process's POSIX locks on the file.
-    from sparkii_cli.sqlite_safe_read import read_header_bytes_preopen
+    from core.sqlite_safe_read import read_header_bytes_preopen
 
     head = read_header_bytes_preopen(path, length=64)
     if head is None:
@@ -1973,7 +1973,7 @@ def _backup_corrupt_db(path: Path) -> Optional[Path]:
     # risk -- so REFUSE rather than warn-and-proceed. Losing a forensic copy
     # is strictly better than corrupting the live database we are trying to
     # rescue.
-    from sparkii_cli.sqlite_safe_read import has_live_connection
+    from core.sqlite_safe_read import has_live_connection
 
     if has_live_connection(resolved):
         _log.error(
@@ -2986,7 +2986,7 @@ def _check_file_length_invariant(conn: sqlite3.Connection) -> None:
     write into a database a writer still believed it owned. That is the
     documented corruption route in sqlite.org/howtocorrupt.html section 2.2.
     """
-    from sparkii_cli.sqlite_safe_read import file_length_matches_header
+    from core.sqlite_safe_read import file_length_matches_header
 
     # In WAL mode a just-committed page can still live in the -wal file, so
     # the main file legitimately lags its page count. Only enforce the
@@ -9602,7 +9602,7 @@ def review_dispatch_enabled() -> bool:
     transition. Operators can disable it for human-only review boards.
     """
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         return bool(
             (load_config() or {}).get("kanban", {}).get("review_dispatch", True)
         )
@@ -9703,7 +9703,7 @@ def configured_max_in_progress() -> Optional[int]:
     memory-derived default via :func:`resolve_max_in_progress`.
     """
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
         raw = (load_config_readonly() or {}).get("kanban", {}).get(
             "max_in_progress"
         )
@@ -10435,7 +10435,7 @@ def worker_log_rotation_config(kanban_cfg: Optional[dict] = None) -> tuple[int, 
     """
     if kanban_cfg is None:
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
 
             kanban_cfg = (load_config().get("kanban") or {})
         except Exception:
@@ -10661,7 +10661,7 @@ def _resolve_worker_cli_toolsets(sparkii_home: Optional[str]) -> Optional[list[s
         return None
     try:
         from sparkii_constants import reset_sparkii_home_override, set_sparkii_home_override
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         from sparkii_cli.tools_config import _get_platform_tools
 
         token = set_sparkii_home_override(sparkii_home)
@@ -10737,7 +10737,7 @@ def _default_spawn(
     # The dispatcher is detached from every conversation. Its worker must never
     # inherit routing mirrored by a previous gateway turn, even before the first
     # session binds ContextVars in this process.
-    from gateway.session_context import _VAR_MAP
+    from core.session_context import _VAR_MAP
     for key in _VAR_MAP:
         env.pop(key, None)
 

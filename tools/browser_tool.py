@@ -74,8 +74,8 @@ from sparkii_constants import (
     node_tool_runnable,
 )
 from utils import env_int, is_truthy_value
-from sparkii_cli.config import DEFAULT_CONFIG, cfg_get
-from sparkii_cli._subprocess_compat import windows_hide_flags
+from core.config import DEFAULT_CONFIG, cfg_get
+from core._subprocess_compat import windows_hide_flags
 
 
 def __getattr__(name: str):
@@ -326,7 +326,7 @@ def _get_command_timeout() -> int:
 
     result = DEFAULT_COMMAND_TIMEOUT
     try:
-        from sparkii_cli.config import read_raw_config
+        from core.config import read_raw_config
         cfg = read_raw_config()
         val = cfg_get(cfg, "browser", "command_timeout")
         if val is not None:
@@ -539,7 +539,7 @@ def _get_cdp_override_raw() -> str:
         return env_override
 
     try:
-        from sparkii_cli.config import read_raw_config
+        from core.config import read_raw_config
 
         cfg = read_raw_config()
         browser_cfg = cfg.get("browser", {})
@@ -587,7 +587,7 @@ def _get_dialog_policy_config() -> Tuple[str, float]:
     )
 
     try:
-        from sparkii_cli.config import read_raw_config
+        from core.config import read_raw_config
 
         cfg = read_raw_config()
         browser_cfg = cfg.get("browser", {}) if isinstance(cfg, dict) else {}
@@ -817,7 +817,7 @@ def _resolve_cloud_provider_uncached() -> Optional[CloudBrowserProvider]:
     resolved: Optional[CloudBrowserProvider] = None
     provider_key = None
     try:
-        from sparkii_cli.config import read_raw_config
+        from core.config import read_raw_config
         cfg = read_raw_config()
         browser_cfg = cfg.get("browser", {})
         if isinstance(browser_cfg, dict) and "cloud_provider" in browser_cfg:
@@ -1018,7 +1018,7 @@ def _get_browser_engine() -> str:
 
     # Config file takes priority
     try:
-        from sparkii_cli.config import read_raw_config
+        from core.config import read_raw_config
         cfg = read_raw_config()
         val = cfg.get("browser", {}).get("engine")
         if val and str(val).strip():
@@ -1062,7 +1062,7 @@ def _is_headed_mode() -> bool:
     _cached_headed_mode = False
 
     try:
-        from sparkii_cli.config import read_raw_config
+        from core.config import read_raw_config
         cfg = read_raw_config()
         val = cfg.get("browser", {}).get("headed")
         if val is not None:
@@ -1385,7 +1385,7 @@ def _auto_local_for_private_urls() -> bool:
 
     _auto_local_for_private_urls_resolved = True
     try:
-        from sparkii_cli.config import read_raw_config
+        from core.config import read_raw_config
         cfg = read_raw_config()
         browser_cfg = cfg.get("browser", {})
         if isinstance(browser_cfg, dict) and "auto_local_for_private_urls" in browser_cfg:
@@ -1573,7 +1573,7 @@ def _allow_private_urls() -> bool:
 def _resolve_allow_private_urls() -> bool:
     """Read the browser private-URL toggle from the active config scope."""
     try:
-        from sparkii_cli.config import read_raw_config
+        from core.config import read_raw_config
         cfg = read_raw_config()
         browser_cfg = cfg.get("browser", {})
         if isinstance(browser_cfg, dict):
@@ -1640,7 +1640,7 @@ DEFAULT_SESSION_INACTIVITY_TIMEOUT = int(
 def _get_session_inactivity_timeout() -> int:
     result = env_int("BROWSER_INACTIVITY_TIMEOUT", DEFAULT_SESSION_INACTIVITY_TIMEOUT)
     try:
-        from sparkii_cli.config import read_raw_config
+        from core.config import read_raw_config
         cfg = read_raw_config()
         val = cfg_get(cfg, "browser", "inactivity_timeout")
         if val is not None:
@@ -2587,7 +2587,7 @@ def _find_agent_browser(*, validate: bool = True) -> str:
 
     # Nothing found — try lazy installation before giving up.
     try:
-        from sparkii_cli.dep_ensure import ensure_dependency
+        from core.dep_ensure import ensure_dependency
         if ensure_dependency("browser"):
             candidates = [
                 shutil.which("agent-browser"),
@@ -4074,7 +4074,7 @@ def _allow_unsafe_browser_evaluate() -> bool:
     sensitive-primitive denylist even if ``browser.restrict_evaluate`` is set.
     """
     try:
-        from sparkii_cli.config import read_raw_config
+        from core.config import read_raw_config
 
         cfg = read_raw_config()
         return is_truthy_value(cfg_get(cfg, "browser", "allow_unsafe_evaluate"), default=False)
@@ -4098,7 +4098,7 @@ def _restrict_browser_evaluate() -> bool:
     ``browser.allow_unsafe_evaluate: true`` overrides it back off.
     """
     try:
-        from sparkii_cli.config import read_raw_config
+        from core.config import read_raw_config
 
         cfg = read_raw_config()
         return is_truthy_value(cfg_get(cfg, "browser", "restrict_evaluate"), default=False)
@@ -4422,7 +4422,7 @@ def _maybe_start_recording(task_id: str):
         if task_id in _recording_sessions:
             return
     try:
-        from sparkii_cli.config import read_raw_config
+        from core.config import read_raw_config
         sparkii_home = get_sparkii_home()
         cfg = read_raw_config()
         record_enabled = cfg_get(cfg, "browser", "record_sessions", default=False)
@@ -4764,7 +4764,7 @@ def browser_vision(question: str, annotate: bool = False, task_id: Optional[str]
         vision_timeout = 120.0
         vision_temperature = 0.1
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
             _cfg = load_config()
             _vision_cfg = cfg_get(_cfg, "auxiliary", "vision", default={})
             _vt = _vision_cfg.get("timeout")

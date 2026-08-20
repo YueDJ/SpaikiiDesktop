@@ -472,7 +472,7 @@ class TestOwnershipIntegration:
 
     def test_auto_task_reports_configured_fallback_provider_and_model(self, tmp_path, monkeypatch):
         from agent import auxiliary_client as auxiliary_mod
-        from sparkii_cli import config as config_mod
+        from core import config as config_mod
 
         sparkii_home = tmp_path / ".sparkii"
         sparkii_home.mkdir()
@@ -555,7 +555,7 @@ auxiliary:
         assert model == "fallback-model"
 
     def test_sync_fallback_reports_the_successful_route(self, tmp_path, monkeypatch):
-        from sparkii_cli import config as config_mod
+        from core import config as config_mod
 
         sparkii_home = tmp_path / ".sparkii"
         sparkii_home.mkdir()
@@ -603,7 +603,7 @@ auxiliary:
         assert (result.provider, result.model) == ("fallback-provider", "fallback-model")
 
     def test_async_fallback_reports_the_successful_route(self, tmp_path, monkeypatch):
-        from sparkii_cli import config as config_mod
+        from core import config as config_mod
 
         sparkii_home = tmp_path / ".sparkii"
         sparkii_home.mkdir()

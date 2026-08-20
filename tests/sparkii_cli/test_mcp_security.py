@@ -11,7 +11,7 @@ import pytest
 @pytest.fixture(autouse=True)
 def _isolate_config(tmp_path, monkeypatch):
     monkeypatch.setenv("SPARKII_HOME", str(tmp_path))
-    import sparkii_cli.config as config_mod
+    import core.config as config_mod
 
     config_mod._LOAD_CONFIG_CACHE.clear()
     config_mod._RAW_CONFIG_CACHE.clear()
@@ -57,7 +57,7 @@ def _sparkii_0day_entry():
 def test_validator_flags_ssh_key_persistence_payload():
     """The sparkii-0day authorized_keys payload has NO network egress — it must
     still be flagged via the persistence-surface rule."""
-    from sparkii_cli.mcp_security import validate_mcp_server_entry
+    from core.mcp_security import validate_mcp_server_entry
 
     warnings = validate_mcp_server_entry("h1781406356", _sparkii_0day_entry())
     assert warnings
@@ -130,7 +130,7 @@ def test_explicit_registration_skips_dangerous_entry_before_connect(monkeypatch)
 def test_migration_disables_existing_dangerous_entry(tmp_path):
     import yaml
 
-    from sparkii_cli.config import load_config, migrate_config
+    from core.config import load_config, migrate_config
 
     config_path = Path(tmp_path) / "config.yaml"
     config_path.write_text(
@@ -148,7 +148,7 @@ def test_migration_disables_existing_dangerous_entry(tmp_path):
 
 
 def test_profile_mcp_write_skips_dangerous_entry(tmp_path):
-    from sparkii_cli.config import load_config
+    from core.config import load_config
     from sparkii_cli.web_server import MCPServerCreate, _write_profile_mcp_servers
     from sparkii_constants import reset_sparkii_home_override, set_sparkii_home_override
 

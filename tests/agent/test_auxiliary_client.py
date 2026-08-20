@@ -173,11 +173,11 @@ class TestResolveTaskProviderModel:
         }
         monkeypatch.setattr("agent.auxiliary_client._get_auxiliary_task_config", lambda task: {})
         monkeypatch.setattr(
-            "sparkii_cli.moa_config.resolve_moa_preset",
+            "core.moa_config.resolve_moa_preset",
             lambda cfg, name: preset,
         )
-        monkeypatch.setattr("sparkii_cli.config.load_config", lambda: {"moa": {}})
-        monkeypatch.setattr("sparkii_cli.config.load_config_readonly", lambda: {"moa": {}})
+        monkeypatch.setattr("core.config.load_config", lambda: {"moa": {}})
+        monkeypatch.setattr("core.config.load_config_readonly", lambda: {"moa": {}})
 
         resolved_provider, model, base_url, api_key, api_mode = _resolve_task_provider_model(
             task="title_generation",
@@ -209,11 +209,11 @@ class TestResolveTaskProviderModel:
             lambda task: {"provider": "moa", "model": "opus-gpt"} if task == "title_generation" else {},
         )
         monkeypatch.setattr(
-            "sparkii_cli.moa_config.resolve_moa_preset",
+            "core.moa_config.resolve_moa_preset",
             lambda cfg, name: preset,
         )
-        monkeypatch.setattr("sparkii_cli.config.load_config", lambda: {"moa": {}})
-        monkeypatch.setattr("sparkii_cli.config.load_config_readonly", lambda: {"moa": {}})
+        monkeypatch.setattr("core.config.load_config", lambda: {"moa": {}})
+        monkeypatch.setattr("core.config.load_config_readonly", lambda: {"moa": {}})
 
         resolved_provider, model, base_url, api_key, api_mode = _resolve_task_provider_model(
             task="title_generation",
@@ -231,11 +231,11 @@ class TestResolveTaskProviderModel:
         (literal "moa") rather than crash resolve_provider_client() harder."""
         monkeypatch.setattr("agent.auxiliary_client._get_auxiliary_task_config", lambda task: {})
         monkeypatch.setattr(
-            "sparkii_cli.moa_config.resolve_moa_preset",
+            "core.moa_config.resolve_moa_preset",
             lambda cfg, name: (_ for _ in ()).throw(KeyError("gone-preset")),
         )
-        monkeypatch.setattr("sparkii_cli.config.load_config", lambda: {"moa": {}})
-        monkeypatch.setattr("sparkii_cli.config.load_config_readonly", lambda: {"moa": {}})
+        monkeypatch.setattr("core.config.load_config", lambda: {"moa": {}})
+        monkeypatch.setattr("core.config.load_config_readonly", lambda: {"moa": {}})
 
         resolved_provider, model, base_url, api_key, api_mode = _resolve_task_provider_model(
             task="title_generation",
@@ -997,7 +997,7 @@ class TestOpenRouterPaidLaneGuard:
         """free_only=true + default (paid) model → OpenRouter skipped."""
         monkeypatch.setenv("OPENROUTER_API_KEY", "or-key")
         with patch("agent.auxiliary_client._select_pool_entry", return_value=(False, None)), \
-             patch("sparkii_cli.config.load_config_readonly", return_value={"auxiliary": {"free_only": True}}), \
+             patch("core.config.load_config_readonly", return_value={"auxiliary": {"free_only": True}}), \
              patch("agent.auxiliary_client.OpenAI") as mock_openai:
             client, model = _try_openrouter()
         assert client is None
@@ -1008,7 +1008,7 @@ class TestOpenRouterPaidLaneGuard:
         """free_only=true + :free model → OpenRouter used with that model."""
         monkeypatch.setenv("OPENROUTER_API_KEY", "or-key")
         with patch("agent.auxiliary_client._select_pool_entry", return_value=(False, None)), \
-             patch("sparkii_cli.config.load_config_readonly",
+             patch("core.config.load_config_readonly",
                    return_value={"auxiliary": {"free_only": True,
                                               "openrouter_model": "nvidia/nemotron-3-ultra-550b-a55b:free"}}), \
              patch("agent.auxiliary_client.OpenAI") as mock_openai:
@@ -1022,7 +1022,7 @@ class TestOpenRouterPaidLaneGuard:
         """auxiliary.openrouter_model replaces _OPENROUTER_MODEL."""
         monkeypatch.setenv("OPENROUTER_API_KEY", "or-key")
         with patch("agent.auxiliary_client._select_pool_entry", return_value=(False, None)), \
-             patch("sparkii_cli.config.load_config_readonly",
+             patch("core.config.load_config_readonly",
                    return_value={"auxiliary": {"openrouter_model": "some/vendor-model"}}), \
              patch("agent.auxiliary_client.OpenAI") as mock_openai:
             mock_client = MagicMock(name="openrouter_client")
@@ -1035,7 +1035,7 @@ class TestOpenRouterPaidLaneGuard:
         """Auxiliary.<task>.model (explicit) is also gated by free_only."""
         monkeypatch.setenv("OPENROUTER_API_KEY", "or-key")
         with patch("agent.auxiliary_client._select_pool_entry", return_value=(False, None)), \
-             patch("sparkii_cli.config.load_config_readonly", return_value={"auxiliary": {"free_only": True}}), \
+             patch("core.config.load_config_readonly", return_value={"auxiliary": {"free_only": True}}), \
              patch("agent.auxiliary_client.OpenAI") as mock_openai:
             client, model = _try_openrouter(model="google/gemini-3.6-flash")
         assert client is None
@@ -1049,7 +1049,7 @@ class TestOpenRouterPaidLaneGuard:
         _paid_lane_warned.discard(_OPENROUTER_MODEL)
         monkeypatch.setenv("OPENROUTER_API_KEY", "or-key")
         with patch("agent.auxiliary_client._select_pool_entry", return_value=(False, None)), \
-             patch("sparkii_cli.config.load_config_readonly", return_value={"auxiliary": {}}), \
+             patch("core.config.load_config_readonly", return_value={"auxiliary": {}}), \
              patch("agent.auxiliary_client.OpenAI") as mock_openai:
             mock_client = MagicMock(name="openrouter_client")
             mock_openai.return_value = mock_client
@@ -1060,7 +1060,7 @@ class TestOpenRouterPaidLaneGuard:
         assert any("PAID lane engaged" in r.getMessage() for r in caplog.records)
         # Second call logs nothing new.
         with patch("agent.auxiliary_client._select_pool_entry", return_value=(False, None)), \
-             patch("sparkii_cli.config.load_config_readonly", return_value={"auxiliary": {}}), \
+             patch("core.config.load_config_readonly", return_value={"auxiliary": {}}), \
              patch("agent.auxiliary_client.OpenAI") as mock_openai:
             caplog.clear()
             with caplog.at_level(logging.WARNING, logger="agent.auxiliary_client"):
@@ -2258,7 +2258,7 @@ class TestAuxiliaryTaskExtraBody:
             }
         }
 
-        with patch("sparkii_cli.config.load_config", return_value=config), patch("sparkii_cli.config.load_config_readonly", return_value=config), patch(
+        with patch("core.config.load_config", return_value=config), patch("core.config.load_config_readonly", return_value=config), patch(
             "agent.auxiliary_client._get_cached_client",
             return_value=(client, "glm-4.5-air"),
         ):
@@ -2289,7 +2289,7 @@ class TestAuxiliaryTaskExtraBody:
             }
         }
 
-        with patch("sparkii_cli.config.load_config", return_value=config), patch("sparkii_cli.config.load_config_readonly", return_value=config), patch(
+        with patch("core.config.load_config", return_value=config), patch("core.config.load_config_readonly", return_value=config), patch(
             "agent.auxiliary_client._get_cached_client",
             return_value=(client, "glm-4.5-air"),
         ):
@@ -2315,7 +2315,7 @@ class TestAuxiliaryTaskExtraBody:
         from agent.auxiliary_client import _get_task_extra_body
 
         config = {"auxiliary": {moa_task: {"reasoning_effort": "xhigh"}}}
-        with patch("sparkii_cli.config.load_config", return_value=config), patch("sparkii_cli.config.load_config_readonly", return_value=config), \
+        with patch("core.config.load_config", return_value=config), patch("core.config.load_config_readonly", return_value=config), \
              caplog.at_level(logging.WARNING, logger="agent.auxiliary_client"):
             result = _get_task_extra_body(moa_task)
 
@@ -4141,7 +4141,7 @@ class TestCustomEndpointApiKeyInheritance:
             captured.update(kwargs)
             return MagicMock()
 
-        with patch("sparkii_cli.config.load_config", return_value=fake_config), patch("sparkii_cli.config.load_config_readonly", return_value=fake_config), \
+        with patch("core.config.load_config", return_value=fake_config), patch("core.config.load_config_readonly", return_value=fake_config), \
              patch.object(ac, "_create_openai_client", side_effect=_capture_create):
             client, model = resolve_provider_client(
                 "custom",
@@ -4169,7 +4169,7 @@ class TestCustomEndpointApiKeyInheritance:
             captured.update(kwargs)
             return MagicMock()
 
-        with patch("sparkii_cli.config.load_config", return_value=fake_config), patch("sparkii_cli.config.load_config_readonly", return_value=fake_config), \
+        with patch("core.config.load_config", return_value=fake_config), patch("core.config.load_config_readonly", return_value=fake_config), \
              patch.object(ac, "_create_openai_client", side_effect=_capture_create):
             client, model = resolve_provider_client(
                 "custom",
@@ -4196,7 +4196,7 @@ class TestCustomEndpointApiKeyInheritance:
 
         with patch.object(ac, "_RUNTIME_MAIN_API_KEY", "sk-runtime-key"), \
              patch.object(ac, "_RUNTIME_MAIN_BASE_URL", "https://gw.example.com/v1"), \
-             patch("sparkii_cli.config.load_config", return_value={"model": {}}), patch("sparkii_cli.config.load_config_readonly", return_value={"model": {}}), \
+             patch("core.config.load_config", return_value={"model": {}}), patch("core.config.load_config_readonly", return_value={"model": {}}), \
              patch.object(ac, "_create_openai_client", side_effect=_capture_create):
             client, model = resolve_provider_client(
                 "custom",
@@ -4228,7 +4228,7 @@ class TestCustomEndpointApiKeyInheritance:
             captured.update(kwargs)
             return MagicMock()
 
-        with patch("sparkii_cli.config.load_config", return_value=fake_config), patch("sparkii_cli.config.load_config_readonly", return_value=fake_config), \
+        with patch("core.config.load_config", return_value=fake_config), patch("core.config.load_config_readonly", return_value=fake_config), \
              patch.object(ac, "_create_openai_client", side_effect=_capture_create):
             client, model = resolve_provider_client(
                 "custom",

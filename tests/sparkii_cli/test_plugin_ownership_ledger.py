@@ -684,7 +684,7 @@ def test_provider_overlay_switches_profiles_and_reveals_fresh_global_fallback(
     context_a = PluginContext(PluginManifest(name="provider_a", key="provider_a"), manager_a)
     context_b = PluginContext(PluginManifest(name="provider_b", key="provider_b"), manager_b)
     monkeypatch.setattr(
-        "sparkii_cli.config.load_config_readonly",
+        "core.config.load_config_readonly",
         lambda: {"image_gen": {"provider": name}},
     )
 

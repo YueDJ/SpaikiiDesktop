@@ -257,7 +257,7 @@ def _compute_task_diagnostics(
     rule definitions.
     """
     from sparkii_cli import kanban_diagnostics as kd
-    from sparkii_cli.config import load_config
+    from core.config import load_config
 
     diag_config = kd.config_from_runtime_config(load_config())
 
@@ -2023,7 +2023,7 @@ def get_config():
     or set column-width preferences without a round-trip per page load.
     """
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         cfg = load_config() or {}
     except Exception:
         cfg = {}
@@ -2780,7 +2780,7 @@ def get_orchestration_settings():
     """Return the current kanban orchestration knobs from config.yaml
     plus the resolved effective values (filling in fallbacks)."""
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         cfg = load_config() or {}
     except Exception:
         cfg = {}
@@ -2828,7 +2828,7 @@ def set_orchestration_settings(payload: OrchestrationSettingsBody):
     profile.
     """
     try:
-        from sparkii_cli.config import load_config, save_config
+        from core.config import load_config, save_config
         cfg = load_config() or {}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"failed to load config: {exc}")

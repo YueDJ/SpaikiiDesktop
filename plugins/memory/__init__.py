@@ -39,7 +39,7 @@ import logging
 import sys
 from pathlib import Path
 from typing import List, Optional, Tuple, TYPE_CHECKING
-from sparkii_cli.config import cfg_get
+from core.config import cfg_get
 
 if TYPE_CHECKING:
     from agent.memory_provider import MemoryProvider
@@ -651,7 +651,7 @@ def _get_active_memory_provider() -> Optional[str]:
     no plugin loading.
     """
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         config = load_config()
         return cfg_get(config, "memory", "provider") or None
     except Exception:

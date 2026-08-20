@@ -24,7 +24,7 @@ import time
 import unicodedata
 import uuid
 from typing import Optional
-from sparkii_cli.config import cfg_get
+from core.config import cfg_get
 
 from tools.interrupt import is_interrupted
 from utils import env_var_enabled, is_truthy_value
@@ -235,14 +235,14 @@ def get_current_session_key(default: str = "default") -> str:
     session_key = _approval_session_key.get()
     if session_key:
         return session_key
-    from gateway.session_context import get_session_env
+    from core.session_context import get_session_env
     return get_session_env("SPARKII_SESSION_KEY", default)
 
 
 def _get_session_platform() -> str:
     """Return the current gateway platform from contextvars/env fallback."""
     try:
-        from gateway.session_context import get_session_env
+        from core.session_context import get_session_env
 
         return get_session_env("SPARKII_SESSION_PLATFORM", "") or ""
     except Exception:
@@ -258,7 +258,7 @@ def _is_cron_approval_context() -> bool:
     tests and older entrypoints.
     """
     try:
-        from gateway.session_context import get_session_env
+        from core.session_context import get_session_env
 
         return is_truthy_value(get_session_env("SPARKII_CRON_SESSION", ""))
     except Exception:
@@ -283,7 +283,7 @@ def _is_single_query_approval_context() -> bool:
     legacy process env var for CLI/tests that don't engage the session context.
     """
     try:
-        from gateway.session_context import get_session_env
+        from core.session_context import get_session_env
 
         return is_truthy_value(get_session_env("SPARKII_SINGLE_QUERY_SESSION", ""))
     except Exception:
@@ -2935,7 +2935,7 @@ def load_permanent_allowlist() -> set:
     patterns added via 'always' in a previous session.
     """
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
         config = load_config_readonly()
         patterns = set(config.get("command_allowlist", []) or [])
         if patterns:
@@ -2949,7 +2949,7 @@ def load_permanent_allowlist() -> set:
 def save_permanent_allowlist(patterns: set):
     """Save permanently allowed command patterns to config."""
     try:
-        from sparkii_cli.config import load_config, save_config
+        from core.config import load_config, save_config
         config = load_config()
         config["command_allowlist"] = list(patterns)
         save_config(config)
@@ -3176,7 +3176,7 @@ def _get_approval_config() -> dict:
     callers must not mutate it or any nested structure.
     """
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
         config = load_config_readonly()
         return config.get("approvals", {}) or {}
     except Exception as e:
@@ -3235,7 +3235,7 @@ def _get_approval_timeout() -> int:
 def _get_cron_approval_mode() -> str:
     """Read the cron approval mode from config. Returns 'deny' or 'approve'."""
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
         config = load_config_readonly()
         mode = str(cfg_get(config, "approvals", "cron_mode", default="deny")).lower().strip()
         if mode in {"approve", "off", "allow", "yes"}:
@@ -3248,7 +3248,7 @@ def _get_cron_approval_mode() -> str:
 def _get_single_query_approval_mode() -> str:
     """Read the single-query (-q) approval mode from config. Returns 'deny' or 'approve'."""
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
         config = load_config_readonly()
         mode = str(cfg_get(config, "approvals", "single_query_mode", default="deny")).lower().strip()
         if mode in {"approve", "off", "allow", "yes"}:
@@ -3931,7 +3931,7 @@ def get_plugin_manager():
 def _get_approval_transport_config() -> tuple[str, str | None]:
     """Return explicitly selected transport and fail-closed fallback mode."""
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
 
         config = load_config_readonly() or {}
         approval_config = ((config.get("security") or {}).get("approval") or {})
@@ -4462,7 +4462,7 @@ def check_all_command_guards(command: str, env_type: str,
                     # the cron branch below, see #20733).
                     _sq_fail_open = True  # safe default if config is unreadable
                     try:
-                        from sparkii_cli.config import load_config_readonly as _load_cfg
+                        from core.config import load_config_readonly as _load_cfg
                         _sec = (_load_cfg() or {}).get("security", {}) or {}
                         if _sec.get("tirith_enabled", True):
                             _sq_fail_open = _sec.get("tirith_fail_open", True)
@@ -4527,7 +4527,7 @@ def check_all_command_guards(command: str, env_type: str,
                     # fail-closed synthesis in the main flow below; see #20733).
                     _cron_fail_open = True  # safe default if config is unreadable
                     try:
-                        from sparkii_cli.config import load_config_readonly as _load_cfg
+                        from core.config import load_config_readonly as _load_cfg
                         _sec = (_load_cfg() or {}).get("security", {}) or {}
                         if _sec.get("tirith_enabled", True):
                             _cron_fail_open = _sec.get("tirith_fail_open", True)
@@ -4565,7 +4565,7 @@ def check_all_command_guards(command: str, env_type: str,
         # normal approval flow.  Fixes #20733.
         _tirith_fail_open = True  # safe default if config is unreadable
         try:
-            from sparkii_cli.config import load_config_readonly as _load_cfg
+            from core.config import load_config_readonly as _load_cfg
             _sec = (_load_cfg() or {}).get("security", {}) or {}
             _tirith_enabled = _sec.get("tirith_enabled", True)
             if _tirith_enabled:

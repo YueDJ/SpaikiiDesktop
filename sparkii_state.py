@@ -43,7 +43,7 @@ from agent.skill_commands import (
     describe_skill_invocation,
 )
 from sparkii_constants import get_sparkii_home
-from sparkii_cli.sqlite_runtime import (
+from core.sqlite_runtime import (
     is_sqlite_wal_reset_vulnerable as _is_sqlite_wal_reset_vulnerable,
 )
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, TypeVar
@@ -106,7 +106,7 @@ def _configured_transcript_limit(key: str, fallback: int) -> int:
     keeps tests that monkeypatch config or the module constants working.
     """
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
 
         sessions_cfg = load_config_readonly().get("sessions") or {}
         value = sessions_cfg.get(key)
@@ -1031,7 +1031,7 @@ def resolve_journal_mode() -> str:
     existing default.
     """
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
 
         config = load_config_readonly() or {}
         database = config.get("database", {})
@@ -1352,7 +1352,7 @@ def _wal_reset_repair_hint() -> str:
     ``sparkii update`` can actually do for this install (#75153).
     """
     try:
-        from sparkii_cli.config import (
+        from core.config import (
             detect_install_method,
             recommended_update_command_for_method,
             get_project_root,
@@ -1471,8 +1471,8 @@ def apply_database_pragmas(
     never breaks on a malformed ``database:`` section.
     """
     try:
-        # Local import avoids a circular import with sparkii_cli.config.
-        from sparkii_cli.config import cfg_get, load_config_readonly
+        # Local import avoids a circular import with core.config.
+        from core.config import cfg_get, load_config_readonly
 
         cfg = load_config_readonly()
     except Exception:
@@ -1990,7 +1990,7 @@ def _backup_db_file(db_path: Path) -> "Tuple[Optional[Path], Optional[str]]":
     import shutil
 
     try:
-        from sparkii_cli.sqlite_safe_read import has_live_connection
+        from core.sqlite_safe_read import has_live_connection
     except ImportError:
         has_live_connection = None  # type: ignore[assignment]
 
@@ -2697,7 +2697,7 @@ def _connect_tracked_db(path, tracking_path=None, **kwargs):
     which is precisely the failure mode this module exists to prevent.
     """
     try:
-        from sparkii_cli.sqlite_safe_read import connect_tracked
+        from core.sqlite_safe_read import connect_tracked
     except ImportError:
         logger.debug(
             "sparkii_cli.sqlite_safe_read unavailable; opening %s untracked "
@@ -2746,7 +2746,7 @@ def is_zeroed_state_db(
         return False
     if size <= 0:
         return False
-    from sparkii_cli.sqlite_safe_read import read_header_bytes_preopen
+    from core.sqlite_safe_read import read_header_bytes_preopen
 
     head = read_header_bytes_preopen(
         path, length=max(16, probe_bytes), force=force

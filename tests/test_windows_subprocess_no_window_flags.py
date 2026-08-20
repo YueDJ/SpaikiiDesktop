@@ -243,7 +243,7 @@ def _patch_hide_flags(monkeypatch):
     ``creationflags`` — not the platform. Stubbing only the helper keeps that
     coverage on the Linux lane; no ``IS_WINDOWS`` fake is needed or wanted.
     """
-    import sparkii_cli._subprocess_compat as subprocess_compat
+    import core._subprocess_compat as subprocess_compat
 
     monkeypatch.setattr(subprocess_compat, "windows_hide_flags", lambda: _CREATE_NO_WINDOW)
 

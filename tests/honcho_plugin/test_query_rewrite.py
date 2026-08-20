@@ -12,7 +12,7 @@ from plugins.memory.query_rewrite import (
     _normalize_rewrite,
     rewrite_memory_query,
 )
-from sparkii_cli.config import DEFAULT_CONFIG
+from core.config import DEFAULT_CONFIG
 from sparkii_cli.main import _AUX_TASKS
 
 

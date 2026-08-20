@@ -13,7 +13,7 @@ from typing import Iterable, List, Optional
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from sparkii_cli.colors import Colors, color
+from core.colors import Colors, color
 
 # Gateway-lifecycle command detection lives in ``cron.lifecycle_guard`` so it
 # can be shared across every job-creation path (CLI + the agent's ``cronjob``
@@ -512,7 +512,7 @@ def _job_action(action: str, job_id: str, success_verb: str) -> int:
         # The declaration is scoped to this call (token reset in ``finally``)
         # so in-process callers (tests, embedding apps) are not tainted.
         try:
-            from gateway.session_context import _SESSION_ASYNC_DELIVERY
+            from core.session_context import _SESSION_ASYNC_DELIVERY
 
             _stateless_token = _SESSION_ASYNC_DELIVERY.set(False)
 

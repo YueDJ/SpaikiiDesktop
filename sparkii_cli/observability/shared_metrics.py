@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
-from sparkii_cli.sqlite_util import write_txn
+from core.sqlite_util import write_txn
 from sparkii_constants import get_sparkii_home
 from utils import atomic_json_write
 

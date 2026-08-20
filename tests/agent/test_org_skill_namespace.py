@@ -376,7 +376,7 @@ class TestLocalEditsSurviveOrgUpdates:
 
         monkeypatch.delenv("SPARKII_SYNC_ORG_AUTO_PROPOSE", raising=False)
         monkeypatch.setattr(
-            "sparkii_cli.config.load_config", lambda: {}, raising=False
+            "core.config.load_config", lambda: {}, raising=False
         )
         # Default must be OFF: silently pushing every agent edit to the whole
         # organisation is not a safe default.

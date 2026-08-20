@@ -86,7 +86,7 @@ class TestCreateSession:
             raising=False,
         )
         monkeypatch.setattr(
-            "sparkii_cli.config.load_config",
+            "core.config.load_config",
             lambda: {
                 "model": {
                     "default": "fake-model",
@@ -355,7 +355,7 @@ class TestPersistence:
         def fake_agent(**kwargs):
             return SimpleNamespace(model=kwargs.get("model"), _print_fn=None)
 
-        monkeypatch.setattr("sparkii_cli.config.load_config", lambda: {
+        monkeypatch.setattr("core.config.load_config", lambda: {
             "model": {"provider": "openrouter", "default": "test-model"}
         })
         monkeypatch.setattr(

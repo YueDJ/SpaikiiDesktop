@@ -45,7 +45,7 @@ def _reset():
 
 class TestConfigGate:
     def test_default_enabled(self):
-        with patch("sparkii_cli.config.load_config", return_value={"voice": {}}):
+        with patch("core.config.load_config", return_value={"voice": {}}):
             assert vm.thinking_sound_enabled() is True
 
 

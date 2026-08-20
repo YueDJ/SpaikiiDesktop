@@ -24,9 +24,9 @@ from pathlib import Path
 from typing import Any, Optional
 
 from sparkii_constants import get_sparkii_home
-from sparkii_cli._subprocess_compat import noninteractive_git_env
-from sparkii_cli.config import cfg_get
-from sparkii_cli.secret_prompt import masked_secret_prompt
+from core._subprocess_compat import noninteractive_git_env
+from core.config import cfg_get
+from core.secret_prompt import masked_secret_prompt
 from utils import atomic_write_text
 
 logger = logging.getLogger(__name__)
@@ -90,7 +90,7 @@ def _scan_on_install_enabled() -> bool:
     scanning). Disable via ``plugins.scan_on_install: false`` in config.yaml.
     """
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         config = load_config()
         return bool(cfg_get(config, "plugins", "scan_on_install", default=True))
     except Exception:
@@ -386,7 +386,7 @@ def _missing_requires_env_names(manifest: dict) -> list[str]:
     if not requires_env:
         return []
 
-    from sparkii_cli.config import get_env_value
+    from core.config import get_env_value
 
     env_specs: list[dict] = []
     for entry in requires_env:
@@ -448,7 +448,7 @@ def _prompt_plugin_env_vars(manifest: dict, console) -> None:
     if not requires_env:
         return
 
-    from sparkii_cli.config import get_env_value, save_env_value  # noqa: F811
+    from core.config import get_env_value, save_env_value  # noqa: F811
     from sparkii_constants import display_sparkii_home
 
     # Normalise to list-of-dicts
@@ -814,7 +814,7 @@ def _install_plugin_core(
                     f"'{mv}' (expected an integer).",
                 ) from None
             if mv_int > _SUPPORTED_MANIFEST_VERSION:
-                from sparkii_cli.config import recommended_update_command
+                from core.config import recommended_update_command
 
                 raise PluginOperationError(
                     f"Plugin '{plugin_name}' requires manifest_version {mv}, "
@@ -910,7 +910,7 @@ def _resolve_index_name(identifier: str, console) -> tuple[str, Optional[str]]:
     is an exact 40-character commit SHA (the pin format the installer
     accepts); tag refs are surfaced as advisory output instead.
     """
-    from sparkii_cli.plugin_index import SECURITY_FOOTER, load_index, resolve_name
+    from core.plugin_index import SECURITY_FOOTER, load_index, resolve_name
 
     entries, source = load_index()
     entry, candidates = resolve_name(entries, identifier)
@@ -1182,7 +1182,7 @@ def cmd_update(name: str) -> None:
         updated_manifest, plugin_id
     )
     if declared_caps:
-        from sparkii_cli.plugin_capabilities import (
+        from core.plugin_capabilities import (
             declared_set_changed,
             pending_capabilities,
         )
@@ -1260,7 +1260,7 @@ def _get_disabled_set() -> set:
     listed in ``plugins.enabled``.
     """
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         config = load_config()
         disabled = cfg_get(config, "plugins", "disabled", default=[])
         return set(disabled) if isinstance(disabled, list) else set()
@@ -1270,7 +1270,7 @@ def _get_disabled_set() -> set:
 
 def _save_disabled_set(disabled: set) -> None:
     """Write the disabled plugins list to config.yaml."""
-    from sparkii_cli.config import load_config, save_config
+    from core.config import load_config, save_config
     config = load_config()
     if "plugins" not in config:
         config["plugins"] = {}
@@ -1312,7 +1312,7 @@ def _get_enabled_set() -> set:
     the key is missing (same behaviour as "nothing enabled yet").
     """
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         config = load_config()
         plugins_cfg = config.get("plugins", {})
         if not isinstance(plugins_cfg, dict):
@@ -1325,7 +1325,7 @@ def _get_enabled_set() -> set:
 
 def _save_enabled_set(enabled: set) -> None:
     """Write the enabled plugins list to config.yaml."""
-    from sparkii_cli.config import load_config, save_config
+    from core.config import load_config, save_config
     config = load_config()
     if "plugins" not in config:
         config["plugins"] = {}
@@ -1383,7 +1383,7 @@ def _resolve_plugin_key_and_source(name: str) -> Optional[tuple]:
 
 def _set_plugin_entry_flag(plugin_id: str, key: str, value: bool) -> None:
     """Write ``plugins.entries.<plugin_id>.<key> = value`` into config.yaml."""
-    from sparkii_cli.config import load_config, save_config
+    from core.config import load_config, save_config
     config = load_config()
     plugins_cfg = config.setdefault("plugins", {})
     if not isinstance(plugins_cfg, dict):
@@ -1478,7 +1478,7 @@ def cmd_enable(name: str, allow_tool_override: Optional[bool] = None) -> None:
 
 def _declared_capabilities_from_manifest(manifest: dict, plugin_name: str = "?") -> list:
     """Extract + normalize the ``capabilities:`` declaration from a manifest."""
-    from sparkii_cli.plugin_capabilities import parse_declared_capabilities
+    from core.plugin_capabilities import parse_declared_capabilities
 
     return parse_declared_capabilities(
         (manifest or {}).get("capabilities"), plugin_name
@@ -1507,7 +1507,7 @@ def _declared_capabilities_for_key(key: str) -> list:
 
 def _print_capability_list(console, capabilities: list) -> None:
     """Render the consent screen body: one line per capability."""
-    from sparkii_cli.plugin_capabilities import CAPABILITY_REGISTRY
+    from core.plugin_capabilities import CAPABILITY_REGISTRY
 
     for cap in capabilities:
         spec = CAPABILITY_REGISTRY.get(cap)
@@ -1537,7 +1537,7 @@ def _run_capability_consent(
 
     Returns True when consent was granted.
     """
-    from sparkii_cli.plugin_capabilities import (
+    from core.plugin_capabilities import (
         pending_capabilities,
         record_consent,
     )
@@ -1595,7 +1595,7 @@ def cmd_capabilities(name: Optional[str] = None) -> None:
     """``sparkii plugins capabilities [<id>]`` — declared vs granted."""
     from rich.console import Console
 
-    from sparkii_cli.plugin_capabilities import granted_capabilities
+    from core.plugin_capabilities import granted_capabilities
 
     console = Console()
 
@@ -1609,7 +1609,7 @@ def cmd_capabilities(name: Optional[str] = None) -> None:
         granted = granted_capabilities(key)
         # Legacy grants surface too: report capabilities live via deprecated
         # allow_* keys so `capabilities` shows the true effective state.
-        from sparkii_cli.plugin_capabilities import (
+        from core.plugin_capabilities import (
             CAPABILITY_REGISTRY,
             plugin_capability_granted,
         )
@@ -2046,7 +2046,7 @@ def _discover_context_engines() -> list[tuple[str, str]]:
 def _get_current_memory_provider() -> str:
     """Return the current memory.provider from config (empty = built-in)."""
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         config = load_config()
         return cfg_get(config, "memory", "provider", default="") or ""
     except Exception:
@@ -2056,7 +2056,7 @@ def _get_current_memory_provider() -> str:
 def _get_current_context_engine() -> str:
     """Return the current context.engine from config."""
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         config = load_config()
         return cfg_get(config, "context", "engine", default="compressor") or "compressor"
     except Exception:
@@ -2065,7 +2065,7 @@ def _get_current_context_engine() -> str:
 
 def _save_memory_provider(name: str) -> None:
     """Persist memory.provider to config.yaml."""
-    from sparkii_cli.config import load_config, save_config
+    from core.config import load_config, save_config
     config = load_config()
     if "memory" not in config:
         config["memory"] = {}
@@ -2075,7 +2075,7 @@ def _save_memory_provider(name: str) -> None:
 
 def _save_context_engine(name: str) -> None:
     """Persist context.engine to config.yaml."""
-    from sparkii_cli.config import load_config, save_config
+    from core.config import load_config, save_config
     config = load_config()
     if "context" not in config:
         config["context"] = {}
@@ -2554,7 +2554,7 @@ def _run_composite_ui(curses, plugin_keys, plugin_labels, plugin_selected,
 def _run_composite_fallback(plugin_keys, plugin_labels, plugin_selected,
                             disabled, categories, console):
     """Text-based fallback for the composite plugins UI."""
-    from sparkii_cli.colors import Colors, color
+    from core.colors import Colors, color
 
     print(color("\n  Plugins", Colors.YELLOW))
 
@@ -2742,7 +2742,7 @@ def _toggle_plugin_toolset(name: str, *, enable: bool) -> None:
     if not toolset_key:
         return
 
-    from sparkii_cli.config import load_config, save_config
+    from core.config import load_config, save_config
 
     config = load_config()
     platform_toolsets = config.get("platform_toolsets")
@@ -3051,7 +3051,7 @@ def cmd_search(
     """Search the community plugin index (fuzzy on name/description/tags)."""
     from rich.console import Console
 
-    from sparkii_cli.plugin_index import (
+    from core.plugin_index import (
         SECURITY_FOOTER,
         load_index,
         search_index,

@@ -14,8 +14,8 @@ def homes(tmp_path, monkeypatch):
     (managed / "config.yaml").write_text(
         "model:\n  default: managed/model\n", encoding="utf-8"
     )
-    import sparkii_cli.config as cfg
-    from sparkii_cli import managed_scope
+    import core.config as cfg
+    from core import managed_scope
 
     cfg._LOAD_CONFIG_CACHE.clear()
     cfg._RAW_CONFIG_CACHE.clear()
@@ -32,13 +32,13 @@ def test_config_show_no_managed_scope_silent(tmp_path, monkeypatch, capsys):
     monkeypatch.setenv("SPARKII_HOME", str(home))
     monkeypatch.setenv("SPARKII_MANAGED_DIR", str(tmp_path / "nope"))
     (home / "config.yaml").write_text("model:\n  default: user/model\n", encoding="utf-8")
-    import sparkii_cli.config as cfg
-    from sparkii_cli import managed_scope
+    import core.config as cfg
+    from core import managed_scope
 
     cfg._LOAD_CONFIG_CACHE.clear()
     cfg._RAW_CONFIG_CACHE.clear()
     managed_scope.invalidate_managed_cache()
-    from sparkii_cli.config import show_config
+    from core.config import show_config
 
     show_config()
     out = capsys.readouterr().out.lower()
@@ -49,7 +49,7 @@ def test_config_show_no_managed_scope_silent(tmp_path, monkeypatch, capsys):
 
 def test_doctor_silent_with_no_managed_scope(tmp_path, monkeypatch, capsys):
     monkeypatch.setenv("SPARKII_MANAGED_DIR", str(tmp_path / "nope"))
-    from sparkii_cli import managed_scope, doctor
+    from core import managed_scope, doctor
 
     managed_scope.invalidate_managed_cache()
     doctor.managed_scope_check()

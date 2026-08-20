@@ -28,8 +28,8 @@ from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 from typing import Optional
 
-from gateway.session_context import declare_stateless_channel
-from sparkii_cli.fallback_config import get_fallback_chain
+from core.session_context import declare_stateless_channel
+from core.fallback_config import get_fallback_chain
 
 
 def _normalize_toolsets(toolsets: object = None) -> list[str] | None:
@@ -89,7 +89,7 @@ def _validate_explicit_toolsets(toolsets: object = None) -> tuple[list[str] | No
     mcp_disabled: set[str] = set()
     if unresolved:
         try:
-            from sparkii_cli.config import read_raw_config
+            from core.config import read_raw_config
             from sparkii_cli.tools_config import _parse_enabled_flag
 
             cfg = read_raw_config()
@@ -330,7 +330,7 @@ def _run_agent(
     run a single conversation.  Returns ``(final_response, run_result)``."""
     # Imports are local so they don't run when sparkii is invoked for
     # other commands (keeps top-level CLI startup cheap).
-    from sparkii_cli.config import load_config
+    from core.config import load_config
     from sparkii_cli.models import detect_provider_for_model
     from sparkii_cli.runtime_provider import resolve_runtime_provider
     from sparkii_cli.tools_config import _get_platform_tools
@@ -345,7 +345,7 @@ def _run_agent(
     else:
         _raw = model_cfg.get("default") or model_cfg.get("model") or ""
         if isinstance(_raw, dict):
-            from sparkii_cli.config import split_model_config_default
+            from core.config import split_model_config_default
             cfg_model, _ = split_model_config_default(_raw)
         else:
             cfg_model = str(_raw or "")

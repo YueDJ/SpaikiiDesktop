@@ -40,7 +40,7 @@ import time
 from pathlib import Path
 from xml.sax.saxutils import escape
 
-from sparkii_cli._subprocess_compat import (
+from core._subprocess_compat import (
     _WINDOWS_GATEWAY_BREAKAWAY_ENV,
     windows_detach_flags,
     windows_detach_flags_without_breakaway,
@@ -99,7 +99,7 @@ def _preserve_sparkii_home_path(path: str | Path) -> str:
     """
     candidate = Path(path)
     try:
-        from sparkii_cli.config import get_sparkii_home
+        from core.config import get_sparkii_home
 
         home = Path(get_sparkii_home())
         resolved_home = home.resolve()
@@ -320,7 +320,7 @@ def get_task_script_path() -> Path:
     Sparkii installs stay self-contained).
     """
     _assert_windows()
-    from sparkii_cli.config import get_sparkii_home
+    from core.config import get_sparkii_home
 
     script_dir = Path(get_sparkii_home()) / "gateway-service"
     script_dir.mkdir(parents=True, exist_ok=True)
@@ -370,7 +370,7 @@ def _stable_gateway_working_dir(project_root: Path) -> str:
     configured spelling instead of resolving symlinks so AppData installs backed
     by a junction/symlink still identify themselves as AppData.
     """
-    from sparkii_cli.config import get_sparkii_home
+    from core.config import get_sparkii_home
 
     try:
         home = get_sparkii_home()
@@ -546,7 +546,7 @@ def _write_task_script() -> Path:
     """Generate and write the gateway.cmd wrapper. Return its absolute path."""
     _assert_windows()
     # Local imports to avoid circular-init at module load time.
-    from sparkii_cli.config import get_sparkii_home
+    from core.config import get_sparkii_home
     from sparkii_cli.gateway import (
         PROJECT_ROOT,
         _profile_arg,
@@ -790,7 +790,7 @@ def _build_gateway_argv() -> tuple[list[str], str, dict[str, str]]:
     layer in between.
     """
     _assert_windows()
-    from sparkii_cli.config import get_sparkii_home
+    from core.config import get_sparkii_home
     from sparkii_cli.gateway import (
         PROJECT_ROOT,
         _profile_arg,
@@ -853,7 +853,7 @@ def windowless_gateway_restart_spec(
     if sys.platform != "win32":
         return run_argv, "", {}
 
-    from sparkii_cli.config import get_sparkii_home
+    from core.config import get_sparkii_home
     from sparkii_cli.gateway import PROJECT_ROOT
 
     python_exe = run_argv[0]
@@ -936,7 +936,7 @@ def _spawn_detached(script_path: Path | None = None) -> int:
     # logging module writes to gateway.log through a FileHandler, so the
     # real gateway logs still land there — this just captures anything
     # that goes to print() or native stderr.
-    from sparkii_cli.config import get_sparkii_home
+    from core.config import get_sparkii_home
 
     log_dir = Path(get_sparkii_home()) / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -1199,13 +1199,13 @@ def _report_gateway_start(via: str) -> None:
     else:
         print(f"⚠ Launched gateway via {via}, but no process detected after 6s.")
         print("  Check the log for startup errors:")
-        from sparkii_cli.config import get_sparkii_home
+        from core.config import get_sparkii_home
         print(f"    type {Path(get_sparkii_home())}\\logs\\gateway.log")
         print(f"    type {Path(get_sparkii_home())}\\logs\\gateway-stdio.log")
 
 
 def _print_next_steps() -> None:
-    from sparkii_cli.config import get_sparkii_home
+    from core.config import get_sparkii_home
 
     sparkii_home = Path(get_sparkii_home())
     print()
@@ -1328,7 +1328,7 @@ def _print_deep_probes() -> None:
     import json
     from datetime import datetime, timezone
 
-    from sparkii_cli.config import get_sparkii_home
+    from core.config import get_sparkii_home
 
     home = Path(get_sparkii_home())
     pid_path = home / "gateway.pid"

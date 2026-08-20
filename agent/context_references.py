@@ -12,8 +12,8 @@ from pathlib import Path
 from typing import Awaitable, Callable
 
 from agent.model_metadata import estimate_tokens_rough
-from sparkii_cli._subprocess_compat import IS_WINDOWS, windows_hide_flags
-from sparkii_cli.sizefmt import format_bytes
+from core._subprocess_compat import IS_WINDOWS, windows_hide_flags
+from core.sizefmt import format_bytes
 
 from abc import ABC, abstractmethod
 

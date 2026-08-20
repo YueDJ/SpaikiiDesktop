@@ -298,7 +298,7 @@ def set_approval_callback(cb):
 def _get_sudo_password_cache_scope() -> str:
     """Return the cache scope for interactive sudo passwords."""
     try:
-        from gateway.session_context import get_session_env
+        from core.session_context import get_session_env
 
         session_key = get_session_env("SPARKII_SESSION_KEY", "")
     except Exception:
@@ -1546,7 +1546,7 @@ def _ensure_terminal_env_bridged() -> None:
         return
     _terminal_config_bridge_attempted = True
     try:
-        from sparkii_cli.config import apply_terminal_config_to_env, read_raw_config
+        from core.config import apply_terminal_config_to_env, read_raw_config
 
         # If config.yaml has an explicit terminal section, bridge with
         # override enabled. The helper only overrides env vars for keys present
@@ -1623,7 +1623,7 @@ def _get_env_config() -> Dict[str, Any]:
     # /workspace and track the original host path separately. Otherwise keep the
     # normal sandbox behavior and discard host paths.
     cwd = os.getenv("TERMINAL_CWD", default_cwd)
-    from sparkii_cli.config import _is_ssh_remote_tilde_cwd
+    from core.config import _is_ssh_remote_tilde_cwd
     if cwd and not _is_ssh_remote_tilde_cwd(env_type, cwd):
         cwd = os.path.expanduser(cwd)
     host_cwd = None
@@ -3216,7 +3216,7 @@ def terminal_tool(
                 # watch-pattern and completion notifications can be
                 # routed back to the correct chat/thread.
                 if background and (notify_on_complete or watch_patterns):
-                    from gateway.session_context import (
+                    from core.session_context import (
                         async_delivery_supported as _async_ok,
                         get_session_env as _gse,
                     )

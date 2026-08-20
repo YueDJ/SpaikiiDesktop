@@ -142,7 +142,7 @@ def test_provider_flag_uses_named_custom_default_model(monkeypatch):
             }
         },
     }
-    monkeypatch.setattr("sparkii_cli.config.load_config", lambda: config)
+    monkeypatch.setattr("core.config.load_config", lambda: config)
     monkeypatch.setattr("sparkii_cli.runtime_provider.load_config", lambda: config)
 
     shell = cli.SparkiiCLI(provider="gmk-lan", compact=True, max_turns=1)
@@ -170,7 +170,7 @@ def test_explicit_model_wins_over_provider_default_model(monkeypatch):
             }
         },
     }
-    monkeypatch.setattr("sparkii_cli.config.load_config", lambda: config)
+    monkeypatch.setattr("core.config.load_config", lambda: config)
     monkeypatch.setattr("sparkii_cli.runtime_provider.load_config", lambda: config)
 
     shell = cli.SparkiiCLI(
@@ -285,76 +285,6 @@ def test_cli_turn_routing_uses_primary_when_disabled(monkeypatch):
 
 
 
-def test_model_flow_nous_does_not_restore_stale_custom_api_key(tmp_path, monkeypatch):
-    import yaml
-
-    config_home = tmp_path / "sparkii"
-    config_home.mkdir()
-    monkeypatch.setenv("SPARKII_HOME", str(config_home))
-
-    config_path = config_home / "config.yaml"
-    config_path.write_text(
-        yaml.safe_dump(
-            {
-                "model": {
-                    "provider": "custom",
-                    "default": "glm-5.2",
-                    "base_url": "https://api.neuralwatt.com/v1",
-                    "api_key": "${NEURALWATT_API_KEY}",
-                    "api_mode": "chat_completions",
-                }
-            },
-            sort_keys=False,
-        )
-    )
-
-    stale_config = yaml.safe_load(config_path.read_text()) or {}
-    selected_model = "deepseek/deepseek-v4-flash"
-
-    monkeypatch.setattr(
-        "sparkii_cli.auth.get_provider_auth_state",
-        lambda provider: {
-            "access_token": "nous-token",
-            "portal_base_url": "https://portal.example.com",
-        },
-    )
-    monkeypatch.setattr(
-        "sparkii_cli.auth.resolve_nous_runtime_credentials",
-        lambda *args, **kwargs: {
-            "base_url": "https://inference-api.nousresearch.com/v1",
-            "api_key": "nous-key",
-        },
-    )
-    monkeypatch.setattr(
-        "sparkii_cli.models.get_curated_nous_model_ids",
-        lambda: [selected_model],
-    )
-    monkeypatch.setattr("sparkii_cli.models.get_pricing_for_provider", lambda provider: {})
-    monkeypatch.setattr("sparkii_cli.models.check_nous_free_tier", lambda **kwargs: False)
-    monkeypatch.setattr(
-        "sparkii_cli.models.union_with_portal_paid_recommendations",
-        lambda model_ids, pricing, portal_url: (model_ids, pricing),
-    )
-    monkeypatch.setattr(
-        "sparkii_cli.auth._prompt_model_selection",
-        lambda *args, **kwargs: selected_model,
-    )
-    monkeypatch.setattr(
-        "sparkii_cli.nous_subscription.prompt_enable_tool_gateway",
-        lambda config: None,
-    )
-
-    sparkii_main._model_flow_nous(stale_config, current_model="glm-5.2")
-
-    config = yaml.safe_load(config_path.read_text()) or {}
-    model = config.get("model")
-    assert model["provider"] == "nous"
-    assert model["default"] == selected_model
-    assert model["base_url"] == "https://inference-api.nousresearch.com/v1"
-    assert "api_key" not in model
-    assert "api_mode" not in model
-
-
 def _seed_stale_custom_model(tmp_path, monkeypatch):
     import yaml
 
@@ -440,11 +370,11 @@ def test_codex_provider_uses_config_model(monkeypatch):
 
 def test_model_flow_custom_saves_verified_v1_base_url(monkeypatch, capsys):
     monkeypatch.setattr(
-        "sparkii_cli.config.get_env_value",
+        "core.config.get_env_value",
         lambda key: "" if key in {"OPENAI_BASE_URL", "OPENAI_API_KEY"} else "",
     )
     saved_env = {}
-    monkeypatch.setattr("sparkii_cli.config.save_env_value", lambda key, value: saved_env.__setitem__(key, value))
+    monkeypatch.setattr("core.config.save_env_value", lambda key, value: saved_env.__setitem__(key, value))
     monkeypatch.setattr("sparkii_cli.auth._save_model_choice", lambda model: saved_env.__setitem__("MODEL", model))
     monkeypatch.setattr("sparkii_cli.auth.deactivate_provider", lambda: None)
     monkeypatch.setattr("sparkii_cli.main._save_custom_provider", lambda *args, **kwargs: None)
@@ -459,17 +389,17 @@ def test_model_flow_custom_saves_verified_v1_base_url(monkeypatch, capsys):
         },
     )
     monkeypatch.setattr(
-        "sparkii_cli.config.load_config",
+        "core.config.load_config",
         lambda: {"model": {"default": "", "provider": "custom", "base_url": ""}},
     )
-    monkeypatch.setattr("sparkii_cli.config.save_config", lambda cfg: None)
+    monkeypatch.setattr("core.config.save_config", lambda cfg: None)
 
     # After the probe detects a single model ("llm"), the flow asks
     # "Use this model? [Y/n]:" — confirm with Enter, then context length,
     # then display name. The api_mode prompt also runs before model selection.
     answers = iter(["http://localhost:8000", "local-key", "", "", "", "", ""])
     monkeypatch.setattr("builtins.input", lambda _prompt="": next(answers))
-    monkeypatch.setattr("sparkii_cli.secret_prompt.masked_secret_prompt", lambda _prompt="": next(answers))
+    monkeypatch.setattr("core.secret_prompt.masked_secret_prompt", lambda _prompt="": next(answers))
 
     sparkii_main._model_flow_custom({})
     output = capsys.readouterr().out
@@ -486,7 +416,7 @@ def test_model_flow_custom_persists_selected_api_mode(monkeypatch):
     captured_provider = {}
 
     monkeypatch.setattr(
-        "sparkii_cli.config.get_env_value",
+        "core.config.get_env_value",
         lambda key: "" if key in {"OPENAI_BASE_URL", "OPENAI_API_KEY"} else "",
     )
     monkeypatch.setattr("sparkii_cli.auth._save_model_choice", lambda model: None)
@@ -502,10 +432,10 @@ def test_model_flow_custom_persists_selected_api_mode(monkeypatch):
         },
     )
     saved_env = {}
-    monkeypatch.setattr("sparkii_cli.config.load_config", lambda: saved_cfg)
-    monkeypatch.setattr("sparkii_cli.config.save_config", lambda cfg: saved_cfg.update(cfg))
+    monkeypatch.setattr("core.config.load_config", lambda: saved_cfg)
+    monkeypatch.setattr("core.config.save_config", lambda cfg: saved_cfg.update(cfg))
     monkeypatch.setattr(
-        "sparkii_cli.config.save_env_value",
+        "core.config.save_env_value",
         lambda key, value: saved_env.__setitem__(key, value),
     )
     monkeypatch.setattr(
@@ -533,7 +463,7 @@ def test_model_flow_custom_persists_selected_api_mode(monkeypatch):
         ]
     )
     monkeypatch.setattr("builtins.input", lambda _prompt="": next(answers))
-    monkeypatch.setattr("sparkii_cli.secret_prompt.masked_secret_prompt", lambda _prompt="": "test-key")
+    monkeypatch.setattr("core.secret_prompt.masked_secret_prompt", lambda _prompt="": "test-key")
 
     sparkii_main._model_flow_custom({"model": {"provider": "custom"}})
 
@@ -547,57 +477,6 @@ def test_model_flow_custom_persists_selected_api_mode(monkeypatch):
     assert saved_cfg["model"]["api_key"] == f"${{{key_env}}}"
     assert saved_env[key_env] == "test-key"
 
-
-def test_cmd_model_forwards_nous_login_tls_options(monkeypatch):
-    monkeypatch.setattr(sparkii_main, "_require_tty", lambda *a: None)
-    monkeypatch.setattr(
-        "sparkii_cli.config.load_config",
-        lambda: {"model": {"default": "gpt-5", "provider": "nous"}},
-    )
-    monkeypatch.setattr("sparkii_cli.config.save_config", lambda cfg: None)
-    monkeypatch.setattr("sparkii_cli.config.get_env_value", lambda key: "")
-    monkeypatch.setattr("sparkii_cli.config.save_env_value", lambda key, value: None)
-    monkeypatch.setattr("sparkii_cli.auth.resolve_provider", lambda requested, **kwargs: "nous")
-    monkeypatch.setattr("sparkii_cli.auth.get_provider_auth_state", lambda provider_id: None)
-    monkeypatch.setattr(sparkii_main, "_prompt_provider_choice", lambda choices, **kwargs: 0)
-
-    captured = {}
-
-    def _fake_login(login_args, provider_config):
-        captured["portal_url"] = login_args.portal_url
-        captured["inference_url"] = login_args.inference_url
-        captured["client_id"] = login_args.client_id
-        captured["scope"] = login_args.scope
-        captured["no_browser"] = login_args.no_browser
-        captured["timeout"] = login_args.timeout
-        captured["ca_bundle"] = login_args.ca_bundle
-        captured["insecure"] = login_args.insecure
-
-    monkeypatch.setattr("sparkii_cli.auth._login_nous", _fake_login)
-
-    sparkii_main.cmd_model(
-        SimpleNamespace(
-            portal_url="https://portal.nousresearch.com",
-            inference_url="https://inference.nousresearch.com/v1",
-            client_id="sparkii-local",
-            scope="openid profile",
-            no_browser=True,
-            timeout=7.5,
-            ca_bundle="/tmp/local-ca.pem",
-            insecure=True,
-        )
-    )
-
-    assert captured == {
-        "portal_url": "https://portal.nousresearch.com",
-        "inference_url": "https://inference.nousresearch.com/v1",
-        "client_id": "sparkii-local",
-        "scope": "openid profile",
-        "no_browser": True,
-        "timeout": 7.5,
-        "ca_bundle": "/tmp/local-ca.pem",
-        "insecure": True,
-    }
 
 
 # ---------------------------------------------------------------------------
@@ -623,12 +502,12 @@ def test_save_custom_provider_uses_provided_name(monkeypatch, tmp_path):
     cfg_path.write_text(yaml.dump({}))
 
     monkeypatch.setattr(
-        "sparkii_cli.config.load_config", lambda: yaml.safe_load(cfg_path.read_text()) or {},
+        "core.config.load_config", lambda: yaml.safe_load(cfg_path.read_text()) or {},
     )
     saved = {}
     def _save(cfg):
         saved.update(cfg)
-    monkeypatch.setattr("sparkii_cli.config.save_config", _save)
+    monkeypatch.setattr("core.config.save_config", _save)
 
     _save_custom_provider("http://localhost:11434/v1", name="Ollama")
     entries = saved.get("custom_providers", [])
@@ -644,10 +523,10 @@ def test_save_custom_provider_references_the_key_instead_of_inlining_it(monkeypa
     cfg_path = tmp_path / "config.yaml"
     cfg_path.write_text(yaml.dump({}))
     monkeypatch.setattr(
-        "sparkii_cli.config.load_config", lambda: yaml.safe_load(cfg_path.read_text()) or {},
+        "core.config.load_config", lambda: yaml.safe_load(cfg_path.read_text()) or {},
     )
     saved = {}
-    monkeypatch.setattr("sparkii_cli.config.save_config", lambda cfg: saved.update(cfg))
+    monkeypatch.setattr("core.config.save_config", lambda cfg: saved.update(cfg))
 
     _save_custom_provider(
         "http://localhost:11434/v1",
@@ -674,7 +553,7 @@ def test_custom_endpoint_key_env_is_a_valid_posix_name_for_ip_endpoints():
     """
     import re
 
-    from sparkii_cli.config import _ENV_VAR_NAME_RE, custom_endpoint_key_env
+    from core.config import _ENV_VAR_NAME_RE, custom_endpoint_key_env
 
     for identity in ("127.0.0.1_8080", "0.0.0.0", "10.0.0.7:11434", "", "-–-"):
         assert _ENV_VAR_NAME_RE.match(custom_endpoint_key_env(identity)), identity

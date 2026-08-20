@@ -30,7 +30,7 @@ from agent.credential_pool import (
 import sparkii_cli.auth as auth_mod
 from sparkii_cli.auth import PROVIDER_REGISTRY
 from sparkii_constants import OPENROUTER_BASE_URL
-from sparkii_cli.secret_prompt import masked_secret_prompt
+from core.secret_prompt import masked_secret_prompt
 
 
 # Providers that support OAuth login in addition to API keys.
@@ -40,7 +40,7 @@ _OAUTH_CAPABLE_PROVIDERS = {"anthropic", "nous", "openai-codex", "xai-oauth", "q
 def _get_custom_provider_names() -> list:
     """Return list of (display_name, pool_key, provider_key) tuples."""
     try:
-        from sparkii_cli.config import get_compatible_custom_providers, load_config
+        from core.config import get_compatible_custom_providers, load_config
 
         config = load_config()
     except Exception:
@@ -561,7 +561,7 @@ def _interactive_auth() -> None:
 
     # Show Azure Foundry Entra ID status
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         _cfg = load_config()
         _model_cfg = _cfg.get("model") if isinstance(_cfg, dict) else None
         if isinstance(_model_cfg, dict):
@@ -750,7 +750,7 @@ def _interactive_strategy() -> None:
         print("Invalid choice.")
         return
 
-    from sparkii_cli.config import load_config, save_config
+    from core.config import load_config, save_config
     cfg = load_config()
     pool_strategies = cfg.get("credential_pool_strategies") or {}
     if not isinstance(pool_strategies, dict):

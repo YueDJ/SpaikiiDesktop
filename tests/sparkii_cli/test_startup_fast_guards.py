@@ -4,7 +4,7 @@ Two invariants, each of which has been broken before:
 
 1. IMPORT WEIGHT: _startup_fast must stay stdlib-only. The whole point of
    the module is to run before main.py's heavy import wall; one careless
-   ``from sparkii_cli.config import ...`` silently makes `sparkii --version`
+   ``from core.config import ...`` silently makes `sparkii --version`
    slow again for everyone (the regression would be invisible — everything
    still works, just 40x slower).
 
@@ -27,7 +27,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 # Modules that must NEVER be imported by the fast path. Each one either
 # pulls yaml/argparse/logging config or is itself a god-module.
 _FORBIDDEN_MODULES = (
-    "sparkii_cli.config",
+    "core.config",
     "sparkii_cli.main",
     "yaml",
     "argparse",

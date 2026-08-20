@@ -25,7 +25,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 from agent.proxy_sources import iron_proxy as ip
-from sparkii_cli.config import load_config, save_config
+from core.config import load_config, save_config
 
 
 # ---------------------------------------------------------------------------
@@ -874,7 +874,7 @@ def _load_env_file_into_environ() -> int:
     slurp unrelated secrets into the process. Returns the count of names added.
     """
     try:
-        from sparkii_cli.config import load_env
+        from core.config import load_env
     except ImportError:
         return 0
     try:

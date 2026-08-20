@@ -734,7 +734,7 @@ def build_system_prompt_parts(agent: Any, system_message: Optional[str] = None) 
     # uses: top-level platform overrides gateway.platforms at the leaf.
     if platform_key == "telegram" and _default_hint:
         try:
-            from sparkii_cli.config import load_config_readonly
+            from core.config import load_config_readonly
             _cfg = load_config_readonly()
             _gw_tg_extra = (((_cfg.get("gateway") or {}).get("platforms") or {}).get("telegram") or {}).get("extra")
             _top_tg_extra = ((_cfg.get("platforms") or {}).get("telegram") or {}).get("extra")

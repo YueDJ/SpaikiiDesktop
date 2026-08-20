@@ -237,7 +237,7 @@ def format_interval(seconds: float) -> str:
 def _loops_config() -> Dict[str, Any]:
     """Read the ``loops:`` config section (cached load_config underneath)."""
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         cfg = load_config() or {}
         section = cfg.get("loops") or {}

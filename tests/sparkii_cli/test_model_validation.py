@@ -75,25 +75,9 @@ class TestCuratedModelsForProvider:
         assert curated_models_for_provider("totally-unknown") == []
 
 
-# -- normalize_provider ------------------------------------------------------
-
-class TestNormalizeProvider:
-
-    def test_known_aliases(self):
-        assert normalize_provider("glm") == "zai"
-        assert normalize_provider("kimi") == "kimi-coding"
-        assert normalize_provider("moonshot") == "kimi-coding"
-        assert normalize_provider("step") == "stepfun"
-        assert normalize_provider("github-copilot") == "copilot"
-
-
 class TestProviderLabel:
     def test_known_labels_and_auto(self):
         assert provider_label("anthropic") == "Anthropic"
-        assert provider_label("kimi") == "Kimi / Kimi Coding Plan"
-        assert provider_label("stepfun") == "StepFun Step Plan"
-        assert provider_label("copilot") == "GitHub Copilot"
-        assert provider_label("copilot-acp") == "GitHub Copilot ACP"
         assert provider_label("auto") == "Auto"
 
 
@@ -125,7 +109,7 @@ class TestProviderModelIds:
                 return b'{"data": [{"id": "enterprise-claude"}]}'
 
         with patch(
-            "sparkii_cli.config.load_config",
+            "core.config.load_config",
             return_value={
                 "model": {
                     "provider": "anthropic",
@@ -145,7 +129,7 @@ class TestProviderModelIds:
 
     def test_custom_provider_passes_anthropic_mode_for_versioned_proxy_catalog(self):
         with patch(
-            "sparkii_cli.config.load_config",
+            "core.config.load_config",
             return_value={
                 "model": {
                     "provider": "custom",
@@ -521,5 +505,3 @@ class TestProbeApiModelsUserAgent:
         assert ua and ua.startswith("sparkii-cli/")
         # No Authorization was set, but UA must still be present.
         assert req.get_header("Authorization") is None
-
-

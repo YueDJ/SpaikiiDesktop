@@ -438,7 +438,7 @@ class _ManagedRotatingFileHandler(RotatingFileHandler):
     """
 
     def __init__(self, *args, **kwargs):
-        from sparkii_cli.config import is_managed
+        from core.config import is_managed
         self._managed = is_managed()
         super().__init__(*args, **kwargs)
         # Snapshot the inode of the currently open stream so emit() can
@@ -768,10 +768,10 @@ def _read_logging_config():
         # Prefer the shared (mtime, size)-keyed raw-config cache so this read
         # reuses the parse sparkii_cli.main's early bridge already did (one
         # config.yaml parse per process instead of 3-4). Fall back to a
-        # direct parse when sparkii_cli.config isn't importable (bare
+        # direct parse when core.config isn't importable (bare
         # sparkii_logging consumers).
         try:
-            from sparkii_cli.config import read_raw_config as _rrc
+            from core.config import read_raw_config as _rrc
             cfg = _rrc() or {}
         except Exception:
             from utils import fast_safe_load
@@ -784,7 +784,7 @@ def _read_logging_config():
             # Managed scope: an administrator can pin logging.* too. Overlay via
             # the shared helper (fail-open) since this reads config.yaml directly.
             try:
-                from sparkii_cli import managed_scope
+                from core import managed_scope
                 cfg = managed_scope.apply_managed_overlay(cfg)
             except Exception:
                 pass

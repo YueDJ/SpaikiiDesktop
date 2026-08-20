@@ -14,7 +14,7 @@ These tests drive the REAL functions against a temp SPARKII_HOME config
 """
 import pytest
 
-import sparkii_cli.config as hc
+import core.config as hc
 from tools.approval import (
     _get_approval_config,
     _get_approval_mode,

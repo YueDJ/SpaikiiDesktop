@@ -105,7 +105,7 @@ class TestPreUpdateBackupIntegrityGuard:
         monkeypatch.setenv("SPARKII_HOME", str(root))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
         for mod in list(sys.modules.keys()):
-            if mod.startswith("sparkii_cli.config") or mod == "sparkii_constants":
+            if mod.startswith("core.config") or mod == "sparkii_constants":
                 del sys.modules[mod]
         return root
 

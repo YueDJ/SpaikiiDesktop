@@ -405,7 +405,7 @@ def _slack_tools_loaded() -> bool:
     if not _slack_token.strip():
         return False
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         from sparkii_cli.tools_config import _get_platform_tools
         cfg = load_config()
         # include_default_mcp_servers=True (the default) so a Slack MCP
@@ -433,7 +433,7 @@ def _discord_tools_loaded() -> bool:
     """
     try:
         from agent.secret_scope import get_secret
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         from sparkii_cli.tools_config import _get_platform_tools
 
         if not (get_secret("DISCORD_BOT_TOKEN", "") or "").strip():

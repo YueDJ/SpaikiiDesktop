@@ -176,7 +176,7 @@ def check_env_vars():
 
     # Load .env
     try:
-        from sparkii_cli.env_loader import load_sparkii_dotenv
+        from core.env_loader import load_sparkii_dotenv
 
         load_sparkii_dotenv(
             sparkii_home=ENV_FILE.parent,

@@ -722,7 +722,7 @@ def _build_safe_env(user_env: Optional[dict]) -> dict:
     in every MCP server's ``env:`` block.
     """
     try:
-        from sparkii_cli.env_loader import get_secret_source
+        from core.env_loader import get_secret_source
     except Exception:  # pragma: no cover — early bootstrap/import fallback
         get_secret_source = None
     env = {}
@@ -5466,7 +5466,7 @@ def _warn_hidden_whitespace(server_name: str, config: dict) -> List[str]:
 def _filter_suspicious_mcp_servers(servers: Dict[str, dict]) -> Dict[str, dict]:
     """Drop exfiltration-shaped MCP configs before any stdio spawn path."""
     try:
-        from sparkii_cli.mcp_security import validate_mcp_server_entry as _validate_mcp_server_entry
+        from core.mcp_security import validate_mcp_server_entry as _validate_mcp_server_entry
     except Exception:
         _validate_mcp_server_entry: Callable[[str, dict[str, Any]], list[str]] | None = None
 
@@ -5502,7 +5502,7 @@ def _load_mcp_config() -> Dict[str, dict]:
     ``os.environ`` (which includes ``~/.sparkii/.env`` loaded at startup).
     """
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         from utils import env_var_enabled as _env_enabled
 
         if _env_enabled("SPARKII_SAFE_MODE"):
@@ -5513,7 +5513,7 @@ def _load_mcp_config() -> Dict[str, dict]:
             servers = {}
         # Ensure .env vars are available for interpolation
         try:
-            from sparkii_cli.env_loader import load_sparkii_dotenv
+            from core.env_loader import load_sparkii_dotenv
             load_sparkii_dotenv()
         except Exception:
             pass

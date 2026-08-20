@@ -22,7 +22,7 @@ def _api_key_line(out: str, label: str) -> str:
 
 def test_dump_flags_shell_only_key_not_in_dotenv(monkeypatch, capsys, tmp_path):
     from sparkii_cli import dump
-    from sparkii_cli.config import get_sparkii_home
+    from core.config import get_sparkii_home
 
     monkeypatch.setattr(dump, "get_project_root", lambda: tmp_path / "noproject")
 
@@ -43,7 +43,7 @@ def test_dump_flags_shell_only_key_not_in_dotenv(monkeypatch, capsys, tmp_path):
 
 def test_dump_leaves_unset_key_untouched(monkeypatch, capsys, tmp_path):
     from sparkii_cli import dump
-    from sparkii_cli.config import get_sparkii_home
+    from core.config import get_sparkii_home
 
     monkeypatch.setattr(dump, "get_project_root", lambda: tmp_path / "noproject")
     monkeypatch.delenv("TAVILY_API_KEY", raising=False)

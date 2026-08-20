@@ -227,7 +227,7 @@ def test_domain_and_cli_review_handoffs_redact_before_persistence(
 
 def test_worker_guidance_distinguishes_same_card_and_downstream_review() -> None:
     from agent.prompt_builder import KANBAN_GUIDANCE
-    from sparkii_cli.config_defaults import DEFAULT_CONFIG
+    from core.config_defaults import DEFAULT_CONFIG
 
     assert "lists child IDs" in KANBAN_GUIDANCE
     assert "inspect those cards" in KANBAN_GUIDANCE

@@ -11,7 +11,7 @@ cli.py::_confirm_destructive_slash for the runtime gate.
 
 from __future__ import annotations
 
-from sparkii_cli.config import DEFAULT_CONFIG
+from core.config import DEFAULT_CONFIG
 
 
 class TestDestructiveSlashConfirmDefault:
@@ -44,7 +44,7 @@ class TestUserConfigMerge:
 
         monkeypatch.setenv("SPARKII_HOME", str(home))
         import importlib
-        import sparkii_cli.config as cfg_mod
+        import core.config as cfg_mod
         importlib.reload(cfg_mod)
 
         cfg = cfg_mod.load_config()

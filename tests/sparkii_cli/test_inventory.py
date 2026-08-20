@@ -193,7 +193,7 @@ def test_explicit_only_filters_ambient_credentials_but_keeps_current_and_custom_
     ctx = _empty_ctx(provider="openai-codex", model="gpt-5.4")
     with (
         _list_auth_returning(rows),
-        patch("sparkii_cli.config.read_raw_config", return_value={}),
+        patch("core.config.read_raw_config", return_value={}),
         patch(
             "sparkii_cli.auth.is_provider_explicitly_configured",
             side_effect=lambda slug: slug == "gemini",
@@ -292,7 +292,7 @@ def test_end_to_end_with_real_context_no_credentials_leak(monkeypatch):
     monkeypatch.setenv("OPENROUTER_API_KEY", canary)
     monkeypatch.setenv("ANTHROPIC_API_KEY", canary)
     cfg = _cfg(model={"provider": "openrouter"})
-    with patch("sparkii_cli.config.load_config", return_value=cfg):
+    with patch("core.config.load_config", return_value=cfg):
         ctx = load_picker_context()
     payload = build_models_payload(
         ctx, include_unconfigured=True, picker_hints=True,

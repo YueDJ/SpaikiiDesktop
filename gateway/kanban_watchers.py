@@ -273,7 +273,7 @@ class GatewayKanbanWatchersMixin:
                 if _gc_due:
                     _gc_next_at = time.monotonic() + _GC_INTERVAL_SECONDS
                     try:
-                        from sparkii_cli.config import load_config as _load_cfg
+                        from core.config import load_config as _load_cfg
 
                         _kanban_cfg = (_load_cfg() or {}).get("kanban") or {}
                         _gc_retention_days = int(
@@ -1202,7 +1202,7 @@ class GatewayKanbanWatchersMixin:
         # watcher here. Honours SPARKII_KANBAN_DISPATCH_IN_GATEWAY env var
         # as an escape hatch (false-y value disables without editing YAML).
         try:
-            from sparkii_cli.config import load_config as _load_config
+            from core.config import load_config as _load_config
         except Exception:
             logger.warning("kanban dispatcher: config loader unavailable; disabled")
             return

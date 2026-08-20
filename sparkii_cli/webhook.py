@@ -21,7 +21,7 @@ from typing import Dict
 
 from sparkii_constants import display_sparkii_home
 from utils import atomic_replace
-from sparkii_cli.config import cfg_get
+from core.config import cfg_get
 
 
 _SUBSCRIPTIONS_FILENAME = "webhook_subscriptions.json"
@@ -83,7 +83,7 @@ def _save_subscriptions(subs: Dict[str, dict]) -> None:
 def _get_webhook_config() -> dict:
     """Load webhook platform config. Returns {} if not configured."""
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         cfg = load_config()
         return cfg_get(cfg, "platforms", "webhook", default={})
     except Exception:

@@ -125,7 +125,7 @@ class TestAddCommand:
 
         def fake_picker(args=None):
             # Simulate what the real picker does: writes the selection to config["model"]
-            from sparkii_cli.config import load_config, save_config
+            from core.config import load_config, save_config
             cfg = load_config()
             cfg["model"] = {
                 "provider": "openrouter",
@@ -164,7 +164,7 @@ class TestAddCommand:
 
         def fake_picker(args=None):
             # User picks the same thing that's already the primary
-            from sparkii_cli.config import load_config, save_config
+            from core.config import load_config, save_config
             cfg = load_config()
             cfg["model"] = {"provider": "openrouter", "default": "gpt-5.4"}
             save_config(cfg)
@@ -191,7 +191,7 @@ class TestAddCommand:
         })
 
         def fake_picker(args=None):
-            from sparkii_cli.config import load_config, save_config
+            from core.config import load_config, save_config
             cfg = load_config()
             cfg["model"] = {
                 "provider": "openrouter",

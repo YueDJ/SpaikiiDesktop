@@ -59,7 +59,7 @@ def _background_review_task_config(
     if task_cfg is not None:
         return task_cfg if isinstance(task_cfg, dict) else {}
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
 
         cfg = load_config_readonly()
     except Exception:
@@ -77,7 +77,7 @@ def load_background_review_settings() -> tuple[bool, Dict[str, Any]]:
     WARNING so the cost-incurring path is visible.
     """
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
         from utils import is_truthy_value
 
         cfg = load_config_readonly()

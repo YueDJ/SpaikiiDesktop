@@ -1,6 +1,6 @@
 """Tests for Anthropic credential persistence helpers."""
 
-from sparkii_cli.config import load_env
+from core.config import load_env
 
 
 def test_save_anthropic_oauth_token_uses_token_slot_and_clears_api_key(tmp_path, monkeypatch):
@@ -8,7 +8,7 @@ def test_save_anthropic_oauth_token_uses_token_slot_and_clears_api_key(tmp_path,
     home.mkdir()
     monkeypatch.setenv("SPARKII_HOME", str(home))
 
-    from sparkii_cli.config import save_anthropic_oauth_token
+    from core.config import save_anthropic_oauth_token
 
     save_anthropic_oauth_token("sk-ant-oat01-test-token")
 
@@ -22,7 +22,7 @@ def test_use_anthropic_claude_code_credentials_clears_env_slots(tmp_path, monkey
     home.mkdir()
     monkeypatch.setenv("SPARKII_HOME", str(home))
 
-    from sparkii_cli.config import save_anthropic_oauth_token, use_anthropic_claude_code_credentials
+    from core.config import save_anthropic_oauth_token, use_anthropic_claude_code_credentials
 
     save_anthropic_oauth_token("sk-ant-oat01-token")
     use_anthropic_claude_code_credentials()

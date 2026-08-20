@@ -18,7 +18,7 @@ import os
 import urllib.request
 from urllib.parse import urljoin
 
-from sparkii_cli.urllib_security import open_credentialed_url
+from core.urllib_security import open_credentialed_url
 
 logger = logging.getLogger(__name__)
 

@@ -1210,7 +1210,7 @@ class TestBlocklistCoverage:
 
     def test_optional_tool_and_messaging_vars_are_in_blocklist(self):
         """Tool/messaging vars from OPTIONAL_ENV_VARS should stay covered."""
-        from sparkii_cli.config import OPTIONAL_ENV_VARS
+        from core.config import OPTIONAL_ENV_VARS
 
         for name, metadata in OPTIONAL_ENV_VARS.items():
             category = metadata.get("category")

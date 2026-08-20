@@ -31,7 +31,7 @@ from sparkii_constants import (
     reset_sparkii_home_override,
     set_sparkii_home_override,
 )
-from sparkii_cli.env_loader import load_sparkii_dotenv
+from core.env_loader import load_sparkii_dotenv
 from utils import is_truthy_value
 from tools.environments.local import sparkii_subprocess_env
 from agent.replay_cleanup import sanitize_replay_history
@@ -417,7 +417,7 @@ class _SlashWorker:
             argv += ["--model", model]
 
         self._closed = False
-        from sparkii_cli._subprocess_compat import windows_hide_flags
+        from core._subprocess_compat import windows_hide_flags
 
         # slash_worker runs the Sparkii agent → needs provider credentials.
         # Tier-1 secrets (gateway/GitHub/infra) are still stripped (#29157).
@@ -1273,7 +1273,7 @@ def _reap_idle_sessions() -> None:
     # Calling trim_memory here ensures every reaper scan (default every 5 min)
     # returns releasable pages, preventing unbounded RSS growth over days/weeks.
     try:
-        from sparkii_cli.mem_trim import trim_memory
+        from core.mem_trim import trim_memory
 
         trim_memory(reason="idle reaper periodic trim")
     except Exception as exc:
@@ -1592,7 +1592,7 @@ def _profile_configured_cwd(profile_home: Path | None) -> str | None:
     if profile_home is None:
         return None
     try:
-        from sparkii_cli.config import _expand_env_vars, read_user_config_raw
+        from core.config import _expand_env_vars, read_user_config_raw
 
         p = Path(profile_home) / "config.yaml"
         if not p.exists():
@@ -3266,7 +3266,7 @@ def _load_dashboard_process_isolation_config(cfg: dict | None = None) -> dict[st
 
     ``_load_cfg()`` intentionally returns the user ``config.yaml`` plus the
     managed overlay and ``${VAR}`` expansion; it does not deep-merge
-    ``sparkii_cli.config.DEFAULT_CONFIG``. Keep
+    ``core.config.DEFAULT_CONFIG``. Keep
     the Phase-0 defaults here so dashboard runtime and the REST editor's
     DEFAULT_CONFIG-backed schema cannot drift.
     """
@@ -3315,7 +3315,7 @@ def _load_cfg_raw() -> dict:
             if _cfg_cache is not None and _cfg_mtime == mtime and _cfg_path == p:
                 return copy.deepcopy(_cfg_cache)
         if p.exists():
-            from sparkii_cli.config import read_user_config_raw
+            from core.config import read_user_config_raw
             data = read_user_config_raw(p)
         else:
             data = {}
@@ -3338,7 +3338,7 @@ def _load_cfg() -> dict:
 
     Delegates the disk read to :func:`_load_cfg_raw` (shared cache), then
     applies the same read-side pipeline as the canonical
-    ``sparkii_cli.config.load_config_readonly`` — managed-scope overlay and
+    ``core.config.load_config_readonly`` — managed-scope overlay and
     ``${ENV_VAR}`` expansion — minus the DEFAULT_CONFIG merge (callers here
     treat a missing key as "unset" and apply their own defaults; merging
     would also break ``_load_cfg() == {}`` sentinels). Do NOT pass the
@@ -3348,7 +3348,7 @@ def _load_cfg() -> dict:
     """
     cfg = _apply_managed(_load_cfg_raw())
     try:
-        from sparkii_cli.config import _expand_env_vars
+        from core.config import _expand_env_vars
 
         expanded = _expand_env_vars(cfg)
         if isinstance(expanded, dict):
@@ -3362,12 +3362,12 @@ def _apply_managed(cfg: dict) -> dict:
     """Overlay administrator-pinned managed-scope values on a config dict.
 
     The TUI/desktop backend builds config independently of
-    sparkii_cli.config.load_config, so without this a managed skin / reasoning_effort
+    core.config.load_config, so without this a managed skin / reasoning_effort
     / service_tier / provider_routing would be silently ignored here. Read-side
     only — the raw user config is what gets cached and saved. Fail-open.
     """
     try:
-        from sparkii_cli import managed_scope
+        from core import managed_scope
 
         return managed_scope.apply_managed_overlay(cfg if isinstance(cfg, dict) else {})
     except Exception:
@@ -3421,7 +3421,7 @@ def _set_session_context(
     ui_session_id: str = "",
 ) -> list:
     try:
-        from gateway.session_context import set_session_vars
+        from core.session_context import set_session_vars
 
         # Ephemeral task IDs (background, preview) aren't in `_sessions`, so the
         # reverse-map returns "" and would clear the cwd override. Callers that
@@ -3463,7 +3463,7 @@ def _clear_session_context(tokens: list) -> None:
     if not tokens:
         return
     try:
-        from gateway.session_context import clear_session_vars
+        from core.session_context import clear_session_vars
 
         clear_session_vars(tokens)
     except Exception:
@@ -4478,7 +4478,7 @@ def _load_approval_mode() -> str:
     Previously this re-read the config raw via ``_load_cfg`` +
     ``_deep_merge(DEFAULT_CONFIG, ...)`` and normalized locally, which
     could disagree with the gate's own view of the mode (e.g. the
-    canonical ``sparkii_cli.config.load_config`` path applies managed-scope
+    canonical ``core.config.load_config`` path applies managed-scope
     overlays and ``${VAR}`` env expansion that the TUI's raw YAML read did
     not fully mirror).
     """
@@ -4707,7 +4707,7 @@ def _load_enabled_toolsets(platform: str | None = None) -> list[str] | None:
         mcp_names: set[str] = set()
         mcp_disabled: set[str] = set()
         try:
-            from sparkii_cli.config import read_raw_config
+            from core.config import read_raw_config
             from sparkii_cli.tools_config import _parse_enabled_flag
 
             raw_cfg = read_raw_config()
@@ -4759,7 +4759,7 @@ def _load_enabled_toolsets(platform: str | None = None) -> list[str] | None:
         )
 
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         from sparkii_cli.tools_config import _get_platform_tools
 
         cfg = cfg if cfg is not None else load_config()
@@ -4979,7 +4979,7 @@ def _apply_model_switch(
     custom_provs = None
     cfg = None
     try:
-        from sparkii_cli.config import get_compatible_custom_providers, load_config
+        from core.config import get_compatible_custom_providers, load_config
 
         cfg = load_config()
         user_provs = cfg.get("providers")
@@ -5591,7 +5591,7 @@ def _probe_config_health(cfg: dict) -> str:
         personality = str(display_cfg.get("personality", "") or "").strip().lower()
         if personality and personality not in {"default", "none", "neutral"}:
             try:
-                from sparkii_cli.personality import available_personalities
+                from core.personality import available_personalities
 
                 if personality not in available_personalities(cfg):
                     warnings.append(
@@ -5802,7 +5802,7 @@ def _session_info(agent, session: dict | None = None) -> dict:
         pass
     try:
         from sparkii_cli.banner import get_update_result
-        from sparkii_cli.config import recommended_update_command
+        from core.config import recommended_update_command
 
         info["update_behind"] = get_update_result(timeout=0.5)
         info["update_command"] = recommended_update_command()
@@ -6489,7 +6489,7 @@ def _wire_callbacks(sid: str):
                 "skipped": True,
                 "message": "skipped",
             }
-        from sparkii_cli.config import save_env_value_secure
+        from core.config import save_env_value_secure
 
         return {
             **save_env_value_secure(env_var, val),
@@ -6502,14 +6502,14 @@ def _wire_callbacks(sid: str):
 
 def _render_personality_prompt(value) -> str:
     """Delegates to sparkii_cli.personality (single owner of rendering)."""
-    from sparkii_cli.personality import render_personality_prompt
+    from core.personality import render_personality_prompt
 
     return render_personality_prompt(value)
 
 
 def _available_personalities(cfg: dict | None = None) -> dict:
     """Built-ins + user overrides, via sparkii_cli.personality (single owner)."""
-    from sparkii_cli.personality import available_personalities
+    from core.personality import available_personalities
 
     if cfg is None:
         cfg = _load_cfg()
@@ -6524,7 +6524,7 @@ def _validate_personality(value: str, cfg: dict | None = None) -> tuple[str, str
     _available_personalities so tests (and future gateway-side overrides)
     keep a single patch point.
     """
-    from sparkii_cli.personality import normalize_personality_name
+    from core.personality import normalize_personality_name
 
     name = normalize_personality_name(value)
     if not name:
@@ -6543,7 +6543,7 @@ def _prompt_text(value) -> str:
 
     Delegates to sparkii_cli.personality (single owner).
     """
-    from sparkii_cli.personality import prompt_text
+    from core.personality import prompt_text
 
     return prompt_text(value)
 
@@ -6635,7 +6635,7 @@ def _load_fallback_model():
     order, with legacy ``fallback_model`` entries merged in afterwards
     (deduped on provider/model/base_url).
     """
-    from sparkii_cli.fallback_config import get_fallback_chain
+    from core.fallback_config import get_fallback_chain
 
     return get_fallback_chain(_load_cfg())
 
@@ -6971,7 +6971,7 @@ def _resolve_runtime_with_fallback(
             if not fb_provider or not fb_model:
                 continue
             try:
-                from sparkii_cli.fallback_config import resolve_entry_api_key
+                from core.fallback_config import resolve_entry_api_key
 
                 fb_kwargs: dict = {
                     "requested": fb_provider,
@@ -7039,7 +7039,7 @@ def _make_agent(
         pass
 
     cfg = _load_cfg()
-    from sparkii_cli.config import resolve_ephemeral_system_prompt_from_config
+    from core.config import resolve_ephemeral_system_prompt_from_config
 
     system_prompt = resolve_ephemeral_system_prompt_from_config(cfg)
     startup_skills = _parse_tui_skills_env()
@@ -9057,7 +9057,7 @@ def _pet_config_scale() -> float:
     from agent.pet import constants
 
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         cfg = load_config()
         display = cfg.get("display", {}) if isinstance(cfg.get("display"), dict) else {}
@@ -9115,7 +9115,7 @@ def _pet_active_selection():
     from agent.pet import constants, store
 
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         cfg = load_config()
         display = cfg.get("display", {}) if isinstance(cfg.get("display"), dict) else {}
@@ -10824,7 +10824,7 @@ def _run_prompt_submit(
                         decide_image_input_mode,
                         build_native_content_parts,
                     )
-                    from sparkii_cli.config import load_config as _tui_load_config
+                    from core.config import load_config as _tui_load_config
 
                     _cfg = _tui_load_config()
                     _provider, _model = _active_image_routing_identity(agent)
@@ -11416,7 +11416,7 @@ def _run_prompt_submit(
             # Run while any profile-specific SPARKII_HOME override is still active
             # so context.memory_trim is resolved from the session's own config.
             try:
-                from sparkii_cli.mem_trim import trim_memory
+                from core.mem_trim import trim_memory
 
                 trim_memory(reason="tui turn completion")
             except Exception:
@@ -12579,7 +12579,7 @@ def _(rid, params: dict) -> dict:
                 # Personality text is an in-session overlay. Persistence goes
                 # through sparkii_cli.personality (single owner) and never
                 # touches the user-owned global system prompt.
-                from sparkii_cli.personality import persist_personality
+                from core.personality import persist_personality
 
                 persist_personality(pname)
                 nv = str(value or "none")
@@ -12823,7 +12823,7 @@ def _is_session_cwd_junk(cwd: str) -> bool:
 
 def _repo_discovery_policy(raw: dict | None = None) -> dict:
     """Return the effective, profile-local Desktop repository scan policy."""
-    from sparkii_cli.config import DEFAULT_CONFIG
+    from core.config import DEFAULT_CONFIG
 
     defaults = DEFAULT_CONFIG["desktop"]
     source = raw if isinstance(raw, dict) else (_load_cfg().get("desktop") or {})
@@ -12872,7 +12872,7 @@ def _repo_discovery_policy_key(policy: dict) -> str:
 
 
 def _repo_discovery_policy_is_default(policy: dict) -> bool:
-    from sparkii_cli.config import DEFAULT_CONFIG
+    from core.config import DEFAULT_CONFIG
 
     return _repo_discovery_policy_key(policy) == _repo_discovery_policy_key(
         _repo_discovery_policy(DEFAULT_CONFIG["desktop"])
@@ -13433,7 +13433,7 @@ def _list_repo_files(root: str) -> list[str]:
             return cached[1]
 
     files: list[str] = []
-    from sparkii_cli._subprocess_compat import windows_hide_flags
+    from core._subprocess_compat import windows_hide_flags
 
     _creationflags = windows_hide_flags()
     try:
@@ -14024,7 +14024,7 @@ def _mirror_slash_side_effects(sid: str, session: dict, command: str) -> str:
             # Persist through the single owner so this surface can never
             # drift from the others (the old TUI slash path applied the
             # overlay in-session but skipped persistence entirely).
-            from sparkii_cli.personality import persist_personality
+            from core.personality import persist_personality
 
             persist_personality(pname)
             _apply_personality_to_session(sid, session, new_prompt, pname)
@@ -15240,7 +15240,7 @@ def _resolve_browser_cdp_url() -> str:
     if env_url:
         return env_url
     try:
-        from sparkii_cli.config import read_raw_config
+        from core.config import read_raw_config
 
         cfg = read_raw_config()
         browser_cfg = cfg.get("browser", {}) if isinstance(cfg, dict) else {}

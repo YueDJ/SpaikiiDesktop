@@ -376,7 +376,7 @@ def node_tool_runnable(path: str | None) -> bool:
     import subprocess
 
     try:
-        from sparkii_cli._subprocess_compat import windows_hide_flags
+        from core._subprocess_compat import windows_hide_flags
 
         result = subprocess.run(
             [path, "--version"],
@@ -784,7 +784,7 @@ def _managed_node_tree_outdated(home: Path | None = None) -> bool:
             ):
                 continue
             try:
-                from sparkii_cli._subprocess_compat import windows_hide_flags
+                from core._subprocess_compat import windows_hide_flags
 
                 result = subprocess.run(
                     [str(candidate), "--version"],
@@ -926,7 +926,7 @@ def agent_browser_runnable(path: str | None) -> bool:
     import subprocess
 
     try:
-        from sparkii_cli._subprocess_compat import windows_hide_flags
+        from core._subprocess_compat import windows_hide_flags
 
         result = subprocess.run(
             [path, "--version"],

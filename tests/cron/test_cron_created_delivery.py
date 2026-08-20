@@ -15,7 +15,7 @@ import json
 
 import pytest
 
-from gateway.session_context import _VAR_MAP, clear_session_vars, set_session_vars
+from core.session_context import _VAR_MAP, clear_session_vars, set_session_vars
 
 
 @pytest.fixture

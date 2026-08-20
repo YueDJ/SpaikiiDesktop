@@ -16,7 +16,7 @@ from dataclasses import asdict, dataclass, field, is_dataclass
 from typing import Dict, List, Optional, Any, Callable
 from enum import Enum
 
-from sparkii_cli.config import get_sparkii_home
+from core.config import get_sparkii_home
 from agent.secret_scope import current_secret_scope, get_secret as _get_secret
 from utils import is_truthy_value
 
@@ -517,7 +517,7 @@ class HomeChannel:
 
 def persist_home_channel(home: HomeChannel, *, enabled_if_new: bool = False) -> None:
     """Persist a logical home without falsely enabling a Relay-fronted adapter."""
-    from sparkii_cli.config import load_config, save_config
+    from core.config import load_config, save_config
 
     config = load_config()
     platforms = config.setdefault("platforms", {})
@@ -1325,10 +1325,10 @@ def load_gateway_config() -> GatewayConfig:
 
             # Managed scope: overlay administrator-pinned values so the gateway
             # honors them too. This loader builds its own dict instead of going
-            # through sparkii_cli.config.load_config, so without this a managed
+            # through core.config.load_config, so without this a managed
             # session_reset / quick_commands / stt / model would be ignored by
             # the messaging gateway. Fail-open via the shared helper.
-            from sparkii_cli import managed_scope
+            from core import managed_scope
             yaml_cfg = managed_scope.apply_managed_overlay(yaml_cfg)
 
             # Shared nested-fallback source: settings meant to be top-level

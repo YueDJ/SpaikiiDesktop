@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 
 from sparkii_cli import plugin_index
-from sparkii_cli.plugin_index import (
+from core.plugin_index import (
     PluginIndexEntry,
     _parse_entries,
     load_index,
@@ -265,7 +265,7 @@ class TestLoadIndex:
             "get_index_url",
             plugin_index.get_index_url,  # keep real fn, patch config below
         )
-        from sparkii_cli import config as config_mod
+        from core import config as config_mod
 
         monkeypatch.setattr(
             config_mod,

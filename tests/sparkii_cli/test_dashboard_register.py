@@ -50,7 +50,7 @@ class TestFastFails:
         with patch.object(dr, "cmd_dashboard_register", dr.cmd_dashboard_register):
             with patch(
                 "sparkii_cli.auth.resolve_nous_access_token", side_effect=err
-            ), patch("sparkii_cli.config.is_managed", return_value=False):
+            ), patch("core.config.is_managed", return_value=False):
                 with pytest.raises(SystemExit) as exc:
                     dr.cmd_dashboard_register(_ns())
         assert exc.value.code == 1
@@ -59,7 +59,7 @@ class TestFastFails:
         assert "sparkii setup" in out
 
     def test_managed_install_refuses(self, capsys):
-        with patch("sparkii_cli.config.is_managed", return_value=True):
+        with patch("core.config.is_managed", return_value=True):
             with pytest.raises(SystemExit) as exc:
                 dr.cmd_dashboard_register(_ns())
         assert exc.value.code == 1
@@ -109,12 +109,12 @@ class TestHappyPath:
 
         with patch(
             "sparkii_cli.auth.resolve_nous_access_token", return_value=account_token
-        ), patch("sparkii_cli.config.is_managed", return_value=False), patch.object(
+        ), patch("core.config.is_managed", return_value=False), patch.object(
             dr, "_resolve_portal_base_url", return_value=portal
         ), patch(
-            "sparkii_cli.config.get_env_value", side_effect=fake_get_env
+            "core.config.get_env_value", side_effect=fake_get_env
         ), patch(
-            "sparkii_cli.config.save_env_value", side_effect=fake_save
+            "core.config.save_env_value", side_effect=fake_save
         ), patch.object(
             dr.urllib.request, "urlopen", side_effect=fake_urlopen
         ):
@@ -234,14 +234,14 @@ class TestCustomPortalPersistence:
 
         with patch(
             "sparkii_cli.auth.resolve_nous_access_token", return_value="tok"
-        ), patch("sparkii_cli.config.is_managed", return_value=False), patch.dict(
+        ), patch("core.config.is_managed", return_value=False), patch.dict(
             dr.os.environ, {}, clear=False
         ), patch.object(
             dr, "_resolve_portal_base_url", return_value=portal
         ), patch(
-            "sparkii_cli.config.get_env_value", side_effect=fake_get_env_value
+            "core.config.get_env_value", side_effect=fake_get_env_value
         ), patch(
-            "sparkii_cli.config.save_env_value", side_effect=fake_save
+            "core.config.save_env_value", side_effect=fake_save
         ), patch.object(
             dr.urllib.request, "urlopen", return_value=_fake_http_ok(response)
         ):
@@ -306,14 +306,14 @@ class TestPublicUrlPersistence:
 
         with patch(
             "sparkii_cli.auth.resolve_nous_access_token", return_value="tok"
-        ), patch("sparkii_cli.config.is_managed", return_value=False), patch.dict(
+        ), patch("core.config.is_managed", return_value=False), patch.dict(
             dr.os.environ, {}, clear=False
         ), patch.object(
             dr, "_resolve_portal_base_url", return_value="https://portal.nousresearch.com"
         ), patch(
-            "sparkii_cli.config.get_env_value", side_effect=fake_get_env_value
+            "core.config.get_env_value", side_effect=fake_get_env_value
         ), patch(
-            "sparkii_cli.config.save_env_value", side_effect=fake_save
+            "core.config.save_env_value", side_effect=fake_save
         ), patch.object(
             dr.urllib.request, "urlopen", return_value=_fake_http_ok(response)
         ):
@@ -358,14 +358,14 @@ class TestPublicUrlPersistence:
 
         with patch(
             "sparkii_cli.auth.resolve_nous_access_token", return_value="tok"
-        ), patch("sparkii_cli.config.is_managed", return_value=False), patch.dict(
+        ), patch("core.config.is_managed", return_value=False), patch.dict(
             dr.os.environ, {}, clear=False
         ), patch.object(
             dr, "_resolve_portal_base_url", return_value="https://preview.example.com"
         ), patch(
-            "sparkii_cli.config.get_env_value", return_value=None
+            "core.config.get_env_value", return_value=None
         ), patch(
-            "sparkii_cli.config.save_env_value", side_effect=fake_save
+            "core.config.save_env_value", side_effect=fake_save
         ), patch.object(
             dr.urllib.request, "urlopen", return_value=_fake_http_ok(response)
         ):
@@ -410,7 +410,7 @@ class TestPortalErrors:
 
         with patch(
             "sparkii_cli.auth.resolve_nous_access_token", return_value="tok"
-        ), patch("sparkii_cli.config.is_managed", return_value=False), patch.object(
+        ), patch("core.config.is_managed", return_value=False), patch.object(
             dr, "_resolve_portal_base_url", return_value="https://portal.nousresearch.com"
         ), patch.object(dr.urllib.request, "urlopen", side_effect=err):
             with pytest.raises(SystemExit) as exc:

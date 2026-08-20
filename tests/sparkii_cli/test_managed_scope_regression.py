@@ -18,7 +18,7 @@ def sparkii_home(tmp_path, monkeypatch):
     # /etc/sparkii on the dev/CI box can't influence the test.
     monkeypatch.setenv("SPARKII_MANAGED_DIR", str(tmp_path / "no_such_managed_dir"))
     # Clear caches so each test re-reads from disk.
-    import sparkii_cli.config as cfg
+    import core.config as cfg
 
     cfg._LOAD_CONFIG_CACHE.clear()
     cfg._RAW_CONFIG_CACHE.clear()
@@ -28,14 +28,14 @@ def sparkii_home(tmp_path, monkeypatch):
 
 def _write_user_config(home, body: str):
     (home / "config.yaml").write_text(textwrap.dedent(body), encoding="utf-8")
-    import sparkii_cli.config as cfg
+    import core.config as cfg
 
     cfg._LOAD_CONFIG_CACHE.clear()
     cfg._RAW_CONFIG_CACHE.clear()
 
 
 def test_user_config_overrides_default(sparkii_home, monkeypatch):
-    from sparkii_cli.config import load_config, cfg_get
+    from core.config import load_config, cfg_get
 
     _write_user_config(
         sparkii_home,
@@ -49,7 +49,7 @@ def test_user_config_overrides_default(sparkii_home, monkeypatch):
 
 
 def test_env_expansion_in_user_config(sparkii_home, monkeypatch):
-    from sparkii_cli.config import load_config, cfg_get
+    from core.config import load_config, cfg_get
 
     monkeypatch.setenv("MY_BASE", "https://example.test")
     _write_user_config(
@@ -65,7 +65,7 @@ def test_env_expansion_in_user_config(sparkii_home, monkeypatch):
 
 
 def test_user_env_overrides_shell(tmp_path, monkeypatch):
-    from sparkii_cli.env_loader import load_sparkii_dotenv
+    from core.env_loader import load_sparkii_dotenv
 
     home = tmp_path / "home"
     home.mkdir()

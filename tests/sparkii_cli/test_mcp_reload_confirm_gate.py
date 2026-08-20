@@ -11,7 +11,7 @@ run silently.
 from __future__ import annotations
 
 
-from sparkii_cli.config import DEFAULT_CONFIG
+from core.config import DEFAULT_CONFIG
 
 
 class TestMcpReloadConfirmDefault:
@@ -54,7 +54,7 @@ class TestUserConfigMerge:
         monkeypatch.setenv("SPARKII_HOME", str(home))
         # Force a fresh reimport of config.py so the SPARKII_HOME is honored.
         import importlib
-        import sparkii_cli.config as cfg_mod
+        import core.config as cfg_mod
         importlib.reload(cfg_mod)
 
         cfg = cfg_mod.load_config()

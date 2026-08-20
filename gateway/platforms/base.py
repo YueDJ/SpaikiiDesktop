@@ -763,7 +763,7 @@ def get_inbound_media_max_bytes() -> int:
     unreadable — falls back to the default.
     """
     try:
-        from sparkii_cli.config import load_config_readonly as _load_config
+        from core.config import load_config_readonly as _load_config
         cfg = _load_config()  # read-only: .get() only, never mutated
     except Exception:
         return DEFAULT_INBOUND_MEDIA_MAX_BYTES
@@ -3981,7 +3981,7 @@ class BasePlatformAdapter(ABC):
         auto-deletion.  Non-fatal if config is unreadable.
         """
         try:
-            from sparkii_cli.config import load_config_readonly as _load_config
+            from core.config import load_config_readonly as _load_config
         except Exception:
             return 0
         try:

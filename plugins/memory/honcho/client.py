@@ -1096,7 +1096,7 @@ _honcho_json_timeout_memo: dict[str, tuple[int, float | None]] = {}
 def _config_yaml_timeout() -> float | None:
     """Read honcho.timeout / honcho.request_timeout via the cached config loader."""
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
 
         honcho_cfg = load_config_readonly().get("honcho", {})
         if isinstance(honcho_cfg, dict):
@@ -1281,7 +1281,7 @@ def get_honcho_client(config: HonchoClientConfig | None = None) -> Honcho:
         resolved_timeout = config.timeout
         if not resolved_base_url or resolved_timeout is None:
             try:
-                from sparkii_cli.config import load_config
+                from core.config import load_config
                 sparkii_cfg = load_config()
                 honcho_cfg = sparkii_cfg.get("honcho", {})
                 if isinstance(honcho_cfg, dict):

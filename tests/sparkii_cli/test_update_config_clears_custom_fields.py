@@ -16,7 +16,7 @@ from __future__ import annotations
 import yaml
 
 from sparkii_cli.auth import _update_config_for_provider
-from sparkii_cli.config import clear_model_endpoint_credentials, get_config_path
+from core.config import clear_model_endpoint_credentials, get_config_path
 
 
 def _read_model_cfg() -> dict:

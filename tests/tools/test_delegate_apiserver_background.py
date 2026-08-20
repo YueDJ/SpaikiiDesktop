@@ -20,7 +20,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from gateway.session_context import set_session_vars
+from core.session_context import set_session_vars
 from tools.process_registry import process_registry
 
 
@@ -36,7 +36,7 @@ def _clean_queue_and_context(monkeypatch):
     # Restore ContextVars to the pristine "never set" sentinel rather than
     # clear_session_vars()'s explicit-"" state, which would mask env vars for
     # unrelated tests running later in the same worker.
-    import gateway.session_context as sc
+    import core.session_context as sc
 
     for var in sc._VAR_MAP.values():
         var.set(sc._UNSET)
@@ -96,7 +96,7 @@ def _patch_delegate(monkeypatch):
         # path does: it synchronizes the child's internal session id into the
         # SPARKII_SESSION_ID ContextVar + os.environ, clobbering the spawner's
         # id ~milliseconds before delegate_tool dispatches the batch.
-        from gateway.session_context import set_current_session_id
+        from core.session_context import set_current_session_id
 
         set_current_session_id("20260715_child1")
         return fake_child

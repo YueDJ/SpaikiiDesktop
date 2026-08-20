@@ -163,7 +163,8 @@ def _(rid, params: dict) -> dict:
     key = params.get("key", "")
     if key == "provider":
         try:
-            from sparkii_cli.models import list_available_providers, normalize_provider
+            from core.model_resolution import normalize_provider
+            from sparkii_cli.models import list_available_providers
 
             model = _resolve_model()
             parts = model.split("/", 1)
@@ -211,7 +212,7 @@ def _(rid, params: dict) -> dict:
     if key == "personality":
         # Report the EFFECTIVE personality via the single owner — a stale or
         # unknown name in config must not display as active.
-        from sparkii_cli.personality import active_personality_name
+        from core.personality import active_personality_name
 
         return _ok(
             rid,

@@ -306,7 +306,7 @@ class TestAllowPrivateUrlsConfig:
 
     def test_browser_config_string_false_stays_disabled(self, monkeypatch):
         monkeypatch.setattr(
-            "sparkii_cli.config.read_raw_config",
+            "core.config.read_raw_config",
             lambda: {"browser": {"allow_private_urls": "false"}},
         )
 

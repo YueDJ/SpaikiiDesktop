@@ -37,7 +37,7 @@ class TestApprovalModeParsing:
 
 
     def test_config_bool_false_maps_to_off(self):
-        with mock_patch("sparkii_cli.config.load_config_readonly", return_value={"approvals": {"mode": False}}):
+        with mock_patch("core.config.load_config_readonly", return_value={"approvals": {"mode": False}}):
             assert _get_approval_mode() == "off"
 
 
@@ -1560,7 +1560,7 @@ class TestTirithImportErrorFailOpenPolicy:
         }
         real_import = builtins.__import__
         with _patch("builtins.__import__", side_effect=self._make_failing_import(real_import)):
-            with _patch("sparkii_cli.config.load_config_readonly", return_value=cfg):
+            with _patch("core.config.load_config_readonly", return_value=cfg):
                 with _patch("tools.approval.detect_dangerous_command", return_value=(False, None, None)):
                     with mock_patch.dict("os.environ", {"SPARKII_INTERACTIVE": "1"}, clear=False):
                         result = check_all_command_guards("echo hello", "local")
@@ -1585,7 +1585,7 @@ class TestTirithImportErrorFailOpenPolicy:
 
         real_import = builtins.__import__
         with _patch("builtins.__import__", side_effect=self._make_failing_import(real_import)):
-            with _patch("sparkii_cli.config.load_config_readonly", return_value=cfg):
+            with _patch("core.config.load_config_readonly", return_value=cfg):
                 with _patch("tools.approval.detect_dangerous_command", return_value=(False, None, None)):
                     with mock_patch.dict("os.environ", {"SPARKII_INTERACTIVE": "1"}, clear=False):
                         result = check_all_command_guards(
@@ -1664,7 +1664,7 @@ class TestApprovalPromptRedaction:
             "print(api_key)"
         )
         cfg = {"approvals": {"mode": "manual"}}
-        with _patch("sparkii_cli.config.load_config_readonly", return_value=cfg):
+        with _patch("core.config.load_config_readonly", return_value=cfg):
             with _patch("tools.approval._is_gateway_approval_context",
                         return_value=True):
                 with _patch("tools.approval._get_approval_mode",
@@ -1724,7 +1724,7 @@ class TestCliApprovalTimeoutClassifiedSeparately:
 
         cfg = {"approvals": {"mode": "manual"}}
         with self._interactive_env():
-            with _patch("sparkii_cli.config.load_config_readonly", return_value=cfg):
+            with _patch("core.config.load_config_readonly", return_value=cfg):
                 result = mod.check_all_command_guards(
                     "rm -rf /var/data", "local",
                     approval_callback=lambda *a, **kw: "timeout",
@@ -1748,7 +1748,7 @@ class TestCliApprovalTimeoutClassifiedSeparately:
 
         cfg = {"approvals": {"mode": "manual"}}
         with self._interactive_env():
-            with _patch("sparkii_cli.config.load_config_readonly", return_value=cfg):
+            with _patch("core.config.load_config_readonly", return_value=cfg):
                 result = mod.check_all_command_guards(
                     "rm -rf /var/data", "local",
                     approval_callback=lambda *a, **kw: "deny",
@@ -1771,7 +1771,7 @@ class TestCliApprovalTimeoutClassifiedSeparately:
 
         cfg = {"approvals": {"mode": "manual"}}
         with self._interactive_env():
-            with _patch("sparkii_cli.config.load_config_readonly", return_value=cfg):
+            with _patch("core.config.load_config_readonly", return_value=cfg):
                 result = mod.request_tool_approval(
                     "write_file", "plugin flagged this write",
                     approval_callback=lambda *a, **kw: "timeout",

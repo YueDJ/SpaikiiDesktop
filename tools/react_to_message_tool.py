@@ -15,7 +15,7 @@ model shouldn't have to thread row ids through tool calls), and emits
 
 import json
 
-from gateway.session_context import get_session_env
+from core.session_context import get_session_env
 from tools import desktop_ui
 from tools.registry import registry, tool_error
 from utils import env_var_enabled
@@ -125,7 +125,7 @@ def check_react_requirements() -> bool:
     reads the right config whether that gateway is local, SSH, URL, or cloud.
     """
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
 
         display = load_config_readonly().get("display")
     except Exception:

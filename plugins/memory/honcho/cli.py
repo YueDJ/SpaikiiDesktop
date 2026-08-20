@@ -12,7 +12,7 @@ from pathlib import Path
 
 from sparkii_constants import get_sparkii_home
 from plugins.memory.honcho.client import _host_block, profile_host_key, resolve_active_host, resolve_config_path, HOST
-from sparkii_cli.config import cfg_get
+from core.config import cfg_get
 
 
 def clone_honcho_for_profile(profile_name: str) -> bool:
@@ -491,7 +491,7 @@ def _prompt(label: str, default: str | None = None, secret: bool = False) -> str
     sys.stdout.flush()
     if secret:
         if sys.stdin.isatty():
-            from sparkii_cli.secret_prompt import masked_secret_prompt
+            from core.secret_prompt import masked_secret_prompt
             val = masked_secret_prompt("")
         else:
             # Non-TTY (piped input, test runners) — read plaintext
@@ -1004,7 +1004,7 @@ def cmd_setup(args) -> None:
 
     # --- Auto-enable Honcho as memory provider in config.yaml ---
     try:
-        from sparkii_cli.config import load_config, save_config
+        from core.config import load_config, save_config
         sparkii_config = load_config()
         sparkii_config.setdefault("memory", {})["provider"] = "honcho"
         save_config(sparkii_config)

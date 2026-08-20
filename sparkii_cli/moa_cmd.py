@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from sparkii_cli.config import load_config, save_config
+from core.config import load_config, save_config
 from sparkii_cli.inventory import build_models_payload, load_picker_context
-from sparkii_cli.moa_config import DEFAULT_MOA_PRESET_NAME, normalize_moa_config
+from core.moa_config import DEFAULT_MOA_PRESET_NAME, normalize_moa_config
 
 
 def _prompt_choice(title: str, rows: list[str], default: int = 0) -> int:

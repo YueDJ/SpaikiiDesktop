@@ -27,7 +27,7 @@ import uuid
 from types import SimpleNamespace
 from typing import Any, Dict, Optional
 
-from sparkii_cli.timeouts import get_provider_request_timeout, get_provider_stale_timeout
+from core.timeouts import get_provider_request_timeout, get_provider_stale_timeout
 from sparkii_constants import PARTIAL_STREAM_STUB_ID, FINISH_REASON_LENGTH
 from agent.error_classifier import (
     FailoverReason,
@@ -2534,7 +2534,7 @@ def try_activate_fallback(agent, reason: "FailoverReason | None" = None) -> bool
         # Pass base_url and api_key from fallback config so custom
         # endpoints (e.g. Ollama Cloud) resolve correctly instead of
         # falling through to OpenRouter defaults.
-        from sparkii_cli.fallback_config import resolve_entry_api_key
+        from core.fallback_config import resolve_entry_api_key
 
         fb_base_url_hint = (fb.get("base_url") or "").strip() or None
         fb_api_key_hint = resolve_entry_api_key(fb)
@@ -2793,7 +2793,7 @@ def try_activate_fallback(agent, reason: "FailoverReason | None" = None) -> bool
         # (YAML boolean False = disabled). Wrapped in try/except because a
         # config load failure must not kill the swap.
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
             from sparkii_constants import resolve_reasoning_config
 
             agent.reasoning_config = resolve_reasoning_config(
@@ -5046,7 +5046,7 @@ def interruptible_streaming_api_call(agent, api_kwargs: dict, *, on_first_delta=
         # env var ``SPARKII_LOCAL_STREAM_STALE_TIMEOUT`` overrides for escape-hatch.
         _local_default = 900.0
         try:
-            from sparkii_cli.config import load_config_readonly
+            from core.config import load_config_readonly
 
             _cfg = load_config_readonly()  # read-only consumer — no deepcopy
             _agent_cfg = _cfg.get("agent") if isinstance(_cfg, dict) else None

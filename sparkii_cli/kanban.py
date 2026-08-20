@@ -182,7 +182,7 @@ def _check_dispatcher_presence(
 
     # Even if the gateway is up, dispatch_in_gateway may be off.
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         cfg = load_config()
         dispatch_on = bool(cfg.get("kanban", {}).get("dispatch_in_gateway", True))
     except Exception:
@@ -1770,7 +1770,7 @@ def _cmd_show(args: argparse.Namespace) -> int:
         print(f"  max-retries: {task.max_retries} (task)")
     else:
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
             cfg = load_config()
             cfg_val = (cfg.get("kanban", {}) or {}).get("failure_limit")
         except Exception:
@@ -1937,7 +1937,7 @@ def _cmd_diagnostics(args: argparse.Namespace) -> int:
     the dashboard uses, so CLI output matches what the UI shows.
     """
     from sparkii_cli import kanban_diagnostics as kd
-    from sparkii_cli.config import load_config
+    from core.config import load_config
 
     diag_config = kd.config_from_runtime_config(load_config())
 
@@ -2625,7 +2625,7 @@ def _cmd_dispatch(args: argparse.Namespace) -> int:
     # matches whether the user runs the CLI directly or relies on the
     # gateway-embedded dispatcher.
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         _cfg = load_config()
         _kanban_cfg = _cfg.get("kanban", {}) if isinstance(_cfg, dict) else {}
         default_assignee = (_kanban_cfg.get("default_assignee") or "").strip() or None

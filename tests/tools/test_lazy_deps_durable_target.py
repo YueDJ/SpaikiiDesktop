@@ -53,7 +53,7 @@ class TestGatingWithTarget:
         # config unreadable → fails open on the config check, but the sealed
         # env var with no target still blocks.
         monkeypatch.setattr(
-            "sparkii_cli.config.load_config", lambda: {}, raising=False
+            "core.config.load_config", lambda: {}, raising=False
         )
         assert ld._allow_lazy_installs() is False
 
@@ -61,7 +61,7 @@ class TestGatingWithTarget:
         monkeypatch.setenv("SPARKII_DISABLE_LAZY_INSTALLS", "1")
         monkeypatch.setenv(ld._LAZY_TARGET_ENV, str(tmp_path))
         monkeypatch.setattr(
-            "sparkii_cli.config.load_config", lambda: {}, raising=False
+            "core.config.load_config", lambda: {}, raising=False
         )
         assert ld._allow_lazy_installs() is True
 
@@ -71,7 +71,7 @@ class TestGatingWithTarget:
         monkeypatch.delenv("SPARKII_DISABLE_LAZY_INSTALLS", raising=False)
         monkeypatch.delenv(ld._LAZY_TARGET_ENV, raising=False)
         monkeypatch.setattr(
-            "sparkii_cli.config.load_config", lambda: {}, raising=False
+            "core.config.load_config", lambda: {}, raising=False
         )
         assert ld._allow_lazy_installs() is True
 

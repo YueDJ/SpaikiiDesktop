@@ -10,8 +10,8 @@ import queue
 import time as _time
 
 from sparkii_cli.banner import cprint, _DIM, _RST
-from sparkii_cli.config import save_env_value_secure
-from sparkii_cli.secret_prompt import masked_secret_prompt
+from core.config import save_env_value_secure
+from core.secret_prompt import masked_secret_prompt
 from sparkii_constants import display_sparkii_home
 
 

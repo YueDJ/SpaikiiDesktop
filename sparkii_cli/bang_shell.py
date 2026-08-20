@@ -162,7 +162,7 @@ def run_bang_command(
         run_cwd = os.path.expanduser(run_cwd)
 
     try:
-        from sparkii_cli._subprocess_compat import windows_hide_flags
+        from core._subprocess_compat import windows_hide_flags
 
         creationflags = windows_hide_flags()
     except Exception:

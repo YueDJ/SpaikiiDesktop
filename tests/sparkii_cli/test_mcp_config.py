@@ -29,15 +29,15 @@ def _isolate_config(tmp_path, monkeypatch):
     """Redirect all config I/O to a temp directory."""
     monkeypatch.setenv("SPARKII_HOME", str(tmp_path))
     monkeypatch.setattr(
-        "sparkii_cli.config.get_sparkii_home", lambda: tmp_path
+        "core.config.get_sparkii_home", lambda: tmp_path
     )
     config_path = tmp_path / "config.yaml"
     env_path = tmp_path / ".env"
     monkeypatch.setattr(
-        "sparkii_cli.config.get_config_path", lambda: config_path
+        "core.config.get_config_path", lambda: config_path
     )
     monkeypatch.setattr(
-        "sparkii_cli.config.get_env_path", lambda: env_path
+        "core.config.get_env_path", lambda: env_path
     )
     return tmp_path
 
@@ -141,7 +141,7 @@ class TestMcpRemove:
         assert "Removed" in out
 
         # Verify config updated
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         config = load_config()
         assert "myserver" not in config.get("mcp_servers", {})
@@ -200,7 +200,7 @@ class TestMcpAdd:
         assert "2/2 tools" in out
 
         # Verify config written
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         config = load_config()
         assert "ink" in config.get("mcp_servers", {})
@@ -234,7 +234,7 @@ class TestMcpAdd:
         out = capsys.readouterr().out
         assert "Saved" in out
 
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         config = load_config()
         srv = config["mcp_servers"]["github"]
@@ -265,7 +265,7 @@ class TestMcpAdd:
         monkeypatch.setattr("builtins.input", lambda _: "")
 
         from sparkii_cli.mcp_config import cmd_mcp_add
-        from sparkii_cli.config import read_raw_config
+        from core.config import read_raw_config
 
         cmd_mcp_add(_make_args(name="myserver", preset="testmcp"))
         out = capsys.readouterr().out
@@ -624,7 +624,7 @@ class TestStripBearerPrefix:
 
 class TestBearerAuthPersistence:
     def test_secret_and_header_are_persisted_separately(self):
-        from sparkii_cli.config import get_env_value
+        from core.config import get_env_value
         from sparkii_cli.mcp_config import _save_bearer_auth_token
 
         headers = _save_bearer_auth_token("My Server", "Bearer secret-value")

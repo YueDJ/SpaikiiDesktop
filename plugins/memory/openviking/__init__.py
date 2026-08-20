@@ -1096,7 +1096,7 @@ def _is_local_openviking_url(value: str) -> bool:
 
 def _load_sparkii_openviking_config() -> dict:
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
 
         config = load_config_readonly()
         memory_config = config.get("memory", {}) if isinstance(config, dict) else {}
@@ -2436,7 +2436,7 @@ class OpenVikingMemoryProvider(MemoryProvider):
         if endpoint:
             normalized["endpoint"] = _normalize_openviking_url(endpoint)
 
-        from sparkii_cli.config import load_config, save_config
+        from core.config import load_config, save_config
 
         config = load_config()
         memory_config = config.get("memory")
@@ -2486,7 +2486,7 @@ class OpenVikingMemoryProvider(MemoryProvider):
 
     def post_setup(self, sparkii_home: str, config: dict) -> None:
         """Custom setup that can reuse OpenViking's shared CLI config."""
-        from sparkii_cli.config import save_config
+        from core.config import save_config
         from sparkii_cli.memory_setup import _CANCELLED, _curses_select, _print_cancelled_setup, _prompt
 
         sparkii_home_path = Path(sparkii_home)

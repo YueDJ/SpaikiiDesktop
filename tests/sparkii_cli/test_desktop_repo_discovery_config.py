@@ -1,4 +1,4 @@
-from sparkii_cli.config import DEFAULT_CONFIG
+from core.config import DEFAULT_CONFIG
 from sparkii_cli.web_server import CONFIG_SCHEMA
 
 

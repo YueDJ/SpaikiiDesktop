@@ -56,7 +56,7 @@ from pathlib import Path
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Set
 from urllib.parse import quote, unquote
 
-from sparkii_cli._subprocess_compat import windows_hide_flags
+from core._subprocess_compat import windows_hide_flags
 
 from agent.lsp.protocol import (
     ERROR_CONTENT_MODIFIED,

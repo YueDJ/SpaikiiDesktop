@@ -80,7 +80,7 @@ def repo_pair(tmp_path):
 @pytest.fixture(autouse=True)
 def _no_config(monkeypatch):
     """Isolate the guard from the machine's real config.yaml."""
-    import sparkii_cli.config as sparkii_config
+    import core.config as sparkii_config
 
     monkeypatch.setattr(sparkii_config, "load_config", lambda: {})
 
@@ -146,7 +146,7 @@ def test_equivalent_cherry_picked_commit_is_still_safe(repo_pair):
 def test_config_opt_out_blocks_auto_switch(repo_pair, monkeypatch):
     """updates.auto_switch_parked_branch: false disables auto-switch even
     when the branch is clean and merged."""
-    import sparkii_cli.config as sparkii_config
+    import core.config as sparkii_config
 
     monkeypatch.setattr(
         sparkii_config,

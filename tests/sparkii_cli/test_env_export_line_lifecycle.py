@@ -29,7 +29,7 @@ def sparkii_home(monkeypatch, tmp_path):
     home = tmp_path / "pat_home"
     home.mkdir()
     monkeypatch.setenv("SPARKII_HOME", str(home))
-    from sparkii_cli.config import invalidate_env_cache
+    from core.config import invalidate_env_cache
 
     invalidate_env_cache()
     return home
@@ -37,7 +37,7 @@ def sparkii_home(monkeypatch, tmp_path):
 
 def _write_env_raw(home, text):
     home.joinpath(".env").write_text(text, encoding="utf-8")
-    from sparkii_cli.config import invalidate_env_cache
+    from core.config import invalidate_env_cache
 
     invalidate_env_cache()
 
@@ -50,7 +50,7 @@ def test_classic_pat_save_via_endpoint_succeeds(sparkii_home):
     )
     assert resp.status_code == 200, resp.text
 
-    from sparkii_cli.config import load_env
+    from core.config import load_env
 
     assert load_env()["GITHUB_TOKEN"] == NEW_PAT
 
@@ -61,7 +61,7 @@ def test_classic_pat_save_via_endpoint_succeeds(sparkii_home):
 
 def test_plain_line_save_and_remove_still_work(sparkii_home):
     """Sanity: the ordinary KEY= path is unchanged."""
-    from sparkii_cli.config import load_env, remove_env_value, save_env_value
+    from core.config import load_env, remove_env_value, save_env_value
 
     save_env_value("GITHUB_TOKEN", OLD_PAT)
     assert load_env()["GITHUB_TOKEN"] == OLD_PAT

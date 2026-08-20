@@ -45,15 +45,15 @@ from typing import Any, List, Optional, Protocol
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from sparkii_constants import get_sparkii_home
-from sparkii_cli._subprocess_compat import windows_hide_flags
-from sparkii_cli.config import (
+from core._subprocess_compat import windows_hide_flags
+from core.config import (
     _expand_env_vars,
     cron_model_drift_axes,
     cron_model_drift_guard_enabled,
     load_config,
     resolve_cron_model_drift_defaults,
 )
-from sparkii_cli.fallback_config import get_fallback_chain
+from core.fallback_config import get_fallback_chain
 from sparkii_time import now as _sparkii_now
 from agent.interrupt_compat import request_hard_interrupt
 from agent.delegation_context import (
@@ -4430,7 +4430,7 @@ def _cron_cleanup_timeout_seconds() -> float:
     """Return the wall-clock bound for cron post-run cleanup."""
     default = 10.0
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         cfg = load_config() or {}
         cron_cfg = cfg.get("cron", {}) if isinstance(cfg, dict) else {}
@@ -4607,7 +4607,7 @@ def run_job(
         # "no delivery target resolved". load_sparkii_dotenv does not override
         # already-set vars, so the gateway's in-process tick is unaffected.
         try:
-            from sparkii_cli.env_loader import load_sparkii_dotenv
+            from core.env_loader import load_sparkii_dotenv
 
             load_sparkii_dotenv(sparkii_home=_get_sparkii_home())
         except Exception:
@@ -4794,7 +4794,7 @@ def run_job(
                 )
         if _session_db_timeout is None:
             try:
-                from sparkii_cli.config import load_config
+                from core.config import load_config
                 _cfg = load_config() or {}
                 _cron_cfg = _cfg.get("cron", {}) if isinstance(_cfg, dict) else {}
                 _configured = _cron_cfg.get("session_db_timeout_seconds")
@@ -4902,7 +4902,7 @@ def run_job(
 
     # Use ContextVars for per-job session/delivery state so parallel jobs
     # don't clobber each other's targets (os.environ is process-global).
-    from gateway.session_context import set_session_vars, clear_session_vars, _VAR_MAP
+    from core.session_context import set_session_vars, clear_session_vars, _VAR_MAP
 
     # Cron execution is an internal scheduler context, not a live inbound
     # gateway message. Do not seed SPARKII_SESSION_* contextvars from the
@@ -5067,7 +5067,7 @@ def run_job(
         # is set (mirrors startup), and the Bitwarden value-cache keeps the
         # forced re-pull off the network. load_sparkii_dotenv also handles the
         # utf-8/latin-1 encoding fallback internally.
-        from sparkii_cli.env_loader import (
+        from core.env_loader import (
             load_sparkii_dotenv,
             reset_secret_source_cache,
         )
@@ -5103,7 +5103,7 @@ def run_job(
         _cfg = {}
         _model_cfg = {}
         try:
-            from sparkii_cli.config import read_user_config_raw
+            from core.config import read_user_config_raw
             _cfg_path = str(_get_sparkii_home() / "config.yaml")
             if os.path.exists(_cfg_path):
                 _cfg = read_user_config_raw(Path(_cfg_path))
@@ -5112,7 +5112,7 @@ def run_job(
                 # builds its own dict, so overlay managed values via the shared
                 # helper (fail-open, no-op when no managed scope).
                 try:
-                    from sparkii_cli import managed_scope
+                    from core import managed_scope
                     _cfg = managed_scope.apply_managed_overlay(_cfg)
                 except Exception:
                     pass
@@ -5353,7 +5353,7 @@ def run_job(
                 if not fb_provider or not fb_model:
                     continue
                 try:
-                    from sparkii_cli.fallback_config import resolve_entry_api_key
+                    from core.fallback_config import resolve_entry_api_key
 
                     fb_kwargs = {
                         "requested": fb_provider,

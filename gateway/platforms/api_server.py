@@ -829,7 +829,7 @@ class ResponseStore:
         self._max_size = max_size
         if db_path is None:
             try:
-                from sparkii_cli.config import get_sparkii_home
+                from core.config import get_sparkii_home
                 db_path = str(get_sparkii_home() / "response_store.db")
             except Exception:
                 db_path = ":memory:"
@@ -1626,7 +1626,7 @@ class APIServerAdapter(BasePlatformAdapter):
         """
         default = 10
         try:
-            from sparkii_cli.config import cfg_get, load_config
+            from core.config import cfg_get, load_config
 
             raw = cfg_get(
                 load_config(),
@@ -3210,7 +3210,7 @@ class APIServerAdapter(BasePlatformAdapter):
             return auth_err
 
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
             from sparkii_cli.tools_config import (
                 _get_effective_configurable_toolsets,
                 _get_platform_tools,
@@ -5788,7 +5788,7 @@ class APIServerAdapter(BasePlatformAdapter):
         trips NAS's HTTP timeout. The store CAS claim inside fire_due guards
         against double-fire on a NAS/scheduler retry.
         """
-        from sparkii_cli.config import cfg_get, load_config
+        from core.config import cfg_get, load_config
         from plugins.cron_providers.chronos.verify import get_fire_verifier
 
         auth = request.headers.get("Authorization", "")
@@ -6088,7 +6088,7 @@ class APIServerAdapter(BasePlatformAdapter):
         the turn — a session resumed later on a delivering interface, e.g. the
         CLI or a gateway platform, re-binds fresh and is NOT blocked).
         """
-        from gateway.session_context import set_session_vars
+        from core.session_context import set_session_vars
 
         return set_session_vars(
             platform="api_server",
@@ -6152,7 +6152,7 @@ class APIServerAdapter(BasePlatformAdapter):
         request_profile = _api_request_profile.get()
 
         def _run():
-            from gateway.session_context import clear_session_vars
+            from core.session_context import clear_session_vars
 
             with self._profile_scope(request_profile):
                 tokens = self._bind_api_server_session(
@@ -6648,7 +6648,7 @@ class APIServerAdapter(BasePlatformAdapter):
                         pass
 
                 def _run_sync():
-                    from gateway.session_context import clear_session_vars
+                    from core.session_context import clear_session_vars
                     from tools.approval import (
                         register_gateway_notify,
                         reset_current_session_key,
@@ -7212,7 +7212,7 @@ class APIServerAdapter(BasePlatformAdapter):
             # the operator may have an external firewall / strong key.
             if is_network_accessible(self._host):
                 try:
-                    from sparkii_cli.config import load_config as _load_cfg
+                    from core.config import load_config as _load_cfg
                     _backend = (
                         ((_load_cfg() or {}).get("terminal") or {}).get(
                             "backend", "local"

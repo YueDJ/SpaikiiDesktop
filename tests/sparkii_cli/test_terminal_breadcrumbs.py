@@ -181,7 +181,7 @@ def test_config_gate_off_disables_writes_and_resolution(
     sparkii_home, monkeypatch, no_terminal_env
 ):
     _fake_tty(monkeypatch, "/dev/pts/9")
-    import sparkii_cli.config as config_mod
+    import core.config as config_mod
 
     monkeypatch.setattr(
         config_mod, "load_config", lambda: {"session": {"terminal_continue": False}}
@@ -198,7 +198,7 @@ def test_config_gate_off_disables_writes_and_resolution(
 
 
 def test_config_gate_default_is_enabled(monkeypatch):
-    import sparkii_cli.config as config_mod
+    import core.config as config_mod
 
     monkeypatch.setattr(config_mod, "load_config", lambda: {})
     assert tb.is_enabled() is True

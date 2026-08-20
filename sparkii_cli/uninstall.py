@@ -14,7 +14,7 @@ from pathlib import Path
 
 from sparkii_constants import get_sparkii_home
 
-from sparkii_cli.colors import Colors, color
+from core.colors import Colors, color
 
 def log_info(msg: str):
     print(f"{color('→', Colors.CYAN)} {msg}")

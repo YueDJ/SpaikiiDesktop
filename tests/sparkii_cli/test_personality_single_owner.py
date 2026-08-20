@@ -14,7 +14,7 @@ from unittest.mock import patch
 import pytest
 import yaml
 
-from sparkii_cli.personality import (
+from core.personality import (
     BUILTIN_PERSONALITIES,
     available_personalities,
     active_personality_name,
@@ -151,7 +151,7 @@ def test_persist_personality_never_touches_system_prompt(tmp_path):
 def _run_migration(home, cfg):
     (home / "config.yaml").write_text(yaml.safe_dump(cfg, allow_unicode=True))
     with patch.dict(os.environ, {"SPARKII_HOME": str(home)}):
-        from sparkii_cli.config import migrate_config, read_raw_config
+        from core.config import migrate_config, read_raw_config
 
         results = migrate_config(interactive=False, quiet=True)
         return read_raw_config(), results

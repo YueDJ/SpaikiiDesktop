@@ -40,19 +40,19 @@ def _fake_cli(tmp_path, body):
 class TestModeDetection:
     def test_default_on_when_cli_available(self, monkeypatch):
         """Backend unset: Browser Use mode is the default when the CLI runs."""
-        monkeypatch.setattr("sparkii_cli.config.read_raw_config", lambda: {})
+        monkeypatch.setattr("core.config.read_raw_config", lambda: {})
         monkeypatch.setattr(bu_cli, "_find_cli", lambda: ["/usr/bin/browser-use"])
         assert bu_cli.is_browser_use_cli_mode() is True
 
     def test_default_off_when_cli_unavailable(self, monkeypatch):
         """Backend unset + no runnable CLI: keep the built-in browser tools."""
-        monkeypatch.setattr("sparkii_cli.config.read_raw_config", lambda: {})
+        monkeypatch.setattr("core.config.read_raw_config", lambda: {})
         monkeypatch.setattr(bu_cli, "_find_cli", lambda: None)
         assert bu_cli.is_browser_use_cli_mode() is False
 
     def test_explicit_off_wins_over_default(self, monkeypatch):
         monkeypatch.setattr(
-            "sparkii_cli.config.read_raw_config",
+            "core.config.read_raw_config",
             lambda: {"browser": {"backend": bu_cli.BACKEND_DISABLED}},
         )
         monkeypatch.setattr(bu_cli, "_find_cli", lambda: ["/usr/bin/browser-use"])
@@ -61,7 +61,7 @@ class TestModeDetection:
     def test_yaml_bool_off_means_disabled(self, monkeypatch):
         """YAML 1.1 parses unquoted `off` as False — must mean disabled."""
         monkeypatch.setattr(
-            "sparkii_cli.config.read_raw_config",
+            "core.config.read_raw_config",
             lambda: {"browser": {"backend": False}},
         )
         monkeypatch.setattr(bu_cli, "_find_cli", lambda: ["/usr/bin/browser-use"])
@@ -69,14 +69,14 @@ class TestModeDetection:
 
     def test_config_opt_in(self, monkeypatch):
         monkeypatch.setattr(
-            "sparkii_cli.config.read_raw_config",
+            "core.config.read_raw_config",
             lambda: {"browser": {"backend": "browser-use"}},
         )
         assert bu_cli.is_browser_use_cli_mode() is True
 
     def test_other_backend_value_is_not_cli_mode(self, monkeypatch):
         monkeypatch.setattr(
-            "sparkii_cli.config.read_raw_config",
+            "core.config.read_raw_config",
             lambda: {"browser": {"backend": "something-else"}},
         )
         assert bu_cli.is_browser_use_cli_mode() is False
@@ -85,7 +85,7 @@ class TestModeDetection:
         def boom():
             raise RuntimeError("config unreadable")
 
-        monkeypatch.setattr("sparkii_cli.config.read_raw_config", boom)
+        monkeypatch.setattr("core.config.read_raw_config", boom)
         monkeypatch.setattr(bu_cli, "_find_cli", lambda: None)
         assert bu_cli.is_browser_use_cli_mode() is False
 
@@ -209,13 +209,13 @@ class TestLegacyCloudMigration:
     _LEGACY = {"browser": {"cloud_provider": "browser-use"}}
 
     def test_direct_api_config_migrates(self, monkeypatch):
-        monkeypatch.setattr("sparkii_cli.config.read_raw_config", lambda: self._LEGACY)
+        monkeypatch.setattr("core.config.read_raw_config", lambda: self._LEGACY)
         monkeypatch.setenv("BROWSER_USE_API_KEY", "bu-key")
         assert bu_cli.is_browser_use_cli_mode() is True
 
     def test_gateway_config_stays_on_legacy_path(self, monkeypatch):
         monkeypatch.setattr(
-            "sparkii_cli.config.read_raw_config",
+            "core.config.read_raw_config",
             lambda: {"browser": {"cloud_provider": "browser-use", "use_gateway": True}},
         )
         monkeypatch.setenv("BROWSER_USE_API_KEY", "bu-key")
@@ -223,7 +223,7 @@ class TestLegacyCloudMigration:
         assert bu_cli.is_browser_use_cli_mode() is False
 
     def test_no_api_key_stays_on_legacy_path(self, monkeypatch):
-        monkeypatch.setattr("sparkii_cli.config.read_raw_config", lambda: self._LEGACY)
+        monkeypatch.setattr("core.config.read_raw_config", lambda: self._LEGACY)
         monkeypatch.setattr(bu_cli, "_find_cli", lambda: None)
         assert bu_cli.is_browser_use_cli_mode() is False
 
@@ -231,7 +231,7 @@ class TestLegacyCloudMigration:
         """A Camofox user (env-var selected, cloud_provider unset) with a
         stray BROWSER_USE_API_KEY keeps Camofox — no silent mode flip."""
         monkeypatch.setattr(
-            "sparkii_cli.config.read_raw_config", lambda: {"browser": {}}
+            "core.config.read_raw_config", lambda: {"browser": {}}
         )
         monkeypatch.setenv("BROWSER_USE_API_KEY", "bu-key")
         import tools.browser_camofox as camofox
@@ -243,7 +243,7 @@ class TestLegacyCloudMigration:
         """Even with browser.backend: browser-use, an active Camofox setup
         falls back to the built-in tools (no CDP surface to drive)."""
         monkeypatch.setattr(
-            "sparkii_cli.config.read_raw_config",
+            "core.config.read_raw_config",
             lambda: {"browser": {"backend": "browser-use"}},
         )
         import tools.browser_camofox as camofox
@@ -254,7 +254,7 @@ class TestLegacyCloudMigration:
 
     def test_explicit_other_backend_wins(self, monkeypatch):
         monkeypatch.setattr(
-            "sparkii_cli.config.read_raw_config",
+            "core.config.read_raw_config",
             lambda: {"browser": {"cloud_provider": "browser-use", "backend": "something-else"}},
         )
         monkeypatch.setenv("BROWSER_USE_API_KEY", "bu-key")
@@ -262,7 +262,7 @@ class TestLegacyCloudMigration:
 
     def test_other_cloud_provider_does_not_migrate(self, monkeypatch):
         monkeypatch.setattr(
-            "sparkii_cli.config.read_raw_config",
+            "core.config.read_raw_config",
             lambda: {"browser": {"cloud_provider": "browserbase"}},
         )
         monkeypatch.setenv("BROWSER_USE_API_KEY", "bu-key")
@@ -271,7 +271,7 @@ class TestLegacyCloudMigration:
 
     def test_explicit_local_does_not_migrate(self, monkeypatch):
         monkeypatch.setattr(
-            "sparkii_cli.config.read_raw_config",
+            "core.config.read_raw_config",
             lambda: {"browser": {"cloud_provider": "local"}},
         )
         monkeypatch.setenv("BROWSER_USE_API_KEY", "bu-key")
@@ -282,7 +282,7 @@ class TestLegacyCloudMigration:
         """No cloud_provider configured + BROWSER_USE_API_KEY set: credential
         auto-detection prefers Browser Use (even when Browserbase creds are
         also present), which now means Browser Use mode."""
-        monkeypatch.setattr("sparkii_cli.config.read_raw_config", lambda: {})
+        monkeypatch.setattr("core.config.read_raw_config", lambda: {})
         monkeypatch.setenv("BROWSER_USE_API_KEY", "bu-key")
         monkeypatch.setenv("BROWSERBASE_API_KEY", "bb-key")
         monkeypatch.setenv("BROWSERBASE_PROJECT_ID", "bb-project")
@@ -290,12 +290,12 @@ class TestLegacyCloudMigration:
 
     def test_auto_detect_without_key_does_not_migrate(self, monkeypatch):
         """No key, no CLI: nothing to migrate and no default flip."""
-        monkeypatch.setattr("sparkii_cli.config.read_raw_config", lambda: {})
+        monkeypatch.setattr("core.config.read_raw_config", lambda: {})
         monkeypatch.setattr(bu_cli, "_find_cli", lambda: None)
         assert bu_cli.is_browser_use_cli_mode() is False
 
     def test_migrated_config_gets_bu_autospawn(self, tmp_path, monkeypatch):
-        monkeypatch.setattr("sparkii_cli.config.read_raw_config", lambda: self._LEGACY)
+        monkeypatch.setattr("core.config.read_raw_config", lambda: self._LEGACY)
         monkeypatch.setenv("BROWSER_USE_API_KEY", "bu-key")
         cli = _fake_cli(tmp_path, 'cat > /dev/null\necho "autospawn:$BU_AUTOSPAWN"\n')
         monkeypatch.setattr(bu_cli, "_find_cli", lambda: [cli])
@@ -304,7 +304,7 @@ class TestLegacyCloudMigration:
 
     def test_explicit_backend_does_not_set_bu_autospawn(self, tmp_path, monkeypatch):
         monkeypatch.setattr(
-            "sparkii_cli.config.read_raw_config",
+            "core.config.read_raw_config",
             lambda: {"browser": {"backend": "browser-use"}},
         )
         cli = _fake_cli(tmp_path, 'cat > /dev/null\necho "autospawn:[$BU_AUTOSPAWN]"\n')
@@ -607,7 +607,7 @@ class TestBrowserUseSlashCommand:
             self.session_resets += 1
 
     def _run(self, cmd, config, monkeypatch):
-        import sparkii_cli.config as hc
+        import core.config as hc
         from sparkii_cli.cli_commands_mixin import CLICommandsMixin
 
         saved = {}
@@ -1010,7 +1010,7 @@ class TestInstallCli:
 class TestDefaultDowngradeNotice:
     def _isolate(self, tmp_path, monkeypatch):
         monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "home"))
-        monkeypatch.setattr("sparkii_cli.config.read_raw_config", lambda: {})
+        monkeypatch.setattr("core.config.read_raw_config", lambda: {})
 
     def test_notice_when_default_and_cli_missing(self, tmp_path, monkeypatch):
         self._isolate(tmp_path, monkeypatch)
@@ -1033,7 +1033,7 @@ class TestDefaultDowngradeNotice:
     def test_no_notice_on_explicit_backend(self, tmp_path, monkeypatch):
         monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "home"))
         monkeypatch.setattr(
-            "sparkii_cli.config.read_raw_config",
+            "core.config.read_raw_config",
             lambda: {"browser": {"backend": bu_cli.BACKEND_DISABLED}},
         )
         monkeypatch.setattr(bu_cli, "_find_cli", lambda: None)

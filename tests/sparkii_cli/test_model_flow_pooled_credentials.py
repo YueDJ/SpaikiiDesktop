@@ -44,7 +44,7 @@ def test_generic_api_key_flow_passes_pool_key_to_existing_key_prompt(monkeypatch
         return existing_key, True
 
     with (
-        patch("sparkii_cli.config.get_env_value", return_value=""),
+        patch("core.config.get_env_value", return_value=""),
         patch("agent.credential_pool.load_pool", return_value=_AvailablePool()),
         patch("sparkii_cli.main._prompt_api_key", side_effect=capture_prompt),
     ):
@@ -62,7 +62,7 @@ def test_bedrock_flow_sees_pool_key_when_no_env(monkeypatch, capsys):
     monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
 
     with (
-        patch("sparkii_cli.config.get_env_value", return_value=""),
+        patch("core.config.get_env_value", return_value=""),
         patch("agent.credential_pool.load_pool", return_value=_AvailablePool()),
         patch("builtins.input", return_value="k"),
     ):

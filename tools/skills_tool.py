@@ -79,7 +79,7 @@ from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Dict, Any, List, Optional, Set, Tuple
 
 from tools.registry import registry, tool_error
-from sparkii_cli.config import cfg_get
+from core.config import cfg_get
 from utils import env_var_enabled
 from agent.skill_utils import (
     EXCLUDED_SKILL_DIRS as _EXCLUDED_SKILL_DIRS,
@@ -487,7 +487,7 @@ def _capture_required_environment_variables(
 def _is_gateway_surface() -> bool:
     if env_var_enabled("SPARKII_GATEWAY_SESSION"):
         return True
-    from gateway.session_context import get_session_env
+    from core.session_context import get_session_env
     return bool(get_session_env("SPARKII_SESSION_PLATFORM"))
 
 
@@ -638,7 +638,7 @@ def _get_session_platform() -> str:
     ``_is_skill_disabled`` respects ``SPARKII_SESSION_PLATFORM``.
     """
     try:
-        from gateway.session_context import get_session_env
+        from core.session_context import get_session_env
         return get_session_env("SPARKII_SESSION_PLATFORM") or ""
     except Exception:
         return ""
@@ -653,7 +653,7 @@ def _is_skill_disabled(name: str, platform: str = None) -> bool:
     3. ``SPARKII_SESSION_PLATFORM`` from gateway session context
     """
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         config = load_config()
         skills_cfg = config.get("skills", {})
         resolved_platform = platform or os.getenv("SPARKII_PLATFORM") or _get_session_platform()

@@ -26,7 +26,7 @@ def sparkii_home(monkeypatch):
 
 
 def _set_approval(subsystem, enabled):
-    import sparkii_cli.config as cfg
+    import core.config as cfg
     c = cfg.load_config()
     c.setdefault(subsystem, {})["write_approval"] = enabled
     cfg.save_config(c)
@@ -118,7 +118,7 @@ def test_load_on_disk_store_honors_configured_char_limits(sparkii_home, monkeypa
 
     # Config override path: helper picks up the configured limits.
     monkeypatch.setattr(
-        "sparkii_cli.config.load_config",
+        "core.config.load_config",
         lambda: {"memory": {"memory_char_limit": 999, "user_char_limit": 444}},
     )
     store = load_on_disk_store()
@@ -129,7 +129,7 @@ def test_load_on_disk_store_honors_configured_char_limits(sparkii_home, monkeypa
     def _boom():
         raise RuntimeError("no config")
 
-    monkeypatch.setattr("sparkii_cli.config.load_config", _boom)
+    monkeypatch.setattr("core.config.load_config", _boom)
     fallback = load_on_disk_store()
     assert fallback.memory_char_limit == 2200
     assert fallback.user_char_limit == 1375

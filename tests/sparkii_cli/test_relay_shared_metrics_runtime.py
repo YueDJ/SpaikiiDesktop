@@ -213,7 +213,7 @@ def direct_runtime(tmp_path, monkeypatch):
     monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "sparkii-home"))
     monkeypatch.setattr(relay_runtime, "_load_nemo_relay", lambda: fake)
     monkeypatch.setattr(
-        "sparkii_cli.config.read_raw_config_readonly",
+        "core.config.read_raw_config_readonly",
         lambda: {"telemetry": {"shared_metrics": {"enabled": True}}},
     )
     relay_shared_metrics._reset_for_tests()
@@ -235,7 +235,7 @@ def real_binding_runtime(tmp_path, monkeypatch):
         pytest.skip("NeMo Relay native binding is unavailable on this platform")
     monkeypatch.setenv("SPARKII_HOME", str(tmp_path / "sparkii-home"))
     monkeypatch.setattr(
-        "sparkii_cli.config.read_raw_config_readonly",
+        "core.config.read_raw_config_readonly",
         lambda: {"telemetry": {"shared_metrics": {"enabled": True}}},
     )
     relay_shared_metrics._reset_for_tests()
@@ -1129,7 +1129,7 @@ def test_managed_config_cannot_override_shared_metrics_consent(
     profile_enabled,
     managed_enabled,
 ):
-    from sparkii_cli import config, managed_scope
+    from core import config, managed_scope
     from sparkii_constants import (
         reset_sparkii_home_override,
         set_sparkii_home_override,
@@ -1185,7 +1185,7 @@ def test_disabling_shared_metrics_stops_collection_and_shutdown_export(
     monkeypatch.setenv("SPARKII_HOME", str(profile))
     monkeypatch.setattr(relay_runtime, "_load_nemo_relay", lambda: fake)
     monkeypatch.setattr(
-        "sparkii_cli.config.read_raw_config_readonly",
+        "core.config.read_raw_config_readonly",
         lambda: {"telemetry": {"shared_metrics": dict(policy)}},
     )
     relay_shared_metrics._reset_for_tests()

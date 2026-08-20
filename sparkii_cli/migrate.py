@@ -9,8 +9,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from sparkii_cli.colors import Colors, color
-from sparkii_cli.config import load_config
+from core.colors import Colors, color
+from core.config import load_config
 
 
 def cmd_migrate(args: Any) -> int:
@@ -110,6 +110,6 @@ def cmd_migrate_xai(args: Any) -> int:
 
 def _resolve_config_path() -> Path:
     """Best-effort: locate the active config.yaml on disk."""
-    from sparkii_cli.config import get_sparkii_home
+    from core.config import get_sparkii_home
 
     return get_sparkii_home() / "config.yaml"

@@ -109,7 +109,7 @@ class TestDefaultConfig:
     """The web section exists in DEFAULT_CONFIG with per-capability keys."""
 
     def test_web_section_in_default_config(self):
-        from sparkii_cli.config import DEFAULT_CONFIG
+        from core.config import DEFAULT_CONFIG
 
         assert "web" in DEFAULT_CONFIG
         web = DEFAULT_CONFIG["web"]

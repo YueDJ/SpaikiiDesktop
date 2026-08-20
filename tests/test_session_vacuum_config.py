@@ -3,20 +3,20 @@ from unittest.mock import MagicMock
 
 
 def test_default_config_exposes_vacuum_interval():
-    from sparkii_cli.config import DEFAULT_CONFIG
+    from core.config import DEFAULT_CONFIG
 
     assert DEFAULT_CONFIG["sessions"]["min_vacuum_interval_days"] == 30
 
 
 def test_cli_auto_maintenance_forwards_vacuum_interval(monkeypatch, tmp_path: Path):
     import cli
-    import sparkii_cli.config
+    import core.config
     import sparkii_constants
 
     session_db = MagicMock()
     session_db.get_meta.return_value = "already-done"
     monkeypatch.setattr(
-        sparkii_cli.config,
+        core.config,
         "load_config",
         lambda: {
             "sessions": {

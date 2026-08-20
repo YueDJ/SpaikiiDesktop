@@ -129,7 +129,7 @@ class CodexAppServerClient:
 
         # Hide the console the codex child would otherwise flash on Windows
         # (#56747). Hide-only — stdio pipes stay intact for the app-server wire.
-        from sparkii_cli._subprocess_compat import windows_hide_flags
+        from core._subprocess_compat import windows_hide_flags
 
         self._proc = subprocess.Popen(
             cmd,

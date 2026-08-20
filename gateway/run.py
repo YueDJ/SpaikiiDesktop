@@ -64,8 +64,8 @@ from agent.interrupt_compat import request_hard_interrupt
 from agent.turn_context import (
     compression_made_progress,
 )
-from sparkii_cli.config import _is_ssh_remote_tilde_cwd, cfg_get
-from sparkii_cli.fallback_config import get_fallback_chain
+from core.config import _is_ssh_remote_tilde_cwd, cfg_get
+from core.fallback_config import get_fallback_chain
 
 # --- Agent cache tuning ---------------------------------------------------
 # Bounds the per-session AIAgent cache to prevent unbounded growth in
@@ -1967,7 +1967,7 @@ _sparkii_home = get_sparkii_home()
 # Load environment variables from ~/.sparkii/.env first.
 # User-managed env files should override stale shell exports on restart.
 from dotenv import load_dotenv  # noqa: F401  # backward-compat for tests that monkeypatch this symbol
-from sparkii_cli.env_loader import load_sparkii_dotenv
+from core.env_loader import load_sparkii_dotenv
 _env_path = _sparkii_home / '.env'
 load_sparkii_dotenv(sparkii_home=_sparkii_home, project_env=Path(__file__).resolve().parents[1] / '.env')
 
@@ -2007,7 +2007,7 @@ def _bridge_max_turns_from_config(home: "Path") -> None:
     if not config_path.exists():
         return
     try:
-        from sparkii_cli.config import _expand_env_vars, read_user_config_raw
+        from core.config import _expand_env_vars, read_user_config_raw
         # Presence-sensitive env bridge: raw read is deliberate (only keys the
         # user actually wrote get bridged); overlay + expansion applied below.
         cfg = read_user_config_raw(config_path)
@@ -2019,7 +2019,7 @@ def _bridge_max_turns_from_config(home: "Path") -> None:
         # overlay a managed agent.max_turns / timezone / redact_secrets would be
         # replaced by the user's value after the first turn. Fail-open.
         try:
-            from sparkii_cli import managed_scope
+            from core import managed_scope
             cfg = managed_scope.apply_managed_overlay(cfg)
         except Exception:
             pass
@@ -2114,7 +2114,7 @@ def _profile_runtime_scope(profile_home: "Path"):
         set_secret_scope,
         reset_secret_scope,
     )
-    from sparkii_cli.env_loader import hydrate_profile_secret_sources
+    from core.env_loader import hydrate_profile_secret_sources
 
     home_token = set_sparkii_home_override(str(profile_home))
     hydrate_profile_secret_sources(Path(profile_home))
@@ -2187,7 +2187,7 @@ _DOCKER_MEDIA_OUTPUT_CONTAINER_PATHS = {"/output", "/outputs"}
 # This env var is internal bridge plumbing, not a user-facing configuration
 # source. Initialize it from the canonical config default after dotenv loading
 # so an ambient process/.env value can never control lease safety on its own.
-from sparkii_cli.config_defaults import DEFAULT_CONFIG as _DEFAULT_CONFIG
+from core.config_defaults import DEFAULT_CONFIG as _DEFAULT_CONFIG
 
 os.environ["SPARKII_TURN_LEASE_TIMEOUT"] = str(
     _DEFAULT_CONFIG["agent"]["gateway_turn_lease_timeout"]
@@ -2201,7 +2201,7 @@ if _config_path.exists():
         # Presence-sensitive env bridge: raw read is deliberate — only keys the
         # user actually wrote may be bridged (a defaults merge would export the
         # whole DEFAULT_CONFIG into the env). Overlay + expansion applied below.
-        from sparkii_cli.config import _expand_env_vars, read_user_config_raw
+        from core.config import _expand_env_vars, read_user_config_raw
         _cfg = read_user_config_raw(_config_path)
         # Expand ${ENV_VAR} references before bridging to env vars.
         _cfg = _expand_env_vars(_cfg)
@@ -2214,7 +2214,7 @@ if _config_path.exists():
         # overlay every SPARKII_*/TERMINAL_* env var below would carry the user's
         # value even when an administrator pinned it. Fail-open via the helper.
         try:
-            from sparkii_cli import managed_scope
+            from core import managed_scope
             _cfg = managed_scope.apply_managed_overlay(_cfg)
         except Exception:
             pass
@@ -2459,14 +2459,14 @@ except Exception as _bootstrap_exc:
 
 # Validate config structure early — log warnings so gateway operators see problems
 try:
-    from sparkii_cli.config import print_config_warnings
+    from core.config import print_config_warnings
     print_config_warnings()
 except Exception as _bootstrap_exc:
     print(f"  Warning: config validation failed: {_bootstrap_exc}", file=sys.stderr)
 
 # Warn if user has deprecated MESSAGING_CWD / TERMINAL_CWD in .env
 try:
-    from sparkii_cli.config import warn_deprecated_cwd_env_vars
+    from core.config import warn_deprecated_cwd_env_vars
     warn_deprecated_cwd_env_vars()
 except Exception as _bootstrap_exc:
     print(f"  Warning: deprecation check failed: {_bootstrap_exc}", file=sys.stderr)
@@ -2797,7 +2797,7 @@ def _resolve_gateway_model_context(model: Optional[str] = None) -> _GatewayModel
                 configured_provider = provider
                 configured_base_url = base_url
             try:
-                from sparkii_cli.config import get_compatible_custom_providers
+                from core.config import get_compatible_custom_providers
 
                 custom_providers = get_compatible_custom_providers(data)
             except Exception:
@@ -2815,7 +2815,7 @@ def _resolve_gateway_model_context(model: Optional[str] = None) -> _GatewayModel
 
     if config_context_length is not None:
         try:
-            from sparkii_cli.route_identity import should_clear_context_pin
+            from core.route_identity import should_clear_context_pin
 
             if should_clear_context_pin(
                 configured_model,
@@ -2831,7 +2831,7 @@ def _resolve_gateway_model_context(model: Optional[str] = None) -> _GatewayModel
 
     if config_context_length is None and custom_providers and base_url:
         try:
-            from sparkii_cli.config import get_custom_provider_context_length
+            from core.config import get_custom_provider_context_length
 
             custom_ctx = get_custom_provider_context_length(
                 model=resolved_model,
@@ -2919,7 +2919,7 @@ def _try_resolve_fallback_provider() -> dict | None:
             return None
         for entry in fb_list:
             try:
-                from sparkii_cli.fallback_config import resolve_entry_api_key
+                from core.fallback_config import resolve_entry_api_key
 
                 runtime = resolve_runtime_provider(
                     requested=entry.get("provider"),
@@ -3522,7 +3522,7 @@ def _load_gateway_config(config_path: "Path | None" = None) -> dict:
     ``_sparkii_home`` still see their fixture). Callers handling multiplexed
     profile routes may pass that profile's explicit config path. The canonical
     path shares the mtime-keyed raw-yaml cache from
-    ``sparkii_cli.config.read_raw_config``.
+    ``core.config.read_raw_config``.
 
     Managed scope is overlaid on the result (via the shared helper) so the
     gateway honors administrator-pinned values — neither read_raw_config nor a
@@ -3533,7 +3533,7 @@ def _load_gateway_config(config_path: "Path | None" = None) -> dict:
     raw: dict = {}
     used_canonical = False
     try:
-        from sparkii_cli.config import get_config_path, read_raw_config
+        from core.config import get_config_path, read_raw_config
         # Fast path: if _sparkii_home agrees with the canonical config
         # location, reuse the shared cache. Otherwise fall through to a
         # direct read (keeps test fixtures with a monkeypatched
@@ -3559,7 +3559,7 @@ def _load_gateway_config(config_path: "Path | None" = None) -> dict:
     # so the overlay is required on both paths for the gateway to honor pinned
     # values. Helper is fail-open and a no-op when no managed scope exists.
     try:
-        from sparkii_cli import managed_scope
+        from core import managed_scope
         raw = managed_scope.apply_managed_overlay(raw if isinstance(raw, dict) else {})
     except Exception:
         pass
@@ -3572,7 +3572,7 @@ def _load_gateway_config(config_path: "Path | None" = None) -> dict:
     # gateway would resolve an empty model for ``model: {name: <id>}`` configs
     # while the CLI resolves it correctly. See issue #34500. Fail-open.
     try:
-        from sparkii_cli.config import _normalize_root_model_keys
+        from core.config import _normalize_root_model_keys
         raw = _normalize_root_model_keys(raw)
     except Exception:
         pass
@@ -3592,7 +3592,7 @@ def _checkpoint_agent_kwargs(config: dict | None) -> dict:
     elif not isinstance(cp_cfg, dict):
         cp_cfg = {}
 
-    from sparkii_cli.config import DEFAULT_CONFIG
+    from core.config import DEFAULT_CONFIG
     defaults = DEFAULT_CONFIG["checkpoints"]
     return {
         "checkpoints_enabled": cp_cfg.get("enabled", defaults["enabled"]),
@@ -3622,7 +3622,7 @@ def _load_gateway_runtime_config() -> dict:
     cfg = _load_gateway_config()
     if not isinstance(cfg, dict) or not cfg:
         return {}
-    from sparkii_cli.config import _expand_env_vars
+    from core.config import _expand_env_vars
 
     expanded = _expand_env_vars(cfg)
     return expanded if isinstance(expanded, dict) else {}
@@ -6933,7 +6933,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         # so operators knowingly enable tirith or configure auxiliary.approval
         # for unattended gateways.
         try:
-            from sparkii_cli.config import load_config as _load_full_config
+            from core.config import load_config as _load_full_config
             _appr_cfg = _load_full_config()
             _appr_mode = str(
                 cfg_get(_appr_cfg, "approvals", "mode", default="manual") or "manual"
@@ -6989,7 +6989,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         # but never raised.
         if self._session_db is not None:
             try:
-                from sparkii_cli.config import load_config as _load_full_config
+                from core.config import load_config as _load_full_config
                 _sess_cfg = (_load_full_config().get("sessions") or {})
                 # Non-destructive stale-session archive, independent of prune.
                 if _sess_cfg.get("auto_archive", False):
@@ -7015,7 +7015,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         # under ~/.sparkii/checkpoints/.  Opt-in via checkpoints.auto_prune,
         # idempotent via .last_prune marker.
         try:
-            from sparkii_cli.config import load_config as _load_full_config
+            from core.config import load_config as _load_full_config
             _ckpt_cfg = (_load_full_config().get("checkpoints") or {})
             if _ckpt_cfg.get("auto_prune", False):
                 from tools.checkpoint_manager import maybe_auto_prune_checkpoints
@@ -7335,7 +7335,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         # Push the global voice.auto_tts default (config.yaml) onto the adapter.
         # Lazy import to avoid adding a module-level dep from gateway → sparkii_cli.
         try:
-            from sparkii_cli.config import load_config as _load_full_config
+            from core.config import load_config as _load_full_config
             _full_cfg = _load_full_config()
             _auto_tts_default = bool(
                 (_full_cfg.get("voice") or {}).get("auto_tts", False)
@@ -9128,7 +9128,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         Checks SPARKII_EPHEMERAL_SYSTEM_PROMPT env var first, then
         ``display.personality`` / ``agent.system_prompt`` in config.yaml.
         """
-        from sparkii_cli.config import resolve_ephemeral_system_prompt_from_config
+        from core.config import resolve_ephemeral_system_prompt_from_config
 
         prompt = os.getenv("SPARKII_EPHEMERAL_SYSTEM_PROMPT", "")
         if prompt:
@@ -9613,7 +9613,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         that genuinely lacks the key clears the chain.
         """
         try:
-            from sparkii_cli.config import read_user_config_raw
+            from core.config import read_user_config_raw
             cfg_path = _sparkii_home / "config.yaml"
             if not cfg_path.exists():
                 self._fallback_model = None
@@ -9624,12 +9624,12 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
             # below fixes the managed-scope/${VAR} drift without losing that.
             cfg = read_user_config_raw(cfg_path)
             try:
-                from sparkii_cli import managed_scope
+                from core import managed_scope
                 cfg = managed_scope.apply_managed_overlay(cfg)
             except Exception:
                 pass
             try:
-                from sparkii_cli.config import _expand_env_vars
+                from core.config import _expand_env_vars
                 expanded = _expand_env_vars(cfg)
                 if isinstance(expanded, dict):
                     cfg = expanded
@@ -11203,7 +11203,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         # that triggered the /restart command closing its console.
         if sys.platform == "win32":
             import textwrap
-            from sparkii_cli._subprocess_compat import (
+            from core._subprocess_compat import (
                 windows_detach_flags_without_breakaway,
                 windows_detach_popen_kwargs,
             )
@@ -11212,7 +11212,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
             watcher = textwrap.dedent(
                 """
                 import os, subprocess, sys, time
-                from sparkii_cli._subprocess_compat import windows_detach_flags_without_breakaway
+                from core._subprocess_compat import windows_detach_flags_without_breakaway
                 pid = int(sys.argv[1])
                 restart_after_s = float(sys.argv[2])
                 cmd = sys.argv[3:]
@@ -12284,7 +12284,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         except Exception:
             pass
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
             from agent.monitoring.gateway_health_export import start_gateway_health_export
             self._gateway_health_export_runtime = start_gateway_health_export(load_config())
             if getattr(self._gateway_health_export_runtime, "enabled", False):
@@ -12464,7 +12464,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         # hooks_auto_accept here would just duplicate that lookup.
         # Failures are logged but must never block gateway startup.
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
             from agent.shell_hooks import register_from_config
             _hooks_cfg = load_config()
             register_from_config(_hooks_cfg, accept_hooks=False)
@@ -16212,7 +16212,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         # safe (no session) instead of leaking the sibling's. See
         # gateway/session_context.reset_session_vars + the inheritance test.
         try:
-            from gateway.session_context import reset_session_vars
+            from core.session_context import reset_session_vars
             reset_session_vars()
         except Exception:
             logger.debug("reset_session_vars failed at handler entry", exc_info=True)
@@ -17391,11 +17391,11 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
             # default MoA preset, then restore the prior model. To *switch* to a
             # MoA preset for the session, pick it from the model picker (MoA
             # presets surface as a virtual "Mixture of Agents" provider).
-            from sparkii_cli.moa_config import (
+            from core.moa_config import (
                 moa_usage,
                 normalize_moa_config,
             )
-            from sparkii_cli.config import load_config
+            from core.config import load_config
 
             moa_payload = event.get_command_args().strip()
             if not moa_payload:
@@ -18128,7 +18128,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
                         if _msg_raw_ctx is not None:
                             _msg_config_ctx = int(_msg_raw_ctx)
                     try:
-                        from sparkii_cli.config import get_compatible_custom_providers
+                        from core.config import get_compatible_custom_providers
 
                         _msg_custom_providers = get_compatible_custom_providers(_msg_cfg)
                     except Exception:
@@ -18160,7 +18160,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
                     _msg_config_ctx = None
                 if _msg_config_ctx is not None and isinstance(_msg_model_cfg, dict):
                     try:
-                        from sparkii_cli.route_identity import should_clear_context_pin_async
+                        from core.route_identity import should_clear_context_pin_async
 
                         if await should_clear_context_pin_async(
                             None,  # model match already checked above
@@ -18175,7 +18175,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
                         _msg_config_ctx = None
                 if _msg_custom_providers and _msg_base_url:
                     try:
-                        from sparkii_cli.config import get_custom_provider_context_length
+                        from core.config import get_custom_provider_context_length
 
                         _msg_custom_ctx = get_custom_provider_context_length(
                             model=_msg_model,
@@ -19038,7 +19038,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
 
                 if _hyg_config_context_length is not None:
                     try:
-                        from sparkii_cli.route_identity import should_clear_context_pin_async
+                        from core.route_identity import should_clear_context_pin_async
 
                         if await should_clear_context_pin_async(
                             _hyg_configured_model,
@@ -19058,7 +19058,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
                 if _hyg_config_context_length is None and _hyg_base_url:
                     try:
                         try:
-                            from sparkii_cli.config import (
+                            from core.config import (
                                 get_compatible_custom_providers as _gw_gcp,
                                 get_custom_provider_context_length as _gw_gccl,
                             )
@@ -20958,7 +20958,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
 
         GatewayRunner.config is a GatewayConfig dataclass, not the full
         user config mapping. Top-level config blocks such as ``goals`` are
-        therefore only available through sparkii_cli.config.load_config().
+        therefore only available through core.config.load_config().
         """
         try:
             goals_cfg = (
@@ -20967,7 +20967,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
                 else getattr(self.config, "goals", {}) or {}
             )
             if not goals_cfg:
-                from sparkii_cli.config import load_config
+                from core.config import load_config
 
                 goals_cfg = (load_config() or {}).get("goals") or {}
             return int(goals_cfg.get("max_turns", 20) or 20)
@@ -23324,7 +23324,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         (e.g. a prior "Always Approve" click) without a gateway restart.
         """
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
             cfg = load_config()
             return cfg if isinstance(cfg, dict) else {}
         except Exception:
@@ -24087,7 +24087,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         Returns a list of reset tokens; pass them to ``_clear_session_env``
         in a ``finally`` block.
         """
-        from gateway.session_context import set_session_vars
+        from core.session_context import set_session_vars
         # Propagate the adapter's async-delivery capability so async tools
         # (terminal notify_on_complete / watch_patterns, delegate_task
         # background=True) know whether this channel can wake a later turn.
@@ -24119,7 +24119,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
 
     def _clear_session_env(self, tokens: list) -> None:
         """Restore session context variables to their pre-handler values."""
-        from gateway.session_context import clear_session_vars
+        from core.session_context import clear_session_vars
         clear_session_vars(tokens)
 
     async def _run_in_executor_with_context(self, func, *args):
@@ -24195,7 +24195,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         try:
             from agent.image_routing import decide_image_input_mode
             from agent.auxiliary_client import _read_main_model, _read_main_provider
-            from sparkii_cli.config import load_config
+            from core.config import load_config
 
             cfg = user_config if isinstance(user_config, dict) else load_config()
             resolved_provider = (provider or "").strip()
@@ -26983,7 +26983,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
                 logger.debug("Pressure release failed for %s: %s", key, _e)
             del agent
         try:
-            from sparkii_cli.mem_trim import trim_memory
+            from core.mem_trim import trim_memory
 
             trim_memory(force=True, reason="agent_cache_pressure")
         except Exception:
@@ -29767,7 +29767,7 @@ def _start_gateway_housekeeping(stop_event: threading.Event, adapters=None, loop
         # SQLite connections are thread-bound and this runs off-loop.
         if tick_count % AUTO_ARCHIVE_EVERY == 0:
             try:
-                from sparkii_cli.config import load_config as _load_full_config
+                from core.config import load_config as _load_full_config
                 from sparkii_state import SessionDB
                 _sess_cfg = (_load_full_config().get("sessions") or {})
                 if _sess_cfg.get("auto_archive", False):
@@ -29787,7 +29787,7 @@ def _start_gateway_housekeeping(stop_event: threading.Event, adapters=None, loop
         # the 60s housekeeping cadence does not create a trim storm.
         if tick_count % MEMORY_TRIM_EVERY == 0:
             try:
-                from sparkii_cli.mem_trim import trim_memory
+                from core.mem_trim import trim_memory
 
                 trim_memory(reason="messaging gateway housekeeping")
             except Exception as exc:
@@ -30108,7 +30108,7 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
 
         _audit_cfg = None
         try:
-            from sparkii_cli.config import read_raw_config
+            from core.config import read_raw_config
 
             _audit_cfg = read_raw_config()
         except Exception:

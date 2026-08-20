@@ -511,7 +511,7 @@ class TestReasoningOverridesDefaultConfig:
 
     def test_default_config_has_reasoning_overrides_key(self):
         """DEFAULT_CONFIG['agent'] contains 'reasoning_overrides' as an empty dict."""
-        from sparkii_cli.config import DEFAULT_CONFIG
+        from core.config import DEFAULT_CONFIG
         assert "reasoning_overrides" in DEFAULT_CONFIG["agent"]
         assert DEFAULT_CONFIG["agent"]["reasoning_overrides"] == {}
 
@@ -624,7 +624,7 @@ class TestAgentBrowserRunnable:
             captured.append((cmd, kwargs))
             return SimpleNamespace(returncode=0)
 
-        import sparkii_cli._subprocess_compat as subprocess_compat
+        import core._subprocess_compat as subprocess_compat
         import subprocess as subprocess_mod
 
         monkeypatch.setattr(subprocess_compat, "windows_hide_flags", lambda: 0x08000000)

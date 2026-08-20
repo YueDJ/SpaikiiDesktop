@@ -843,7 +843,7 @@ class AgentImporter:
 
 def import_agent_command(args) -> None:
     """Handle ``sparkii import-agent`` (invoked from sparkii_cli.main)."""
-    from sparkii_cli.config import get_config_path, load_config, save_config
+    from core.config import get_config_path, load_config, save_config
     from sparkii_constants import get_sparkii_home
     from sparkii_cli.setup import (
         Colors,

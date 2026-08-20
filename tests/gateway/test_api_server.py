@@ -263,7 +263,7 @@ class TestConcurrencyCap:
 
     def test_resolve_reads_config_value(self):
         cfg = {"gateway": {"api_server": {"max_concurrent_runs": 3}}}
-        with patch("sparkii_cli.config.load_config", return_value=cfg):
+        with patch("core.config.load_config", return_value=cfg):
             assert APIServerAdapter._resolve_max_concurrent_runs() == 3
 
 

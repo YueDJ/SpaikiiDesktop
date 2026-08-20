@@ -191,9 +191,9 @@ def test_resolve_pack_plugins_uses_community_index_for_bare_names():
         install_identifier="idx-owner/idx-repo", capabilities=["tools"]
     )
     with mock.patch(
-        "sparkii_cli.plugin_index.load_index", return_value=([fake_entry], "seed")
+        "core.plugin_index.load_index", return_value=([fake_entry], "seed")
     ), mock.patch(
-        "sparkii_cli.plugin_index.resolve_name",
+        "core.plugin_index.resolve_name",
         return_value=(fake_entry, [fake_entry]),
     ):
         resolved = resolve_pack_plugins(pack)
@@ -210,9 +210,9 @@ def test_resolve_pack_plugins_carries_index_miss_as_error():
         )
     )
     with mock.patch(
-        "sparkii_cli.plugin_index.load_index", return_value=([], "seed")
+        "core.plugin_index.load_index", return_value=([], "seed")
     ), mock.patch(
-        "sparkii_cli.plugin_index.resolve_name", return_value=(None, [])
+        "core.plugin_index.resolve_name", return_value=(None, [])
     ):
         resolved = resolve_pack_plugins(pack)
     assert resolved[0].identifier is None
@@ -512,7 +512,7 @@ def test_export_strips_secret_and_capability_config_keys(tmp_path, monkeypatch):
             }
         }
     }
-    with mock.patch("sparkii_cli.config.load_config", return_value=fake_cfg):
+    with mock.patch("core.config.load_config", return_value=fake_cfg):
         text, _warnings = export_pack()
     assert "sk-super-secret" not in text
     assert "api_key" not in text

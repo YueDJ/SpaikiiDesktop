@@ -10,7 +10,7 @@ def test_find_install_script_from_checkout(tmp_path):
     ``linux_only``: the POSIX arm picks ``install.sh`` + ``bash``, which is
     already what ``_IS_WINDOWS`` reports here — nothing needs faking.
     """
-    from sparkii_cli.dep_ensure import _find_install_script
+    from core.dep_ensure import _find_install_script
     scripts_dir = tmp_path / "scripts"
     scripts_dir.mkdir()
     (scripts_dir / "install.sh").write_text("#!/bin/bash", encoding="utf-8")
@@ -30,7 +30,7 @@ def test_has_npx_agent_browser_true_when_npx_resolves():
     """agent-browser resolves lazily via npx on the default install (#43564)
     — _has_npx_agent_browser mirrors the runtime cascade so the "browser" dep
     check doesn't wrongly report it missing."""
-    from sparkii_cli.dep_ensure import _has_npx_agent_browser
+    from core.dep_ensure import _has_npx_agent_browser
     import tools.browser_tool as bt
 
     with patch.object(bt, "_find_agent_browser", return_value="npx agent-browser"), \
@@ -39,7 +39,7 @@ def test_has_npx_agent_browser_true_when_npx_resolves():
 
 
 def test_has_npx_agent_browser_false_on_termux_local_bare_npx():
-    from sparkii_cli.dep_ensure import _has_npx_agent_browser
+    from core.dep_ensure import _has_npx_agent_browser
     import tools.browser_tool as bt
 
     with patch.object(bt, "_find_agent_browser", return_value="npx agent-browser"), \
@@ -48,7 +48,7 @@ def test_has_npx_agent_browser_false_on_termux_local_bare_npx():
 
 
 def test_has_npx_agent_browser_false_when_nothing_resolves():
-    from sparkii_cli.dep_ensure import _has_npx_agent_browser
+    from core.dep_ensure import _has_npx_agent_browser
     import tools.browser_tool as bt
 
     def _raise(**_kw):
@@ -103,13 +103,13 @@ def test_ensure_dependency_uses_powershell_on_windows(tmp_path):
     """``windows_only``: the assertion is that we shell out to a real
     PowerShell. Faking ``_IS_WINDOWS`` on Linux also required faking
     ``shutil.which`` into inventing a powershell.exe that isn't there."""
-    from sparkii_cli.dep_ensure import ensure_dependency
+    from core.dep_ensure import ensure_dependency
     scripts_dir = tmp_path / "scripts"
     scripts_dir.mkdir(parents=True)
     (scripts_dir / "install.ps1").write_text("# fake")
-    with patch("sparkii_cli.dep_ensure._DEP_CHECKS", {"node": lambda: False}), \
-         patch("sparkii_cli.dep_ensure._find_install_script", return_value=(scripts_dir / "install.ps1", "powershell")), \
-         patch("sparkii_cli.dep_ensure.shutil") as mock_shutil, \
+    with patch("core.dep_ensure._DEP_CHECKS", {"node": lambda: False}), \
+         patch("core.dep_ensure._find_install_script", return_value=(scripts_dir / "install.ps1", "powershell")), \
+         patch("core.dep_ensure.shutil") as mock_shutil, \
          patch("sparkii_constants.get_sparkii_home", return_value=tmp_path / "fakehome"), \
          patch("subprocess.run") as mock_run, \
          patch("sys.stdin") as mock_stdin:

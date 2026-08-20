@@ -69,7 +69,7 @@ def test_build_gateway_argv_keeps_venv_console_python_for_uv_venv(monkeypatch, t
     monkeypatch.setattr(gateway, "PROJECT_ROOT", project)
     monkeypatch.setattr(gateway, "get_python_path", lambda: str(venv_python))
     monkeypatch.setattr(gateway, "_profile_arg", lambda sparkii_home: "")
-    monkeypatch.setattr("sparkii_cli.config.get_sparkii_home", lambda: str(sparkii_home))
+    monkeypatch.setattr("core.config.get_sparkii_home", lambda: str(sparkii_home))
 
     argv, cwd, env_overlay = gateway_windows._build_gateway_argv()
 
@@ -95,7 +95,7 @@ def test_spawn_detached_marks_primary_breakaway_success(monkeypatch, tmp_path, c
         "_build_gateway_argv",
         lambda: (argv, cwd, {"SPARKII_GATEWAY_DETACHED": "1"}),
     )
-    monkeypatch.setattr("sparkii_cli.config.get_sparkii_home", lambda: tmp_path)
+    monkeypatch.setattr("core.config.get_sparkii_home", lambda: tmp_path)
     monkeypatch.setattr(gateway_windows.subprocess, "Popen", fake_popen)
     caplog.set_level(logging.WARNING, logger=gateway_windows.__name__)
 
@@ -137,7 +137,7 @@ def test_spawn_detached_warns_and_marks_no_breakaway_fallback(
             {"SPARKII_GATEWAY_DETACHED": "1", "SECRET_SENTINEL": "do-not-log"},
         ),
     )
-    monkeypatch.setattr("sparkii_cli.config.get_sparkii_home", lambda: tmp_path)
+    monkeypatch.setattr("core.config.get_sparkii_home", lambda: tmp_path)
     monkeypatch.setattr(gateway_windows.subprocess, "Popen", fake_popen)
     caplog.set_level(logging.WARNING, logger=gateway_windows.__name__)
 
@@ -178,13 +178,13 @@ class TestStableWindowsGatewayWorkingDir:
     def test_stable_gateway_working_dir_uses_sparkii_home(self, tmp_path, monkeypatch):
         home = tmp_path / ".sparkii"
         home.mkdir()
-        monkeypatch.setattr("sparkii_cli.config.get_sparkii_home", lambda: home)
+        monkeypatch.setattr("core.config.get_sparkii_home", lambda: home)
         assert gateway_windows._stable_gateway_working_dir(tmp_path / "checkout") == str(home.resolve())
 
     def test_stable_gateway_working_dir_falls_back_to_project_root(self, tmp_path, monkeypatch):
         missing = tmp_path / "missing" / ".sparkii"
         project = tmp_path / "checkout"
-        monkeypatch.setattr("sparkii_cli.config.get_sparkii_home", lambda: missing)
+        monkeypatch.setattr("core.config.get_sparkii_home", lambda: missing)
         assert gateway_windows._stable_gateway_working_dir(project) == str(project)
 
 

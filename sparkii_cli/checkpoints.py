@@ -27,7 +27,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
-from sparkii_cli.sizefmt import format_bytes as _fmt_bytes
+from core.sizefmt import format_bytes as _fmt_bytes
 
 
 def _fmt_ts(ts: Any) -> str:

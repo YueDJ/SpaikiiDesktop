@@ -243,7 +243,7 @@ async def get_toolset_config(name: str, profile: Optional[str] = None):
         provider_readiness_status,
         web_provider_capabilities,
     )
-    from sparkii_cli.config import get_env_value
+    from core.config import get_env_value
     from sparkii_cli.nous_subscription import get_nous_subscription_features
 
     valid = {ts_key for ts_key, _, _ in _get_effective_configurable_toolsets()}
@@ -617,7 +617,7 @@ async def save_toolset_env(name: str, body: ToolsetEnvUpdate, profile: Optional[
         _get_effective_configurable_toolsets,
         _visible_providers,
     )
-    from sparkii_cli.config import get_env_value, save_env_value
+    from core.config import get_env_value, save_env_value
 
     valid_ts = {ts_key for ts_key, _, _ in _get_effective_configurable_toolsets()}
     if name not in valid_ts:

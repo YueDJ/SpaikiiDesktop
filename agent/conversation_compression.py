@@ -694,7 +694,7 @@ class CompressionCommitFence:
 
 
 # Defaults for the in-agent (non-hygiene) progress-aware compress_context wrap.
-# Mirror sparkii_cli.config.DEFAULT_CONFIG["compression"] keys of the same name.
+# Mirror core.config.DEFAULT_CONFIG["compression"] keys of the same name.
 DEFAULT_CONTEXT_TIMEOUT_SECONDS = 120.0
 DEFAULT_CONTEXT_TOTAL_CEILING_SECONDS = 600.0
 
@@ -790,7 +790,7 @@ def resolve_context_compression_timeouts(
     cfg = compression_cfg
     if cfg is None:
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
 
             raw = load_config()
             maybe = raw.get("compression", {}) if isinstance(raw, dict) else {}
@@ -1249,7 +1249,7 @@ def _adopt_live_compression_child(
 
     agent.session_id = child_session_id
     try:
-        from gateway.session_context import set_current_session_id
+        from core.session_context import set_current_session_id
 
         set_current_session_id(child_session_id)
     except Exception:
@@ -3594,7 +3594,7 @@ def compress_context(
                     )
                     agent.session_id = new_session_id
                     try:
-                        from gateway.session_context import set_current_session_id
+                        from core.session_context import set_current_session_id
 
                         set_current_session_id(agent.session_id)
                     except Exception:

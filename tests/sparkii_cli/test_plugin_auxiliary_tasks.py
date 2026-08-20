@@ -128,7 +128,7 @@ def test_all_aux_tasks_includes_plugin_registered(patched_manager):
 def test_reset_aux_to_auto_resets_plugin_tasks(tmp_path, monkeypatch, patched_manager):
     """Plugin task with non-auto config gets reset alongside built-ins."""
     from pathlib import Path
-    from sparkii_cli.config import load_config, save_config
+    from core.config import load_config, save_config
     from sparkii_cli.main import _reset_aux_to_auto
 
     monkeypatch.setenv("SPARKII_HOME", str(tmp_path / ".sparkii"))

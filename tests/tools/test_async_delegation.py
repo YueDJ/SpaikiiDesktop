@@ -633,7 +633,7 @@ def test_delegate_task_background_uses_live_tui_agent_session_id(monkeypatch):
     import json
     from unittest.mock import MagicMock
     import tools.delegate_tool as dt
-    from gateway.session_context import clear_session_vars, set_session_vars
+    from core.session_context import clear_session_vars, set_session_vars
     from tools.approval import reset_current_session_key, set_current_session_key
 
     parent = MagicMock()

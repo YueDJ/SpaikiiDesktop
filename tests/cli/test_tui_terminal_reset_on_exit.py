@@ -15,7 +15,7 @@ from unittest.mock import mock_open, patch
 
 
 def _import_cli():
-    import sparkii_cli.config as config_mod
+    import core.config as config_mod
 
     if not hasattr(config_mod, "save_env_value_secure"):
         config_mod.save_env_value_secure = lambda key, value: {

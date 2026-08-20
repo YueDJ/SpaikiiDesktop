@@ -29,7 +29,7 @@ def _profile_user_agent() -> str:
     (OpenCode Zen, etc.) sit behind a WAF that returns 403 for that.
     """
     try:
-        from sparkii_cli import __version__ as _ver  # lazy: avoid layer cycle at import time
+        from core.version import __version__ as _ver  # lazy: avoid layer cycle at import time
         return f"sparkii-cli/{_ver}"
     except Exception:
         return "sparkii-cli"
@@ -244,7 +244,7 @@ class ProviderProfile:
         import json
         import urllib.request
 
-        from sparkii_cli.urllib_security import open_credentialed_url
+        from core.urllib_security import open_credentialed_url
 
         req = urllib.request.Request(url)
         if api_key:

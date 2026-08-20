@@ -57,7 +57,7 @@ def delegated_child_context(session_id: str | None = None) -> Iterator[None]:
     try:
         # Import lazily: session_context calls is_delegated_child_context() when
         # deciding whether the compatibility os.environ mirror is safe.
-        from gateway.session_context import scoped_current_session_id
+        from core.session_context import scoped_current_session_id
 
         with scoped_current_session_id(session_id):
             yield

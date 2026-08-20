@@ -159,7 +159,7 @@ class TestCredentialPoolEndpoints:
         """
         from agent.credential_pool import load_pool
         from sparkii_cli.auth import is_source_suppressed
-        from sparkii_cli.config import save_env_value
+        from core.config import save_env_value
 
         fake_key = "sk-or-" + "x" * 20  # constructed, never a real key shape
         save_env_value("OPENROUTER_API_KEY", fake_key)
@@ -188,7 +188,7 @@ class TestCredentialPoolEndpoints:
         """
         from agent.credential_pool import load_pool
         from sparkii_cli.auth import is_source_suppressed
-        from sparkii_cli.config import save_env_value
+        from core.config import save_env_value
 
         fake_key = "sk-or-" + "y" * 20
         save_env_value("OPENROUTER_API_KEY", fake_key)
@@ -324,7 +324,7 @@ class TestWebhookEndpoints:
 
 
     def test_create_webhook_persists_script(self):
-        from sparkii_cli.config import load_config, save_config
+        from core.config import load_config, save_config
 
         cfg = load_config()
         cfg.setdefault("platforms", {})["webhook"] = {
@@ -349,7 +349,7 @@ class TestWebhookEndpoints:
 
     def test_enable_platform_starts_gateway_restart(self, monkeypatch):
         import sparkii_cli.web_server as ws
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         ws._ACTION_PROCS.pop("gateway-restart", None)
         restart_calls = []
@@ -382,7 +382,7 @@ class TestWebhookEndpoints:
 
     def test_enable_platform_reuses_inflight_gateway_restart(self, monkeypatch):
         import sparkii_cli.web_server as ws
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         ws._ACTION_PROCS.pop("gateway-restart", None)
 
@@ -417,7 +417,7 @@ class TestOpsEndpoints:
 
 
     def test_hooks_list_reads_config(self):
-        from sparkii_cli.config import load_config, save_config
+        from core.config import load_config, save_config
 
         cfg = load_config()
         cfg["hooks"] = {
@@ -768,7 +768,7 @@ class TestWebhookToggleEndpoint:
     def _setup(self, _isolate_sparkii_home):
         self.client, _ = _client()
         # Enable the webhook platform so a subscription can be created.
-        from sparkii_cli.config import load_config, save_config
+        from core.config import load_config, save_config
 
         cfg = load_config()
         cfg.setdefault("platforms", {})["webhook"] = {
@@ -927,7 +927,7 @@ class TestToolsConfigEndpoints:
 
 
     def test_save_env_writes_key_and_validates_allowlist(self):
-        from sparkii_cli.config import get_env_value
+        from core.config import get_env_value
 
         cfg = self.client.get("/api/tools/toolsets/web/config").json()
         # Find a real env-var key from the visible provider matrix.

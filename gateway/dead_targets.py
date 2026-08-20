@@ -31,7 +31,7 @@ import time
 from pathlib import Path
 from typing import Dict, Optional
 
-from sparkii_cli.config import get_sparkii_home
+from core.config import get_sparkii_home
 
 logger = logging.getLogger(__name__)
 

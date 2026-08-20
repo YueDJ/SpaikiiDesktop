@@ -8,7 +8,7 @@ import logging
 
 import pytest
 
-from sparkii_cli.config import (
+from core.config import (
     _PROVIDER_NORMALIZE_WARNED,
     _normalize_custom_provider_entry,
 )

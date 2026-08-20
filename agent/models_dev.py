@@ -287,7 +287,7 @@ def _get_models_dev_url() -> str:
     Falls back to the default public URL when unset or empty.
     """
     try:
-        from sparkii_cli.config import cfg_get, load_config_readonly
+        from core.config import cfg_get, load_config_readonly
         cfg = load_config_readonly()
         url = cfg_get(cfg, "models_dev", "url", default="")
         if isinstance(url, str) and url.strip():
@@ -891,7 +891,7 @@ def _load_model_overrides() -> Dict[str, Any]:
     Returns empty dict on any failure.
     """
     try:
-        from sparkii_cli.config import cfg_get, load_config_readonly
+        from core.config import cfg_get, load_config_readonly
         raw = cfg_get(load_config_readonly(), "model_overrides", default={})
         return raw if isinstance(raw, dict) else {}
     except Exception:
@@ -1277,7 +1277,7 @@ def list_provider_models(
     picker (``sparkii model``), which is an interactive user-facing flow
     where a fresh catalog is worth a short network wait.
     """
-    from sparkii_cli.models import normalize_provider
+    from core.model_resolution import normalize_provider
     provider = normalize_provider(provider) or provider
     
     models = _get_provider_models(provider, allow_network=allow_network)

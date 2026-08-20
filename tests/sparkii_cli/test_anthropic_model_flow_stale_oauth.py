@@ -7,7 +7,7 @@ model selection with a broken token instead of offering re-auth.
 """
 
 
-from sparkii_cli.config import save_env_value
+from core.config import save_env_value
 
 
 class TestStaleOAuthTokenDetection:

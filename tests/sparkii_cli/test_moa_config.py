@@ -1,7 +1,7 @@
 import pytest
 
 from agent.errors import MoAPresetNotFoundError
-from sparkii_cli.moa_config import (
+from core.moa_config import (
     DEFAULT_MOA_AGGREGATOR,
     DEFAULT_MOA_PRESET_NAME,
     DEFAULT_MOA_REFERENCE_MODELS,
@@ -146,7 +146,7 @@ def test_validate_moa_payload_agrees_with_clean_slot():
     """Contract: a payload validate accepts must survive normalize UNCHANGED in
     its slots — validate and _clean_slot can never disagree (else a payload
     could pass validation and still be swapped for defaults)."""
-    from sparkii_cli.moa_config import validate_moa_payload
+    from core.moa_config import validate_moa_payload
 
     payload = {"presets": {"p": _valid_preset_payload()}}
     assert validate_moa_payload(payload) == []

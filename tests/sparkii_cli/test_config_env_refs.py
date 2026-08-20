@@ -1,6 +1,6 @@
 import textwrap
 
-from sparkii_cli.config import load_config, save_config
+from core.config import load_config, save_config
 
 
 def _write_config(tmp_path, body: str):

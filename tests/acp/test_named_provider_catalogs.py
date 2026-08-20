@@ -43,7 +43,7 @@ class TestNamedCustomProviderCatalogs:
                 }
             }
         )
-        with patch("sparkii_cli.config.load_config", return_value=cfg), patch(
+        with patch("core.config.load_config", return_value=cfg), patch(
             "sparkii_cli.model_switch._fetch_picker_live_models",
             return_value=["model-a", "model-b"],
         ):
@@ -68,7 +68,7 @@ class TestNamedCustomProviderCatalogs:
                 }
             }
         )
-        with patch("sparkii_cli.config.load_config", return_value=cfg), patch(
+        with patch("core.config.load_config", return_value=cfg), patch(
             "sparkii_cli.model_switch._fetch_picker_live_models", return_value=None
         ):
             assert _named_custom_provider_catalogs() == []
@@ -84,7 +84,7 @@ class TestNamedCustomProviderCatalogs:
                 }
             }
         )
-        with patch("sparkii_cli.config.load_config", return_value=cfg), patch(
+        with patch("core.config.load_config", return_value=cfg), patch(
             "sparkii_cli.model_switch._fetch_picker_live_models", return_value=None
         ):
             assert _named_custom_provider_catalogs() == []
@@ -101,7 +101,7 @@ class TestNamedCustomProviderCatalogs:
                 }
             ]
         )
-        with patch("sparkii_cli.config.load_config", return_value=cfg), patch(
+        with patch("core.config.load_config", return_value=cfg), patch(
             "sparkii_cli.model_switch._fetch_picker_live_models", return_value=None
         ):
             catalogs = _named_custom_provider_catalogs()
@@ -118,7 +118,7 @@ class TestNamedCustomProviderCatalogs:
                 }
             }
         )
-        with patch("sparkii_cli.config.load_config", return_value=cfg), patch(
+        with patch("core.config.load_config", return_value=cfg), patch(
             "sparkii_cli.models.should_use_ollama_native_catalog",
             return_value=True,
         ), patch(
@@ -146,7 +146,7 @@ class TestNamedCustomProviderCatalogs:
                 }
             ]
         )
-        with patch("sparkii_cli.config.load_config", return_value=cfg), patch(
+        with patch("core.config.load_config", return_value=cfg), patch(
             "sparkii_cli.models.should_use_ollama_native_catalog",
             return_value=True,
         ), patch(
@@ -170,7 +170,7 @@ class TestNamedCustomProviderCatalogs:
         )
         from sparkii_cli.model_switch import _NativePickerModelList
 
-        with patch("sparkii_cli.config.load_config", return_value=cfg), patch(
+        with patch("core.config.load_config", return_value=cfg), patch(
             "sparkii_cli.models.should_use_ollama_native_catalog",
             return_value=True,
         ), patch(
@@ -254,7 +254,7 @@ class TestModelStateIncludesNamedProviders:
                 }
             }
         }
-        with patch("sparkii_cli.config.load_config", return_value=cfg):
+        with patch("core.config.load_config", return_value=cfg):
             provider, model = parse_model_input(choice_id, "bedrock")
         assert provider == "custom:bedrock-mantle"
         assert model == "openai.gpt-5.5"
@@ -271,7 +271,7 @@ class TestModelStateIncludesNamedProviders:
                 }
             }
         }
-        with patch("sparkii_cli.config.load_config", return_value=cfg):
+        with patch("core.config.load_config", return_value=cfg):
             provider, model = parse_model_input(
                 "custom:local-127.0.0.1:11434:qwen3:1.7b", "custom"
             )

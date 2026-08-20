@@ -191,7 +191,7 @@ def ensure_tflite_runtime() -> bool:
 def load_wake_word_config() -> Dict[str, Any]:
     """Return the ``wake_word`` config section, shape-guarded to a dict."""
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         cfg = load_config().get("wake_word")
     except Exception:
@@ -351,7 +351,7 @@ def enrolled_profile_phrases() -> Dict[str, str]:
     """
     phrases: Dict[str, str] = {}
     try:
-        from sparkii_cli.config import read_user_config_raw
+        from core.config import read_user_config_raw
         from sparkii_cli.profiles import get_profile_dir, list_profiles
 
         for info in list_profiles():

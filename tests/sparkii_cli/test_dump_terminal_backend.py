@@ -34,7 +34,7 @@ def test_dump_surfaces_terminal_env_override(monkeypatch, capsys, tmp_path):
     pin it with a config.yaml that has no explicit backend key.
     """
     from sparkii_cli import dump
-    from sparkii_cli.config import get_sparkii_home
+    from core.config import get_sparkii_home
 
     monkeypatch.setenv("TERMINAL_ENV", "docker")
     # Keep run_dump's project-.env fallback from touching the real repo.
@@ -61,7 +61,7 @@ def test_dump_reports_config_backend_winning_over_stale_env(monkeypatch, capsys,
     the explicit config keys, so the dump reports local with no override
     warning."""
     from sparkii_cli import dump
-    from sparkii_cli.config import get_sparkii_home
+    from core.config import get_sparkii_home
 
     monkeypatch.delenv("TERMINAL_ENV", raising=False)
     monkeypatch.setattr(dump, "get_project_root", lambda: tmp_path / "noproject")
@@ -78,7 +78,7 @@ def test_dump_reports_config_backend_winning_over_stale_env(monkeypatch, capsys,
 
 def test_dump_reports_config_backend_when_no_override(monkeypatch, capsys, tmp_path):
     from sparkii_cli import dump
-    from sparkii_cli.config import get_sparkii_home
+    from core.config import get_sparkii_home
 
     monkeypatch.delenv("TERMINAL_ENV", raising=False)
     monkeypatch.setattr(dump, "get_project_root", lambda: tmp_path / "noproject")

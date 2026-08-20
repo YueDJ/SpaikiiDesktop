@@ -50,7 +50,7 @@ def _write_home(tmp_path, monkeypatch, reasoning_echo: bool):
     monkeypatch.setenv("SPARKII_HOME", str(home))
     # Drop any path-keyed config cache from a prior test.
     try:
-        from sparkii_cli import config as _cfg
+        from core import config as _cfg
         for name in ("_CONFIG_CACHE", "_config_cache"):
             if hasattr(_cfg, name):
                 getattr(_cfg, name).clear()
@@ -60,7 +60,7 @@ def _write_home(tmp_path, monkeypatch, reasoning_echo: bool):
 
 def _agent_with_init_flag() -> AIAgent:
     """Build an agent and materialize the echo flag the way init_agent does."""
-    from sparkii_cli.config import load_config_readonly
+    from core.config import load_config_readonly
     agent = object.__new__(AIAgent)
     agent._reasoning_echo_flag = bool(
         (load_config_readonly().get("model") or {}).get("reasoning_echo")

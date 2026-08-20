@@ -49,29 +49,11 @@ _VENDOR_PREFIXES: dict[str, str] = {
     "o1": "openai",
     "o3": "openai",
     "o4": "openai",
-    "gemini": "google",
-    "gemma": "google",
-    "deepseek": "deepseek",
-    "glm": "z-ai",
-    "kimi": "moonshotai",
-    "minimax": "minimax",
-    "grok": "x-ai",
-    "qwen": "qwen",
-    "mimo": "xiaomi",
-    "trinity": "arcee-ai",
-    "nemotron": "nvidia",
-    "llama": "meta-llama",
-    "step": "stepfun",
-    "trinity": "arcee-ai",
-}
+    }
 
 # Providers whose APIs consume vendor/model slugs.
 _AGGREGATOR_PROVIDERS: frozenset[str] = frozenset({
-    "openrouter",
-    "nous",
-    "ai-gateway",
-    "kilocode",
-})
+    })
 
 # Providers that want bare names with dots replaced by hyphens.
 _DOT_TO_HYPHEN_PROVIDERS: frozenset[str] = frozenset({
@@ -80,34 +62,17 @@ _DOT_TO_HYPHEN_PROVIDERS: frozenset[str] = frozenset({
 
 # Providers that want bare names with dots preserved.
 _STRIP_VENDOR_ONLY_PROVIDERS: frozenset[str] = frozenset({
-    "copilot",
-    "copilot-acp",
-    "openai-codex",
-})
+    })
 
 # Providers whose native naming is authoritative -- pass through unchanged.
 _AUTHORITATIVE_NATIVE_PROVIDERS: frozenset[str] = frozenset({
-    "huggingface",
-})
+    })
 
 # Direct providers that accept bare native names but should repair a matching
 # provider/ prefix when users copy the aggregator form into config.yaml.
 _MATCHING_PREFIX_STRIP_PROVIDERS: frozenset[str] = frozenset({
-    "zai",
-    "kimi-coding",
-    "kimi-coding-cn",
-    "minimax",
-    "minimax-oauth",
-    "minimax-cn",
-    "alibaba",
-    "qwen-oauth",
-    "xiaomi",
-    "arcee",
-    "ollama-cloud",
     "custom",
-    "gemini",
-    "xai",
-})
+    })
 
 # Providers whose API serves ``vendor/model`` ids but whose endpoint can also
 # front arbitrary self-hosted models, so a bare name cannot be prefixed
@@ -119,8 +84,7 @@ _MATCHING_PREFIX_STRIP_PROVIDERS: frozenset[str] = frozenset({
 # Without this repair a bare ``nemotron-3-ultra-550b-a55b`` reaches the API
 # and returns a bare ``404 page not found`` that never names the model (#78796).
 _CATALOGUE_PREFIX_REPAIR_PROVIDERS: frozenset[str] = frozenset({
-    "nvidia",
-})
+    })
 
 # Providers whose APIs require lowercase model IDs.  Xiaomi's
 # ``api.xiaomimimo.com`` rejects mixed-case names like ``MiMo-V2.5-Pro``
@@ -128,8 +92,7 @@ _CATALOGUE_PREFIX_REPAIR_PROVIDERS: frozenset[str] = frozenset({
 # ``mimo-v2.5-pro``.  After stripping a matching provider prefix, these
 # providers also get ``.lower()`` applied.
 _LOWERCASE_MODEL_PROVIDERS: frozenset[str] = frozenset({
-    "xiaomi",
-})
+    })
 
 # ---------------------------------------------------------------------------
 # DeepSeek special handling
@@ -246,7 +209,7 @@ def _normalize_provider_alias(provider_name: str) -> str:
     if not raw:
         return raw
     try:
-        from sparkii_cli.models import normalize_provider
+        from core.model_resolution import normalize_provider
 
         return normalize_provider(raw)
     except Exception:

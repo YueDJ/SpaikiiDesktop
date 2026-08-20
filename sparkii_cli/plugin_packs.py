@@ -320,10 +320,10 @@ def resolve_pack_plugins(pack: PluginPack) -> List[ResolvedPackPlugin]:
         # Bare community-index name.
         try:
             if index_entries is None:
-                from sparkii_cli.plugin_index import load_index
+                from core.plugin_index import load_index
 
                 index_entries, _src = load_index()
-            from sparkii_cli.plugin_index import resolve_name
+            from core.plugin_index import resolve_name
 
             match, candidates = resolve_name(index_entries, entry.name or "")
         except Exception as exc:  # index load must not crash pack handling
@@ -417,7 +417,7 @@ def _seed_plugin_config(plugin_id: str, seed: dict[str, Any], console) -> None:
 
     Existing user values always win; the pack only fills blanks.
     """
-    from sparkii_cli.config import load_config, save_config
+    from core.config import load_config, save_config
 
     seed = validate_config_seed(plugin_id, seed)
     config = load_config()
@@ -556,7 +556,7 @@ def _source_to_repo_subdir(source: str) -> tuple[Optional[str], Optional[str]]:
 def _sanitized_entry_config(plugin_id: str) -> dict[str, Any]:
     """Exportable plugins.entries.<id> keys: scalars only, secrets stripped."""
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         config = load_config() or {}
     except Exception:

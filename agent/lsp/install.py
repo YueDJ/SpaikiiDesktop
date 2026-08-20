@@ -34,7 +34,7 @@ import threading
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from sparkii_cli._subprocess_compat import windows_hide_flags
+from core._subprocess_compat import windows_hide_flags
 from sparkii_constants import find_node_executable
 
 logger = logging.getLogger("agent.lsp.install")

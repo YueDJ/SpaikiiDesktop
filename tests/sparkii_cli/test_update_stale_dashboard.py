@@ -734,7 +734,7 @@ class TestPostUpdateStaleModuleReload:
         the cached module object (what an old pre-#87134 module looks like)
         and verify the reload restores it from disk — the exact state the
         Windows update crash came from."""
-        import sparkii_cli._subprocess_compat as compat
+        import core._subprocess_compat as compat
         from sparkii_cli import update_cmd
 
         assert hasattr(compat, "bounded_probe_run")

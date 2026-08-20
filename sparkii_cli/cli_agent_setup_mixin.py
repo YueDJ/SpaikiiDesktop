@@ -59,7 +59,7 @@ class CLIAgentSetupMixin:
                     if not _fb_provider or not _fb_model:
                         continue
                     try:
-                        from sparkii_cli.fallback_config import resolve_entry_api_key
+                        from core.fallback_config import resolve_entry_api_key
 
                         _fb_kwargs = {"requested": _fb_provider}
                         if _fb.get("base_url"):
@@ -265,7 +265,7 @@ class CLIAgentSetupMixin:
         # Re-sync CLI state from what the picker persisted so the very next
         # turn uses the new provider without a restart.
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
             _model_cfg = (load_config().get("model") or {})
             if isinstance(_model_cfg, dict):
                 _new_provider = (_model_cfg.get("provider") or "").strip()

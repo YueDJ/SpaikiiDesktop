@@ -71,7 +71,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any, Dict, List, Optional, Tuple
 
 from agent.skill_utils import is_excluded_skill_path
-from sparkii_cli._subprocess_compat import noninteractive_git_env
+from core._subprocess_compat import noninteractive_git_env
 
 
 # ---------------------------------------------------------------------------

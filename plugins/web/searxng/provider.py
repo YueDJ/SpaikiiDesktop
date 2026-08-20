@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 def _searxng_url() -> str:
     """Return SEARXNG_URL from Sparkii config-aware env, falling back to process env."""
     try:
-        from sparkii_cli.config import get_env_value
+        from core.config import get_env_value
 
         val = get_env_value("SEARXNG_URL")
     except Exception:

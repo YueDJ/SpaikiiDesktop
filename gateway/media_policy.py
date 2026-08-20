@@ -43,7 +43,7 @@ _TRUST_RECENT_ENV = "SPARKII_MEDIA_TRUST_RECENT_FILES"
 def _load_gateway_cfg(config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     if config is None:
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
 
             config = load_config() or {}
         except Exception:

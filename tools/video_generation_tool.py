@@ -178,7 +178,7 @@ VIDEO_GENERATE_SCHEMA: Dict[str, Any] = {
 
 def _read_video_gen_section() -> Dict[str, Any]:
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         cfg = load_config()
         section = cfg.get("video_gen") if isinstance(cfg, dict) else None

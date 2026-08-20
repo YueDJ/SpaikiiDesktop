@@ -113,7 +113,7 @@ def _setup_isolated_home(tmp_path, monkeypatch, model_yaml_value):
     _stub_picker_dependencies(monkeypatch)
     # save_config writes to ``get_sparkii_home() / config.yaml`` — point it here.
     monkeypatch.setattr("sparkii_constants.get_sparkii_home", lambda: sparkii_home)
-    monkeypatch.setattr("sparkii_cli.config.get_sparkii_home", lambda: sparkii_home)
+    monkeypatch.setattr("core.config.get_sparkii_home", lambda: sparkii_home)
     return cfg_path
 
 

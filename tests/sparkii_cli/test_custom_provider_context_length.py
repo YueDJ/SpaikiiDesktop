@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from sparkii_cli.config import (
+from core.config import (
     get_custom_provider_context_length,
     get_custom_provider_model_capability,
 )

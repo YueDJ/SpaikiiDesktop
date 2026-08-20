@@ -67,7 +67,7 @@ def _run_git(args, cwd: str, timeout: int = _GIT_TIMEOUT):
 def local_backend_active() -> bool:
     """True when the terminal backend is local (worktrees visible to tools)."""
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
 
         cfg = load_config_readonly()
         backend = ((cfg.get("terminal") or {}).get("backend") or "local")

@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from sparkii_cli.config import (
+from core.config import (
     get_container_exec_info,
 )
 

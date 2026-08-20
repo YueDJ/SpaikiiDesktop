@@ -218,7 +218,7 @@ def _capture_routing_origin() -> Dict[str, Any]:
     """
     origin: Dict[str, Any] = {}
     try:
-        from gateway.session_context import get_session_env
+        from core.session_context import get_session_env
 
         for evt_key, env_name in (
             ("scope_id", "SPARKII_SESSION_SCOPE_ID"),
@@ -741,7 +741,7 @@ def _current_origin_session_id() -> str:
     there.
     """
     try:
-        from gateway.session_context import get_session_env
+        from core.session_context import get_session_env
 
         if get_session_env("SPARKII_SESSION_PLATFORM", "") != "api_server":
             return ""

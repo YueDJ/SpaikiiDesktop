@@ -13,8 +13,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-from sparkii_cli.config import get_sparkii_home, get_env_path, get_project_root, load_config
-from sparkii_cli.env_loader import load_sparkii_dotenv
+from core.config import get_sparkii_home, get_env_path, get_project_root, load_config
+from core.env_loader import load_sparkii_dotenv
 from sparkii_constants import display_sparkii_home
 from agent.skill_utils import is_excluded_skill_path
 
@@ -78,7 +78,7 @@ def _get_git_commit(project_root: Path) -> str:
     # images, absent otherwise).  Defers the import so the dump module
     # stays cheap on non-dump code paths.
     try:
-        from sparkii_cli.build_info import get_build_sha
+        from core.build_info import get_build_sha
         baked = get_build_sha(short=8)
         if baked:
             return baked
@@ -228,7 +228,7 @@ def _config_overrides(config: dict) -> dict[str, str]:
     
     Returns a flat dict of dotpath -> value for interesting overrides.
     """
-    from sparkii_cli.config import DEFAULT_CONFIG
+    from core.config import DEFAULT_CONFIG
 
     overrides = {}
 

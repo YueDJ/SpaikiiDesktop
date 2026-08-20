@@ -78,7 +78,7 @@ class TestHostMandatedMetaResponses:
 
 class TestMetaConfigRoundtrip:
     def test_providers_meta_api_mode_roundtrip(self):
-        from sparkii_cli.config import _normalize_custom_provider_entry
+        from core.config import _normalize_custom_provider_entry
 
         entry = {"name": "Meta", "base_url": "https://api.meta.ai/v1", "api_mode": "codex_responses"}
         normalized = _normalize_custom_provider_entry(entry)

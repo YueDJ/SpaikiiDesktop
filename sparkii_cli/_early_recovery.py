@@ -2,7 +2,7 @@
 
 The ``sparkii`` console entry point is ``sparkii_cli.main:main``.  Importing
 ``sparkii_cli.main`` pulls in third-party packages at module level (``dotenv``
-via ``sparkii_cli.env_loader``, ``yaml`` via ``sparkii_cli.config``, ...).  In
+via ``sparkii_cli.env_loader``, ``yaml`` via ``core.config``, ...).  In
 the exact failure state the update-recovery markers exist for — a failed lazy
 backend refresh or interrupted core install that wiped a core package's
 import files (#57828) — a normal launch crashes *while importing main.py*,
@@ -62,12 +62,8 @@ LAZY_REFRESH_REPAIR_PACKAGES: dict[str, str] = {
 # immediately recreate the self-lock marker this fresh process just consumed.
 # Process-local state is intentional so child processes do not inherit the
 # bootstrap exception.
-_UPDATE_RETRY_RECOVERED = False
-
-
-def _should_skip_external_secret_sources() -> bool:
-    """Whether this updater already completed its deferred native install."""
-    return _UPDATE_RETRY_RECOVERED
+from core.recovery_state import set_update_retry_recovered
+from core.recovery_state import should_skip_external_secret_sources as _should_skip_external_secret_sources
 
 
 def _project_root() -> Path:
@@ -365,7 +361,6 @@ def recover_if_needed(
     Never raises: on any failure the import of main.py proceeds and surfaces
     the real error.
     """
-    global _UPDATE_RETRY_RECOVERED
 
     try:
         args = sys.argv[1:] if argv is None else argv
@@ -401,7 +396,7 @@ def recover_if_needed(
                 return
             completed = _complete_pending_core_install(root, core_marker)
             if completed and "update" in args:
-                _UPDATE_RETRY_RECOVERED = True
+                set_update_retry_recovered()
             return
 
         # Keep the historical update-argv exclusion for the lazy-refresh

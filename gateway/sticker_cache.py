@@ -14,7 +14,7 @@ import tempfile
 import time
 from typing import Optional
 
-from sparkii_cli.config import get_sparkii_home
+from core.config import get_sparkii_home
 
 
 CACHE_PATH = get_sparkii_home() / "sticker_cache.json"

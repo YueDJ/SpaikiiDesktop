@@ -66,7 +66,7 @@ class _config:
 
     def __enter__(self):
         self._patch = patch(
-            "sparkii_cli.config.load_config",
+            "core.config.load_config",
             return_value=self.cfg,
         )
         # resolve_persist_behavior imports load_config lazily inside the

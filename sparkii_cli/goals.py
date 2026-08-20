@@ -677,7 +677,7 @@ _DB_BOOTSTRAP_LOOP_WAIT_S = 0.25
 # The call that STARTS the bootstrap (cold cache, nothing in flight)
 # waits this long instead of the short window above. A fresh state.db
 # init measures ~300ms warm on a fast machine: schema DDL, FTS table
-# creation, and the first sparkii_cli.config import (journal-mode
+# creation, and the first core.config import (journal-mode
 # resolution). It is longer on a slow CI box, and it is well past 0.25s.
 # The old window dropped the first /goal write. The response said
 # "Goal set" but nothing persisted. The longer window is a bounded
@@ -979,7 +979,7 @@ def _goal_judge_max_tokens() -> int:
     back to the default rather than crashing the goal loop.
     """
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         cfg = load_config()
         value = (

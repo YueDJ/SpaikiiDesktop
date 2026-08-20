@@ -8,7 +8,7 @@ import threading
 from typing import Any
 
 from agent.relay_runtime import RUNTIME_INSTANCE_KEY
-from sparkii_cli.config import detect_install_method
+from core.config import detect_install_method
 
 from .shared_metrics import SharedMetricsStore
 from .shared_metrics_contract import (

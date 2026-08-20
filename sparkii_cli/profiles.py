@@ -527,7 +527,7 @@ def _migrate_profile_config_if_outdated(profile_dir: Path) -> None:
 
     try:
         from sparkii_constants import reset_sparkii_home_override, set_sparkii_home_override
-        from sparkii_cli.config import check_config_version, migrate_config
+        from core.config import check_config_version, migrate_config
 
         token = set_sparkii_home_override(str(profile_dir))
         try:
@@ -695,7 +695,7 @@ def _read_config_model(profile_dir: Path) -> tuple:
     try:
         # Multi-profile display read: load_config() targets the ACTIVE
         # profile's home, so read THIS profile's file via the raw primitive.
-        from sparkii_cli.config import read_user_config_raw
+        from core.config import read_user_config_raw
         cfg = read_user_config_raw(config_path)
         model_cfg = cfg.get("model", {})
         if isinstance(model_cfg, str):
@@ -1215,7 +1215,7 @@ def create_profile(
     soul_path = profile_dir / "SOUL.md"
     if not soul_path.exists():
         try:
-            from sparkii_cli.default_soul import DEFAULT_SOUL_MD
+            from core.default_soul import DEFAULT_SOUL_MD
             soul_path.write_text(DEFAULT_SOUL_MD, encoding="utf-8")
         except Exception:
             pass  # best-effort — don't fail profile creation over this

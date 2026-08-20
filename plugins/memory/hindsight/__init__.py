@@ -50,7 +50,7 @@ from agent.secret_scope import get_secret
 from agent.memory_provider import MemoryProvider, RecallStatus
 from sparkii_constants import get_sparkii_home
 from tools.registry import tool_error
-from sparkii_cli.config import cfg_get
+from core.config import cfg_get
 
 logger = logging.getLogger(__name__)
 
@@ -930,8 +930,8 @@ class HindsightMemoryProvider(MemoryProvider):
         import sys
         from pathlib import Path
 
-        from sparkii_cli.config import save_config
-        from sparkii_cli.secret_prompt import masked_secret_prompt
+        from core.config import save_config
+        from core.secret_prompt import masked_secret_prompt
 
         from sparkii_cli.memory_setup import _CANCELLED, _curses_select, _print_cancelled_setup
 

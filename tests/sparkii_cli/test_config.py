@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 import yaml
 
-from sparkii_cli.config import (
+from core.config import (
     DEFAULT_CONFIG,
     check_config_version,
     get_sparkii_home,
@@ -53,7 +53,7 @@ class TestEnsureSparkiiHome:
         # Older installers seeded a comment-only scaffold that shadowed the
         # runtime default. A SOUL.md still matching that scaffold carries no
         # user persona and should be upgraded in place to DEFAULT_SOUL_MD.
-        from sparkii_cli.default_soul import DEFAULT_SOUL_MD, _LEGACY_TEMPLATE_SOULS
+        from core.default_soul import DEFAULT_SOUL_MD, _LEGACY_TEMPLATE_SOULS
 
         with patch.dict(os.environ, {"SPARKII_HOME": str(tmp_path)}):
             soul_path = tmp_path / "SOUL.md"
@@ -109,7 +109,7 @@ class TestLoadConfigParseFailure:
         Ported from google-gemini/gemini-cli#21541 (policy-file TOML recovery),
         adapted: we back up but deliberately do NOT reset config.yaml.
         """
-        from sparkii_cli import config as cfg_mod
+        from core import config as cfg_mod
         cfg_mod._CONFIG_PARSE_WARNED.clear()
 
         with patch.dict(os.environ, {"SPARKII_HOME": str(tmp_path)}):
@@ -142,7 +142,7 @@ class TestLoadConfigParseFailure:
         parses again.
         """
         import time
-        from sparkii_cli import config as cfg_mod
+        from core import config as cfg_mod
         cfg_mod._CONFIG_PARSE_WARNED.clear()
 
         with patch.dict(os.environ, {"SPARKII_HOME": str(tmp_path)}):
@@ -193,7 +193,7 @@ class TestEmptyConfigSections:
     def test_null_override_of_non_dict_default_still_applies(self, tmp_path):
         """None only shields dict defaults — explicit null for a scalar
         key remains an override (unchanged behavior)."""
-        from sparkii_cli.config import _deep_merge
+        from core.config import _deep_merge
 
         merged = _deep_merge({"scalar": 5, "section": {"a": 1}},
                              {"scalar": None, "section": None})
@@ -435,15 +435,15 @@ class TestSanitizeEnvLines:
     def test_migrate_reports_normalized_line_formatting(self, capsys):
         latest_version = DEFAULT_CONFIG["_config_version"]
         with (
-            patch("sparkii_cli.config.sanitize_env_file", return_value=2),
+            patch("core.config.sanitize_env_file", return_value=2),
             patch(
-                "sparkii_cli.config.check_config_version",
+                "core.config.check_config_version",
                 return_value=(latest_version, latest_version),
             ),
-            patch("sparkii_cli.config.read_raw_config", return_value={}),
-            patch("sparkii_cli.config.get_missing_env_vars", return_value=[]),
-            patch("sparkii_cli.config.get_missing_config_fields", return_value=[]),
-            patch("sparkii_cli.config.get_missing_skill_config_vars", return_value=[]),
+            patch("core.config.read_raw_config", return_value={}),
+            patch("core.config.get_missing_env_vars", return_value=[]),
+            patch("core.config.get_missing_config_fields", return_value=[]),
+            patch("core.config.get_missing_skill_config_vars", return_value=[]),
         ):
             migrate_config(interactive=False)
 
@@ -499,18 +499,18 @@ class TestOptionalEnvVarsRegistry:
 
     def test_tavily_api_key_registered(self):
         """TAVILY_API_KEY is listed in OPTIONAL_ENV_VARS."""
-        from sparkii_cli.config import OPTIONAL_ENV_VARS
+        from core.config import OPTIONAL_ENV_VARS
         assert "TAVILY_API_KEY" in OPTIONAL_ENV_VARS
 
 
     def test_tavily_api_key_has_url(self):
         """TAVILY_API_KEY has a URL."""
-        from sparkii_cli.config import OPTIONAL_ENV_VARS
+        from core.config import OPTIONAL_ENV_VARS
         assert OPTIONAL_ENV_VARS["TAVILY_API_KEY"]["url"] == "https://app.tavily.com/home"
 
     def test_tavily_in_env_vars_by_version(self):
         """TAVILY_API_KEY is listed in ENV_VARS_BY_VERSION."""
-        from sparkii_cli.config import ENV_VARS_BY_VERSION
+        from core.config import ENV_VARS_BY_VERSION
         all_vars = []
         for vars_list in ENV_VARS_BY_VERSION.values():
             all_vars.extend(vars_list)
@@ -525,7 +525,7 @@ class TestOptionalEnvVarsRegistry:
         via config.yaml; SPARKII_MAX_ITERATIONS remains a read-only backward-compat
         fallback in the gateway/CLI, never a promoted write target.
         """
-        from sparkii_cli.config import OPTIONAL_ENV_VARS
+        from core.config import OPTIONAL_ENV_VARS
         assert "SPARKII_MAX_ITERATIONS" not in OPTIONAL_ENV_VARS
 
 
@@ -552,20 +552,20 @@ class TestMemoryProviderEnvVarsRegistry:
     }
 
     def test_memory_provider_keys_are_catalogued(self):
-        from sparkii_cli.config import OPTIONAL_ENV_VARS
+        from core.config import OPTIONAL_ENV_VARS
         missing = [k for k in self.MEMORY_PROVIDER_KEYS if k not in OPTIONAL_ENV_VARS]
         assert not missing, f"memory provider keys missing from OPTIONAL_ENV_VARS: {missing}"
 
 
     def test_memory_provider_keys_advertise_their_tool(self):
-        from sparkii_cli.config import OPTIONAL_ENV_VARS
+        from core.config import OPTIONAL_ENV_VARS
         for key, tool in self.MEMORY_PROVIDER_KEYS.items():
             assert tool in OPTIONAL_ENV_VARS[key].get("tools", []), key
 
 
 class TestConfigMigrationSecretPrompts:
     def test_required_secret_env_prompt_uses_masked_prompt(self, tmp_path, monkeypatch):
-        from sparkii_cli import config as cfg_mod
+        from core import config as cfg_mod
 
         saved = {}
 
@@ -678,14 +678,14 @@ class TestConfigSupportFloor:
         assert results["warnings"]
 
     def test_floor_message_uses_display_sparkii_home(self):
-        from sparkii_cli.config_migrations import support_floor_message
+        from core.config_migrations import support_floor_message
         from sparkii_constants import display_sparkii_home
 
         msg = support_floor_message()
         assert f"{display_sparkii_home()}/config.yaml" in msg
 
     def test_registry_has_no_targets_below_floor(self):
-        from sparkii_cli.config_migrations import (
+        from core.config_migrations import (
             MIGRATIONS,
             SUPPORT_FLOOR_VERSION,
         )
@@ -801,7 +801,7 @@ class TestCustomProviderCompatibility:
 
     @staticmethod
     def _run_ladder(current_ver: int):
-        from sparkii_cli.config_migrations import run_migrations
+        from core.config_migrations import run_migrations
 
         results = {"env_added": [], "config_added": [], "warnings": []}
         run_migrations(current_ver, results, quiet=True)
@@ -969,7 +969,7 @@ class TestInterimAssistantMessageConfig:
             raw = yaml.safe_load(config_path.read_text(encoding="utf-8"))
             loaded = load_config()
 
-        from sparkii_cli.config import DEFAULT_CONFIG
+        from core.config import DEFAULT_CONFIG
         assert raw["_config_version"] == DEFAULT_CONFIG["_config_version"]
         # The user's explicit non-default value is preserved on disk.
         assert raw["display"]["tool_progress"] == "off"
@@ -1016,7 +1016,7 @@ class TestDiscordChannelPromptsConfig:
         )
 
         results = {"env_added": [], "config_added": [], "warnings": []}
-        from sparkii_cli.config_migrations import run_migrations
+        from core.config_migrations import run_migrations
         with patch.dict(os.environ, {"SPARKII_HOME": str(tmp_path)}):
             # Drive the ladder directly: migrate_config() refuses sub-v12
             # configs since the support floor, but the write-invariant this
@@ -1233,7 +1233,7 @@ feishu:
 
 
     def test_persist_migration_writes_full_read_raw_config(self, tmp_path):
-        from sparkii_cli.config import _persist_migration, read_raw_config
+        from core.config import _persist_migration, read_raw_config
 
         body = """_config_version: 30
 model:
@@ -1463,7 +1463,7 @@ class TestProviderEnabledRuntimeGate:
         config_path.write_text(yaml.safe_dump(cfg))
         monkeypatch.setenv("SPARKII_HOME", str(tmp_path))
         # Bust the in-process config cache so the override picks up.
-        from sparkii_cli import config as cfg_mod
+        from core import config as cfg_mod
         cfg_mod._cached_config = None  # type: ignore[attr-defined]
 
         from sparkii_cli.runtime_provider import resolve_runtime_provider
@@ -1491,7 +1491,7 @@ def test_default_config_kanban_block_not_dropped_by_duplicate_key():
 def test_default_config_has_no_duplicate_top_level_keys():
     """Guard against any duplicate key silently shadowing a default."""
     import ast
-    import sparkii_cli.config as cfg_mod
+    import core.config as cfg_mod
 
     src = open(cfg_mod.__file__, encoding="utf-8").read()
     tree = ast.parse(src)

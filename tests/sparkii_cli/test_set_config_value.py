@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from sparkii_cli.config import (
+from core.config import (
     config_command,
     cron_model_drift_guard_enabled,
     set_config_value,
@@ -423,7 +423,7 @@ class TestSecretRedactionInDisplay:
     """`config set`/`config show` must not echo credential values in plaintext."""
 
     def test_redact_config_value_masks_nested_api_key(self):
-        from sparkii_cli.config import redact_config_value
+        from core.config import redact_config_value
         secret = "cfut_SUPERSECRETTOKEN1234567890abcdef"
         model = {"default": "@cf/foo", "provider": "custom", "api_key": secret}
 
@@ -436,7 +436,7 @@ class TestSecretRedactionInDisplay:
         assert out["provider"] == "custom"
 
     def test_redact_config_value_walks_lists(self):
-        from sparkii_cli.config import redact_config_value
+        from core.config import redact_config_value
         secret = "sk-deadbeefdeadbeefdeadbeef"
         cfg = {"custom_providers": [{"name": "p", "api_key": secret}]}
 
@@ -446,7 +446,7 @@ class TestSecretRedactionInDisplay:
         assert out["custom_providers"][0]["name"] == "p"
 
     def test_redact_config_value_ignores_benign_keys(self):
-        from sparkii_cli.config import redact_config_value
+        from core.config import redact_config_value
         cfg = {"token_count": 1234, "secret_santa": "alice", "max_turns": 90}
 
         out = redact_config_value(cfg)
@@ -525,7 +525,7 @@ class TestValidateConfigKey:
         "approvals.mode",
     ])
     def test_known_keys_pass(self, key):
-        from sparkii_cli.config import _validate_config_key
+        from core.config import _validate_config_key
         is_known, _ = _validate_config_key(key)
         assert is_known, f"Expected {key!r} to validate as known"
 
@@ -535,7 +535,7 @@ class TestValidateConfigKey:
         ("agent.max_turn", "agent.max_turns"),
     ])
     def test_unknown_keys_with_suggestion(self, key, expected_in_suggestion):
-        from sparkii_cli.config import _validate_config_key
+        from core.config import _validate_config_key
         is_known, suggestion = _validate_config_key(key)
         assert not is_known, f"Expected {key!r} to validate as unknown"
         if expected_in_suggestion is not None:
@@ -546,7 +546,7 @@ class TestValidateConfigKey:
     def test_underscore_only_first_segment_escapes(self):
         """The underscore escape only applies to the FIRST segment. A real
         typo in a sub-key (e.g. agent._max_turns) is still caught."""
-        from sparkii_cli.config import _validate_config_key
+        from core.config import _validate_config_key
         is_known, suggestion = _validate_config_key("agent._max_turns")
         assert not is_known, "Sub-key typo under a known top-level key must still be flagged"
 
@@ -742,7 +742,7 @@ class TestMalformedYAMLConfigPreservation:
 
     def test_unset_config_value_refuses_broken_yaml(self, _isolated_sparkii_home, capsys):
         """unset_config_value must exit with error, not overwrite the broken config."""
-        from sparkii_cli.config import unset_config_value
+        from core.config import unset_config_value
 
         self._write_broken_config(_isolated_sparkii_home)
 

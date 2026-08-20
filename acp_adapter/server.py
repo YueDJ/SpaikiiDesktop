@@ -109,7 +109,7 @@ def _named_custom_provider_catalogs() -> list[tuple[str, str, list[tuple[str, st
     unchanged.
     """
     try:
-        from sparkii_cli.config import (
+        from core.config import (
             get_compatible_custom_providers,
             is_provider_enabled,
             load_config,
@@ -740,7 +740,8 @@ class SparkiiACPAgent(acp.Agent):
 
         try:
             from sparkii_cli.inventory import build_models_payload, load_picker_context
-            from sparkii_cli.models import normalize_provider, provider_label
+            from core.model_resolution import normalize_provider
+            from sparkii_cli.models import provider_label
 
             normalized_provider = normalize_provider(provider)
             context = load_picker_context().with_overrides(
@@ -2013,7 +2014,7 @@ class SparkiiACPAgent(acp.Agent):
             # inside a contextvars.copy_context() below, so the ContextVar
             # write is isolated from other concurrent ACP sessions.
             try:
-                from gateway.session_context import (
+                from core.session_context import (
                     clear_session_vars,
                     set_session_vars,
                 )

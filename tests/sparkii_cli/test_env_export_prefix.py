@@ -2,7 +2,7 @@
 
 Bash-compatible .env files commonly prefix lines with ``export `` (users
 copy-paste from shell profiles, cloud provider docs, tutorials). The three
-hand-rolled parsers — ``sparkii_cli.config.load_env``,
+hand-rolled parsers — ``core.config.load_env``,
 ``sparkii_cli.main._has_any_provider_configured``, and
 ``tools.skills_tool.load_env`` — split on ``line.partition("=")`` and must
 strip the ``export `` prefix first, otherwise ``export API_KEY=sk-...`` is
@@ -26,7 +26,7 @@ def _write_env(path: Path, contents: str) -> None:
 
 
 def test_config_load_env_strips_export_prefix(tmp_path):
-    from sparkii_cli.config import invalidate_env_cache, load_env
+    from core.config import invalidate_env_cache, load_env
 
     env_path = tmp_path / ".env"
     _write_env(
@@ -37,7 +37,7 @@ def test_config_load_env_strips_export_prefix(tmp_path):
     )
     invalidate_env_cache()
     try:
-        with patch("sparkii_cli.config.get_env_path", return_value=env_path):
+        with patch("core.config.get_env_path", return_value=env_path):
             env = load_env()
     finally:
         invalidate_env_cache()

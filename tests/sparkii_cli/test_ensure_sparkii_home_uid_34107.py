@@ -30,7 +30,7 @@ class TestResolveSparkiiUidGid:
     def test_returns_parsed_values_when_both_set(self, monkeypatch):
         monkeypatch.setenv("SPARKII_UID", "1000")
         monkeypatch.setenv("SPARKII_GID", "911")
-        from sparkii_cli.config import _resolve_sparkii_uid_gid
+        from core.config import _resolve_sparkii_uid_gid
         uid, gid = _resolve_sparkii_uid_gid()
         assert uid == 1000
         assert gid == 911
@@ -44,7 +44,7 @@ class TestResolveSparkiiUidGid:
     def test_windows_returns_none_none(self, monkeypatch):
         monkeypatch.setenv("SPARKII_UID", "1000")
         monkeypatch.setenv("SPARKII_GID", "911")
-        from sparkii_cli.config import _resolve_sparkii_uid_gid
+        from core.config import _resolve_sparkii_uid_gid
         uid, gid = _resolve_sparkii_uid_gid()
         assert uid is None
         assert gid is None
@@ -59,7 +59,7 @@ class TestChownToSparkiiUid:
     def test_calls_os_chown_when_both_set(self, tmp_path, monkeypatch):
         monkeypatch.setenv("SPARKII_UID", "1000")
         monkeypatch.setenv("SPARKII_GID", "911")
-        from sparkii_cli import config as cfg
+        from core import config as cfg
 
         d = tmp_path / "subdir"
         d.mkdir()
@@ -76,7 +76,7 @@ class TestChownToSparkiiUid:
         user anyway."""
         monkeypatch.setenv("SPARKII_UID", "1000")
         monkeypatch.setenv("SPARKII_GID", "911")
-        from sparkii_cli import config as cfg
+        from core import config as cfg
 
         d = tmp_path / "subdir"
         d.mkdir()
@@ -93,7 +93,7 @@ class TestChownToSparkiiUid:
         the helper portable."""
         monkeypatch.setenv("SPARKII_UID", "1000")
         monkeypatch.setenv("SPARKII_GID", "911")
-        from sparkii_cli import config as cfg
+        from core import config as cfg
 
         d = tmp_path / "subdir"
         d.mkdir()
@@ -112,7 +112,7 @@ class TestSecureDirChown:
     def test_secure_dir_invokes_chown_when_env_set(self, tmp_path, monkeypatch):
         monkeypatch.setenv("SPARKII_UID", "1000")
         monkeypatch.setenv("SPARKII_GID", "911")
-        from sparkii_cli import config as cfg
+        from core import config as cfg
 
         d = tmp_path / "subdir"
         d.mkdir()
@@ -125,7 +125,7 @@ class TestSecureDirChown:
     def test_secure_dir_no_chown_when_env_unset(self, tmp_path, monkeypatch):
         monkeypatch.delenv("SPARKII_UID", raising=False)
         monkeypatch.delenv("SPARKII_GID", raising=False)
-        from sparkii_cli import config as cfg
+        from core import config as cfg
 
         d = tmp_path / "subdir"
         d.mkdir()

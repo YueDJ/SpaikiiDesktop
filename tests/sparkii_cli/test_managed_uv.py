@@ -27,7 +27,7 @@ def _runtime_info(
     executable: Path,
     sqlite_version: tuple[int, int, int],
 ):
-    from sparkii_cli.sqlite_runtime import SQLiteRuntimeInfo
+    from core.sqlite_runtime import SQLiteRuntimeInfo
 
     return SQLiteRuntimeInfo(
         executable=executable,
@@ -636,7 +636,7 @@ class TestRuntimeRequestMinorLine:
     def _run_generation(tmp_path, monkeypatch, current_version, candidate_version):
         """Drive _install_safe_python_generation with fakes; return result."""
         import sparkii_cli.managed_uv as managed_uv
-        from sparkii_cli.sqlite_runtime import SQLiteRuntimeInfo
+        from core.sqlite_runtime import SQLiteRuntimeInfo
 
         state = {}
 
@@ -699,7 +699,7 @@ class TestPatchRetryOnVulnerableCandidate:
         exact version string was requested, so retries with explicit
         patches can be distinguished from the initial bare-minor attempt."""
         import sparkii_cli.managed_uv as managed_uv
-        from sparkii_cli.sqlite_runtime import SQLiteRuntimeInfo
+        from core.sqlite_runtime import SQLiteRuntimeInfo
 
         state = {"requested": None}
 
@@ -743,7 +743,7 @@ class TestPatchRetryOnVulnerableCandidate:
 
     def _run(self, tmp_path, monkeypatch, *, vulnerable_versions, patch_list):
         import sparkii_cli.managed_uv as managed_uv
-        from sparkii_cli.sqlite_runtime import SQLiteRuntimeInfo
+        from core.sqlite_runtime import SQLiteRuntimeInfo
 
         fake_run, fake_probe = self._versioned_probe_run(vulnerable_versions)
         current = SQLiteRuntimeInfo(
@@ -783,7 +783,7 @@ class TestPatchRetryOnVulnerableCandidate:
         fallback tries the next minor line, which may succeed."""
         import sparkii_cli.managed_uv as managed_uv
 
-        from sparkii_cli.sqlite_runtime import SQLiteRuntimeInfo
+        from core.sqlite_runtime import SQLiteRuntimeInfo
 
         current = SQLiteRuntimeInfo(
             executable=Path("/venv/bin/python"), base_prefix=Path("/venv"),
@@ -852,7 +852,7 @@ class TestMinorLineFallForward:
         - *install_calls*: list collecting each `uv python install` request,
           in order, so tests can assert the actual request sequence.
         """
-        from sparkii_cli.sqlite_runtime import SQLiteRuntimeInfo
+        from core.sqlite_runtime import SQLiteRuntimeInfo
 
         state: dict = {"requested": None}
 
@@ -893,7 +893,7 @@ class TestMinorLineFallForward:
 
     @staticmethod
     def _current_3_11_14():
-        from sparkii_cli.sqlite_runtime import SQLiteRuntimeInfo
+        from core.sqlite_runtime import SQLiteRuntimeInfo
 
         return SQLiteRuntimeInfo(
             executable=Path("/venv/bin/python"), base_prefix=Path("/venv"),

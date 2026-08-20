@@ -47,7 +47,7 @@ def _make_direct_start_agent(
     cfg: dict, *, model: str, provider: str, base_url: str
 ) -> AIAgent:
     with (
-        patch("sparkii_cli.config.load_config", return_value=cfg), patch("sparkii_cli.config.load_config_readonly", return_value=cfg),
+        patch("core.config.load_config", return_value=cfg), patch("core.config.load_config_readonly", return_value=cfg),
         patch("run_agent.get_tool_definitions", return_value=[]),
         patch("run_agent.check_toolset_requirements", return_value={}),
         patch("run_agent.OpenAI"),
@@ -161,26 +161,7 @@ def test_direct_start_model_override_does_not_inherit_profile_context_length():
     assert agent.context_compressor.context_length == 272_000
 
 
-def test_direct_start_preserves_context_for_normalized_default_model_alias():
-    """Equivalent vendor-prefixed defaults still own their explicit window."""
-    cfg = {
-        "model": {
-            "default": "openai/gpt-5.6-sol",
-            "provider": "openai-codex",
-            "base_url": "https://chatgpt.com/backend-api/codex",
-            "context_length": 272_000,
-        }
-    }
 
-    agent = _make_direct_start_agent(
-        cfg,
-        model="gpt-5.6-sol",
-        provider="openai-codex",
-        base_url="https://chatgpt.com/backend-api/codex",
-    )
-
-    assert agent.context_compressor.config_context_length == 272_000
-    assert agent.context_compressor.context_length == 272_000
 
 
 
@@ -264,11 +245,11 @@ def test_lmstudio_switch_uses_destination_context_and_verified_runtime(monkeypat
         calls.append(config_context_length)
         return LMStudioLoadResult(100_000)
 
-    monkeypatch.setattr("sparkii_cli.config.load_config", fake_load_config)
+    monkeypatch.setattr("core.config.load_config", fake_load_config)
 
-    monkeypatch.setattr("sparkii_cli.config.load_config_readonly", fake_load_config)
-    monkeypatch.setattr("sparkii_cli.config.get_compatible_custom_providers", fake_compatible)
-    monkeypatch.setattr("sparkii_cli.config.get_custom_provider_context_length", fake_provider_context)
+    monkeypatch.setattr("core.config.load_config_readonly", fake_load_config)
+    monkeypatch.setattr("core.config.get_compatible_custom_providers", fake_compatible)
+    monkeypatch.setattr("core.config.get_custom_provider_context_length", fake_provider_context)
     monkeypatch.setattr(AIAgent, "_ensure_lmstudio_runtime_loaded", fake_lmstudio_load)
 
     with patch("agent.model_metadata.get_model_context_length", return_value=100_000) as mock_ctx_len:

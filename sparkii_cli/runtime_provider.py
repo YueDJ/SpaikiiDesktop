@@ -22,25 +22,15 @@ from agent.secret_scope import get_secret as _get_secret
 from sparkii_cli.auth import (
     ACTUAL_LOCAL_NOAUTH_PLACEHOLDER,
     AuthError,
-    DEFAULT_CODEX_BASE_URL,
-    DEFAULT_QWEN_BASE_URL,
-    DEFAULT_XAI_OAUTH_BASE_URL,
     PROVIDER_REGISTRY,
-    _agent_key_is_usable,
-    _nous_inference_env_override,
     format_auth_error,
     resolve_provider,
-    resolve_nous_runtime_credentials,
-    resolve_codex_runtime_credentials,
-    resolve_xai_oauth_runtime_credentials,
-    resolve_qwen_runtime_credentials,
     resolve_api_key_provider_credentials,
-    resolve_external_process_provider_credentials,
     has_usable_secret,
     is_actual_local_base_url,
     normalize_actual_base_url,
 )
-from sparkii_cli.config import (
+from core.config import (
     get_compatible_custom_providers,
     load_config,
     normalize_extra_headers,
@@ -331,7 +321,7 @@ def _get_model_config() -> Dict[str, Any]:
         # Handle model.default being a dict {provider: ..., model: ...} rather than a string
         _default = cfg.get("default")
         if isinstance(_default, dict):
-            from sparkii_cli.config import split_model_config_default
+            from core.config import split_model_config_default
             cfg_model, cfg_provider = split_model_config_default(_default)
             cfg_provider = cfg_provider or str(model_cfg.get("provider") or "")
             cfg["default"] = cfg_model
@@ -421,23 +411,12 @@ def _parse_api_mode(raw: Any) -> Optional[str]:
     instead of silently falling through to hostname-based detection.
     """
     if isinstance(raw, str):
-        from sparkii_cli.config import _canonical_api_mode
+        from core.config import _canonical_api_mode
 
         normalized = _canonical_api_mode(raw).lower()
         if normalized in _VALID_API_MODES:
             return normalized
     return None
-
-
-def _nous_inference_base_url_override() -> str:
-    """Return the trusted Nous runtime base URL override, if configured.
-
-    Delegates to ``auth._nous_inference_env_override`` so every
-    ``NOUS_INFERENCE_BASE_URL`` read shares one normalization path
-    (trailing-slash stripping, blank → empty). The env source is trusted
-    and intentionally bypasses the network host allowlist there.
-    """
-    return _nous_inference_env_override() or ""
 
 
 def _maybe_apply_codex_app_server_runtime(
@@ -486,24 +465,7 @@ def _resolve_runtime_from_pool_entry(
     base_url = (getattr(entry, "runtime_base_url", None) or getattr(entry, "base_url", None) or "").rstrip("/")
     api_key = getattr(entry, "runtime_api_key", None) or getattr(entry, "access_token", "")
     api_mode = "chat_completions"
-    if provider == "openai-codex":
-        api_mode = "codex_responses"
-        base_url = base_url or DEFAULT_CODEX_BASE_URL
-    elif provider == "xai-oauth":
-        api_mode = "codex_responses"
-        base_url = base_url or DEFAULT_XAI_OAUTH_BASE_URL
-    elif provider == "qwen-oauth":
-        api_mode = "chat_completions"
-        base_url = base_url or DEFAULT_QWEN_BASE_URL
-    elif provider == "minimax-oauth":
-        # MiniMax OAuth tokens are valid only against the Anthropic Messages
-        # compatible endpoint. Do not honor stale model.api_mode values from a
-        # prior OpenAI-compatible provider, or the client will hit
-        # /chat/completions under /anthropic and receive a bare nginx 404.
-        api_mode = "anthropic_messages"
-        pconfig = PROVIDER_REGISTRY.get(provider)
-        base_url = base_url or (pconfig.inference_base_url if pconfig else "")
-    elif provider == "anthropic":
+    if provider == "anthropic":
         api_mode = "anthropic_messages"
         cfg_provider = str(model_cfg.get("provider") or "").strip().lower()
         cfg_base_url = ""
@@ -516,11 +478,6 @@ def _resolve_runtime_from_pool_entry(
         base_url = base_url or OPENROUTER_BASE_URL
     elif provider == "xai":
         api_mode = "codex_responses"
-    elif provider == "nous":
-        from sparkii_cli.providers import nous_api_mode
-
-        api_mode = nous_api_mode(effective_model)
-        base_url = _nous_inference_base_url_override() or base_url
     elif provider == "copilot":
         api_mode = _copilot_runtime_api_mode(
             model_cfg,
@@ -746,7 +703,7 @@ def _get_named_custom_provider(requested_provider: str) -> Optional[Dict[str, An
     # First check providers: dict (new-style user-defined providers)
     providers = config.get("providers")
     if isinstance(providers, dict):
-        from sparkii_cli.config import is_provider_enabled
+        from core.config import is_provider_enabled
         for ep_name, entry in providers.items():
             if not isinstance(entry, dict):
                 continue
@@ -1523,7 +1480,7 @@ def _resolve_azure_foundry_runtime(
     api_key = explicit_api_key
     if not api_key:
         try:
-            from sparkii_cli.config import get_env_value
+            from core.config import get_env_value
             api_key = get_env_value("AZURE_FOUNDRY_API_KEY") or ""
         except Exception:
             api_key = ""
@@ -1588,65 +1545,6 @@ def _resolve_explicit_runtime(
             "base_url": base_url,
             "api_key": api_key,
             "source": "explicit",
-            "requested_provider": requested_provider,
-        }
-
-    if provider == "openai-codex":
-        base_url = explicit_base_url or DEFAULT_CODEX_BASE_URL
-        api_key = explicit_api_key
-        last_refresh = None
-        if not api_key:
-            creds = resolve_codex_runtime_credentials()
-            api_key = creds.get("api_key", "")
-            last_refresh = creds.get("last_refresh")
-            if not explicit_base_url:
-                base_url = creds.get("base_url", "").rstrip("/") or base_url
-        return {
-            "provider": "openai-codex",
-            "api_mode": "codex_responses",
-            "base_url": base_url,
-            "api_key": api_key,
-            "source": "explicit",
-            "last_refresh": last_refresh,
-            "requested_provider": requested_provider,
-        }
-
-    if provider == "nous":
-        from sparkii_cli.providers import nous_api_mode
-
-        state = auth_mod.get_provider_auth_state("nous") or {}
-        base_url = (
-            explicit_base_url
-            or _nous_inference_base_url_override()
-            or str(state.get("inference_base_url") or auth_mod.DEFAULT_NOUS_INFERENCE_URL).strip().rstrip("/")
-        )
-        # Only use the agent_key compatibility field for inference when it
-        # contains a NAS invoke JWT; raw OAuth access_token fallback is handled
-        # by resolve_nous_runtime_credentials().
-        api_key = explicit_api_key or (
-            str(state.get("agent_key") or "").strip()
-            if _agent_key_is_usable(
-                state,
-                max(60, env_int("SPARKII_NOUS_MIN_KEY_TTL_SECONDS", 1800)),
-            )
-            else ""
-        )
-        expires_at = state.get("agent_key_expires_at") or state.get("expires_at")
-        if not api_key:
-            creds = resolve_nous_runtime_credentials(
-                timeout_seconds=float(_getenv("SPARKII_NOUS_TIMEOUT_SECONDS", "15")),
-            )
-            api_key = creds.get("api_key", "")
-            expires_at = creds.get("expires_at")
-            if not explicit_base_url:
-                base_url = creds.get("base_url", "").rstrip("/") or base_url
-        return {
-            "provider": "nous",
-            "api_mode": nous_api_mode(target_model or model_cfg.get("default") or ""),
-            "base_url": base_url,
-            "api_key": api_key,
-            "source": "explicit",
-            "expires_at": expires_at,
             "requested_provider": requested_provider,
         }
 
@@ -1752,7 +1650,7 @@ def resolve_runtime_provider(
     #
     # Fail fast with a typed error so the fallback chain can advance to
     # the next provider instead of using a disabled one.
-    from sparkii_cli.config import is_provider_enabled, load_config
+    from core.config import is_provider_enabled, load_config
     _full_cfg = load_config()
     _provs_cfg = _full_cfg.get("providers") if isinstance(_full_cfg, dict) else None
     if isinstance(_provs_cfg, dict):
@@ -1936,40 +1834,6 @@ def resolve_runtime_provider(
                 getattr(entry, "runtime_api_key", None)
                 or getattr(entry, "access_token", "")
             )
-        # For Nous, the pool entry's runtime_api_key is the agent_key
-        # compatibility field. It must be an invoke JWT. The pool doesn't
-        # refresh it during selection (that would trigger network calls in
-        # non-runtime contexts like `sparkii auth list`). If the key is
-        # expired/missing, refresh the selected pool entry before falling back
-        # to singleton auth resolution.
-        if provider == "nous" and entry is not None:
-            min_ttl = max(60, env_int("SPARKII_NOUS_MIN_KEY_TTL_SECONDS", 1800))
-            nous_state = {
-                "agent_key": getattr(entry, "agent_key", None),
-                "agent_key_expires_at": getattr(entry, "agent_key_expires_at", None),
-                "scope": getattr(entry, "scope", None),
-            }
-            if not _agent_key_is_usable(nous_state, min_ttl):
-                logger.debug("Nous pool entry agent_key expired/missing, refreshing selected pool entry")
-                try:
-                    refreshed = pool.try_refresh_current()
-                except Exception as exc:
-                    logger.debug("Nous pool entry refresh failed: %s", exc)
-                    refreshed = None
-                if refreshed is not None:
-                    entry = refreshed
-                    pool_api_key = (
-                        getattr(entry, "runtime_api_key", None)
-                        or getattr(entry, "access_token", "")
-                    )
-                    nous_state = {
-                        "agent_key": getattr(entry, "agent_key", None),
-                        "agent_key_expires_at": getattr(entry, "agent_key_expires_at", None),
-                        "scope": getattr(entry, "scope", None),
-                    }
-                if not pool_api_key or not _agent_key_is_usable(nous_state, min_ttl):
-                    logger.debug("Nous pool entry agent_key still unavailable, falling through to runtime resolution")
-                    pool_api_key = ""
         if (
             entry is not None
             and pool_api_key
@@ -1992,112 +1856,6 @@ def resolve_runtime_provider(
                 target_model=target_model,
             )
 
-    if provider == "nous":
-        try:
-            from sparkii_cli.providers import nous_api_mode
-
-            creds = resolve_nous_runtime_credentials(
-                timeout_seconds=float(_getenv("SPARKII_NOUS_TIMEOUT_SECONDS", "15")),
-            )
-            return {
-                "provider": "nous",
-                "api_mode": nous_api_mode(target_model or model_cfg.get("default") or ""),
-                "base_url": creds.get("base_url", "").rstrip("/"),
-                "api_key": creds.get("api_key", ""),
-                "source": creds.get("source", "portal"),
-                "expires_at": creds.get("expires_at"),
-                "requested_provider": requested_provider,
-            }
-        except AuthError:
-            if requested_provider != "auto":
-                raise
-            # Auto-detected Nous but credentials are stale/revoked —
-            # fall through to env-var providers (e.g. OpenRouter).
-            logger.info("Auto-detected Nous provider but credentials failed; "
-                        "falling through to next provider.")
-
-    if provider == "openai-codex":
-        try:
-            creds = resolve_codex_runtime_credentials()
-            return {
-                "provider": "openai-codex",
-                "api_mode": "codex_responses",
-                "base_url": creds.get("base_url", "").rstrip("/"),
-                "api_key": creds.get("api_key", ""),
-                "source": creds.get("source", "sparkii-auth-store"),
-                "last_refresh": creds.get("last_refresh"),
-                "requested_provider": requested_provider,
-            }
-        except AuthError:
-            if requested_provider != "auto":
-                raise
-            # Auto-detected Codex but credentials are stale/revoked —
-            # fall through to env-var providers (e.g. OpenRouter).
-            logger.info("Auto-detected Codex provider but credentials failed; "
-                        "falling through to next provider.")
-
-    if provider == "xai-oauth":
-        try:
-            creds = resolve_xai_oauth_runtime_credentials()
-            return {
-                "provider": "xai-oauth",
-                "api_mode": "codex_responses",
-                "base_url": (creds.get("base_url") or "").rstrip("/") or DEFAULT_XAI_OAUTH_BASE_URL,
-                "api_key": creds.get("api_key", ""),
-                "source": creds.get("source", "sparkii-auth-store"),
-                "last_refresh": creds.get("last_refresh"),
-                "requested_provider": requested_provider,
-            }
-        except AuthError:
-            if requested_provider != "auto":
-                raise
-            logger.info("Auto-detected xAI OAuth provider but credentials failed; "
-                        "falling through to next provider.")
-
-    if provider == "qwen-oauth":
-        try:
-            creds = resolve_qwen_runtime_credentials()
-            return {
-                "provider": "qwen-oauth",
-                "api_mode": "chat_completions",
-                "base_url": creds.get("base_url", "").rstrip("/"),
-                "api_key": creds.get("api_key", ""),
-                "source": creds.get("source", "qwen-cli"),
-                "expires_at_ms": creds.get("expires_at_ms"),
-                "requested_provider": requested_provider,
-            }
-        except AuthError:
-            if requested_provider != "auto":
-                raise
-            logger.info("Qwen OAuth credentials failed; "
-                        "falling through to next provider.")
-
-    if provider == "minimax-oauth":
-        pconfig = PROVIDER_REGISTRY.get(provider)
-        if pconfig and pconfig.auth_type == "oauth_minimax":
-            from sparkii_cli.auth import resolve_minimax_oauth_runtime_credentials
-            creds = resolve_minimax_oauth_runtime_credentials()
-            return {
-                "provider": provider,
-                "api_mode": "anthropic_messages",
-                "base_url": creds["base_url"],
-                "api_key": creds["api_key"],
-                "source": creds.get("source", "oauth"),
-                "requested_provider": requested_provider,
-            }
-
-    if provider == "copilot-acp":
-        creds = resolve_external_process_provider_credentials(provider)
-        return {
-            "provider": "copilot-acp",
-            "api_mode": "chat_completions",
-            "base_url": creds.get("base_url", "").rstrip("/"),
-            "api_key": creds.get("api_key", ""),
-            "command": creds.get("command", ""),
-            "args": list(creds.get("args") or []),
-            "source": creds.get("source", "process"),
-            "requested_provider": requested_provider,
-        }
 
     # Anthropic (native Messages API)
     if provider == "anthropic":

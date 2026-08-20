@@ -58,7 +58,7 @@ class ProbeResult:
 
 def _load_config() -> dict:
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         return load_config() or {}
     except Exception:

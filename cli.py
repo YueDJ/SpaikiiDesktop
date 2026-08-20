@@ -50,10 +50,9 @@ logger = logging.getLogger(__name__)
 # Suppress startup messages for clean CLI experience
 os.environ["SPARKII_QUIET"] = "1"  # Our own modules
 
-from sparkii_cli.fallback_config import get_fallback_chain
+from core.fallback_config import get_fallback_chain
 from sparkii_cli.cli_agent_setup_mixin import CLIAgentSetupMixin
 from sparkii_cli.cli_commands_mixin import CLICommandsMixin
-from sparkii_cli.cli_billing_mixin import CLIBillingMixin
 from agent.interrupt_compat import request_hard_interrupt
 
 # prompt_toolkit for fixed input area TUI
@@ -143,7 +142,7 @@ def _reverse_alias_for_display(model_name: str) -> str:
     if _REVERSE_ALIAS_CACHE is None:
         rmap: dict[str, str] = {}
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
             cfg = load_config() or {}
             ma = cfg.get("model_aliases")
             if isinstance(ma, dict):
@@ -225,7 +224,7 @@ from sparkii_cli.browser_connect import (
     manual_chrome_debug_command,
     try_launch_chrome_debug,
 )
-from sparkii_cli.env_loader import load_sparkii_dotenv
+from core.env_loader import load_sparkii_dotenv
 from utils import base_url_host_matches, base_url_hostname, fast_safe_load
 
 _sparkii_home = get_sparkii_home()
@@ -560,7 +559,7 @@ def load_cli_config() -> Dict[str, Any]:
     if config_path.exists():
         try:
             with open(config_path, "r", encoding="utf-8") as f:
-                from sparkii_cli.config import _normalize_root_model_keys
+                from core.config import _normalize_root_model_keys
 
                 file_config = _normalize_root_model_keys(fast_safe_load(f) or {})
             
@@ -614,18 +613,18 @@ def load_cli_config() -> Dict[str, Any]:
             logger.warning("Failed to load cli-config.yaml: %s", e)
 
     # Expand ${ENV_VAR} references in config values before bridging to env vars.
-    from sparkii_cli.config import _expand_env_vars
+    from core.config import _expand_env_vars
     defaults = _expand_env_vars(defaults)
 
     # Managed scope: overlay administrator-pinned values LAST so they win over
     # the user's config here too. cli.py builds its config independently of
-    # sparkii_cli.config._load_config_impl (which has its own managed merge), so
+    # core.config._load_config_impl (which has its own managed merge), so
     # without this the entire interactive CLI/TUI surface — skin, display prefs,
     # etc. read from CLI_CONFIG — would silently ignore managed scope while
     # `sparkii config`/`doctor`/guards (which use load_config) honor it. The
     # shared helper mirrors _load_config_impl (env-only expansion, root-model
     # normalization, leaf-merge) and is fail-open.
-    from sparkii_cli import managed_scope
+    from core import managed_scope
 
     defaults = managed_scope.apply_managed_overlay(defaults)
 
@@ -799,7 +798,7 @@ except Exception:
 
 # Validate config structure early — print warnings before user hits cryptic errors
 try:
-    from sparkii_cli.config import print_config_warnings
+    from core.config import print_config_warnings
     print_config_warnings()
 except Exception:
     pass
@@ -939,7 +938,7 @@ def validate_toolset(*args, **kwargs):
 
 def _sync_process_session_id(session_id: str) -> None:
     """Keep process-local session-id consumers aligned after CLI switches."""
-    from gateway.session_context import set_current_session_id
+    from core.session_context import set_current_session_id
 
     set_current_session_id(session_id)
 
@@ -1050,7 +1049,7 @@ def _prepare_deferred_agent_startup() -> None:
         )
     try:
         from agent.shell_hooks import register_from_config
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         _hooks_cfg = load_config()
         register_from_config(_hooks_cfg, accept_hooks=_accept_hooks)
@@ -1686,7 +1685,7 @@ def _resolve_worktree_base(
     """
     import subprocess
 
-    from sparkii_cli._subprocess_compat import noninteractive_git_env
+    from core._subprocess_compat import noninteractive_git_env
 
     def _git(args, timeout: float = 20):
         return subprocess.run(
@@ -2430,7 +2429,7 @@ def _run_state_db_auto_maintenance(session_db) -> None:
     """Call ``SessionDB.maybe_auto_prune_and_vacuum`` using current config.
 
     Reads the ``sessions:`` section from config.yaml via
-    :func:`sparkii_cli.config.load_config` (the authoritative loader that
+    :func:`core.config.load_config` (the authoritative loader that
     deep-merges DEFAULT_CONFIG, so unmigrated configs still get default
     values). Honours ``auto_prune`` / ``retention_days`` /
     ``vacuum_after_prune`` / ``min_vacuum_interval_days`` /
@@ -2440,7 +2439,7 @@ def _run_state_db_auto_maintenance(session_db) -> None:
     if session_db is None:
         return
     try:
-        from sparkii_cli.config import load_config as _load_full_config
+        from core.config import load_config as _load_full_config
         from sparkii_constants import get_sparkii_home as _get_sparkii_home
         _sparkii_home_maint = _get_sparkii_home()
 
@@ -2496,12 +2495,12 @@ def _run_checkpoint_auto_maintenance() -> None:
     """Call ``checkpoint_manager.maybe_auto_prune_checkpoints`` using current config.
 
     Reads the ``checkpoints:`` section from config.yaml via
-    :func:`sparkii_cli.config.load_config`. Honours ``auto_prune`` /
+    :func:`core.config.load_config`. Honours ``auto_prune`` /
     ``retention_days`` / ``delete_orphans`` / ``min_interval_hours``.
     Never raises — maintenance must never block interactive startup.
     """
     try:
-        from sparkii_cli.config import load_config as _load_full_config
+        from core.config import load_config as _load_full_config
         cfg = (_load_full_config().get("checkpoints") or {})
         if not cfg.get("auto_prune", False):
             return
@@ -4778,7 +4777,7 @@ def save_config_value(key_path: str, value: any) -> bool:
         # Model/provider changes made through /model and the TUI use this
         # persistence path rather than ``sparkii config set``. Surface the same
         # fail-closed cron drift warning for every operator-facing model switch.
-        from sparkii_cli.config import (
+        from core.config import (
             warn_unpinned_cron_jobs_after_model_config_change,
         )
 
@@ -4820,7 +4819,7 @@ def _normalize_moa_model(model: Optional[str]) -> tuple[Optional[str], Optional[
 def _split_model_config_default(raw_default: Any) -> tuple[str, str]:
     # Thin wrapper around the shared helper in config.py — kept for
     # backward compat with existing call sites in this module.
-    from sparkii_cli.config import split_model_config_default
+    from core.config import split_model_config_default
     return split_model_config_default(raw_default)
 
 
@@ -4841,7 +4840,7 @@ class _VoiceInputMessage:
         return self.text
 
 
-class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
+class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin):
     """
     Interactive CLI for the Sparkii Agent.
     
@@ -5167,7 +5166,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
         # Ephemeral system prompt: env var takes precedence, then
         # display.personality / agent.system_prompt from config.
         # sparkii_cli.personality is the single owner of overlay resolution.
-        from sparkii_cli.personality import (
+        from core.personality import (
             available_personalities,
             resolve_ephemeral_system_prompt,
         )
@@ -6578,7 +6577,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
         try:
             from agent.pet import constants, store
             from agent.pet.render import PetRenderer
-            from sparkii_cli.config import load_config
+            from core.config import load_config
 
             cfg = load_config()
             display = cfg.get("display", {}) if isinstance(cfg.get("display"), dict) else {}
@@ -7290,7 +7289,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
         if self._model_is_default:
             fallback_model = "gpt-5.3-codex"
             try:
-                from sparkii_cli.codex_models import get_codex_model_ids
+                from core.codex_models import get_codex_model_ids
 
                 available = get_codex_model_ids(
                     access_token=self.api_key if self.api_key else None,
@@ -10522,8 +10521,8 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
     def _clear_persisted_context_for_model_switch(self, result) -> None:
         """Drop a global context pin when its configured owner changes."""
         try:
-            from sparkii_cli.config import load_config_readonly
-            from sparkii_cli.route_identity import should_clear_context_pin
+            from core.config import load_config_readonly
+            from core.route_identity import should_clear_context_pin
 
             config = load_config_readonly()
             model_cfg = config.get("model", {}) if isinstance(config, dict) else {}
@@ -11097,7 +11096,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
 
         # Load + persist via the existing config helpers
         try:
-            from sparkii_cli.config import load_config, save_config
+            from core.config import load_config, save_config
         except Exception as exc:
             _cprint(f"❌ could not load config: {exc}")
             return
@@ -11257,7 +11256,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
 
         Delegates to sparkii_cli.personality (single owner of rendering).
         """
-        from sparkii_cli.personality import render_personality_prompt
+        from core.personality import render_personality_prompt
 
         return render_personality_prompt(value)
 
@@ -11655,9 +11654,9 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
         elif canonical == "usage":
             self._handle_usage_command(cmd_original)
         elif canonical == "subscription":
-            self._show_subscription()
+            print("  The Nous subscription view was removed with the Nous product line.")
         elif canonical == "topup":
-            self._show_billing(cmd_original)
+            print("  Nous Portal top-ups were removed with the Nous product line.")
         elif canonical == "insights":
             self._show_insights(cmd_original)
         elif canonical == "copy":
@@ -11676,7 +11675,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
         elif canonical == "image":
             self._handle_image_command(cmd_original)
         elif canonical == "reload":
-            from sparkii_cli.config import reload_env
+            from core.config import reload_env
             count = reload_env()
             print(f"  Reloaded .env ({count} var(s) updated)")
         elif canonical == "reload-mcp":
@@ -11821,7 +11820,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
             # default MoA preset, then restore the prior model. To *switch* to a
             # MoA preset for the session, pick it from the model picker (MoA
             # presets surface as a virtual "Mixture of Agents" provider).
-            from sparkii_cli.moa_config import (
+            from core.moa_config import (
                 moa_usage,
                 normalize_moa_config,
             )
@@ -11884,7 +11883,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
                             # has all API keys in os.environ.
                             from tools.environments.local import build_subprocess_env
                             sanitized_env = build_subprocess_env()
-                            from sparkii_cli._subprocess_compat import windows_hide_flags
+                            from core._subprocess_compat import windows_hide_flags
                             result = subprocess.run(
                                 exec_cmd, shell=True, capture_output=True,
                                 text=True, encoding="utf-8", errors="replace", timeout=30, env=sanitized_env,
@@ -12070,7 +12069,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
         """
         try:
             from sparkii_cli.goals import GoalManager
-            from sparkii_cli.config import load_config
+            from core.config import load_config
         except Exception as exc:
             logging.debug("goal manager unavailable: %s", exc)
             return None
@@ -12551,7 +12550,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
         # prompt_toolkit's renderer.  self.console.print() with Rich markup
         # writes directly to stdout which patch_stdout's StdoutProxy mangles
         # into garbled sequences like '?[33mTool progress: NEW?[0m' (#2262).
-        from sparkii_cli.colors import Colors as _Colors
+        from core.colors import Colors as _Colors
         labels = {
             "off": f"{_Colors.DIM}Tool progress: OFF{_Colors.RESET} — silent mode, just the final response.",
             "new": f"{_Colors.YELLOW}Tool progress: NEW{_Colors.RESET} — show each new tool (skip repeats).",
@@ -12652,7 +12651,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
         ``set_current_session_key`` so the bypass takes effect on the very
         next dangerous command in this run.
         """
-        from sparkii_cli.colors import Colors as _Colors
+        from core.colors import Colors as _Colors
         from tools.approval import (
             disable_session_yolo,
             enable_session_yolo,
@@ -12942,51 +12941,12 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
 
 
     def _handle_usage_command(self, cmd_original: str):
-        """Dispatch `/usage [reset [--force]]`.
-
-        Bare `/usage` keeps the classic display. `/usage reset` redeems one
-        banked Codex rate-limit reset credit (guarded: refuses when limits
-        aren't exhausted unless --force).
-        """
-        parts = cmd_original.split()
-        args = [p.lower() for p in parts[1:]]
-        if args and args[0] == "reset":
-            self._usage_reset(force="--force" in args[1:])
-            return
-        if args:
-            print(f"  Unknown /usage subcommand: {' '.join(parts[1:])}. Try /usage or /usage reset [--force].")
-            return
+        """Dispatch `/usage`. The `/usage reset` codex flow was removed."""
         self._show_usage()
 
     def _usage_reset(self, force: bool = False):
-        """`/usage reset [--force]` — redeem one banked Codex reset credit."""
-        provider = (
-            (getattr(self.agent, "provider", None) if self.agent else None)
-            or getattr(self, "provider", None)
-        )
-        normalized = str(provider or "").strip().lower()
-        if normalized != "openai-codex":
-            print("  Banked usage resets are only available on the openai-codex provider.")
-            print("  Switch with `/model` or `sparkii auth` first.")
-            return
-        base_url = (getattr(self.agent, "base_url", None) if self.agent else None) or getattr(self, "base_url", None)
-        api_key = (getattr(self.agent, "api_key", None) if self.agent else None) or getattr(self, "api_key", None)
-
-        from agent.account_usage import redeem_codex_reset_credit
-
-        print("  ⏳ Checking banked reset credits...")
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as _pool:
-            try:
-                result = _pool.submit(
-                    redeem_codex_reset_credit,
-                    base_url=base_url,
-                    api_key=api_key,
-                    force=force,
-                ).result(timeout=45.0)
-            except concurrent.futures.TimeoutError:
-                print("  ❌ Timed out talking to the Codex backend — try again shortly.")
-                return
-        print(f"  {result.message}")
+        """`/usage reset` was removed with the openai-codex provider."""
+        print("  Banked usage resets were removed with the openai-codex provider.")
 
     def _show_context_breakdown(self, cmd_original: str = ""):
         """`/context [all]` — visual context-window usage breakdown.
@@ -13038,28 +12998,16 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
         print()
 
     def _show_usage(self):
-        """Rate limits + session token usage (when a live agent exists) + Nous credits.
-
-        The Nous credits block is agent-independent (a portal fetch), so it runs even
-        with no live agent — important for the TUI, where /usage runs in a slash-worker
-        subprocess that resumes the session WITHOUT building an agent (self.agent is None),
-        which would otherwise early-return before any credits showed.
-        """
+        """Rate limits + session token usage (when a live agent exists)."""
         if not self.agent:
-            if self._print_nous_credits_block():
-                self._print_usage_cta()
-            else:
-                print("(._.) No active agent -- send a message first.")
+            print("(._.) No active agent -- send a message first.")
             return
 
         agent = self.agent
         calls = agent.session_api_calls
 
         if calls == 0:
-            if self._print_nous_credits_block():
-                self._print_usage_cta()
-            else:
-                print("(._.) No API calls made yet in this session.")
+            print("(._.) No API calls made yet in this session.")
             return
 
         # ── Rate limits (shown first when available) ────────────────
@@ -13126,11 +13074,6 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
             print()
             for line in account_lines:
                 print(line)
-
-        # Nous credits magnitudes + monthly-grant gauge (agent-independent — also
-        # runs at the no-agent / no-calls early-returns above). See the helper.
-        if self._print_nous_credits_block():
-            self._print_usage_cta()
 
         if self.verbose:
             logging.getLogger().setLevel(logging.DEBUG)
@@ -13214,7 +13157,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
             return
         self._last_config_check = now
 
-        from sparkii_cli.config import get_config_path as _get_config_path
+        from core.config import get_config_path as _get_config_path
         cfg_path = _get_config_path()
         if not cfg_path.exists():
             return
@@ -13243,7 +13186,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
         # keys) triggers a false-positive MCP reload because the raw yaml
         # still has "${POWERMEM_API_KEY}" while the snapshot has the
         # expanded value.
-        from sparkii_cli.config import _expand_env_vars
+        from core.config import _expand_env_vars
         new_mcp = _expand_env_vars(new_mcp)
         if new_mcp == self._config_mcp_servers:
             return  # mcp_servers unchanged (some other section was edited)
@@ -13928,7 +13871,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
         # instead of crashing on ``.get()``.
         voice_cfg: dict = {}
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
             _cfg = load_config().get("voice")
             voice_cfg = _cfg if isinstance(_cfg, dict) else {}
         except Exception:
@@ -14027,7 +13970,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
         CLI passes a real model name into the local STT backend.
         """
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
             stt_config = load_config().get("stt", {})
             if not isinstance(stt_config, dict):
                 return None
@@ -14044,7 +13987,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
     def _voice_stt_provider(self) -> str:
         """Configured STT provider name (lowercased), or empty string."""
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
             stt_config = load_config().get("stt", {})
             if not isinstance(stt_config, dict):
                 return ""
@@ -14312,7 +14255,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
             return  # one listener owns the mic for this turn
         fd_active.set()
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
             voice_cfg = load_config().get("voice") or {}
             if not (isinstance(voice_cfg, dict) and voice_cfg.get("barge_in", True)):
                 return
@@ -14440,7 +14383,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
     def _voice_beeps_enabled(self) -> bool:
         """Return whether CLI voice mode should play record start/stop beeps."""
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
             from utils import is_truthy_value
             voice_cfg = load_config().get("voice", {})
             if isinstance(voice_cfg, dict):
@@ -14487,7 +14430,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
         # Check config for auto_tts (shape-safe — malformed ``voice:`` YAML
         # leaves ``voice_config`` as a non-dict, so guard before .get()).
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
             _raw_voice = load_config().get("voice")
             voice_config = _raw_voice if isinstance(_raw_voice, dict) else {}
             if voice_config.get("auto_tts", False):
@@ -15649,7 +15592,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
                     build_native_content_parts,
                     decide_image_input_mode,
                 )
-                from sparkii_cli.config import load_config
+                from core.config import load_config
 
                 _img_model, _img_provider = "", ""
                 if isinstance(self.model, dict):
@@ -16987,7 +16930,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
                     _resid_color = "#B8860B"
                 self._console_print(f"[{_resid_color}]{openclaw_residue_hint_cli()}[/]")
                 try:
-                    from sparkii_cli.config import get_config_path as _get_cfg_path_resid
+                    from core.config import get_config_path as _get_cfg_path_resid
                     mark_seen(_get_cfg_path_resid(), OPENCLAW_RESIDUE_FLAG)
                 except Exception:
                     pass  # best-effort — banner will fire again next session
@@ -17068,7 +17011,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
         get_plugin_manager()._cli_ref = self
 
         # Config file watcher — detect mcp_servers changes and auto-reload
-        from sparkii_cli.config import get_config_path as _get_config_path
+        from core.config import get_config_path as _get_config_path
         _cfg_path = _get_config_path()
         self._config_mtime: float = _cfg_path.stat().st_mtime if _cfg_path.exists() else 0.0
         self._config_mcp_servers: dict = self.config.get("mcp_servers") or {}
@@ -18154,7 +18097,7 @@ class SparkiiCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
         # TUI/CLI split instead of a silent mismatch (round-11).
         _raw_key: object = "ctrl+b"
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
             from sparkii_cli.voice import (
                 normalize_voice_record_key_for_prompt_toolkit,
                 pt_key_to_sequence,
@@ -20605,7 +20548,7 @@ def main(
                                 build_native_content_parts as _build_parts,  # noqa: F811
                             )
                             from agent.image_routing import decide_image_input_mode
-                            from sparkii_cli.config import load_config
+                            from core.config import load_config
 
                             _img_mode = decide_image_input_mode(
                                 (cli.provider or "").strip(),

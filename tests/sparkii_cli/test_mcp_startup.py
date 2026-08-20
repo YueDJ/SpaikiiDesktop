@@ -60,7 +60,7 @@ def test_prepare_agent_startup_backgrounds_blocking_mcp_for_chat(monkeypatch):
     )
     monkeypatch.setitem(
         sys.modules,
-        "sparkii_cli.config",
+        "core.config",
         types.SimpleNamespace(
             read_raw_config=lambda: {"mcp_servers": {"demo": {"transport": "stdio"}}},
             load_config=lambda: {},
@@ -117,7 +117,7 @@ def test_background_mcp_discovery_suppresses_interactive_oauth(monkeypatch):
 
     monkeypatch.setitem(
         sys.modules,
-        "sparkii_cli.config",
+        "core.config",
         types.SimpleNamespace(
             read_raw_config=lambda: {"mcp_servers": {"demo": {"url": "https://mcp.example.test/mcp"}}},
         ),
@@ -149,7 +149,7 @@ def test_background_mcp_discovery_suppresses_interactive_oauth(monkeypatch):
 def test_portable_only_mcp_configuration_opens_startup_gate(monkeypatch):
     monkeypatch.setitem(
         sys.modules,
-        "sparkii_cli.config",
+        "core.config",
         types.SimpleNamespace(read_raw_config=lambda: {}),
     )
     monkeypatch.setitem(
@@ -179,7 +179,7 @@ def _retry_logger():
 def _install_retry_stubs(monkeypatch, *, connected: bool, calls: dict):
     monkeypatch.setitem(
         sys.modules,
-        "sparkii_cli.config",
+        "core.config",
         types.SimpleNamespace(
             read_raw_config=lambda: {"mcp_servers": {"demo": {"transport": "stdio"}}},
         ),

@@ -108,7 +108,7 @@ def _run_native_windows_gateway_start_diag(
     else:
         env[_BREAKAWAY_MARKER] = breakaway_marker
 
-    from sparkii_cli._subprocess_compat import windows_detach_flags_without_breakaway
+    from core._subprocess_compat import windows_detach_flags_without_breakaway
 
     completed = subprocess.run(
         [sys.executable, "-c", script],

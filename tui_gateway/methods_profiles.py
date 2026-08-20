@@ -393,7 +393,7 @@ def _(rid, params: dict) -> dict:
         yaml on config.yaml).
         """
         try:
-            from sparkii_cli.config import (
+            from core.config import (
                 load_config_readonly,
                 read_user_config_raw,
                 save_config,
@@ -450,7 +450,7 @@ def _(rid, params: dict) -> dict:
         # ("No inference provider configured" on first message, tester
         # report). Clones bring their own model section and stay untouched.
         try:
-            from sparkii_cli.config import load_config_readonly, read_user_config_raw
+            from core.config import load_config_readonly, read_user_config_raw
             from sparkii_cli.web_routers.profiles import _write_profile_model
             from sparkii_constants import (
                 reset_sparkii_home_override,
@@ -515,7 +515,7 @@ def _(rid, params: dict) -> dict:
 
         token = set_sparkii_home_override(str(profile_dir))
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
             from sparkii_cli.skills_config import get_disabled_skills
 
             cfg = load_config() or {}
@@ -773,7 +773,7 @@ def _(rid, params: dict) -> dict:
             launch_mcp = {}
             if isinstance(params.get("enabled_mcp_servers"), list):
                 try:
-                    from sparkii_cli.config import load_config_readonly
+                    from core.config import load_config_readonly
 
                     launch_cfg = load_config_readonly() or {}
                     if isinstance(launch_cfg.get("mcp_servers"), dict):
@@ -783,7 +783,7 @@ def _(rid, params: dict) -> dict:
 
             token = set_sparkii_home_override(str(profile_dir))
             try:
-                from sparkii_cli.config import load_config, save_config
+                from core.config import load_config, save_config
 
                 cfg = load_config() or {}
 

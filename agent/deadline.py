@@ -177,7 +177,7 @@ def _timeouts_section() -> dict:
     the call path the timeout was protecting.
     """
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
 
         section = load_config_readonly().get("timeouts")
         return section if isinstance(section, dict) else {}
@@ -473,7 +473,7 @@ def kill_process_tree(pid: int, *, sig: Optional[int] = None) -> bool:
     """
     if sys.platform == "win32":
         try:
-            from sparkii_cli._subprocess_compat import windows_hide_flags
+            from core._subprocess_compat import windows_hide_flags
 
             creationflags = windows_hide_flags()
         except Exception:

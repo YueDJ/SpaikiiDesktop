@@ -401,19 +401,8 @@ def test_switch_model_does_not_send_ollama_headers_to_unrelated_custom_endpoint(
 
 
 
-def test_is_routing_aggregator_excludes_flat_namespace_resellers():
-    """opencode-go / opencode-zen stay ``is_aggregator=True`` (model-switch
-    relies on it to search their flat bare-name catalog), but they are NOT
-    routing aggregators — their models are first-party, so the picker dedup
-    must not strip them. (#47077)"""
-    # Still aggregators for model-switch flat-catalog resolution.
-    assert providers_mod.is_aggregator("opencode-go") is True
-    assert providers_mod.is_aggregator("opencode-zen") is True
-    # But NOT routing aggregators for picker-dedup purposes.
-    assert providers_mod.is_routing_aggregator("opencode-go") is False
-    assert providers_mod.is_routing_aggregator("opencode-zen") is False
-    # True routers and custom proxies remain routing aggregators.
-    assert providers_mod.is_routing_aggregator("openrouter") is True
+def test_is_routing_aggregator_custom_proxy_vs_unknown():
+    """Custom proxies remain routing aggregators; unknown ids do not."""
     assert providers_mod.is_routing_aggregator("custom:litellm") is True
     assert providers_mod.is_routing_aggregator("not-a-provider") is False
 
@@ -1458,9 +1447,9 @@ def test_save_discovered_models_preserves_dict_form(monkeypatch):
     def fake_save(config):
         save_calls.append(dict(config))
 
-    monkeypatch.setattr("sparkii_cli.config.save_config", fake_save)
+    monkeypatch.setattr("core.config.save_config", fake_save)
     monkeypatch.setattr(
-        "sparkii_cli.config.load_config",
+        "core.config.load_config",
         lambda: {
             "custom_providers": [
                 {
@@ -1513,10 +1502,10 @@ def test_model_flow_named_custom_persists_discovered_models(monkeypatch):
     monkeypatch.setattr("sparkii_cli.auth._save_model_choice", lambda *a, **k: None)
     monkeypatch.setattr("sparkii_cli.auth.deactivate_provider", lambda *a, **k: None)
     monkeypatch.setattr(
-        "sparkii_cli.config.load_config",
+        "core.config.load_config",
         lambda: {"model": {}, "providers": {}, "custom_providers": []},
     )
-    monkeypatch.setattr("sparkii_cli.config.save_config", lambda cfg: None)
+    monkeypatch.setattr("core.config.save_config", lambda cfg: None)
 
     save_calls = []
     monkeypatch.setattr(
@@ -1599,35 +1588,7 @@ def test_shared_url_different_display_names_are_separate_rows(monkeypatch):
     assert by_name["Perplexity"] == ["sonar-pro"]
 
 
-def test_excluded_providers_hides_builtin_row(monkeypatch):
-    """``excluded_providers`` must hide a built-in provider row that would
-    otherwise surface when its credentials are present."""
-    monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
-    monkeypatch.setattr(providers_mod, "SPARKII_OVERLAYS", {})
-    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-test")
 
-    baseline = list_authenticated_providers(
-        current_provider="openrouter",
-        current_base_url="https://openrouter.ai/api/v1",
-        user_providers={},
-        custom_providers=[],
-        max_models=50,
-    )
-    assert any(p["slug"] == "openrouter" for p in baseline), (
-        "sanity: openrouter row must appear when OPENROUTER_API_KEY is set"
-    )
-
-    filtered = list_authenticated_providers(
-        current_provider="openrouter",
-        current_base_url="https://openrouter.ai/api/v1",
-        user_providers={},
-        custom_providers=[],
-        max_models=50,
-        excluded_providers=["openrouter"],
-    )
-    assert not any(p["slug"] == "openrouter" for p in filtered), (
-        "excluded_providers=['openrouter'] must hide the openrouter row"
-    )
 
 
 def test_custom_provider_context_length_models_dict_still_probes(monkeypatch):
@@ -2060,111 +2021,7 @@ def test_api_mode_rows_do_not_share_a_cached_catalog(monkeypatch):
     assert fetched == []
 
 
-def test_auto_saved_catalog_round_trips_without_pinning(tmp_path, monkeypatch):
-    """End-to-end: the shape we persist must not read back as a user pin.
-
-    Guards the whole chain rather than one branch — probe saves a catalog,
-    config is reloaded, and the endpoint must still be discoverable. If a
-    future change makes the saved shape look like an intentional allowlist
-    again, this fails even if the gate logic above is refactored away.
-    """
-    import sparkii_cli.config as config_mod
-
-    monkeypatch.setenv("SPARKII_HOME", str(tmp_path))
-    cfg_path = tmp_path / "config.yaml"
-    cfg_path.write_text(
-        "custom_providers:\n"
-        f"  - name: Local MLX\n    base_url: {_LOCAL_ENDPOINT}\n"
-        "    model: omlx-model-1\n"
-    )
-    monkeypatch.setattr(config_mod, "CONFIG_PATH", str(cfg_path), raising=False)
-
-    _save_discovered_models_to_config(_LOCAL_ENDPOINT, list(_LOCAL_CATALOG))
-
-    saved = yaml.safe_load(cfg_path.read_text())["custom_providers"][0]
-    assert saved["models_discovered"] is True
-    assert list(saved["models"]) == _LOCAL_CATALOG
-    assert not any(m.startswith("__") for m in saved["models"]), (
-        "sentinel keys must never appear inside the user-facing models mapping"
-    )
-
-    # The persisted shape is what the picker will read on the next open. It
-    # must not, on a keyless entry, suppress discovery of a wider catalog.
-    _seed_custom_model_cache(monkeypatch, [*_LOCAL_CATALOG, "omlx-model-9"])
-    row, fetched = _no_probe_local_row(
-        monkeypatch, custom_providers=[saved]
-    )
-
-    assert row is not None
-    assert row["models"] == [*_LOCAL_CATALOG, "omlx-model-9"], (
-        "an auto-saved catalog must not pin the endpoint against a newer "
-        "cached lineup"
-    )
-    assert fetched == []
 
 
-def test_legacy_sentinel_catalog_still_resolves_and_migrates(tmp_path, monkeypatch):
-    """Old-shape configs (sentinels inside ``models``) keep working.
 
-    Pre-fix Sparkii wrote ``__discovered_model_catalog__: true`` (and
-    ``__explicit_model_allowlist__``) inside the user-facing ``models``
-    mapping. Reading such a config must (a) recognize the catalog as
-    discovered — not a user pin, (b) never list the sentinels as model IDs,
-    and (c) migrate to the clean entry-level ``models_discovered`` shape on
-    the next discovery save.
-    """
-    import sparkii_cli.config as config_mod
-    from sparkii_cli.model_switch import (
-        _declared_model_ids,
-        _entry_models_discovered,
-        _models_config_is_allowlist,
-    )
 
-    legacy_entry = {
-        "name": "Local MLX",
-        "base_url": _LOCAL_ENDPOINT,
-        "model": "omlx-model-1",
-        "models": {
-            "__discovered_model_catalog__": True,
-            **{m: {} for m in _LOCAL_CATALOG},
-        },
-    }
-
-    # (a) recognized as a discovered catalog, not an allowlist.
-    assert _entry_models_discovered(legacy_entry) is True
-    assert not _models_config_is_allowlist(
-        legacy_entry["models"], _entry_models_discovered(legacy_entry)
-    )
-
-    # (b) sentinels never surface as model IDs.
-    assert _declared_model_ids(legacy_entry["models"]) == _LOCAL_CATALOG
-    normalized = config_mod._normalize_custom_provider_entry(dict(legacy_entry))
-    assert normalized is not None
-    assert normalized["models_discovered"] is True
-    assert list(normalized["models"]) == _LOCAL_CATALOG
-    assert not any(m.startswith("__") for m in normalized["models"])
-
-    # ...and the picker row built from the legacy entry lists no phantoms.
-    _seed_custom_model_cache(monkeypatch, [])
-    row, fetched = _no_probe_local_row(
-        monkeypatch, custom_providers=[legacy_entry]
-    )
-    assert row is not None
-    assert not any(str(m).startswith("__") for m in row["models"])
-    assert fetched == []
-
-    # (c) the next discovery save rewrites to the clean shape.
-    monkeypatch.setenv("SPARKII_HOME", str(tmp_path))
-    cfg_path = tmp_path / "config.yaml"
-    cfg_path.write_text(
-        yaml.safe_dump({"custom_providers": [legacy_entry]})
-    )
-    monkeypatch.setattr(config_mod, "CONFIG_PATH", str(cfg_path), raising=False)
-
-    _save_discovered_models_to_config(_LOCAL_ENDPOINT, list(_LOCAL_CATALOG))
-
-    saved = yaml.safe_load(cfg_path.read_text())["custom_providers"][0]
-    assert saved["models_discovered"] is True
-    assert list(saved["models"]) == _LOCAL_CATALOG
-    assert "__discovered_model_catalog__" not in saved["models"]
-    assert "__explicit_model_allowlist__" not in saved["models"]

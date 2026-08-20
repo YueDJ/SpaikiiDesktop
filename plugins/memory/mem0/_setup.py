@@ -323,7 +323,7 @@ def _setup_platform(sparkii_home: str, config: dict, flags: dict[str, str]) -> N
             "routing to the self-hosted server."
         )
 
-    from sparkii_cli.config import save_config
+    from core.config import save_config
     config["memory"]["provider"] = "mem0"
     save_config(config)
 
@@ -417,7 +417,7 @@ def _setup_selfhosted(sparkii_home: str, config: dict, flags: dict[str, str]) ->
     provider_config["user_id"] = user_id
     provider_config["agent_id"] = agent_id
 
-    from sparkii_cli.config import save_config
+    from core.config import save_config
     config["memory"]["provider"] = "mem0"
     save_config(config)
 
@@ -478,7 +478,7 @@ def _setup_oss(sparkii_home: str, config: dict, flags: dict[str, str]) -> None:
 
     _install_provider_deps(llm_id, embedder_id, vector_id)
 
-    from sparkii_cli.config import save_config
+    from core.config import save_config
     config["memory"]["provider"] = "mem0"
     save_config(config)
 
@@ -836,7 +836,7 @@ def _setup_oss_interactive(sparkii_home: str, config: dict) -> None:
     if vector_id == "pgvector" and pgvector_config:
         _ensure_pgvector_extension(pgvector_config)
 
-    from sparkii_cli.config import save_config
+    from core.config import save_config
     config["memory"]["provider"] = "mem0"
     save_config(config)
 

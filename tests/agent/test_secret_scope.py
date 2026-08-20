@@ -121,7 +121,7 @@ class TestEnvFileParsing:
         '\"' or '\\' worked interactively but were corrupted under scoped
         (cron / multiplex) resolution.
         """
-        from sparkii_cli.config import _quote_env_value
+        from core.config import _quote_env_value
 
         original = 'tok"en\\with spaces'
         (tmp_path / ".env").write_text(f"MY_TOKEN={_quote_env_value(original)}\n")
@@ -174,7 +174,7 @@ class TestEnvFileParsing:
     def test_round_trip_writer_value_with_trailing_comment(self, tmp_path):
         """A value quoted by the save_env_value writer survives an appended
         inline comment byte-exactly."""
-        from sparkii_cli.config import _quote_env_value
+        from core.config import _quote_env_value
 
         original = 'we#ird "tok\\en" # not a comment'
         quoted = _quote_env_value(original)

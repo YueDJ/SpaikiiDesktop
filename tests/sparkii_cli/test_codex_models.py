@@ -1,7 +1,7 @@
 import json
 from unittest.mock import patch
 
-from sparkii_cli.codex_models import (
+from core.codex_models import (
     DEFAULT_CODEX_MODELS,
     _FORWARD_COMPAT_TEMPLATE_MODELS,
     get_codex_model_ids,
@@ -41,7 +41,7 @@ def test_setup_wizard_codex_import_resolves():
     """Regression test for #712: setup.py must import the correct function name."""
     # This mirrors the exact import used in sparkii_cli/setup.py line 873.
     # A prior bug had 'get_codex_models' (wrong) instead of 'get_codex_model_ids'.
-    from sparkii_cli.codex_models import get_codex_model_ids as setup_import
+    from core.codex_models import get_codex_model_ids as setup_import
     assert callable(setup_import)
 
 

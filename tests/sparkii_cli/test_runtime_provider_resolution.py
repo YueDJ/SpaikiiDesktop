@@ -1179,7 +1179,7 @@ class TestProviderEntryApiKeyEnvAlias:
     use `api_key_env`) resolve correctly."""
 
     def test_snake_case_api_key_env_normalizes_to_key_env(self):
-        from sparkii_cli.config import _normalize_custom_provider_entry
+        from core.config import _normalize_custom_provider_entry
         entry = {
             "name": "vendor",
             "base_url": "https://api.vendor.example.com/v1",
@@ -1193,11 +1193,11 @@ class TestProviderEntryApiKeyEnvAlias:
     def test_valid_fields_set_lists_key_env(self):
         """The _VALID_CUSTOM_PROVIDER_FIELDS documentation set must include
         key_env so the set stays in sync with what the runtime actually reads."""
-        from sparkii_cli.config import _VALID_CUSTOM_PROVIDER_FIELDS
+        from core.config import _VALID_CUSTOM_PROVIDER_FIELDS
         assert "key_env" in _VALID_CUSTOM_PROVIDER_FIELDS
 
     def test_extra_body_is_supported_schema(self):
-        from sparkii_cli.config import (
+        from core.config import (
             _VALID_CUSTOM_PROVIDER_FIELDS,
             _normalize_custom_provider_entry,
         )

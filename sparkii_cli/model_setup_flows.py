@@ -25,7 +25,7 @@ import os
 import subprocess
 import urllib.parse
 
-from sparkii_cli.config import clear_model_endpoint_credentials
+from core.config import clear_model_endpoint_credentials
 from sparkii_cli.providers import custom_provider_slug
 
 
@@ -228,7 +228,7 @@ def _model_flow_openrouter(config, current_model=""):
         _save_model_choice(selected)
 
         # Update config provider and deactivate any OAuth provider
-        from sparkii_cli.config import load_config, save_config
+        from core.config import load_config, save_config
 
         cfg = load_config()
         model = cfg.get("model")
@@ -266,7 +266,7 @@ def _model_flow_ai_gateway(config, current_model=""):
         _save_model_choice,
         deactivate_provider,
     )
-    from sparkii_cli.config import get_env_value
+    from core.config import get_env_value
 
     # Route through _prompt_api_key so users can replace a stale/broken key
     # in-flow (K/R/C) instead of having to edit ~/.sparkii/.env by hand.
@@ -293,7 +293,7 @@ def _model_flow_ai_gateway(config, current_model=""):
     if selected:
         _save_model_choice(selected)
 
-        from sparkii_cli.config import load_config, save_config
+        from core.config import load_config, save_config
 
         cfg = load_config()
         model = cfg.get("model")
@@ -319,8 +319,8 @@ def _model_flow_moa(config, current_model=""):
     what they are selecting, then print the full preset breakdown on selection.
     """
     from sparkii_cli.auth import _save_model_choice, deactivate_provider
-    from sparkii_cli.config import load_config, save_config
-    from sparkii_cli.moa_config import normalize_moa_config
+    from core.config import load_config, save_config
+    from core.moa_config import normalize_moa_config
 
     moa = normalize_moa_config(config.get("moa") if isinstance(config, dict) else {})
     presets = moa.get("presets") or {}
@@ -395,502 +395,6 @@ def _model_flow_moa(config, current_model=""):
     _print_moa_preset(selected_name, preset)
 
 
-def _model_flow_nous(config, current_model="", args=None):
-    """Nous Portal provider: ensure logged in, then pick model."""
-    from sparkii_cli.auth import (
-        get_provider_auth_state,
-        _prompt_model_selection,
-        _save_model_choice,
-        _update_config_for_provider,
-        resolve_nous_runtime_credentials,
-        AuthError,
-        format_auth_error,
-        _login_nous,
-        PROVIDER_REGISTRY,
-    )
-    from sparkii_cli.config import (
-        get_env_value,
-        load_config,
-        save_config,
-        save_env_value,
-    )
-    from sparkii_cli.nous_subscription import prompt_enable_tool_gateway
-
-    state = get_provider_auth_state("nous")
-    if not state or not state.get("access_token"):
-        print("Not logged into Nous Portal. Starting login...")
-        print()
-        try:
-            mock_args = argparse.Namespace(
-                portal_url=getattr(args, "portal_url", None),
-                inference_url=getattr(args, "inference_url", None),
-                client_id=getattr(args, "client_id", None),
-                scope=getattr(args, "scope", None),
-                no_browser=bool(getattr(args, "no_browser", False)),
-                timeout=getattr(args, "timeout", None) or 15.0,
-                ca_bundle=getattr(args, "ca_bundle", None),
-                insecure=bool(getattr(args, "insecure", False)),
-            )
-            _login_nous(mock_args, PROVIDER_REGISTRY["nous"])
-            # Offer Tool Gateway enablement for paid subscribers
-            try:
-                _refreshed = load_config() or {}
-                prompt_enable_tool_gateway(_refreshed)
-            except Exception:
-                pass
-        except SystemExit:
-            print("Login cancelled or failed.")
-            return
-        except Exception as exc:
-            print(f"Login failed: {exc}")
-            return
-        # login_nous already handles model selection + config update
-        return
-
-    # Already logged in — use curated model list (same as OpenRouter defaults).
-    # The live /models endpoint returns hundreds of models; the curated list
-    # shows only agentic models users recognize from OpenRouter.
-    from sparkii_cli.models import (
-        get_curated_nous_model_ids,
-        get_pricing_for_provider,
-        check_nous_free_tier,
-        partition_nous_models_by_tier,
-        union_with_portal_free_recommendations,
-        union_with_portal_paid_recommendations,
-    )
-
-    model_ids = get_curated_nous_model_ids()
-    if not model_ids:
-        print("No curated models available for Nous Portal.")
-        return
-
-    # Verify credentials are still valid (catches expired sessions early)
-    try:
-        creds = resolve_nous_runtime_credentials()
-    except Exception as exc:
-        relogin = isinstance(exc, AuthError) and exc.relogin_required
-        msg = format_auth_error(exc) if isinstance(exc, AuthError) else str(exc)
-        if relogin:
-            print(f"Session expired: {msg}")
-            print("Re-authenticating with Nous Portal...\n")
-            try:
-                mock_args = argparse.Namespace(
-                    portal_url=None,
-                    inference_url=None,
-                    client_id=None,
-                    scope=None,
-                    no_browser=False,
-                    timeout=15.0,
-                    ca_bundle=None,
-                    insecure=False,
-                )
-                _login_nous(mock_args, PROVIDER_REGISTRY["nous"])
-            except Exception as login_exc:
-                print(f"Re-login failed: {login_exc}")
-            return
-        print(f"Could not verify credentials: {msg}")
-        return
-
-    # Fetch live pricing (non-blocking — returns empty dict on failure)
-    pricing = get_pricing_for_provider("nous")
-
-    # Force fresh account data for model selection so recent credit purchases
-    # are reflected immediately.
-    free_tier = check_nous_free_tier(force_fresh=True)
-    if not free_tier:
-        try:
-            refreshed_creds = resolve_nous_runtime_credentials(
-                force_refresh=True,
-            )
-            if refreshed_creds:
-                creds = refreshed_creds
-        except Exception:
-            # Runtime inference has its own paid-entitlement recovery path; do
-            # not block model selection if this opportunistic refresh fails.
-            pass
-
-    # Resolve portal URL early — needed both for upgrade links and for the
-    # freeRecommendedModels endpoint below.
-    _nous_portal_url = ""
-    try:
-        _nous_state = get_provider_auth_state("nous")
-        if _nous_state:
-            _nous_portal_url = _nous_state.get("portal_base_url", "")
-    except Exception:
-        pass
-
-    # For free users: partition models into selectable/unavailable based on
-    # whether they are free per the Portal-reported pricing.  First augment
-    # with the Portal's freeRecommendedModels list so newly-launched free
-    # models show up even if this CLI build's hardcoded curated list and
-    # docs-hosted manifest haven't caught up yet.
-    #
-    # For paid users: mirror the same idea with paidRecommendedModels so
-    # newly-launched paid models surface in the picker too — independent
-    # of CLI release cadence.
-    unavailable_models: list[str] = []
-    unavailable_message = ""
-    if free_tier:
-        try:
-            from sparkii_cli.nous_account import (
-                format_nous_portal_entitlement_message,
-                get_nous_portal_account_info,
-            )
-
-            _account_info = get_nous_portal_account_info(force_fresh=True)
-            unavailable_message = (
-                format_nous_portal_entitlement_message(
-                    _account_info,
-                    capability="paid Nous models",
-                )
-                or ""
-            )
-        except Exception:
-            unavailable_message = ""
-        model_ids, pricing = union_with_portal_free_recommendations(
-            model_ids, pricing, _nous_portal_url,
-        )
-        model_ids, unavailable_models = partition_nous_models_by_tier(
-            model_ids, pricing, free_tier=True
-        )
-    else:
-        model_ids, pricing = union_with_portal_paid_recommendations(
-            model_ids, pricing, _nous_portal_url,
-        )
-
-    if not model_ids and not unavailable_models:
-        print("No models available for Nous Portal after filtering.")
-        return
-
-    if free_tier and not model_ids:
-        print("No free models currently available.")
-        if unavailable_models:
-            from sparkii_cli.auth import DEFAULT_NOUS_PORTAL_URL
-
-            _url = (_nous_portal_url or DEFAULT_NOUS_PORTAL_URL).rstrip("/")
-            print(unavailable_message or f"Upgrade at {_url} to access paid models.")
-        return
-
-    print(
-        f'Showing {len(model_ids)} curated models — use "Enter custom model name" for others.'
-    )
-
-    selected = _prompt_model_selection(
-        model_ids,
-        current_model=current_model,
-        pricing=pricing,
-        unavailable_models=unavailable_models,
-        portal_url=_nous_portal_url,
-        unavailable_message=unavailable_message,
-        confirm_provider="nous",
-        confirm_base_url=creds.get("base_url", ""),
-        confirm_api_key=creds.get("api_key", ""),
-    )
-    if selected:
-        _save_model_choice(selected)
-        # Reactivate Nous as the provider and update config
-        inference_url = creds.get("base_url", "")
-        _update_config_for_provider("nous", inference_url)
-        # Reload after the auth helper writes provider state. The incoming
-        # config object may still contain stale custom-provider fields.
-        config = load_config()
-        current_model_cfg = config.get("model")
-        if isinstance(current_model_cfg, dict):
-            model_cfg = dict(current_model_cfg)
-        elif isinstance(current_model_cfg, str) and current_model_cfg.strip():
-            model_cfg = {"default": current_model_cfg.strip()}
-        else:
-            model_cfg = {}
-        model_cfg["provider"] = "nous"
-        model_cfg["default"] = selected
-        if inference_url and inference_url.strip():
-            model_cfg["base_url"] = inference_url.rstrip("/")
-        else:
-            model_cfg.pop("base_url", None)
-        clear_model_endpoint_credentials(model_cfg)
-        config["model"] = model_cfg
-        # Clear any custom endpoint that might conflict
-        if get_env_value("OPENAI_BASE_URL"):
-            save_env_value("OPENAI_BASE_URL", "")
-            save_env_value("OPENAI_API_KEY", "")
-        save_config(config)
-        print(f"Default model set to: {selected} (via Nous Portal)")
-        # Offer Tool Gateway enablement for paid subscribers
-        prompt_enable_tool_gateway(config)
-    else:
-        print("No change.")
-
-def _model_flow_openai_codex(config, current_model=""):
-    """OpenAI Codex provider: ensure logged in, then pick model."""
-    from sparkii_cli.auth import (
-        get_codex_auth_status,
-        _prompt_model_selection,
-        _save_model_choice,
-        _update_config_for_provider,
-        _login_openai_codex,
-        PROVIDER_REGISTRY,
-        DEFAULT_CODEX_BASE_URL,
-    )
-    from sparkii_cli.codex_models import get_codex_model_ids
-
-    status = get_codex_auth_status()
-    if status.get("logged_in"):
-        print("  OpenAI Codex credentials: ✓")
-        print()
-        choice = _prompt_auth_credentials_choice("OpenAI Codex credentials:")
-
-        if choice == "reauth":
-            print("Starting a fresh OpenAI Codex login...")
-            print()
-            try:
-                mock_args = argparse.Namespace()
-                _login_openai_codex(
-                    mock_args,
-                    PROVIDER_REGISTRY["openai-codex"],
-                    force_new_login=True,
-                )
-            except SystemExit:
-                print("Login cancelled or failed.")
-                return
-            except Exception as exc:
-                print(f"Login failed: {exc}")
-                return
-            status = get_codex_auth_status()
-            if not status.get("logged_in"):
-                print("Login failed.")
-                return
-        elif choice == "cancel":
-            return
-    else:
-        print("Not logged into OpenAI Codex. Starting login...")
-        print()
-        try:
-            mock_args = argparse.Namespace()
-            _login_openai_codex(mock_args, PROVIDER_REGISTRY["openai-codex"])
-        except SystemExit:
-            print("Login cancelled or failed.")
-            return
-        except Exception as exc:
-            print(f"Login failed: {exc}")
-            return
-
-    _codex_token = None
-    # Prefer credential pool (where `sparkii auth` stores device_code tokens),
-    # fall back to legacy provider state.
-    try:
-        _codex_status = get_codex_auth_status()
-        if _codex_status.get("logged_in"):
-            _codex_token = _codex_status.get("api_key")
-    except Exception:
-        pass
-    if not _codex_token:
-        try:
-            from sparkii_cli.auth import resolve_codex_runtime_credentials
-
-            _codex_creds = resolve_codex_runtime_credentials()
-            _codex_token = _codex_creds.get("api_key")
-        except Exception:
-            pass
-
-    codex_models = get_codex_model_ids(access_token=_codex_token)
-
-    selected = _prompt_model_selection(
-        codex_models,
-        current_model=current_model,
-        confirm_provider="openai-codex",
-        confirm_base_url=DEFAULT_CODEX_BASE_URL,
-        confirm_api_key=_codex_token or "",
-    )
-    if selected:
-        _save_model_choice(selected)
-        _update_config_for_provider("openai-codex", DEFAULT_CODEX_BASE_URL)
-        print(f"Default model set to: {selected} (via OpenAI Codex)")
-    else:
-        print("No change.")
-
-def _model_flow_xai_oauth(_config, current_model="", *, args=None):
-    """xAI Grok OAuth (SuperGrok / Premium+) provider: ensure logged in, then pick model."""
-    from sparkii_cli.auth import (
-        get_xai_oauth_auth_status,
-        _prompt_model_selection,
-        _save_model_choice,
-        _update_config_for_provider,
-        resolve_xai_oauth_runtime_credentials,
-        _login_xai_oauth,
-        DEFAULT_XAI_OAUTH_BASE_URL,
-        PROVIDER_REGISTRY,
-    )
-    from sparkii_cli.models import provider_model_ids
-
-    status = get_xai_oauth_auth_status()
-    if status.get("logged_in"):
-        print("  xAI Grok OAuth (SuperGrok / Premium+) credentials: ✓")
-        print()
-        choice = _prompt_auth_credentials_choice(
-            "xAI Grok OAuth (SuperGrok / Premium+) credentials:"
-        )
-
-        if choice == "reauth":
-            print("Starting a fresh xAI OAuth login...")
-            print()
-            try:
-                mock_args = argparse.Namespace(
-                    no_browser=bool(getattr(args, "no_browser", False)),
-                    timeout=getattr(args, "timeout", None),
-                )
-                _login_xai_oauth(
-                    mock_args,
-                    PROVIDER_REGISTRY["xai-oauth"],
-                    force_new_login=True,
-                )
-            except SystemExit:
-                print("Login cancelled or failed.")
-                return
-            except Exception as exc:
-                print(f"Login failed: {exc}")
-                return
-        elif choice == "cancel":
-            return
-    else:
-        print("Not logged into xAI Grok OAuth (SuperGrok / Premium+). Starting login...")
-        print()
-        try:
-            mock_args = argparse.Namespace(
-                no_browser=bool(getattr(args, "no_browser", False)),
-                timeout=getattr(args, "timeout", None),
-            )
-            _login_xai_oauth(mock_args, PROVIDER_REGISTRY["xai-oauth"])
-        except SystemExit:
-            print("Login cancelled or failed.")
-            return
-        except Exception as exc:
-            print(f"Login failed: {exc}")
-            return
-
-    # Resolve a usable base URL.  ``resolve_xai_oauth_runtime_credentials``
-    # only reads from the auth.json singleton — but credentials may legitimately
-    # live only in the pool (e.g. after ``sparkii auth add xai-oauth``).  Fall
-    # back to the default base URL in that case so the model picker still
-    # completes successfully instead of bailing out with
-    # ``Could not resolve xAI OAuth credentials``.
-    base_url = DEFAULT_XAI_OAUTH_BASE_URL
-    try:
-        creds = resolve_xai_oauth_runtime_credentials()
-        base_url = (creds.get("base_url") or "").strip().rstrip("/") or base_url
-    except Exception:
-        pass
-
-    models = provider_model_ids("xai-oauth")
-    selected = _prompt_model_selection(models, current_model=current_model or (models[0] if models else "grok-4.6"))
-    if selected:
-        _save_model_choice(selected)
-        _update_config_for_provider("xai-oauth", base_url)
-        print(f"Default model set to: {selected} (via xAI Grok OAuth — SuperGrok / Premium+)")
-    else:
-        print("No change.")
-
-def _model_flow_qwen_oauth(_config, current_model=""):
-    """Qwen OAuth provider: reuse local Qwen CLI login, then pick model."""
-    from sparkii_cli.main import _DEFAULT_QWEN_PORTAL_MODELS
-    from sparkii_cli.auth import (
-        get_qwen_auth_status,
-        resolve_qwen_runtime_credentials,
-        _prompt_model_selection,
-        _save_model_choice,
-        _update_config_for_provider,
-        DEFAULT_QWEN_BASE_URL,
-    )
-    from sparkii_cli.models import fetch_api_models
-
-    status = get_qwen_auth_status()
-    if not status.get("logged_in"):
-        print("Not logged into Qwen CLI OAuth.")
-        print("Run: qwen auth qwen-oauth")
-        auth_file = status.get("auth_file")
-        if auth_file:
-            print(f"Expected credentials file: {auth_file}")
-        if status.get("error"):
-            print(f"Error: {status.get('error')}")
-        return
-
-    # Try live model discovery, fall back to curated list.
-    models = None
-    try:
-        creds = resolve_qwen_runtime_credentials(refresh_if_expiring=True)
-        models = fetch_api_models(creds["api_key"], creds["base_url"])
-    except Exception:
-        pass
-    if not models:
-        models = list(_DEFAULT_QWEN_PORTAL_MODELS)
-
-    default = current_model or (models[0] if models else "qwen3-coder-plus")
-    selected = _prompt_model_selection(
-        models,
-        current_model=default,
-        confirm_provider="qwen-oauth",
-        confirm_base_url=DEFAULT_QWEN_BASE_URL,
-    )
-    if selected:
-        _save_model_choice(selected)
-        _update_config_for_provider("qwen-oauth", DEFAULT_QWEN_BASE_URL)
-        print(f"Default model set to: {selected} (via Qwen OAuth)")
-    else:
-        print("No change.")
-
-def _model_flow_minimax_oauth(config, current_model="", args=None):
-    """MiniMax OAuth provider: ensure logged in, then pick model."""
-    from sparkii_cli.auth import (
-        get_provider_auth_state,
-        _prompt_model_selection,
-        _save_model_choice,
-        _update_config_for_provider,
-        resolve_minimax_oauth_runtime_credentials,
-        AuthError,
-        format_auth_error,
-        _login_minimax_oauth,
-        PROVIDER_REGISTRY,
-    )
-
-    state = get_provider_auth_state("minimax-oauth")
-    if not state or not state.get("access_token"):
-        print("Not logged into MiniMax. Starting OAuth login...")
-        print()
-        try:
-            mock_args = argparse.Namespace(
-                region=getattr(args, "region", None) or "global",
-                no_browser=bool(getattr(args, "no_browser", False)),
-                timeout=getattr(args, "timeout", None) or 15.0,
-            )
-            _login_minimax_oauth(mock_args, PROVIDER_REGISTRY["minimax-oauth"])
-        except SystemExit:
-            print("Login cancelled or failed.")
-            return
-        except Exception as exc:
-            print(f"Login failed: {exc}")
-            return
-
-    try:
-        creds = resolve_minimax_oauth_runtime_credentials()
-    except AuthError as exc:
-        print(format_auth_error(exc))
-        return
-
-    from sparkii_cli.models import _PROVIDER_MODELS
-
-    model_ids = _PROVIDER_MODELS.get("minimax-oauth", [])
-    selected = _prompt_model_selection(
-        model_ids,
-        current_model,
-        confirm_provider="minimax-oauth",
-        confirm_base_url=creds["base_url"],
-    )
-    if not selected:
-        return
-    _save_model_choice(selected)
-    _update_config_for_provider("minimax-oauth", creds["base_url"])
-    print(f"\u2713 Using MiniMax model: {selected}")
-
-
 def _model_flow_custom(config):
     """Custom endpoint: collect URL, API key, and model name.
 
@@ -899,14 +403,14 @@ def _model_flow_custom(config):
     """
     from sparkii_cli.main import _auto_provider_name, _prompt_custom_api_mode_selection, _save_custom_provider
     from sparkii_cli.auth import _save_model_choice, deactivate_provider
-    from sparkii_cli.config import (
+    from core.config import (
         custom_endpoint_key_env,
         get_env_value,
         load_config,
         save_config,
         save_env_value,
     )
-    from sparkii_cli.secret_prompt import masked_secret_prompt
+    from core.secret_prompt import masked_secret_prompt
 
     current_url = get_env_value("OPENAI_BASE_URL") or ""
     current_key = get_env_value("OPENAI_API_KEY") or ""
@@ -1168,7 +672,7 @@ def _model_flow_azure_foundry(config, current_model=""):
     (models.dev, provider metadata, hardcoded family fallbacks).
     """
     from sparkii_cli.auth import _save_model_choice, deactivate_provider  # noqa: F401
-    from sparkii_cli.config import (
+    from core.config import (
         get_env_value,
         save_env_value,
         load_config,
@@ -1337,7 +841,7 @@ def _model_flow_azure_foundry(config, current_model=""):
             token_provider = None
     else:
         print()
-        from sparkii_cli.secret_prompt import masked_secret_prompt
+        from core.secret_prompt import masked_secret_prompt
 
         try:
             api_key = masked_secret_prompt(
@@ -1512,7 +1016,7 @@ def _model_flow_named_custom(config, provider_info):
     """
     from sparkii_cli.main import _custom_provider_api_key_config_value, _custom_provider_base_url_config_value, _save_custom_provider
     from sparkii_cli.auth import _save_model_choice, deactivate_provider
-    from sparkii_cli.config import load_config, normalize_extra_headers, save_config
+    from core.config import load_config, normalize_extra_headers, save_config
     from sparkii_cli.model_switch import (
         _entry_models_discovered,
         _models_config_is_allowlist,
@@ -1806,7 +1310,7 @@ def _model_flow_copilot(config, current_model=""):
         deactivate_provider,
         resolve_api_key_provider_credentials,
     )
-    from sparkii_cli.config import save_env_value, load_config, save_config
+    from core.config import save_env_value, load_config, save_config
     from sparkii_cli.models import (
         _PROVIDER_MODELS,
         fetch_api_models,
@@ -1861,7 +1365,7 @@ def _model_flow_copilot(config, current_model=""):
                 print(f"  Login failed: {exc}")
                 return
         elif choice == "2":
-            from sparkii_cli.secret_prompt import masked_secret_prompt
+            from core.secret_prompt import masked_secret_prompt
 
             try:
                 new_key = masked_secret_prompt("  Token (COPILOT_GITHUB_TOKEN): ").strip()
@@ -1893,7 +1397,7 @@ def _model_flow_copilot(config, current_model=""):
         source = creds.get("source", "")
     else:
         if source in {"GITHUB_TOKEN", "GH_TOKEN"}:
-            from sparkii_cli.env_loader import format_secret_source_suffix
+            from core.env_loader import format_secret_source_suffix
             bw_suffix = format_secret_source_suffix(source)
             print(f"  GitHub token: {api_key[:8]}... ✓ ({source}{bw_suffix})")
         elif source == "gh auth token":
@@ -1995,123 +1499,6 @@ def _model_flow_copilot(config, current_model=""):
     else:
         print("No change.")
 
-def _model_flow_copilot_acp(config, current_model=""):
-    """GitHub Copilot ACP flow using the local Copilot CLI."""
-    from sparkii_cli.auth import (
-        PROVIDER_REGISTRY,
-        _prompt_model_selection,
-        _save_model_choice,
-        deactivate_provider,
-        get_external_process_provider_status,
-        resolve_api_key_provider_credentials,
-        resolve_external_process_provider_credentials,
-    )
-    from sparkii_cli.models import (
-        _PROVIDER_MODELS,
-        fetch_github_model_catalog,
-        normalize_copilot_model_id,
-    )
-    from sparkii_cli.config import load_config, save_config
-
-    del config
-
-    provider_id = "copilot-acp"
-    pconfig = PROVIDER_REGISTRY[provider_id]
-
-    status = get_external_process_provider_status(provider_id)
-    resolved_command = (
-        status.get("resolved_command") or status.get("command") or "copilot"
-    )
-    effective_base = status.get("base_url") or pconfig.inference_base_url
-
-    print("  GitHub Copilot ACP delegates Sparkii turns to `copilot --acp`.")
-    print("  Sparkii currently starts its own ACP subprocess for each request.")
-    print("  Sparkii uses your selected model as a hint for the Copilot ACP session.")
-    print(f"  Command: {resolved_command}")
-    print(f"  Backend marker: {effective_base}")
-    print()
-
-    try:
-        creds = resolve_external_process_provider_credentials(provider_id)
-    except Exception as exc:
-        print(f"  ⚠ {exc}")
-        print(
-            "  Set SPARKII_COPILOT_ACP_COMMAND or COPILOT_CLI_PATH if Copilot CLI is installed elsewhere."
-        )
-        return
-
-    effective_base = creds.get("base_url") or effective_base
-
-    catalog_api_key = ""
-    try:
-        catalog_creds = resolve_api_key_provider_credentials("copilot")
-        catalog_api_key = catalog_creds.get("api_key", "")
-    except Exception:
-        pass
-
-    catalog = fetch_github_model_catalog(catalog_api_key)
-    normalized_current_model = (
-        normalize_copilot_model_id(
-            current_model,
-            catalog=catalog,
-            api_key=catalog_api_key,
-        )
-        or current_model
-    )
-
-    if catalog:
-        model_list = [item.get("id", "") for item in catalog if item.get("id")]
-        print(f"  Found {len(model_list)} model(s) from GitHub Copilot")
-    else:
-        model_list = _PROVIDER_MODELS.get("copilot", [])
-        if model_list:
-            print(
-                "  ⚠ Could not auto-detect models from GitHub Copilot — showing defaults."
-            )
-            print('    Use "Enter custom model name" if you do not see your model.')
-
-    if model_list:
-        selected = _prompt_model_selection(
-            model_list,
-            current_model=normalized_current_model,
-            confirm_provider=provider_id,
-            confirm_base_url=effective_base,
-            confirm_api_key=catalog_api_key,
-        )
-    else:
-        try:
-            selected = input("Model name: ").strip()
-        except (KeyboardInterrupt, EOFError):
-            selected = None
-
-    if not selected:
-        print("No change.")
-        return
-
-    selected = (
-        normalize_copilot_model_id(
-            selected,
-            catalog=catalog,
-            api_key=catalog_api_key,
-        )
-        or selected
-    )
-    _save_model_choice(selected)
-
-    cfg = load_config()
-    model = cfg.get("model")
-    if not isinstance(model, dict):
-        model = {"default": model} if model else {}
-        cfg["model"] = model
-    model["provider"] = provider_id
-    model["base_url"] = effective_base
-    model["api_mode"] = "chat_completions"
-    clear_model_endpoint_credentials(model, clear_api_mode=False)
-    save_config(cfg)
-    deactivate_provider()
-
-    print(f"Default model set to: {selected} (via {pconfig.name})")
-
 def _model_flow_kimi(config, current_model=""):
     """Kimi / Moonshot model selection with automatic endpoint routing.
 
@@ -2128,7 +1515,7 @@ def _model_flow_kimi(config, current_model=""):
         _save_model_choice,
         deactivate_provider,
     )
-    from sparkii_cli.config import (
+    from core.config import (
         get_env_value,
         save_env_value,
         load_config,
@@ -2212,7 +1599,7 @@ def _model_flow_stepfun(config, current_model=""):
         _save_model_choice,
         deactivate_provider,
     )
-    from sparkii_cli.config import (
+    from core.config import (
         get_env_value,
         save_env_value,
         load_config,
@@ -2326,7 +1713,7 @@ def _model_flow_bedrock_api_key(config, region, current_model=""):
         _save_model_choice,
         deactivate_provider,
     )
-    from sparkii_cli.config import (
+    from core.config import (
         load_config,
         save_config,
         save_env_value,
@@ -2347,7 +1734,7 @@ def _model_flow_bedrock_api_key(config, region, current_model=""):
         "bedrock", bedrock_pconfig
     )
     if existing_key:
-        from sparkii_cli.env_loader import format_secret_source_suffix
+        from core.env_loader import format_secret_source_suffix
         source_suffix = format_secret_source_suffix(
             existing_source or "AWS_BEARER_TOKEN_BEDROCK"
         )
@@ -2355,7 +1742,7 @@ def _model_flow_bedrock_api_key(config, region, current_model=""):
     else:
         print(f"  Endpoint: {mantle_base_url}")
         print()
-        from sparkii_cli.secret_prompt import masked_secret_prompt
+        from core.secret_prompt import masked_secret_prompt
 
         try:
             api_key = masked_secret_prompt("  Bedrock API Key: ").strip()
@@ -2444,7 +1831,7 @@ def _model_flow_bedrock(config, current_model=""):
         _save_model_choice,
         deactivate_provider,
     )
-    from sparkii_cli.config import load_config, save_config
+    from core.config import load_config, save_config
     from sparkii_cli.models import _PROVIDER_MODELS
 
     # 1. Check for AWS credentials
@@ -2651,7 +2038,7 @@ def _model_flow_vertex(config, current_model=""):
         _save_model_choice,
         deactivate_provider,
     )
-    from sparkii_cli.config import load_config, save_config, get_env_value
+    from core.config import load_config, save_config, get_env_value
     from sparkii_cli.models import _PROVIDER_MODELS
 
     # 1. Credential source detection (fast, no network / no google-auth import).
@@ -2808,7 +2195,7 @@ def _model_flow_api_key_provider(config, provider_id, current_model=""):
         _save_model_choice,
         deactivate_provider,
     )
-    from sparkii_cli.config import (
+    from core.config import (
         get_env_value,
         save_env_value,
         load_config,
@@ -3120,7 +2507,7 @@ def _model_flow_anthropic(config, current_model=""):
         _save_model_choice,
         deactivate_provider,
     )
-    from sparkii_cli.config import (
+    from core.config import (
         save_env_value,
         load_config,
         save_config,
@@ -3159,7 +2546,7 @@ def _model_flow_anthropic(config, current_model=""):
     if has_creds:
         # Show what we found
         if existing_key:
-            from sparkii_cli.env_loader import format_secret_source_suffix
+            from core.env_loader import format_secret_source_suffix
             from sparkii_cli.auth import PROVIDER_REGISTRY
 
             # Surface which env var supplied the key so users with
@@ -3209,7 +2596,7 @@ def _model_flow_anthropic(config, current_model=""):
             print()
             print("  Get an API key at: https://platform.claude.com/settings/keys")
             print()
-            from sparkii_cli.secret_prompt import masked_secret_prompt
+            from core.secret_prompt import masked_secret_prompt
 
             try:
                 api_key = masked_secret_prompt("  API key (sk-ant-...): ").strip()

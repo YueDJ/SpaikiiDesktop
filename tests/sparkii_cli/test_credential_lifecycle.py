@@ -32,7 +32,7 @@ def sparkii_home(monkeypatch, tmp_path):
     home = tmp_path / "cred_home"
     home.mkdir()
     monkeypatch.setenv("SPARKII_HOME", str(home))
-    from sparkii_cli.config import invalidate_env_cache
+    from core.config import invalidate_env_cache
 
     invalidate_env_cache()
     return home
@@ -42,7 +42,7 @@ def _write_env(home, **pairs):
     home.joinpath(".env").write_text(
         "".join(f"{k}={v}\n" for k, v in pairs.items()), encoding="utf-8"
     )
-    from sparkii_cli.config import invalidate_env_cache
+    from core.config import invalidate_env_cache
 
     invalidate_env_cache()
 
@@ -138,7 +138,7 @@ def test_update_rotates_config_yaml_model_mirror(sparkii_home):
     assert old not in cfg_text, "stale old key left in config.yaml (#62269)"
     assert new in cfg_text, "config.yaml mirror not rotated to the new key"
 
-    from sparkii_cli.config import load_env
+    from core.config import load_env
 
     assert load_env()["OPENAI_API_KEY"] == new
 

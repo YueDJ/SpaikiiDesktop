@@ -1,7 +1,7 @@
 """Tests for config.yaml structure validation (validate_config_structure)."""
 
 
-from sparkii_cli.config import (
+from core.config import (
     DEFAULT_CONFIG,
     _EXTRA_KNOWN_ROOT_KEYS,
     _KNOWN_ROOT_KEYS,

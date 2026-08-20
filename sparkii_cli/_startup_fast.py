@@ -2,7 +2,7 @@
 
 This module is imported by ``sparkii_cli/main.py`` BEFORE its heavy import
 wall (config, argparse tree, logging, providers). Everything here must stay
-**stdlib-only and cheap** (os/sys file probes; no yaml, no sparkii_cli.config,
+**stdlib-only and cheap** (os/sys file probes; no yaml, no core.config,
 no argparse). A guard test (``test_startup_fast_import_weight``) subprocess-
 imports this module and fails if any heavy module sneaks into sys.modules.
 

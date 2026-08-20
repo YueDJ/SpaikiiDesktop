@@ -74,7 +74,7 @@ def _setup_isolated_home(tmp_path, monkeypatch, model_yaml_value):
     )
     # save_config writes to ``get_sparkii_home() / config.yaml`` — point it here.
     monkeypatch.setattr("sparkii_constants.get_sparkii_home", lambda: sparkii_home)
-    monkeypatch.setattr("sparkii_cli.config.get_sparkii_home", lambda: sparkii_home)
+    monkeypatch.setattr("core.config.get_sparkii_home", lambda: sparkii_home)
     return cfg_path
 
 
@@ -124,7 +124,7 @@ async def test_model_global_persists_when_config_has_missing_model(tmp_path, mon
         lambda **kw: _fake_switch_result(),
     )
     monkeypatch.setattr("sparkii_constants.get_sparkii_home", lambda: sparkii_home)
-    monkeypatch.setattr("sparkii_cli.config.get_sparkii_home", lambda: sparkii_home)
+    monkeypatch.setattr("core.config.get_sparkii_home", lambda: sparkii_home)
 
     result = await _make_runner()._handle_model_command(
         _make_event("/model gpt-5.5 --global")

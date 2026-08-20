@@ -48,7 +48,7 @@ def _peer_key_env(name: str) -> str:
 
 
 def _load_peers() -> dict:
-    from sparkii_cli.config import load_config
+    from core.config import load_config
 
     cfg = load_config() or {}
     peers = cfg.get("bot_peers")
@@ -56,7 +56,7 @@ def _load_peers() -> dict:
 
 
 def _save_peers(peers: dict) -> None:
-    from sparkii_cli.config import load_config, save_config
+    from core.config import load_config, save_config
 
     cfg = load_config() or {}
     cfg["bot_peers"] = peers
@@ -174,7 +174,7 @@ def cmd_peer(args) -> int:
         _save_peers(peers)
         key = (getattr(args, "key", "") or "").strip()
         if key:
-            from sparkii_cli.config import save_env_value
+            from core.config import save_env_value
 
             save_env_value(_peer_key_env(name), key)
             print(f"Peer '{name}' saved ({url}) — key stored as {_peer_key_env(name)} in ~/.sparkii/.env")

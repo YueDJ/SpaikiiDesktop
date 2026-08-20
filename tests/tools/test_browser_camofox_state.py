@@ -36,7 +36,7 @@ class TestCamofoxIdentity:
 
 class TestCamofoxConfigDefaults:
     def test_default_config_includes_camofox_controls(self):
-        from sparkii_cli.config import DEFAULT_CONFIG
+        from core.config import DEFAULT_CONFIG
 
         browser_cfg = DEFAULT_CONFIG["browser"]
         assert browser_cfg["camofox"]["managed_persistence"] is False

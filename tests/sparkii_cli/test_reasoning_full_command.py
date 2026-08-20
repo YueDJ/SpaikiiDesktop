@@ -12,7 +12,7 @@ import os
 import yaml
 
 from sparkii_cli.cli_commands_mixin import CLICommandsMixin
-from sparkii_cli.config import DEFAULT_CONFIG
+from core.config import DEFAULT_CONFIG
 
 
 class _Stub(CLICommandsMixin):

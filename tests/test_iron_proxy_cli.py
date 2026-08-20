@@ -86,7 +86,7 @@ def test_cmd_setup_from_bitwarden_refuses_on_empty_vault(sparkii_home, monkeypat
     """If BW returns {} (empty vault / scoped wrong / unreachable), fail
     loud rather than silently writing credential_source: bitwarden."""
 
-    from sparkii_cli.config import load_config, save_config
+    from core.config import load_config, save_config
 
     cfg = load_config()
     cfg.setdefault("secrets", {})["bitwarden"] = {
@@ -134,7 +134,7 @@ def test_cmd_start_passes_bitwarden_refresh_flag_when_credential_source_is_bitwa
     refresh_secrets_from_bitwarden=True into start_proxy.  That's what
     delivers the rotation promise the docs make."""
 
-    from sparkii_cli.config import load_config, save_config
+    from core.config import load_config, save_config
     cfg = load_config()
     cfg.setdefault("proxy", {})["enabled"] = True
     cfg["proxy"]["credential_source"] = "bitwarden"
@@ -219,7 +219,7 @@ def test_cmd_disable_uses_public_status_pid_not_private_read_pid(
     check) — NOT ip._read_pid() directly (which would fire a spurious
     'still running' warning for a stale pidfile from a crashed run)."""
 
-    from sparkii_cli.config import load_config, save_config
+    from core.config import load_config, save_config
 
     cfg = load_config()
     cfg.setdefault("proxy", {})["enabled"] = True
@@ -251,7 +251,7 @@ def test_cmd_disable_uses_public_status_pid_not_private_read_pid(
     # assertion is that no "still running" message fired with a stale
     # pidfile.  That's covered by inspecting return code + config
     # mutation only.
-    from sparkii_cli.config import load_config as _lc
+    from core.config import load_config as _lc
     cfg2 = _lc()
     assert cfg2["proxy"]["enabled"] is False
 
@@ -300,7 +300,7 @@ def test_cmd_start_refuses_when_bitwarden_mode_but_disabled(sparkii_home, monkey
     later flips to false — cmd_start must refuse, not silently start on
     host env (the silent-degrade class strict mode is meant to close)."""
 
-    from sparkii_cli.config import load_config, save_config
+    from core.config import load_config, save_config
     cfg = load_config()
     cfg.setdefault("proxy", {})["enabled"] = True
     cfg["proxy"]["credential_source"] = "bitwarden"

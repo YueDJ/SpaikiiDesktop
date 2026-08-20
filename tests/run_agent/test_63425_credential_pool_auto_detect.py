@@ -43,10 +43,10 @@ class TestCredentialPoolPreservedOnAutoDetect:
              patch('agent.azure_identity_adapter.is_token_provider', return_value=False), \
              patch('sparkii_cli.model_normalize.normalize_model_for_provider', return_value='test-model'), \
              patch('agent.credential_pool.load_pool', return_value=MagicMock()), \
-             patch('sparkii_cli.config.load_config', return_value={}), \
-             patch('sparkii_cli.config.get_compatible_custom_providers', return_value=[]), \
+             patch('core.config.load_config', return_value={}), \
+             patch('core.config.get_compatible_custom_providers', return_value=[]), \
              patch('agent.iteration_budget.IterationBudget'), \
-             patch('sparkii_cli.config.cfg_get', return_value=None):
+             patch('core.config.cfg_get', return_value=None):
 
             init_agent(
                 agent,

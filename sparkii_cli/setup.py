@@ -22,7 +22,6 @@ import copy
 from pathlib import Path
 from typing import Optional, Dict, Any
 
-from sparkii_cli.nous_subscription import get_nous_subscription_features
 from tools.tool_backend_helpers import managed_nous_tools_enabled
 from sparkii_constants import get_optional_skills_dir
 
@@ -71,51 +70,7 @@ def _supports_same_provider_pool_setup(provider: str) -> bool:
 # Default model lists per provider — used as fallback when the live
 # /models endpoint can't be reached.
 _DEFAULT_PROVIDER_MODELS = {
-    "copilot-acp": [
-        "copilot-acp",
-    ],
-    "copilot": [
-        "gpt-5.4",
-        "gpt-5.4-mini",
-        "gpt-5-mini",
-        "gpt-5.3-codex",
-        "gpt-5.2-codex",
-        "gpt-4.1",
-        "gpt-4o",
-        "gpt-4o-mini",
-        "claude-opus-4.6",
-        "claude-sonnet-5",
-        "claude-sonnet-4.6",
-        "claude-sonnet-4.5",
-        "claude-haiku-4.5",
-        "gemini-2.5-pro",
-    ],
-    "gemini": [
-        "gemini-3.1-pro-preview", "gemini-3-pro-preview",
-        "gemini-3.6-flash", "gemini-3.1-flash-lite-preview",
-    ],
-    "vertex": [
-        "google/gemini-3.1-pro-preview", "google/gemini-3-pro-preview",
-        "google/gemini-3-flash-preview", "google/gemini-3.1-flash-lite-preview",
-        "google/gemini-2.5-pro", "google/gemini-2.5-flash",
-    ],
-    "zai": ["glm-5.2", "glm-5.1", "glm-5", "glm-4.7", "glm-4.5", "glm-4.5-flash"],
-    "kimi-coding": ["kimi-k3", "kimi-k2.6", "kimi-k2.5", "kimi-k2-thinking", "kimi-k2-turbo-preview"],
-    "kimi-coding-cn": ["kimi-k3", "kimi-k2.6", "kimi-k2.5", "kimi-k2-thinking", "kimi-k2-turbo-preview"],
-    "stepfun": ["step-3.5-flash", "step-3.5-flash-2603"],
-    "arcee": ["trinity-large-thinking", "trinity-large-preview", "trinity-mini"],
-    "minimax": ["MiniMax-M2.7", "MiniMax-M2.5", "MiniMax-M2.1", "MiniMax-M2"],
-    "minimax-cn": ["MiniMax-M2.7", "MiniMax-M2.5", "MiniMax-M2.1", "MiniMax-M2"],
-    "ai-gateway": ["anthropic/claude-opus-4.6", "anthropic/claude-sonnet-4.6", "openai/gpt-5", "google/gemini-3-flash"],
-    "kilocode": ["anthropic/claude-sonnet-5", "anthropic/claude-opus-4.6", "anthropic/claude-sonnet-4.6", "openai/gpt-5.4", "google/gemini-3-pro-preview", "google/gemini-3-flash-preview"],
-    "opencode-zen": ["gpt-5.4", "gpt-5.3-codex", "claude-sonnet-5", "claude-sonnet-4-6", "gemini-3-flash", "glm-5", "kimi-k2.5", "minimax-m2.7"],
-    "opencode-go": ["kimi-k3", "kimi-k2.6", "kimi-k2.5", "glm-5.1", "glm-5", "mimo-v2.5-pro", "mimo-v2.5", "mimo-v2-pro", "mimo-v2-omni", "minimax-m2.7", "minimax-m2.5", "qwen3.7-max", "qwen3.6-plus", "qwen3.5-plus"],
-    "huggingface": [
-        "Qwen/Qwen3.5-397B-A17B", "Qwen/Qwen3-235B-A22B-Thinking-2507",
-        "Qwen/Qwen3-Coder-480B-A35B-Instruct", "deepseek-ai/DeepSeek-R1-0528",
-        "deepseek-ai/DeepSeek-V3.2", "moonshotai/Kimi-K2.5",
-    ],
-}
+    }
 
 
 def _current_reasoning_effort(config: Dict[str, Any]) -> str:
@@ -136,7 +91,7 @@ def _set_reasoning_effort(config: Dict[str, Any], effort: str) -> None:
 
 
 # Import config helpers
-from sparkii_cli.config import (
+from core.config import (
     cfg_get,
     DEFAULT_CONFIG,
     get_sparkii_home,
@@ -151,7 +106,7 @@ from sparkii_cli.config import (
 )
 # display_sparkii_home imported lazily at call sites (stale-module safety during sparkii update)
 
-from sparkii_cli.colors import Colors, color
+from core.colors import Colors, color
 
 
 def print_header(title: str):
@@ -166,7 +121,7 @@ from sparkii_cli.cli_output import (  # noqa: E402
     print_success,
     print_warning,
 )
-from sparkii_cli.secret_prompt import masked_secret_prompt  # noqa: E402
+from core.secret_prompt import masked_secret_prompt  # noqa: E402
 
 
 def is_interactive_stdin() -> bool:
@@ -412,14 +367,12 @@ def _print_setup_summary(config: dict, sparkii_home):
         print_warning("No inference provider is configured — Sparkii cannot chat yet.")
         print_info("  Finish this one step with either of:")
         print_info("    sparkii model            (pick any provider/model)")
-        print_info("    sparkii setup --portal   (Nous Portal OAuth, no API key)")
 
     # Tool availability summary
     print()
     print_header("Tool Availability Summary")
 
     tool_status = []
-    subscription_features = get_nous_subscription_features(config)
 
     # Vision — use the same runtime resolver as the actual vision tools
     try:
@@ -436,105 +389,84 @@ def _print_setup_summary(config: dict, sparkii_home):
 
 
     # Web tools (Exa, Parallel, Firecrawl, or Tavily)
-    if subscription_features.web.managed_by_nous:
-        tool_status.append(("Web Search & Extract (Nous subscription)", True, None))
-    elif subscription_features.web.available:
-        label = "Web Search & Extract"
-        if subscription_features.web.current_provider:
-            label = f"Web Search & Extract ({subscription_features.web.current_provider})"
-        tool_status.append((label, True, None))
+    _web_configured = any(
+        get_env_value(v)
+        for v in (
+            "EXA_API_KEY",
+            "PARALLEL_API_KEY",
+            "FIRECRAWL_API_KEY",
+            "FIRECRAWL_API_URL",
+            "TAVILY_API_KEY",
+            "SEARXNG_URL",
+        )
+    )
+    if _web_configured:
+        tool_status.append(("Web Search & Extract", True, None))
     else:
         tool_status.append(("Web Search & Extract", False, "EXA_API_KEY, PARALLEL_API_KEY, FIRECRAWL_API_KEY/FIRECRAWL_API_URL, TAVILY_API_KEY, or SEARXNG_URL"))
 
     # Browser tools (local Chromium, Camofox, Browserbase, Browser Use, or Firecrawl)
-    browser_provider = subscription_features.browser.current_provider
-    if subscription_features.browser.managed_by_nous:
-        tool_status.append(("Browser Automation (Nous Browser Use)", True, None))
-    elif subscription_features.browser.available:
-        label = "Browser Automation"
-        if browser_provider:
-            label = f"Browser Automation ({browser_provider})"
-        tool_status.append((label, True, None))
+    _browser_env_provider = None
+    if get_env_value("BROWSERBASE_API_KEY") and get_env_value("BROWSERBASE_PROJECT_ID"):
+        _browser_env_provider = "Browserbase"
+    elif get_env_value("BROWSER_USE_API_KEY"):
+        _browser_env_provider = "Browser Use"
+    elif get_env_value("CAMOFOX_URL"):
+        _browser_env_provider = "Camofox"
+    if _browser_env_provider:
+        tool_status.append((f"Browser Automation ({_browser_env_provider})", True, None))
     else:
         missing_browser_hint = "npm install -g agent-browser, set CAMOFOX_URL, or configure Browser Use or Browserbase"
-        if browser_provider == "Browserbase":
-            missing_browser_hint = (
-                "npm install -g agent-browser and set "
-                "BROWSERBASE_API_KEY/BROWSERBASE_PROJECT_ID"
-            )
-        elif browser_provider == "Browser Use":
-            missing_browser_hint = (
-                "npm install -g agent-browser and set BROWSER_USE_API_KEY"
-            )
-        elif browser_provider == "Camofox":
-            missing_browser_hint = "CAMOFOX_URL"
-        elif browser_provider == "Local browser":
-            missing_browser_hint = (
-                "npm install -g agent-browser && agent-browser install --with-deps"
-            )
         tool_status.append(
             ("Browser Automation", False, missing_browser_hint)
         )
 
-    # Image generation — FAL (direct or via Nous), or any plugin-registered
-    # provider (OpenAI, etc.)
-    if subscription_features.image_gen.managed_by_nous:
-        tool_status.append(("Image Generation (Nous subscription)", True, None))
-    elif subscription_features.image_gen.available:
-        tool_status.append(("Image Generation", True, None))
-    else:
-        # Fall back to probing plugin-registered providers so OpenAI-only
-        # setups don't show as "missing FAL_KEY".
-        _img_backend = None
-        try:
-            from agent.image_gen_registry import list_providers
-            from sparkii_cli.plugins import _ensure_plugins_discovered
+    # Image generation — FAL or any plugin-registered provider (OpenAI, etc.)
+    _img_backend = None
+    try:
+        from agent.image_gen_registry import list_providers
+        from sparkii_cli.plugins import _ensure_plugins_discovered
 
-            _ensure_plugins_discovered()
-            for _p in list_providers():
-                if _p.name == "fal":
-                    continue
-                try:
-                    if _p.is_available():
-                        _img_backend = _p.display_name
-                        break
-                except Exception:
-                    continue
-        except Exception:
-            pass
-        if _img_backend:
-            tool_status.append((f"Image Generation ({_img_backend})", True, None))
-        else:
-            tool_status.append(("Image Generation", False, "FAL_KEY or OPENAI_API_KEY"))
+        _ensure_plugins_discovered()
+        for _p in list_providers():
+            if _p.name == "fal":
+                continue
+            try:
+                if _p.is_available():
+                    _img_backend = _p.display_name
+                    break
+            except Exception:
+                continue
+    except Exception:
+        pass
+    if _img_backend:
+        tool_status.append((f"Image Generation ({_img_backend})", True, None))
+    else:
+        tool_status.append(("Image Generation", False, "FAL_KEY or OPENAI_API_KEY"))
 
     # Video generation — opt-in via `sparkii tools` → Video Generation.
     # Only show the row when a plugin reports available so we don't badger
     # users who don't care about video gen with a "missing" status line.
-    if subscription_features.video_gen.managed_by_nous:
-        tool_status.append(("Video Generation (FAL via Nous subscription)", True, None))
-    else:
-        try:
-            from agent.video_gen_registry import list_providers as _list_video_providers
-            from sparkii_cli.plugins import _ensure_plugins_discovered as _ensure_plugins
-            _ensure_plugins()
-            _video_backend = None
-            for _vp in _list_video_providers():
-                try:
-                    if _vp.is_available():
-                        _video_backend = _vp.display_name
-                        break
-                except Exception:
-                    continue
-        except Exception:
-            _video_backend = None
-        if _video_backend:
-            tool_status.append((f"Video Generation ({_video_backend})", True, None))
+    try:
+        from agent.video_gen_registry import list_providers as _list_video_providers
+        from sparkii_cli.plugins import _ensure_plugins_discovered as _ensure_plugins
+        _ensure_plugins()
+        _video_backend = None
+        for _vp in _list_video_providers():
+            try:
+                if _vp.is_available():
+                    _video_backend = _vp.display_name
+                    break
+            except Exception:
+                continue
+    except Exception:
+        _video_backend = None
+    if _video_backend:
+        tool_status.append((f"Video Generation ({_video_backend})", True, None))
 
     # TTS — show configured provider
     tts_provider = cfg_get(config, "tts", "provider", default="edge")
-    if subscription_features.tts.managed_by_nous:
-        tool_status.append(("Text-to-Speech (OpenAI via Nous subscription)", True, None))
-    elif tts_provider == "elevenlabs" and get_env_value("ELEVENLABS_API_KEY"):
+    if tts_provider == "elevenlabs" and get_env_value("ELEVENLABS_API_KEY"):
         tool_status.append(("Text-to-Speech (ElevenLabs)", True, None))
     elif tts_provider == "openai" and (
         get_env_value("VOICE_TOOLS_OPENAI_KEY") or get_env_value("OPENAI_API_KEY")
@@ -569,10 +501,7 @@ def _print_setup_summary(config: dict, sparkii_home):
 
     # STT — show configured provider
     stt_provider = cfg_get(config, "stt", "provider", default="local") or "local"
-    _stt_feature = subscription_features.features.get("stt")
-    if _stt_feature is not None and _stt_feature.managed_by_nous:
-        tool_status.append(("Speech-to-Text (OpenAI via Nous subscription)", True, None))
-    elif stt_provider == "openai" and (
+    if stt_provider == "openai" and (
         get_env_value("VOICE_TOOLS_OPENAI_KEY") or get_env_value("OPENAI_API_KEY")
     ):
         tool_status.append(("Speech-to-Text (OpenAI)", True, None))
@@ -596,15 +525,10 @@ def _print_setup_summary(config: dict, sparkii_home):
                 ("Speech-to-Text (Local Whisper — not installed)", False, "run 'sparkii tools' → Speech-to-Text")
             )
 
-    if subscription_features.modal.managed_by_nous:
-        tool_status.append(("Modal Execution (Nous subscription)", True, None))
-    elif cfg_get(config, "terminal", "backend") == "modal":
-        if subscription_features.modal.direct_override:
-            tool_status.append(("Modal Execution (direct Modal)", True, None))
-        else:
-            tool_status.append(("Modal Execution", False, "run 'sparkii setup terminal'"))
-    elif managed_nous_tools_enabled() and subscription_features.nous_auth_present:
-        tool_status.append(("Modal Execution (optional via Nous subscription)", True, None))
+    if cfg_get(config, "terminal", "backend") == "modal":
+        tool_status.append(("Modal Execution (direct Modal)", True, None))
+    else:
+        tool_status.append(("Modal Execution", False, "run 'sparkii setup terminal'"))
 
     # Home Assistant
     if get_env_value("HASS_TOKEN"):
@@ -881,7 +805,7 @@ def setup_model_provider(config: dict, *, quick: bool = False):
     When *quick* is True, skips credential rotation, vision, and TTS
     configuration — used by the streamlined first-time quick setup.
     """
-    from sparkii_cli.config import load_config, save_config
+    from core.config import load_config, save_config
 
     print_header("Inference Provider")
     print_info("Choose how to connect to your main chat model.")
@@ -1078,7 +1002,6 @@ def _setup_tts_provider(config: dict):
     """Interactive TTS provider selection with install flow for NeuTTS."""
     tts_config = config.get("tts", {})
     current_provider = tts_config.get("provider", "edge")
-    subscription_features = get_nous_subscription_features(config)
 
     provider_labels = {
         "edge": "Edge TTS",
@@ -1100,9 +1023,6 @@ def _setup_tts_provider(config: dict):
 
     choices = []
     providers = []
-    if managed_nous_tools_enabled() and subscription_features.nous_auth_present:
-        choices.append("Nous Subscription (managed OpenAI TTS, billed to your subscription)")
-        providers.append("nous-openai")
     choices.extend(
         [
             "Edge TTS (free, cloud-based, no setup needed)",
@@ -1125,15 +1045,6 @@ def _setup_tts_provider(config: dict):
         return
 
     selected = providers[idx]
-    selected_via_nous = selected == "nous-openai"
-    if selected == "nous-openai":
-        selected = "openai"
-        print_info("OpenAI TTS will use the managed Nous gateway and bill to your subscription.")
-        if get_env_value("VOICE_TOOLS_OPENAI_KEY") or get_env_value("OPENAI_API_KEY"):
-            print_warning(
-                "Direct OpenAI credentials are still configured and may take precedence until removed from ~/.sparkii/.env."
-            )
-
     if selected == "neutts":
         # Check if already installed
         try:
@@ -1169,7 +1080,7 @@ def _setup_tts_provider(config: dict):
                 print_warning("No API key provided. Falling back to Edge TTS.")
                 selected = "edge"
 
-    elif selected == "openai" and not selected_via_nous:
+    elif selected == "openai":
         existing = get_env_value("VOICE_TOOLS_OPENAI_KEY") or get_env_value("OPENAI_API_KEY")
         if not existing:
             print()
@@ -1438,12 +1349,7 @@ def setup_terminal_backend(config: dict):
         from tools.managed_tool_gateway import is_managed_tool_gateway_ready
         from tools.tool_backend_helpers import normalize_modal_mode
 
-        managed_modal_available = bool(
-            managed_nous_tools_enabled()
-            and
-            get_nous_subscription_features(config).nous_auth_present
-            and is_managed_tool_gateway_ready("modal")
-        )
+        managed_modal_available = False
         modal_mode = normalize_modal_mode(cfg_get(config, "terminal", "modal_mode"))
         use_managed_modal = False
         if managed_modal_available:
@@ -2514,7 +2420,7 @@ def _get_section_config_summary(config: dict, section_key: str) -> Optional[str]
     """Return a short summary if a setup section is already configured, else None.
 
     Used after OpenClaw migration to detect which sections can be skipped.
-    ``get_env_value`` is the module-level import from sparkii_cli.config
+    ``get_env_value`` is the module-level import from core.config
     so that test patches on ``setup_mod.get_env_value`` take effect.
     """
     if section_key == "model":
@@ -2850,88 +2756,6 @@ SETUP_SECTIONS = [
 ]
 
 
-def _run_portal_one_shot(config: dict) -> None:
-    """One-shot Nous Portal setup — OAuth + model pick + provider + Tool Gateway.
-
-    Wired into ``sparkii setup --portal`` and ``sparkii portal``. This is the
-    Nous-Portal slice of the first-time quick setup, collapsed into a single
-    shareable command so a brand-new user goes from zero to a fully working
-    Sparkii session — model selected, provider set, and web/image/tts/browser
-    tools routed via their Portal sub — without being told to run
-    ``sparkii setup`` and hunt for the quick-setup option.
-
-    The login + model selection + provider switch + Tool Gateway opt-in are all
-    delegated to ``_model_flow_nous`` — the exact same flow quick setup uses
-    (``_run_first_time_quick_setup``) and the same one ``sparkii model`` runs
-    when you pick Nous. Routing through it (instead of hand-rolling the auth +
-    provider write here) means ``sparkii portal`` always offers a model picker,
-    and there is a single source of truth for the Nous onboarding steps.
-    """
-    from sparkii_cli.config import load_config
-
-    print()
-    print(
-        color(
-            "┌─────────────────────────────────────────────────────────┐",
-            Colors.MAGENTA,
-        )
-    )
-    print(color("│     ⚕ Sparkii Setup — Nous Portal (one-shot)             │", Colors.MAGENTA))
-    print(
-        color(
-            "└─────────────────────────────────────────────────────────┘",
-            Colors.MAGENTA,
-        )
-    )
-    print()
-    print_info("  One subscription, 300+ models, plus the Tool Gateway:")
-    print_info("    web search, image generation, TTS, browser automation")
-    print_info("    — all routed through your Nous Portal sub.")
-    print()
-    print_info("  Sign up: https://portal.nousresearch.com/manage-subscription")
-    print()
-
-    # _model_flow_nous handles BOTH the logged-out path (device-code OAuth,
-    # which selects a model internally) and the already-logged-in path (curated
-    # Nous model picker), then offers the Tool Gateway opt-in and sets
-    # provider=nous via the login/model save. This is the same routine quick
-    # setup calls, so `sparkii portal` == quick setup's Nous step.
-    try:
-        from sparkii_cli.main import _model_flow_nous
-
-        _model_flow_nous(config)
-    except (KeyboardInterrupt, EOFError, SystemExit):
-        # _login_nous raises SystemExit(130)/(1) on cancel/failure; the
-        # logged-out path inside _model_flow_nous catches it, but the
-        # expired-session re-login path only catches Exception, so a
-        # SystemExit there would otherwise escape and kill the whole CLI.
-        # Treat all of these as a graceful cancel/abort for the portal flow.
-        print()
-        print_info("  Setup cancelled.")
-        print_info("  You can retry later with `sparkii portal`.")
-        return
-    except Exception as exc:
-        logger.debug("_model_flow_nous error during `sparkii portal`: %s", exc)
-        print()
-        print_error(f"  Nous Portal setup encountered an error: {exc}")
-        print_info("  You can retry later with `sparkii portal`.")
-        return
-
-    # Re-sync the in-memory config from disk — _model_flow_nous (and the
-    # underlying login/model save) write via their own load/save cycle, so any
-    # later save_config(config) by a caller must not clobber those values.
-    try:
-        _refreshed = load_config()
-        if isinstance(_refreshed, dict):
-            config.clear()
-            config.update(_refreshed)
-    except Exception:
-        pass
-
-    print()
-    print_success("Portal setup complete.")
-    print_info("  Run `sparkii portal info` to inspect routing.")
-    print_info("  Run `sparkii` to start chatting.")
 
 
 def run_setup_wizard(args):
@@ -2947,7 +2771,7 @@ def run_setup_wizard(args):
       sparkii setup telemetry — just local shared metrics
       sparkii setup agent     — just agent settings
     """
-    from sparkii_cli.config import is_managed, managed_error
+    from core.config import is_managed, managed_error
     if is_managed():
         managed_error("run setup wizard")
         return
@@ -2988,11 +2812,6 @@ def run_setup_wizard(args):
         print_noninteractive_setup_guidance(
             "Running in a non-interactive environment (no TTY detected)."
         )
-        return
-
-    # --portal: one-shot Nous Portal setup. Skips the rest of the wizard.
-    if bool(getattr(args, "portal", False)):
-        _run_portal_one_shot(config)
         return
 
     # Check if a specific section was requested
@@ -3179,7 +2998,7 @@ def _run_first_time_quick_setup(config: dict, sparkii_home, is_existing: bool):
     settings, tools); the user can customize later via ``sparkii setup <section>``
     or switch providers with ``sparkii model``.
     """
-    from sparkii_cli.config import load_config
+    from core.config import load_config
 
     # Step 1: Nous Portal — OAuth login + model selection.
     # _model_flow_nous() handles both the logged-out path (device-code OAuth,
@@ -3398,7 +3217,7 @@ def _run_blank_slate_setup(config: dict, sparkii_home, is_existing: bool):
 
 def _blank_slate_walkthrough(config: dict, sparkii_home):
     """Opt-in walkthrough for Blank Slate: skills, tools, plugins, MCP, gateway."""
-    from sparkii_cli.config import load_config
+    from core.config import load_config
 
     # ── Bundled skills — default to NONE, offer to seed all ──
     print()
@@ -3481,7 +3300,7 @@ def _blank_slate_walkthrough(config: dict, sparkii_home):
 
 def _run_quick_setup(config: dict, sparkii_home):
     """Quick setup — only configure items that are missing."""
-    from sparkii_cli.config import (
+    from core.config import (
         get_missing_env_vars,
         get_missing_config_fields,
         check_config_version,

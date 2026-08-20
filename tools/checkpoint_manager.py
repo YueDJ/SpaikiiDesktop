@@ -58,7 +58,7 @@ import subprocess
 import time
 from pathlib import Path
 from sparkii_constants import get_sparkii_home
-from sparkii_cli._subprocess_compat import windows_hide_flags
+from core._subprocess_compat import windows_hide_flags
 from typing import Dict, List, Optional, Set, Tuple
 
 from utils import env_int

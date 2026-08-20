@@ -179,7 +179,7 @@ def main():
             # the same command boundary as other long-lived gateway processes.
             # trim_memory's shared cooldown coalesces this with nearby activity.
             try:
-                from sparkii_cli.mem_trim import trim_memory
+                from core.mem_trim import trim_memory
 
                 trim_memory(reason="slash worker command completion")
             except Exception as exc:

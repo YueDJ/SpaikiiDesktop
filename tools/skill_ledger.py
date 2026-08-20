@@ -99,7 +99,7 @@ def ledger_enabled() -> bool:
     """Config gate ``skills.ledger`` (default True). Lazy import so this
     module stays importable without the CLI config layer."""
     try:
-        from sparkii_cli.config import cfg_get, load_config
+        from core.config import cfg_get, load_config
 
         return bool(cfg_get(load_config(), "skills", "ledger", default=True))
     except Exception as e:  # pragma: no cover — best-effort config read

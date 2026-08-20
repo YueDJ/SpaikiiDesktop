@@ -36,6 +36,8 @@ data/
 !sparkii_cli/data/
 !sparkii_cli/data/plugin_index.json
 .pytest_cache/
+.pytest-tmp/
+.runtime-electron.log
 test_durations.json
 .pytest-cache/
 tmp/

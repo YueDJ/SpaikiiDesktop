@@ -36,7 +36,7 @@ from typing import Any, Optional
 from agent.redact import redact_sensitive_text
 from sparkii_cli.goals import judge_goal
 from tools.registry import registry, tool_error
-from sparkii_cli.config import cfg_get, load_config
+from core.config import cfg_get, load_config
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +54,7 @@ def _profile_has_kanban_toolset() -> bool:
     # negligible overhead. The check_fn results are further TTL-cached
     # (~30s) by the tool registry.
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         cfg = load_config()
         toolsets = cfg.get("toolsets", [])
         return "kanban" in toolsets
@@ -1531,7 +1531,7 @@ def _maybe_auto_subscribe(conn: Any, task_id: str) -> bool:
     platform = ""
     chat_id = ""
     try:
-        from gateway.session_context import get_session_env
+        from core.session_context import get_session_env
         platform = get_session_env("SPARKII_SESSION_PLATFORM", "")
         chat_id = get_session_env("SPARKII_SESSION_CHAT_ID", "")
         if not platform or not chat_id:

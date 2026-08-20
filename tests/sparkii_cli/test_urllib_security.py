@@ -11,7 +11,7 @@ import urllib.request
 
 import pytest
 
-from sparkii_cli.urllib_security import (
+from core.urllib_security import (
     SafeCredentialRedirectHandler,
     open_credentialed_url,
     url_origin,
@@ -392,7 +392,7 @@ def _clear_ca_bundle_env(monkeypatch) -> None:
 
 
 def test_sparkii_owned_opener_uses_resolved_https_context(monkeypatch):
-    import sparkii_cli.urllib_security as urllib_security
+    import core.urllib_security as urllib_security
 
     context = ssl.create_default_context()
     monkeypatch.setattr(urllib.request, "_opener", None)
@@ -412,7 +412,7 @@ def test_sparkii_owned_opener_uses_resolved_https_context(monkeypatch):
 
 
 def test_resolved_https_context_prefers_configured_ca_bundle(monkeypatch, tmp_path):
-    import sparkii_cli.urllib_security as urllib_security
+    import core.urllib_security as urllib_security
 
     _clear_ca_bundle_env(monkeypatch)
     ca_bundle = tmp_path / "corporate-ca.pem"
@@ -433,7 +433,7 @@ def test_resolved_https_context_prefers_configured_ca_bundle(monkeypatch, tmp_pa
 
 def test_resolved_https_context_uses_certifi_on_macos(monkeypatch):
     import certifi
-    import sparkii_cli.urllib_security as urllib_security
+    import core.urllib_security as urllib_security
 
     _clear_ca_bundle_env(monkeypatch)
     expected_context = ssl.create_default_context()
@@ -453,7 +453,7 @@ def test_resolved_https_context_uses_certifi_on_macos(monkeypatch):
 
 def test_invalid_ca_bundle_falls_back_to_certifi_on_macos(monkeypatch, tmp_path):
     import certifi
-    import sparkii_cli.urllib_security as urllib_security
+    import core.urllib_security as urllib_security
 
     _clear_ca_bundle_env(monkeypatch)
     missing_bundle = tmp_path / "missing-ca.pem"
@@ -474,7 +474,7 @@ def test_invalid_ca_bundle_falls_back_to_certifi_on_macos(monkeypatch, tmp_path)
 
 
 def test_resolved_https_context_keeps_stdlib_default_off_macos(monkeypatch):
-    import sparkii_cli.urllib_security as urllib_security
+    import core.urllib_security as urllib_security
 
     _clear_ca_bundle_env(monkeypatch)
     monkeypatch.setattr(urllib_security.sys, "platform", "linux")
@@ -483,7 +483,7 @@ def test_resolved_https_context_keeps_stdlib_default_off_macos(monkeypatch):
 
 
 def test_installed_https_context_is_preserved(monkeypatch):
-    import sparkii_cli.urllib_security as urllib_security
+    import core.urllib_security as urllib_security
 
     context = ssl.create_default_context()
     installed = urllib.request.build_opener(

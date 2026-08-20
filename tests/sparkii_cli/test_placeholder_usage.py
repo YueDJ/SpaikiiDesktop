@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from sparkii_cli.config import config_command, show_config
+from core.config import config_command, show_config
 from sparkii_cli.setup import _print_setup_summary
 
 

@@ -37,7 +37,7 @@ import tempfile
 import threading
 from typing import Optional
 
-from sparkii_cli._subprocess_compat import windows_hide_flags
+from core._subprocess_compat import windows_hide_flags
 
 logger = logging.getLogger(__name__)
 

@@ -603,7 +603,7 @@ class SupermemoryMemoryProvider(MemoryProvider):
     def post_setup(self, sparkii_home: str, config: dict) -> None:
         from pathlib import Path
 
-        from sparkii_cli.config import save_config
+        from core.config import save_config
         from sparkii_cli.memory_setup import _prompt, _write_env_vars
 
         print("\n  Configuring supermemory:\n")

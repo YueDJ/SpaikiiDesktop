@@ -678,7 +678,7 @@ def test_curator_slot_is_canonical_aux_task():
     (test_aux_config.py) for the main tasks — this test pins `curator`
     specifically so the unification doesn't silently regress.
     """
-    from sparkii_cli.config import DEFAULT_CONFIG
+    from core.config import DEFAULT_CONFIG
     from sparkii_cli.main import _AUX_TASKS
     from sparkii_cli.web_server import _AUX_TASK_SLOTS
 
@@ -739,11 +739,11 @@ def test_review_fork_forwards_runtime_pool_and_overrides(curator_env, monkeypatc
             pass
 
     monkeypatch.setattr(
-        "sparkii_cli.config.load_config",
+        "core.config.load_config",
         lambda: {"model": {"provider": "custom:hyper-charm", "default": "glm-5.2"}},
     )
     monkeypatch.setattr(
-        "sparkii_cli.config.load_config_readonly",
+        "core.config.load_config_readonly",
         lambda: {"model": {"provider": "custom:hyper-charm", "default": "glm-5.2"}},
     )
     monkeypatch.setattr(
@@ -766,11 +766,11 @@ def test_review_fork_uses_runtime_model_and_output_cap(curator_env, monkeypatch)
     captured = {}
 
     monkeypatch.setattr(
-        "sparkii_cli.config.load_config",
+        "core.config.load_config",
         lambda: {"model": {"provider": "custom:gateway", "default": "gateway"}},
     )
     monkeypatch.setattr(
-        "sparkii_cli.config.load_config_readonly",
+        "core.config.load_config_readonly",
         lambda: {"model": {"provider": "custom:gateway", "default": "gateway"}},
     )
     monkeypatch.setattr(

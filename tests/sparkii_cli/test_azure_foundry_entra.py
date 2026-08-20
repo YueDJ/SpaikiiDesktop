@@ -206,7 +206,7 @@ class TestAzureFoundryAuthStatus:
         from sparkii_cli import auth as _auth
         # Force load_config to return our entra config.
         monkeypatch.setattr(
-            "sparkii_cli.config.load_config",
+            "core.config.load_config",
             lambda: {
                 "model": {
                     "provider": "azure-foundry",
@@ -232,7 +232,7 @@ class TestAzureFoundryAuthStatus:
     def test_api_key_status_false_when_missing(self, monkeypatch):
         from sparkii_cli import auth as _auth
         monkeypatch.setattr(
-            "sparkii_cli.config.load_config",
+            "core.config.load_config",
             lambda: {
                 "model": {
                     "provider": "azure-foundry",

@@ -42,7 +42,7 @@ from gateway.restart import (
     parse_restart_drain_timeout,
     resolve_restart_exit_wait_budget,
 )
-from sparkii_cli.config import (
+from core.config import (
     get_env_value,
     get_sparkii_home,
     is_managed,
@@ -64,7 +64,7 @@ from sparkii_cli.setup import (
     prompt_choice,
     prompt_yes_no,
 )
-from sparkii_cli.colors import Colors, color
+from core.colors import Colors, color
 
 logger = logging.getLogger(__name__)
 
@@ -427,7 +427,7 @@ def _scan_gateway_pids(
             # Hide the console window: this scan runs inside the windowless
             # pythonw.exe gateway/desktop backend, so a bare wmic/powershell
             # spawn would flash a conhost window on every watchdog probe.
-            from sparkii_cli._subprocess_compat import windows_hide_flags
+            from core._subprocess_compat import windows_hide_flags
 
             _no_window = {"creationflags": windows_hide_flags()}
             wmic_path = shutil.which("wmic")
@@ -781,7 +781,7 @@ def _spawn_gateway_restart_watcher(old_pid: int, run_argv: list[str]) -> bool:
     #
     # ``windows_detach_popen_kwargs()`` returns the right kwargs for the
     # host platform and is a no-op on POSIX (just ``start_new_session=True``).
-    from sparkii_cli._subprocess_compat import (
+    from core._subprocess_compat import (
         windows_detach_flags_without_breakaway,
         windows_detach_popen_kwargs,
     )
@@ -824,7 +824,7 @@ def _spawn_gateway_restart_watcher(old_pid: int, run_argv: list[str]) -> bool:
         import subprocess
         import sys
         import time
-        from sparkii_cli._subprocess_compat import (
+        from core._subprocess_compat import (
             windows_detach_flags,
             windows_detach_flags_without_breakaway,
         )
@@ -4031,7 +4031,7 @@ def _spawn_detached_gateway() -> bool:
     gateway logs and the PID is tracked via the gateway.pid file that
     `run_gateway` writes, so stop/status/restart keep working.
     """
-    from sparkii_cli._subprocess_compat import windows_detach_popen_kwargs
+    from core._subprocess_compat import windows_detach_popen_kwargs
 
     log_dir = get_sparkii_home() / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -4885,7 +4885,7 @@ def _guard_named_profile_under_multiplexer(force: bool = False) -> None:
             # Raw read of the DEFAULT root's config (not the active profile
             # home, so load_config() is the wrong owner here); whole probe is
             # fail-open via the enclosing except.
-            from sparkii_cli.config import read_user_config_raw
+            from core.config import read_user_config_raw
             cfg = read_user_config_raw(cfg_path)
             multiplex = bool(
                 cfg.get("multiplex_profiles")
@@ -5169,7 +5169,7 @@ def run_gateway(verbose: int = 0, quiet: bool = False, replace: bool = False, fo
         _max_starts = 5
         _win = 120.0
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
 
             _cfg = load_config()
             _gw = _cfg.get("gateway") if isinstance(_cfg, dict) else None

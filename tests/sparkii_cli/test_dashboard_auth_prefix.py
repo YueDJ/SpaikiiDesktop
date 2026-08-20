@@ -283,7 +283,7 @@ class TestPublicUrlOverride:
 
     @pytest.fixture
     def patch_config(self, monkeypatch):
-        """Replace ``sparkii_cli.config.load_config`` with a stub
+        """Replace ``core.config.load_config`` with a stub
         returning the given ``public_url``. Pass ``None`` to set no
         config-side value."""
 
@@ -292,7 +292,7 @@ class TestPublicUrlOverride:
             if public_url is not None:
                 cfg = {"dashboard": {"public_url": public_url}}
             monkeypatch.setattr(
-                "sparkii_cli.config.load_config", lambda: cfg
+                "core.config.load_config", lambda: cfg
             )
 
         return _set

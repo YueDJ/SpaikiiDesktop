@@ -37,9 +37,9 @@ from typing import Any, Dict, List, Optional
 import yaml
 
 from sparkii_constants import get_sparkii_home, get_optional_mcps_dir
-from sparkii_cli._subprocess_compat import noninteractive_git_env
-from sparkii_cli.colors import Colors, color
-from sparkii_cli.config import (
+from core._subprocess_compat import noninteractive_git_env
+from core.colors import Colors, color
+from core.config import (
     load_config,
     save_config,
     get_env_value,

@@ -455,7 +455,7 @@ plugins:
             encoding="utf-8",
         )
         monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
-        from sparkii_cli import config as _config_mod
+        from core import config as _config_mod
         _config_mod._config_cache = None  # type: ignore[attr-defined]
 
         policy = _resolve_trust_policy("my-plugin")
@@ -474,7 +474,7 @@ plugins:
         sparkii_home.mkdir()
         (sparkii_home / "config.yaml").write_text("plugins: {}\n", encoding="utf-8")
         monkeypatch.setenv("SPARKII_HOME", str(sparkii_home))
-        from sparkii_cli import config as _config_mod
+        from core import config as _config_mod
         _config_mod._config_cache = None  # type: ignore[attr-defined]
 
         policy = _resolve_trust_policy("never-configured")

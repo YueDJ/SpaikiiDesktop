@@ -35,7 +35,7 @@ from utils import (
 
 # Shared formatter; the private alias is kept because claw.py and the backup
 # tests import ``_format_size`` from this module.
-from sparkii_cli.sizefmt import format_bytes as _format_size
+from core.sizefmt import format_bytes as _format_size
 
 logger = logging.getLogger(__name__)
 
@@ -431,7 +431,7 @@ def is_zeroed_sqlite_file(
         return False
     if size <= 0:
         return False
-    from sparkii_cli.sqlite_safe_read import read_header_bytes_preopen
+    from core.sqlite_safe_read import read_header_bytes_preopen
 
     head = read_header_bytes_preopen(
         path, length=max(16, probe_bytes), force=force
@@ -519,7 +519,7 @@ def verify_sqlite_integrity(
         # close() would cancel this process's POSIX locks on the file (see
         # sparkii_cli.sqlite_safe_read). Verification targets snapshots and
         # backup artifacts, which are offline by construction.
-        from sparkii_cli.sqlite_safe_read import read_header_bytes_preopen
+        from core.sqlite_safe_read import read_header_bytes_preopen
 
         head = read_header_bytes_preopen(path, length=len(_SQLITE_HEADER))
         if head is None:

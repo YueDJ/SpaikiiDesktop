@@ -355,7 +355,7 @@ def get_tool_definitions(
     cache_key = None
     if quiet_mode:
         try:
-            from sparkii_cli.config import get_config_path
+            from core.config import get_config_path
             cfg_path = get_config_path()
             cfg_stat = cfg_path.stat()
             cfg_fp = (cfg_stat.st_mtime_ns, cfg_stat.st_size)
@@ -631,14 +631,14 @@ def _resolve_active_context_length() -> int:
     back to a fixed token cutoff in that case.
     """
     try:
-        from sparkii_cli.config import load_config as _load
+        from core.config import load_config as _load
         cfg = _load() or {}
         model_cfg = cfg.get("model") if isinstance(cfg.get("model"), dict) else {}
         if not isinstance(model_cfg, dict):
             model_cfg = {}
         _raw_model_id = model_cfg.get("model") or model_cfg.get("default") or ""
         if isinstance(_raw_model_id, dict):
-            from sparkii_cli.config import split_model_config_default
+            from core.config import split_model_config_default
             _raw_model_id, _ = split_model_config_default(_raw_model_id)
         model_id = str(_raw_model_id).strip()
         if not model_id:

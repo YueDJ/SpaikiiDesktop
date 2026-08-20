@@ -27,7 +27,7 @@ import time
 from pathlib import Path
 from typing import Optional
 
-from sparkii_cli._subprocess_compat import IS_WINDOWS, windows_hide_flags
+from core._subprocess_compat import IS_WINDOWS, windows_hide_flags
 
 logger = logging.getLogger(__name__)
 

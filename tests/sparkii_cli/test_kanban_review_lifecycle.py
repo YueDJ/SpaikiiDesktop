@@ -379,7 +379,7 @@ def test_review_dispatch_gate_prevents_phantom_reviewer(
     task parked in ``review`` (this deployment explicitly waits for a human).
     Flipping the knob back on proves the gate, not
     something else, is what suppressed the claim."""
-    import sparkii_cli.config as cfgmod
+    import core.config as cfgmod
     import sparkii_cli.profiles as profmod
 
     with kb.connect() as conn:
@@ -425,7 +425,7 @@ def test_active_pr_guard_skipped_for_review_lane_but_defers_ready_lane(
     a ready-lane task is a duplicate-work signal and stays deferred.
     Rate-limit cooldown still applies in the review lane.
     """
-    import sparkii_cli.config as cfgmod
+    import core.config as cfgmod
     import sparkii_cli.profiles as profmod
 
     monkeypatch.setattr(profmod, "profile_exists", lambda name: True)
@@ -478,7 +478,7 @@ def test_active_pr_guard_skipped_for_review_lane_but_defers_ready_lane(
 def test_review_dispatch_preserves_task_skills_and_adds_reviewer_skill(
     kanban_home: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    import sparkii_cli.config as cfgmod
+    import core.config as cfgmod
     import sparkii_cli.profiles as profmod
 
     monkeypatch.setattr(profmod, "profile_exists", lambda name: True)
@@ -531,7 +531,7 @@ def test_review_dispatch_honors_global_and_per_profile_caps(
     kanban_home: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import sparkii_cli.config as cfgmod
+    import core.config as cfgmod
     import sparkii_cli.profiles as profmod
 
     monkeypatch.setattr(profmod, "profile_exists", lambda _name: True)

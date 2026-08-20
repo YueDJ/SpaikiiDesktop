@@ -1069,7 +1069,7 @@ def enabled() -> bool:
     """Return the shared-metrics policy for the active Sparkii profile."""
     profile_key = relay_runtime.current_profile_key()
     try:
-        from sparkii_cli.config import read_raw_config_readonly
+        from core.config import read_raw_config_readonly
 
         # Collection consent is profile-owned. Managed config overlays may
         # control runtime policy, but cannot opt a profile into or out of

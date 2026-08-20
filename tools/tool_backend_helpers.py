@@ -20,28 +20,11 @@ _VALID_MODAL_MODES = {"auto", "direct", "managed"}
 def managed_nous_tools_enabled(*, force_fresh: bool = False) -> bool:
     """Return True when the user is entitled to the Nous Tool Gateway.
 
-    Entitlement is paid Nous Portal service access OR a live free tool pool
-    (``tool_gateway_entitled``). Per-category coverage (the pool funds image but
-    not video, etc.) is narrowed by callers via ``tool_gateway_entitled_for``;
-    this coarse gate only answers "is any managed tool usable at all".
-
-    Tool Gateway availability fails closed on unknown/error entitlement.  We
-    intentionally catch all exceptions and return False — never block startup.
-    ``force_fresh=True`` is for interactive configuration flows that should
-    reflect a just-purchased subscription, credits, or pool grant immediately.
+    The Nous product line (Portal account, subscription, Tool Gateway) was
+    removed from the base, so the gate is always closed.  Kept as a constant
+    False so call sites stay simple and fail closed.
     """
-    try:
-        from sparkii_cli.nous_account import get_nous_portal_account_info
-
-        if force_fresh:
-            account_info = get_nous_portal_account_info(force_fresh=True)
-        else:
-            account_info = get_nous_portal_account_info()
-        if not account_info.logged_in:
-            return False
-        return account_info.tool_gateway_entitled
-    except Exception:
-        return False
+    return False
 
 
 def nous_tool_gateway_unavailable_message(
@@ -49,26 +32,8 @@ def nous_tool_gateway_unavailable_message(
     *,
     force_fresh: bool = False,
 ) -> str:
-    """Return account-aware guidance for an unavailable Nous Tool Gateway path."""
-    try:
-        from sparkii_cli.nous_account import (
-            format_nous_portal_entitlement_message,
-            get_nous_portal_account_info,
-        )
-
-        account_info = get_nous_portal_account_info(force_fresh=force_fresh)
-        message = format_nous_portal_entitlement_message(
-            account_info,
-            capability=capability,
-        )
-        if message:
-            return message
-    except Exception:
-        pass
-    return (
-        f"{capability} is unavailable. Run `sparkii model` to refresh your "
-        "Nous Portal login and billing status."
-    )
+    """Return guidance for an unavailable Nous Tool Gateway path."""
+    return f"{capability} is unavailable."
 
 
 def normalize_browser_cloud_provider(value: object | None) -> str:
@@ -172,7 +137,7 @@ def resolve_provider_secret(
        this reads the active profile's secret scope (authoritative — a scope
        miss must NOT borrow another profile's ``os.environ``; see
        ``agent/secret_scope.py``). Outside multiplexing it reads
-       ``sparkii_cli.config.get_env_value`` (os.environ, then ``.env``),
+       ``core.config.get_env_value`` (os.environ, then ``.env``),
        matching the tools' historical behaviour exactly.
     3. The credential pool / auth store for ``provider_id`` (``sparkii auth
        add <provider_id>``). Skipped under an active multiplex turn, where
@@ -183,7 +148,7 @@ def resolve_provider_secret(
 
     ``env_getter`` lets callers supply their module-level ``get_env_value``
     wrapper (transcription_tools / tts_tool expose one that tests patch);
-    when omitted, ``sparkii_cli.config.get_env_value`` is used directly.
+    when omitted, ``core.config.get_env_value`` is used directly.
     """
     value = str(config_value or "").strip()
     if value:
@@ -211,7 +176,7 @@ def resolve_provider_secret(
         key = str(env_getter(env_var) or "").strip()
     else:
         try:
-            from sparkii_cli.config import get_env_value
+            from core.config import get_env_value
 
             key = str(get_env_value(env_var) or "").strip()
         except ImportError:  # pragma: no cover — config is in-repo
@@ -281,7 +246,7 @@ def prefers_gateway(config_section: str) -> bool:
     Reads ``<section>.use_gateway`` from config.yaml.  Never raises.
     """
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         section = (load_config() or {}).get(config_section)
         if isinstance(section, dict):
             return is_truthy_value(section.get("use_gateway"), default=False)
@@ -334,7 +299,7 @@ def read_selection(section: str) -> str | None:
     ``use_gateway: false`` beside a name key maps to that name.
     """
     try:
-        from sparkii_cli.config import read_raw_config_readonly
+        from core.config import read_raw_config_readonly
 
         cfg = read_raw_config_readonly() or {}
         raw = cfg.get(section) if isinstance(cfg, dict) else None
@@ -391,7 +356,7 @@ def selection_exists(section: str) -> bool:
     if not extra:
         return False
     try:
-        from sparkii_cli.config import read_raw_config_readonly
+        from core.config import read_raw_config_readonly
 
         cfg = read_raw_config_readonly() or {}
         raw = cfg.get(section) if isinstance(cfg, dict) else None
@@ -414,7 +379,7 @@ def fal_key_is_configured() -> bool:
     """Return True when FAL_KEY is set to a non-whitespace value.
 
     Consults both ``os.environ`` and ``~/.sparkii/.env`` (via
-    ``sparkii_cli.config.get_env_value`` when available) so tool-side
+    ``core.config.get_env_value`` when available) so tool-side
     checks and CLI setup-time checks agree.  A whitespace-only value
     is treated as unset everywhere.
     """
@@ -423,7 +388,7 @@ def fal_key_is_configured() -> bool:
         # Fall back to the .env file for CLI paths that may run before
         # dotenv is loaded into os.environ.
         try:
-            from sparkii_cli.config import get_env_value
+            from core.config import get_env_value
 
             value = get_env_value("FAL_KEY")
         except Exception:

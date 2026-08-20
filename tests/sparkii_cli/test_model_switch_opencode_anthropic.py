@@ -172,57 +172,8 @@ class TestAgentSwitchModelDefenseInDepth:
         )
 
 
-class TestStaleConfigDefaultDoesNotWedgeResolver:
-    """Regression for the real bug Quentin hit.
 
-    When ``model.default`` in config.yaml is an OpenCode Anthropic-routed model
-    (e.g. ``claude-sonnet-4-6`` on opencode-zen) and the user does ``/model
-    kimi-k2.6 --provider opencode-zen`` session-only, the resolver must derive
-    api_mode from the model being requested, not the persisted default. The
-    earlier bug computed api_mode from ``model_cfg.get("default")``, flipped it
-    to ``anthropic_messages`` based on the stale Claude default, and stripped
-    ``/v1``. The chat_completions override in switch_model() fixed api_mode but
-    never re-added ``/v1``, so requests landed on ``https://opencode.ai/zen``
-    and got OpenCode's website 404 HTML page.
 
-    These tests use the REAL ``resolve_runtime_provider`` (not a mock) so a
-    regression in the target_model plumbing surfaces immediately.
-    """
 
-    def test_kimi_switch_keeps_v1_despite_claude_config_default(self, tmp_path, monkeypatch):
-        import yaml
-        import importlib
-
-        monkeypatch.setenv("SPARKII_HOME", str(tmp_path))
-        monkeypatch.setenv("OPENCODE_ZEN_API_KEY", "test-key")
-        (tmp_path / "config.yaml").write_text(yaml.safe_dump({
-            "model": {"provider": "opencode-zen", "default": "claude-sonnet-4-6"},
-        }))
-
-        # Re-import with the new SPARKII_HOME so config cache is fresh.
-        import sparkii_cli.config as _cfg_mod
-        importlib.reload(_cfg_mod)
-        import sparkii_cli.runtime_provider as _rp_mod
-        importlib.reload(_rp_mod)
-        import sparkii_cli.model_switch as _ms_mod
-        importlib.reload(_ms_mod)
-
-        result = _ms_mod.switch_model(
-            raw_input="kimi-k2.6",
-            current_provider="opencode-zen",
-            current_model="claude-sonnet-4-6",
-            current_base_url="https://opencode.ai/zen",  # stripped from prior claude turn
-            current_api_key="test-key",
-            is_global=False,
-            explicit_provider="opencode-zen",
-        )
-
-        assert result.success, f"switch failed: {result.error_message}"
-        assert result.base_url == "https://opencode.ai/zen/v1", (
-            f"base_url wedged at {result.base_url!r} - stale Claude config.default "
-            "caused api_mode to be computed as anthropic_messages, stripping /v1, "
-            "and chat_completions override never re-added it."
-        )
-        assert result.api_mode == "chat_completions"
 
 

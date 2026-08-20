@@ -35,7 +35,7 @@ MANAGED = SimpleNamespace(
 class TestReadSelection:
     def _with_raw(self, raw):
         return patch(
-            "sparkii_cli.config.read_raw_config_readonly",
+            "core.config.read_raw_config_readonly",
             return_value=raw,
         )
 

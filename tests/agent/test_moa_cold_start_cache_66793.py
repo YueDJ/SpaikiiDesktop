@@ -41,7 +41,7 @@ def test_preset_resolution_is_cached_across_create_calls(monkeypatch, tmp_path):
     moa._preset_cache.clear()
 
     calls = {"n": 0}
-    import sparkii_cli.moa_config as moa_cfg_mod
+    import core.moa_config as moa_cfg_mod
     real_resolve = moa_cfg_mod.resolve_moa_preset
 
     def counting_resolve(config, name=None):
@@ -49,7 +49,7 @@ def test_preset_resolution_is_cached_across_create_calls(monkeypatch, tmp_path):
         return real_resolve(config, name)
 
     monkeypatch.setattr(moa_cfg_mod, "resolve_moa_preset", counting_resolve)
-    import sparkii_cli.config as cfg_mod
+    import core.config as cfg_mod
     # The cache keys on the config FILE's st_mtime_ns — give the test a real
     # stat-able file (no config file -> stamp=None -> caching fails open).
     cfg_file = tmp_path / "config.yaml"
@@ -77,7 +77,7 @@ def test_preset_cache_invalidates_on_config_edit(monkeypatch, tmp_path):
     moa._preset_cache.clear()
 
     calls = {"n": 0}
-    import sparkii_cli.moa_config as moa_cfg_mod
+    import core.moa_config as moa_cfg_mod
     real_resolve = moa_cfg_mod.resolve_moa_preset
 
     def counting_resolve(config, name=None):
@@ -85,7 +85,7 @@ def test_preset_cache_invalidates_on_config_edit(monkeypatch, tmp_path):
         return real_resolve(config, name)
 
     monkeypatch.setattr(moa_cfg_mod, "resolve_moa_preset", counting_resolve)
-    import sparkii_cli.config as cfg_mod
+    import core.config as cfg_mod
     cfg_file = tmp_path / "config.yaml"
     cfg_file.write_text("moa: {}\n")
     monkeypatch.setattr(cfg_mod, "get_config_path", lambda: cfg_file)
@@ -110,7 +110,7 @@ def test_no_config_file_fails_open(monkeypatch, tmp_path):
 
     moa._preset_cache.clear()
 
-    import sparkii_cli.config as cfg_mod
+    import core.config as cfg_mod
     monkeypatch.setattr(
         cfg_mod, "get_config_path", lambda: tmp_path / "missing.yaml"
     )
@@ -138,7 +138,7 @@ def test_slot_runtime_is_cached_across_create_calls(monkeypatch, tmp_path):
 
     import sparkii_cli.runtime_provider as rt_mod
     monkeypatch.setattr(rt_mod, "resolve_runtime_provider", counting_resolve)
-    import sparkii_cli.config as cfg_mod
+    import core.config as cfg_mod
     cfg_file = tmp_path / "config.yaml"
     cfg_file.write_text("moa: {}\n")
     monkeypatch.setattr(cfg_mod, "get_config_path", lambda: cfg_file)

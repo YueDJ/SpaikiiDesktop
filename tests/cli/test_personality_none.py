@@ -16,7 +16,7 @@ class TestCLIPersonalityNone:
 
     def _make_cli(self, personalities=None):
         from cli import SparkiiCLI
-        from sparkii_cli.personality import available_personalities
+        from core.personality import available_personalities
 
         cli = SparkiiCLI.__new__(SparkiiCLI)
         user = personalities or {
@@ -56,7 +56,7 @@ class TestCLIPersonalityNone:
         with (
             patch("sparkii_cli.personality.persist_personality", side_effect=_persist),
             patch(
-                "sparkii_cli.config.read_raw_config",
+                "core.config.read_raw_config",
                 return_value={"agent": {"system_prompt": "manual forever"}},
             ),
         ):
@@ -185,7 +185,7 @@ class TestPersonalityDictFormat:
 
     def _make_cli(self, personalities):
         from cli import SparkiiCLI
-        from sparkii_cli.personality import available_personalities
+        from core.personality import available_personalities
 
         cli = SparkiiCLI.__new__(SparkiiCLI)
         cli.config = {"agent": {"personalities": personalities}}

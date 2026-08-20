@@ -40,8 +40,8 @@ def _make_agent(*tool_names: str, max_iterations: int = 10, config: dict | None 
     with (
         patch("run_agent.get_tool_definitions", return_value=_make_tool_defs(*tool_names)),
         patch("run_agent.check_toolset_requirements", return_value={}),
-        patch("sparkii_cli.config.load_config", return_value=config or {}),
-        patch("sparkii_cli.config.load_config_readonly", return_value=config or {}),
+        patch("core.config.load_config", return_value=config or {}),
+        patch("core.config.load_config_readonly", return_value=config or {}),
         patch("run_agent.OpenAI"),
     ):
         agent = AIAgent(

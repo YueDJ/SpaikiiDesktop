@@ -216,7 +216,7 @@ def _image_generate_parallel_limit() -> int:
     intentionally conservative while allowing users to tune it per install.
     """
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         cfg = load_config() or {}
         image_gen = cfg.get("image_gen") if isinstance(cfg, dict) else None

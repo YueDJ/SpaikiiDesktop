@@ -342,10 +342,10 @@ class TestSetupWizardDeploymentShape:
 
         # Bypass config.yaml + connection test side effects.
         monkeypatch.setattr(
-            "sparkii_cli.config.load_config", lambda: {"memory": {}}, raising=False,
+            "core.config.load_config", lambda: {"memory": {}}, raising=False,
         )
         monkeypatch.setattr(
-            "sparkii_cli.config.save_config", lambda c: None, raising=False,
+            "core.config.save_config", lambda c: None, raising=False,
         )
 
         class _FakeClientCfg:
@@ -659,10 +659,10 @@ class TestCmdSetupDeviceFlow:
         monkeypatch.setattr(honcho_cli, "_device_login_available", lambda: device_available)
         monkeypatch.setattr(honcho_cli, "_headless", lambda: headless)
         monkeypatch.setattr(
-            "sparkii_cli.config.load_config", lambda: {"memory": {}}, raising=False,
+            "core.config.load_config", lambda: {"memory": {}}, raising=False,
         )
         monkeypatch.setattr(
-            "sparkii_cli.config.save_config", lambda c: None, raising=False,
+            "core.config.save_config", lambda c: None, raising=False,
         )
 
         class _FakeClientCfg:

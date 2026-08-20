@@ -40,7 +40,7 @@ from gateway.session import (
     build_session_key,
     is_shared_multi_user_session,
 )
-from sparkii_cli.config import atomic_config_write, cfg_get, clear_model_endpoint_credentials
+from core.config import atomic_config_write, cfg_get, clear_model_endpoint_credentials
 from utils import (
     atomic_json_write,
     base_url_host_matches,
@@ -1823,7 +1823,7 @@ class GatewaySlashCommandsMixin:
                     current_base_url = model_cfg.get("base_url", "")
                 user_provs = cfg.get("providers")
                 try:
-                    from sparkii_cli.config import get_compatible_custom_providers
+                    from core.config import get_compatible_custom_providers
                     custom_provs = get_compatible_custom_providers(cfg)
                 except Exception:
                     custom_provs = cfg.get("custom_providers")
@@ -2037,7 +2037,7 @@ class GatewaySlashCommandsMixin:
                             try:
                                 # Write-back round-trip: raw read is correct
                                 # (merged defaults must not be persisted).
-                                from sparkii_cli.config import read_user_config_raw
+                                from core.config import read_user_config_raw
                                 _persist_cfg = read_user_config_raw(config_path)
                                 _raw_model = _persist_cfg.get("model")
                                 if isinstance(_raw_model, dict):
@@ -2049,7 +2049,7 @@ class GatewaySlashCommandsMixin:
                                     _persist_model_cfg = {}
                                     _persist_cfg["model"] = _persist_model_cfg
                                 try:
-                                    from sparkii_cli.route_identity import should_clear_context_pin_async
+                                    from core.route_identity import should_clear_context_pin_async
 
                                     if await should_clear_context_pin_async(
                                         _persist_model_cfg.get("default")
@@ -2084,7 +2084,7 @@ class GatewaySlashCommandsMixin:
                                         _persist_model_cfg.pop("api_mode", None)
                                 else:
                                     clear_model_endpoint_credentials(_persist_model_cfg, clear_base_url=True)
-                                from sparkii_cli.config import save_config
+                                from core.config import save_config
                                 save_config(_persist_cfg)
                             except Exception as e:
                                 logger.warning("Failed to persist model switch: %s", e)
@@ -2363,7 +2363,7 @@ class GatewaySlashCommandsMixin:
                 try:
                     # Write-back round-trip: raw read is correct (merged
                     # defaults must not be persisted back to the user's file).
-                    from sparkii_cli.config import read_user_config_raw
+                    from core.config import read_user_config_raw
                     cfg = read_user_config_raw(config_path)
                     # Coerce scalar/None ``model:`` into a dict before mutation —
                     # otherwise ``cfg.setdefault("model", {})`` returns the existing
@@ -2381,7 +2381,7 @@ class GatewaySlashCommandsMixin:
                         model_cfg = {}
                         cfg["model"] = model_cfg
                     try:
-                        from sparkii_cli.route_identity import should_clear_context_pin_async
+                        from core.route_identity import should_clear_context_pin_async
 
                         if await should_clear_context_pin_async(
                             model_cfg.get("default") or model_cfg.get("model"),
@@ -2410,7 +2410,7 @@ class GatewaySlashCommandsMixin:
                             model_cfg.pop("api_mode", None)
                     else:
                         clear_model_endpoint_credentials(model_cfg, clear_base_url=True)
-                    from sparkii_cli.config import save_config
+                    from core.config import save_config
                     save_config(cfg)
                 except Exception as e:
                     logger.warning("Failed to persist model switch: %s", e)
@@ -2548,7 +2548,7 @@ class GatewaySlashCommandsMixin:
 
         # Load + persist via the same helpers used for /model and /yolo
         try:
-            from sparkii_cli.config import load_config, save_config
+            from core.config import load_config, save_config
         except Exception as exc:
             return f"❌ Could not load config: {exc}"
         cfg = load_config()
@@ -2579,7 +2579,7 @@ class GatewaySlashCommandsMixin:
         the single owner of personality state on every surface.
         """
         from gateway.run import _load_gateway_config
-        from sparkii_cli.personality import (
+        from core.personality import (
             active_personality_name,
             available_personalities,
             describe_personality,
@@ -3225,7 +3225,7 @@ class GatewaySlashCommandsMixin:
         env_key = _home_target_env_var(platform_name)
         thread_env_key = _home_thread_env_var(platform_name)
         try:
-            from sparkii_cli.config import save_env_value
+            from core.config import save_env_value
             save_env_value(env_key, str(chat_id))
             save_env_value(thread_env_key, str(thread_id or ""))
         except Exception as e:
@@ -3540,7 +3540,7 @@ class GatewaySlashCommandsMixin:
         """Save a dot-separated key to config.yaml (shared by /reasoning, /fast
         and their interactive pickers)."""
         from gateway.run import _sparkii_home
-        from sparkii_cli.config import read_user_config_raw
+        from core.config import read_user_config_raw
         config_path = _sparkii_home / "config.yaml"
         try:
             # Write-back round-trip: raw read is correct (merged defaults must
@@ -3796,7 +3796,7 @@ class GatewaySlashCommandsMixin:
         def _set_approval(enabled: bool):
             # Write-back round-trip: raw read is correct (merged defaults must
             # not be persisted back to the user's file).
-            from sparkii_cli.config import read_user_config_raw
+            from core.config import read_user_config_raw
             user_config = read_user_config_raw(config_path)
             user_config.setdefault("memory", {})["write_approval"] = bool(enabled)
             atomic_config_write(config_path, user_config)
@@ -3851,7 +3851,7 @@ class GatewaySlashCommandsMixin:
         def _set_approval(enabled: bool):
             # Write-back round-trip: raw read is correct (merged defaults must
             # not be persisted back to the user's file).
-            from sparkii_cli.config import read_user_config_raw
+            from core.config import read_user_config_raw
             user_config = read_user_config_raw(config_path)
             user_config.setdefault("skills", {})["write_approval"] = bool(enabled)
             atomic_config_write(config_path, user_config)
@@ -5159,38 +5159,8 @@ class GatewaySlashCommandsMixin:
         return t(key, title=branch_title, count=msg_count, parent=parent_session_id, new=new_session_id)
 
     async def _handle_topup_command(self, event: MessageEvent) -> str:
-        """Handle /topup -- show the Nous balance and hand off to the portal.
-
-        Renders the balance block + identity line + a tappable portal URL that
-        opens the billing page. Remote spending is managed on the portal: this
-        messaging command does NOT charge, confirm, or track payment here —
-        everything happens in the browser and the next /topup shows the new balance. The
-        tappable URL is the affordance and works on every platform (button-capable
-        or plain text like SMS/email). Fetched off the event loop; fail-open.
-        """
-        from agent.account_usage import build_credits_view
-
-        try:
-            view = await asyncio.to_thread(build_credits_view, markdown=True)
-        except Exception:
-            view = None
-
-        if view is None or not view.logged_in:
-            return t("gateway.credits.not_logged_in")
-
-        lines: list[str] = ["💳 **Nous balance**"]
-        for line in view.balance_lines:
-            if line.lstrip().startswith("📈"):
-                continue  # drop the helper's header; we print our own
-            lines.append(line)
-        if view.identity_line:
-            lines.append("")
-            lines.append(view.identity_line)
-        if view.topup_url:
-            lines.append("")
-            lines.append(f"Manage billing on the portal: {view.topup_url}")
-            lines.append("Top up and manage billing in the browser — your balance updates here after.")
-        return "\n".join(lines)
+        """Handle /topup -- Nous billing was removed with the Nous product line."""
+        return "Nous Portal billing was removed. Configure a direct provider API key instead."
 
     def _context_breakdown_block(self, agent, source, expanded: bool) -> list[str]:
         """Render the /context per-category block (plain text, no grid).
@@ -5880,7 +5850,7 @@ class GatewaySlashCommandsMixin:
         import shutil
         import subprocess
         from datetime import datetime
-        from sparkii_cli.config import is_managed, format_managed_message
+        from core.config import is_managed, format_managed_message
 
         # Block non-messaging platforms (API server, webhooks, ACP)
         platform = event.source.platform
@@ -5956,7 +5926,7 @@ class GatewaySlashCommandsMixin:
         try:
             if sys.platform == "win32":
                 import textwrap
-                from sparkii_cli._subprocess_compat import windows_detach_popen_kwargs
+                from core._subprocess_compat import windows_detach_popen_kwargs
 
                 # Invoke the updater as a module under this interpreter rather
                 # than through sparkii_cmd (venv\Scripts\sparkii.exe): the shim

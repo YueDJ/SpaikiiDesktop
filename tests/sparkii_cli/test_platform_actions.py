@@ -23,13 +23,13 @@ import pytest
 
 from gateway.config import Platform
 from sparkii_cli.platform_actions import CAPABILITY_ID, PlatformActions
-from sparkii_cli.plugin_capabilities import CAPABILITY_REGISTRY
+from core.plugin_capabilities import CAPABILITY_REGISTRY
 
 
 def _grant(granted: bool):
     """Patch the capability check the facade performs."""
     return patch(
-        "sparkii_cli.plugin_capabilities.plugin_capability_granted",
+        "core.plugin_capabilities.plugin_capability_granted",
         return_value=granted,
     )
 
@@ -85,7 +85,7 @@ class TestGateDefaultOff:
         """No patching of the check itself: an empty config entry denies."""
         actions = PlatformActions("some-plugin")
         with patch(
-            "sparkii_cli.plugin_capabilities._plugin_entry", return_value={}
+            "core.plugin_capabilities._plugin_entry", return_value={}
         ):
             result = asyncio.run(
                 actions.set_thread_title("telegram", "1", "2", "t")
@@ -100,7 +100,7 @@ class TestGateDefaultOff:
         actions = PlatformActions("some-plugin")
         adapter = _telegram_adapter()
         with patch(
-            "sparkii_cli.plugin_capabilities._plugin_entry",
+            "core.plugin_capabilities._plugin_entry",
             return_value={"allow_platform_actions": True},
         ), _runner_with({Platform.TELEGRAM: adapter}):
             result = asyncio.run(
@@ -112,7 +112,7 @@ class TestGateDefaultOff:
         actions = PlatformActions("some-plugin")
         adapter = _telegram_adapter()
         with patch(
-            "sparkii_cli.plugin_capabilities._plugin_entry",
+            "core.plugin_capabilities._plugin_entry",
             return_value={"granted_capabilities": ["gateway.platform_actions"]},
         ), _runner_with({Platform.TELEGRAM: adapter}):
             result = asyncio.run(
@@ -123,7 +123,7 @@ class TestGateDefaultOff:
     def test_capability_check_failure_fails_closed(self):
         actions = PlatformActions("some-plugin")
         with patch(
-            "sparkii_cli.plugin_capabilities.plugin_capability_granted",
+            "core.plugin_capabilities.plugin_capability_granted",
             side_effect=RuntimeError("corrupt config"),
         ):
             result = asyncio.run(

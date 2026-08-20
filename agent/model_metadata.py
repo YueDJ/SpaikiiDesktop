@@ -71,7 +71,7 @@ def _resolve_requests_verify(base_url: str = "") -> bool | str:
     """
     if base_url:
         try:
-            from sparkii_cli.config import get_custom_provider_tls_settings
+            from core.config import get_custom_provider_tls_settings
             tls = get_custom_provider_tls_settings(base_url)
             if tls.get("ssl_verify") is False:
                 return False
@@ -558,7 +558,6 @@ DEFAULT_CONTEXT_LENGTHS = {
     "hy3": 262144,
     # Nemotron — NVIDIA's open-weights series (128K context across all sizes)
     "nemotron": 131072,
-    # Arcee
     "trinity": 262144,
     # OpenRouter
     "elephant": 262144,
@@ -687,45 +686,16 @@ _URL_TO_PROVIDER: Dict[str, str] = {
     "api.openai.com": "openai",
     "chatgpt.com": "openai",
     "api.anthropic.com": "anthropic",
-    "api.z.ai": "zai",
-    "open.bigmodel.cn": "zai",
-    "api.moonshot.ai": "kimi-coding",
-    "api.moonshot.cn": "kimi-coding-cn",
-    "api.kimi.com": "kimi-coding",
-    "api.stepfun.ai": "stepfun",
-    "api.stepfun.com": "stepfun",
-    "api.arcee.ai": "arcee",
-    "api.minimax": "minimax",
-    "dashscope.aliyuncs.com": "alibaba",
-    "dashscope-intl.aliyuncs.com": "alibaba",
-    "portal.qwen.ai": "qwen-oauth",
-    "openrouter.ai": "openrouter",
-    "generativelanguage.googleapis.com": "gemini",
-    "inference-api.nousresearch.com": "nous",
-    "api.deepseek.com": "deepseek",
-    "api.githubcopilot.com": "copilot",
     # Enterprise Copilot endpoints look like api.enterprise.githubcopilot.com,
     # api.business.githubcopilot.com, etc.  Match the suffix so context-window
     # resolution works for enterprise accounts too.
-    ".githubcopilot.com": "copilot",
-    "models.github.ai": "copilot",
     # GitHub Models free tier (Azure-hosted prototyping endpoint) — same
     # canonical provider as the Copilot API.  Hard per-request token cap
     # (often 8K) makes it unusable for Sparkii' system prompt, but mapping
     # it here lets us recognize the endpoint and emit a targeted hint
     # instead of falling through the unknown-custom-endpoint path.
-    "models.inference.ai.azure.com": "copilot",
-    "api.fireworks.ai": "fireworks",
-    "opencode.ai": "opencode-go",
-    "api.x.ai": "xai",
-    "integrate.api.nvidia.com": "nvidia",
-    "api.xiaomimimo.com": "xiaomi",
-    "xiaomimimo.com": "xiaomi",
-    "api.gmi-serving.com": "gmi",
-    "api.novita.ai": "novita",
     "tokenhub.tencentmaas.com": "tencent-tokenhub",
-    "ollama.com": "ollama-cloud",
-}
+    }
 
 # Auto-extend with hostnames derived from provider profiles.
 # Any provider with a base_url not already in the map gets added automatically.
@@ -2698,11 +2668,11 @@ def get_model_context_length(
     # acting context, so they're ignored here.
     if (provider or "").strip().lower() == "moa":
         try:
-            from sparkii_cli.config import (
+            from core.config import (
                 get_compatible_custom_providers,
                 load_config,
             )
-            from sparkii_cli.moa_config import resolve_moa_preset
+            from core.moa_config import resolve_moa_preset
             from sparkii_cli.runtime_provider import resolve_runtime_provider
 
             config = load_config()
@@ -2748,7 +2718,7 @@ def get_model_context_length(
     # See #15779.
     if custom_providers and base_url and model:
         try:
-            from sparkii_cli.config import get_custom_provider_context_length
+            from core.config import get_custom_provider_context_length
             cp_ctx = get_custom_provider_context_length(
                 model=model,
                 base_url=base_url,

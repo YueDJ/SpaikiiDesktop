@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from sparkii_cli.config import (
+from core.config import (
     build_cron_model_impact,
     cron_model_drift_axes,
     resolve_cron_model_drift_defaults,

@@ -79,7 +79,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Optional
 
-from sparkii_cli._subprocess_compat import windows_hide_flags
+from core._subprocess_compat import windows_hide_flags
 
 logger = logging.getLogger(__name__)
 
@@ -474,7 +474,7 @@ def _allow_lazy_installs() -> bool:
     """
     # (1) Config kill switch wins in every mode.
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         cfg = load_config()
     except Exception:
         cfg = None
@@ -832,7 +832,7 @@ def ensure(feature: str, *, prompt: bool = True) -> None:
     # reports anything else as a hard failure rather than a skip.
     if _lazy_install_target() is None:
         try:
-            from sparkii_cli.config import get_managed_system
+            from core.config import get_managed_system
 
             managed_by = get_managed_system()
         except Exception:

@@ -37,13 +37,13 @@ from rich.table import Table
 # bump both together when pinning a new bws release.
 _BWS_VERSION = "2.0.0"
 
-from sparkii_cli.config import (
+from core.config import (
     get_env_path,
     load_config,
     save_config,
     save_env_value,
 )
-from sparkii_cli.secret_prompt import masked_secret_prompt
+from core.secret_prompt import masked_secret_prompt
 
 
 def _load_bw():

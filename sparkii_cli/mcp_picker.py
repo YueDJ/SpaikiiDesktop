@@ -22,7 +22,7 @@ import sys
 from dataclasses import dataclass
 from typing import List, Optional
 
-from sparkii_cli.colors import Colors, color
+from core.colors import Colors, color
 from sparkii_cli.cli_output import prompt_yes_no
 from sparkii_cli.curses_ui import curses_single_select
 from sparkii_cli.mcp_catalog import (
@@ -36,7 +36,7 @@ from sparkii_cli.mcp_catalog import (
     installed_servers,
     uninstall_entry,
 )
-from sparkii_cli.config import load_config, save_config
+from core.config import load_config, save_config
 
 
 # ─── Status badges ────────────────────────────────────────────────────────────

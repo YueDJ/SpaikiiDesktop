@@ -125,7 +125,7 @@ def _base_subprocess_env() -> dict:
 def _read_browser_cfg() -> dict:
     """Return the ``browser:`` config section, or {} on any failure."""
     try:
-        from sparkii_cli.config import cfg_get, read_raw_config
+        from core.config import cfg_get, read_raw_config
 
         cfg = cfg_get(read_raw_config(), "browser", default={})
         return cfg if isinstance(cfg, dict) else {}
@@ -618,7 +618,7 @@ def browser_exec(
     popen_extra: dict = {}
     if os.name == "nt":
         try:
-            from sparkii_cli._subprocess_compat import windows_hide_flags
+            from core._subprocess_compat import windows_hide_flags
 
             popen_extra["creationflags"] = windows_hide_flags()
             _si = subprocess.STARTUPINFO()

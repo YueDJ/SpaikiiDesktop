@@ -45,7 +45,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 import yaml
 
-from sparkii_cli.config import get_sparkii_home
+from core.config import get_sparkii_home
 
 
 HOOKS_DIR = get_sparkii_home() / "hooks"

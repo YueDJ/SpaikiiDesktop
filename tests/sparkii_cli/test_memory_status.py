@@ -25,7 +25,7 @@ def _run_cmd_status(capfd, mem_config=None, memory_tools=None):
     if memory_tools is None:
         memory_tools = {"memory"}
 
-    with patch("sparkii_cli.config.load_config", return_value=config):
+    with patch("core.config.load_config", return_value=config):
         with patch("sparkii_cli.memory_setup._get_available_providers", return_value=[]):
             with patch(
                 "sparkii_cli.tools_config._get_platform_tools",

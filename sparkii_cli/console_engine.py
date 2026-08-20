@@ -1359,14 +1359,14 @@ def _sessions_stats(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
 
 def _config_show(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
     _expect_no_args(args, "config show")
-    from sparkii_cli.config import show_config
+    from core.config import show_config
 
     return _capture_output(show_config)
 
 
 def _config_path(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
     _expect_no_args(args, "config path")
-    from sparkii_cli.config import get_config_path
+    from core.config import get_config_path
 
     return str(get_config_path())
 
@@ -1376,7 +1376,7 @@ def _config_set(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
         raise ConsoleCommandError("Usage: config set <key> <value>")
     key = args[0]
     value = " ".join(args[1:])
-    from sparkii_cli.config import set_config_value
+    from core.config import set_config_value
 
     return _capture_output(lambda: set_config_value(key, value))
 
@@ -1385,7 +1385,7 @@ def _config_migrate(_engine: SparkiiConsoleEngine, args: list[str]) -> str:
     _expect_no_args(args, "config migrate")
 
     def _run() -> None:
-        from sparkii_cli.config import migrate_config
+        from core.config import migrate_config
 
         results = migrate_config(interactive=False, quiet=False)
         if results.get("env_added") or results.get("config_added"):

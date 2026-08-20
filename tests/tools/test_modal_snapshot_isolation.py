@@ -64,7 +64,7 @@ def _install_modal_test_modules(
     sys.modules["sparkii_cli"] = sparkii_cli
     sparkii_home = tmp_path / "sparkii-home"
     os.environ["SPARKII_HOME"] = str(sparkii_home)
-    sys.modules["sparkii_cli.config"] = types.SimpleNamespace(
+    sys.modules["core.config"] = types.SimpleNamespace(
         get_sparkii_home=lambda: sparkii_home,
     )
 

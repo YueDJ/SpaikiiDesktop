@@ -169,7 +169,7 @@ def test_offer_first_run_setup_routes_into_shared_picker(monkeypatch):
     monkeypatch.setattr("builtins.input", lambda *a, **k: "y")
     # After the picker "runs", config has a provider and creds resolve.
     monkeypatch.setattr(
-        "sparkii_cli.config.load_config",
+        "core.config.load_config",
         lambda: {"model": {"provider": "nous", "default": "sparkii-4-405b"}},
     )
     monkeypatch.setattr(

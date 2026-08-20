@@ -15,7 +15,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 import yaml
 
-from sparkii_cli.config import (
+from core.config import (
     reload_env,
     redact_key,
     OPTIONAL_ENV_VARS,
@@ -76,7 +76,7 @@ def _install_example_plugin(_isolate_sparkii_home):
     # fixtures exist to exercise the *serving* paths, so opt the example
     # plugin in exactly as a real operator would with `sparkii plugins
     # enable example`.
-    from sparkii_cli.config import load_config, save_config
+    from core.config import load_config, save_config
     _cfg = load_config()
     _plugins_cfg = _cfg.setdefault("plugins", {})
     _enabled = _plugins_cfg.get("enabled")
@@ -354,7 +354,7 @@ class TestWebServerEndpoints:
 
     def test_get_sessions_auto_archive_uses_maintenance_writer(self):
         from sparkii_cli import web_server
-        from sparkii_cli.config import load_config, save_config
+        from core.config import load_config, save_config
         from sparkii_constants import get_sparkii_home
         from sparkii_state import SessionDB
 
@@ -706,7 +706,7 @@ class TestWebServerEndpoints:
         assert fields["recall_resources"]["kind"] == "boolean"
 
     def test_openviking_dashboard_persists_typed_recall_values(self):
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         resp = self.client.put(
             "/api/memory/providers/openviking/config",
@@ -749,7 +749,7 @@ class TestWebServerEndpoints:
         assert "must be at most 100" in resp.json()["detail"]
 
     def test_openviking_dashboard_rejects_blocked_endpoint_before_saving(self):
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         resp = self.client.put(
             "/api/memory/providers/openviking/config",
@@ -773,7 +773,7 @@ class TestWebServerEndpoints:
 
     def test_declared_surface_put_writes_config_and_secret(self):
         from sparkii_constants import get_sparkii_home
-        from sparkii_cli.config import load_env
+        from core.config import load_env
 
         resp = self.client.put(
             "/api/memory/providers/hindsight/config?surface=declared",
@@ -851,7 +851,7 @@ class TestWebServerEndpoints:
 
     def test_put_memory_provider_config_writes_config_and_secret(self):
         from sparkii_constants import get_sparkii_home
-        from sparkii_cli.config import load_config, load_env
+        from core.config import load_config, load_env
 
         resp = self.client.put(
             "/api/memory/providers/hindsight/config",
@@ -938,7 +938,7 @@ class TestWebServerEndpoints:
         monkeypatch.delenv("HONCHO_API_KEY")
         self._seed_local_honcho()
         from sparkii_constants import get_sparkii_home
-        from sparkii_cli.config import load_config, load_env
+        from core.config import load_config, load_env
 
         resp = self.client.put(
             "/api/memory/providers/honcho/config?surface=declared",
@@ -1326,7 +1326,7 @@ class TestWebServerEndpoints:
             "sparkii_cli.model_cost_guard.expensive_model_warning",
             lambda *_args, **_kwargs: None,
         )
-        from sparkii_cli.config import load_config, save_config
+        from core.config import load_config, save_config
         cfg = load_config()
         cfg["model"] = {"provider": "openrouter", "default": "openai/gpt-5.5"}
         save_config(cfg)
@@ -1354,7 +1354,7 @@ class TestWebServerEndpoints:
 
     def test_reveal_env_var(self, tmp_path):
         """POST /api/env/reveal should return the real unredacted value."""
-        from sparkii_cli.config import save_env_value
+        from core.config import save_env_value
         from sparkii_cli.web_server import _SESSION_HEADER_NAME, _SESSION_TOKEN
         save_env_value("TEST_REVEAL_KEY", "super-secret-value-12345")
         resp = self.client.post(
@@ -1372,7 +1372,7 @@ class TestWebServerEndpoints:
 
     def test_reveal_env_var_custom_session_header_ignores_proxy_authorization(self, tmp_path):
         """A valid dashboard session header should coexist with proxy auth."""
-        from sparkii_cli.config import save_env_value
+        from core.config import save_env_value
         from sparkii_cli.web_server import _SESSION_HEADER_NAME, _SESSION_TOKEN
 
         save_env_value("TEST_REVEAL_PROXY_AUTH", "secret-value")
@@ -1390,7 +1390,7 @@ class TestWebServerEndpoints:
 
     def test_reveal_env_var_legacy_authorization_header_still_works(self, tmp_path):
         """Keep old dashboard bundles working while the new header rolls out."""
-        from sparkii_cli.config import save_env_value
+        from core.config import save_env_value
         from sparkii_cli.web_server import _SESSION_TOKEN
 
         save_env_value("TEST_REVEAL_LEGACY_AUTH", "secret-value")
@@ -1456,7 +1456,7 @@ class TestWebServerEndpoints:
         self, monkeypatch
     ):
         import sparkii_cli.web_server as ws
-        from sparkii_cli.config import load_config, load_env
+        from core.config import load_config, load_env
 
         with ws._telegram_onboarding_lock:
             ws._telegram_onboarding_pairings.clear()
@@ -1579,7 +1579,7 @@ class TestWebServerEndpoints:
         endpoint reappears as a ready row in the picker — matching the
         ``sparkii model`` custom flow. Regression for the desktop loop where a
         keyed custom endpoint could never be configured from the GUI."""
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         resp = self.client.post(
             "/api/model/set",
@@ -1618,7 +1618,7 @@ class TestWebServerEndpoints:
 
 
     def _seed_custom_provider_with_key(self):
-        from sparkii_cli.config import load_config, save_config
+        from core.config import load_config, save_config
 
         cfg = load_config()
         cfg["providers"] = {
@@ -1642,7 +1642,7 @@ class TestWebServerEndpoints:
         authenticating to the deleted host, and the credential the operator
         just removed through the dashboard survives the delete.
         """
-        from sparkii_cli.config import custom_endpoint_key_env, get_env_value, load_config
+        from core.config import custom_endpoint_key_env, get_env_value, load_config
 
         self.client.post(
             "/api/providers/custom-endpoints",
@@ -1688,7 +1688,7 @@ class TestWebServerEndpoints:
         never appeared for the profile the user was actually configuring.
         """
         from sparkii_cli import profiles as profiles_mod
-        from sparkii_cli.config import custom_endpoint_key_env
+        from core.config import custom_endpoint_key_env
         from sparkii_constants import get_sparkii_home
 
         default_home = get_sparkii_home()
@@ -1731,7 +1731,7 @@ class TestWebServerEndpoints:
 
     def test_custom_endpoint_save_keeps_the_api_key_out_of_config(self):
         """The key belongs in .env behind key_env, never in config.yaml (#69449)."""
-        from sparkii_cli.config import custom_endpoint_key_env, get_env_value, load_config
+        from core.config import custom_endpoint_key_env, get_env_value, load_config
 
         self.client.post(
             "/api/providers/custom-endpoints",
@@ -1764,7 +1764,7 @@ class TestWebServerEndpoints:
         """
         import yaml
 
-        from sparkii_cli.config import custom_endpoint_key_env, get_config_path, get_env_value
+        from core.config import custom_endpoint_key_env, get_config_path, get_env_value
 
         monkeypatch.setenv("MY_PROXY_KEY", "sk-user-managed")
         get_config_path().write_text(
@@ -1803,7 +1803,7 @@ class TestWebServerEndpoints:
         and ``:8001`` onto one name, so saving the second silently overwrites
         the first's key.
         """
-        from sparkii_cli.config import custom_endpoint_key_env, get_env_value
+        from core.config import custom_endpoint_key_env, get_env_value
 
         for port, key in ((8000, "sk-first"), (8001, "sk-second")):
             self.client.post(
@@ -1843,7 +1843,7 @@ class TestWebServerEndpoints:
 
     def test_activating_an_endpoint_carries_its_credential_either_way(self):
         """Activate must work for both key_env and pre-#69449 plaintext entries."""
-        from sparkii_cli.config import load_config, save_config
+        from core.config import load_config, save_config
 
         cfg = load_config()
         cfg["providers"] = {
@@ -2286,7 +2286,7 @@ class TestConfigRoundTrip:
         round-trip. Deep-merge is required — a shallow merge would drop
         ``agent.<custom_key>`` when the frontend sends a partial ``agent``
         dict containing only schema-known sub-fields."""
-        from sparkii_cli.config import load_config, read_raw_config, save_config
+        from core.config import load_config, read_raw_config, save_config
 
         # Seed config with a key under `agent` that isn't in the schema.
         # Use a sentinel name to avoid colliding with future schema fields.
@@ -2348,7 +2348,7 @@ class TestConfigRoundTrip:
 
     def test_desktop_terminal_font_round_trip_preserves_terminal_config(self):
         """The Appearance picker persists a font without replacing sibling settings."""
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         web_config = self.client.get("/api/config").json()
         terminal_before = dict(web_config.get("terminal", {}))
@@ -2499,7 +2499,7 @@ class TestNewEndpoints:
 
     def test_discord_toolsets_read_and_write_discord_platform(self):
         """Platform-restricted toolsets must not be saved as successful CLI no-ops."""
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         listing = {t["name"]: t for t in self.client.get("/api/tools/toolsets").json()}
         assert listing["discord"]["platform"] == "discord"
@@ -2673,7 +2673,7 @@ class TestNewEndpoints:
         # The selection is still persisted — activation is what's gated.
         # Managed rows store the single 'nous' provider string (the runtime
         # maps it to the Browser Use cloud through the Nous Tool Gateway).
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         cfg = load_config()
         assert cfg["browser"]["cloud_provider"] == "nous"
         assert "use_gateway" not in cfg["browser"]
@@ -2707,7 +2707,7 @@ class TestNewEndpoints:
         assert body["ok"] is True
         assert body["capability"] == "search"
 
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         cfg = load_config()
         assert cfg["web"]["search_backend"] == "searxng"
         # The shared backend selected first must be preserved for extract.
@@ -2733,7 +2733,7 @@ class TestNewEndpoints:
     def test_terminal_ssh_probe_ready_when_configured(self, monkeypatch):
         """SSH host + user in config.yaml -> ready."""
         import sparkii_cli.web_server as web_server
-        from sparkii_cli.config import load_config, save_config
+        from core.config import load_config, save_config
 
         monkeypatch.setattr(web_server.shutil, "which", lambda name: None)
         config = load_config()
@@ -2879,7 +2879,7 @@ class TestModelContextLength:
     def test_denormalize_writes_context_length_into_model_dict(self):
         """denormalize should write model_context_length back into model dict."""
         from sparkii_cli.web_server import _denormalize_config_from_web
-        from sparkii_cli.config import save_config
+        from core.config import save_config
 
         # Set up disk config with model as a dict
         save_config({
@@ -2904,7 +2904,7 @@ class TestDenormalizeProviderSwitch:
         """ollama-local + a vendor/model slug → switch to openrouter and drop
         the stale local base_url (the issue's exact repro)."""
         from sparkii_cli.web_server import _denormalize_config_from_web
-        from sparkii_cli.config import save_config
+        from core.config import save_config
 
         save_config({
             "model": {
@@ -2927,7 +2927,7 @@ class TestDenormalizeProviderSwitch:
         """An explicit context-length override must persist alongside a
         provider switch."""
         from sparkii_cli.web_server import _denormalize_config_from_web
-        from sparkii_cli.config import save_config
+        from core.config import save_config
 
         save_config({"model": {"default": "llama3.2", "provider": "ollama-local"}})
 

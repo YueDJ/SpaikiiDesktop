@@ -36,7 +36,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from sparkii_cli.config import get_sparkii_home
+from core.config import get_sparkii_home
 from sparkii_constants import venv_python_path
 
 logger = logging.getLogger(__name__)
@@ -96,8 +96,8 @@ def _reload_config_modules() -> None:
     ``check_config_version()`` reports ``(33, 33)`` — "up to date" — even
     though the freshly-pulled code has v34 with a migration to run.
 
-    This function force-reloads ``sparkii_cli.config_defaults``,
-    ``sparkii_cli.config``, and ``sparkii_cli.config_migrations`` from disk
+    This function force-reloads ``core.config_defaults``,
+    ``core.config``, and ``core.config_migrations`` from disk
     so subsequent imports read the UPDATED code.
 
     It also reloads ``sparkii_cli._subprocess_compat`` and
@@ -112,9 +112,9 @@ def _reload_config_modules() -> None:
 
     importlib.invalidate_caches()
     for mod_name in (
-        "sparkii_cli.config_defaults",
-        "sparkii_cli.config",
-        "sparkii_cli.config_migrations",
+        "core.config_defaults",
+        "core.config",
+        "core.config_migrations",
         "sparkii_cli._subprocess_compat",
         "sparkii_cli.dashboard_procs",
     ):
@@ -133,7 +133,7 @@ def _run_config_check_fresh() -> tuple:
     Returns ``(current_ver, latest_ver)``.
     """
     _reload_config_modules()
-    from sparkii_cli.config import check_config_version
+    from core.config import check_config_version
 
     return check_config_version()
 
@@ -145,7 +145,7 @@ def _run_migrate_config_fresh(*, interactive: bool = False, quiet: bool = False)
     Returns the migration results dict.
     """
     _reload_config_modules()
-    from sparkii_cli.config import migrate_config
+    from core.config import migrate_config
 
     return migrate_config(interactive=interactive, quiet=quiet)
 
@@ -447,7 +447,7 @@ def _print_fts_optimize_available_notice() -> None:
     """
     mode = "advise"
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         mode = str(
             ((load_config() or {}).get("sessions") or {}).get(
@@ -889,7 +889,7 @@ def _assess_parked_branch_switch(
     Reasons: "disabled", "dirty", "unmerged:<count>", "unverifiable".
     """
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         _update_cfg = (load_config() or {}).get("updates", {})
         if isinstance(_update_cfg, dict) and not bool(
@@ -2333,7 +2333,7 @@ def _refresh_active_memory_provider_dependencies() -> None:
     Never raises. A failure here must not block the rest of the update.
     """
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         cfg = load_config()
     except Exception as exc:
@@ -2725,7 +2725,7 @@ def _cmd_update_check(branch: str = "main", *, branch_explicit: bool = False):
     Installs that can't honor non-default branches (e.g. Docker) surface a
     one-line notice instead of silently dropping the flag.
     """
-    from sparkii_cli.config import (
+    from core.config import (
         detect_install_method,
         is_nix_install_method,
         recommended_update_command_for_method,
@@ -2736,7 +2736,7 @@ def _cmd_update_check(branch: str = "main", *, branch_explicit: bool = False):
         # same long-form ``docker pull`` guidance ``sparkii update`` (apply
         # path) uses — telling the user to "reinstall via curl" or that
         # ".git is missing" would point them at the wrong remediation.
-        from sparkii_cli.config import format_docker_update_message
+        from core.config import format_docker_update_message
         print(format_docker_update_message())
         sys.exit(1)
 
@@ -2877,7 +2877,7 @@ def _cmd_update_check(branch: str = "main", *, branch_explicit: bool = False):
             print("✓ Already up to date.")
         else:
             from sparkii_cli.banner import _github_compare_behind
-            from sparkii_cli.config import recommended_update_command
+            from core.config import recommended_update_command
 
             counted = _github_compare_behind(head_sha, target_sha)
             if counted == 0:
@@ -2906,7 +2906,7 @@ def _cmd_update_check(branch: str = "main", *, branch_explicit: bool = False):
     else:
         commits_word = "commit" if behind == 1 else "commits"
         print(f"⚕ Update available: {behind} {commits_word} behind {compare_branch}.")
-        from sparkii_cli.config import recommended_update_command
+        from core.config import recommended_update_command
 
         print(f"  Run '{recommended_update_command()}' to install.")
 
@@ -3072,7 +3072,7 @@ def _resolve_pre_update_backup_mode(args) -> str:
         return "full"
 
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         cfg = load_config()
     except Exception as exc:
@@ -3143,7 +3143,7 @@ def _run_pre_update_backup(args) -> Optional[str]:
         # NOTE: this function later does `from sparkii_constants import
         # get_sparkii_home`, which makes the name function-local — the
         # module-level import is shadowed and unbound here. Alias explicitly.
-        from sparkii_cli.config import get_sparkii_home as _get_home
+        from core.config import get_sparkii_home as _get_home
 
         snapshot_id = create_quick_snapshot(
             label="pre-update",
@@ -3216,7 +3216,7 @@ def _run_pre_update_backup(args) -> Optional[str]:
         return snapshot_id
 
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         _keep = (load_config() or {}).get("updates", {}).get("backup_keep", 5)
     except Exception:
@@ -3245,7 +3245,7 @@ def _run_pre_update_backup(args) -> Optional[str]:
         size_bytes = 0
 
     # Human-readable size
-    from sparkii_cli.sizefmt import format_bytes
+    from core.sizefmt import format_bytes
 
     size_str = format_bytes(size_bytes)
 
@@ -4677,7 +4677,7 @@ def _cmd_update_impl(args, gateway_mode: bool):
     discard_local_changes = False
     if _non_interactive_update:
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
 
             _update_cfg = (load_config() or {}).get("updates", {})
             if isinstance(_update_cfg, dict):
@@ -5714,9 +5714,9 @@ def _cmd_update_impl(args, gateway_mode: bool):
         # CRITICAL: check_config_version and migrate_config must use
         # freshly-reloaded modules, not the sys.modules cache. The
         # ``sparkii update`` process is the PRE-pull Python process — its
-        # ``sys.modules`` cache holds the OLD ``sparkii_cli.config`` and
-        # ``sparkii_cli.config_migrations`` from before ``git pull`` updated
-        # the source files. A function-level ``from sparkii_cli.config import
+        # ``sys.modules`` cache holds the OLD ``core.config`` and
+        # ``core.config_migrations`` from before ``git pull`` updated
+        # the source files. A function-level ``from core.config import
         # check_config_version`` returns the cached module, so
         # ``DEFAULT_CONFIG["_config_version"]`` is the OLD value and
         # ``check_config_version()`` reports ``(33, 33)`` — "up to date" —
@@ -5731,7 +5731,7 @@ def _cmd_update_impl(args, gateway_mode: bool):
         # check_config_version, and migrate_config all use the updated code.
         _reload_config_modules()
 
-        from sparkii_cli.config import (
+        from core.config import (
             get_missing_env_vars,
             get_missing_config_fields,
         )
@@ -5950,7 +5950,7 @@ def _cmd_update_impl(args, gateway_mode: bool):
         try:
             refresh_cua_driver = True
             try:
-                from sparkii_cli.config import load_config
+                from core.config import load_config
 
                 _update_cfg = (load_config() or {}).get("updates", {})
                 if isinstance(_update_cfg, dict):

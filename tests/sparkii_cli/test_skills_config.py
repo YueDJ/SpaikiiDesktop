@@ -44,7 +44,7 @@ class TestSaveDisabledSkills:
 class TestIsSkillDisabled:
 
 
-    @patch("sparkii_cli.config.load_config")
+    @patch("core.config.load_config")
     def test_platform_disabled(self, mock_load):
         mock_load.return_value = {"skills": {
             "disabled": [],
@@ -55,7 +55,7 @@ class TestIsSkillDisabled:
 
 
 
-    @patch("sparkii_cli.config.load_config")
+    @patch("core.config.load_config")
     @patch.dict("os.environ", {"SPARKII_PLATFORM": "discord"})
     def test_env_var_platform(self, mock_load):
         mock_load.return_value = {"skills": {

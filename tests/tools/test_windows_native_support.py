@@ -413,7 +413,7 @@ class TestSubprocessCompatHelpers:
 
     def test_resolve_node_command_returns_absolute_on_posix(self):
         """On Linux, resolve_node_command('sh', ['-c','echo hi']) picks up /bin/sh."""
-        from sparkii_cli._subprocess_compat import resolve_node_command
+        from core._subprocess_compat import resolve_node_command
         # We can't assert "npm is on PATH" portably; use `sh` which is
         # guaranteed on POSIX.  On Windows the test only confirms the
         # no-crash fallback path.
@@ -977,7 +977,7 @@ class TestWindowlessGatewayRestartSpec:
         with mock.patch.object(
             gw, "_stable_gateway_working_dir", return_value="C:/sparkii"
         ), mock.patch(
-            "sparkii_cli.config.get_sparkii_home", return_value="C:/sparkii"
+            "core.config.get_sparkii_home", return_value="C:/sparkii"
         ):
             new_argv, cwd, env = gw.windowless_gateway_restart_spec(list(argv))
 
@@ -1035,7 +1035,7 @@ class TestGatewayRunRestartWatcherOuterPopenFallback:
 
     def test_outer_watcher_retries_without_breakaway_on_oserror(self, monkeypatch):
         import gateway.run as gr
-        from sparkii_cli._subprocess_compat import (
+        from core._subprocess_compat import (
             windows_detach_flags_without_breakaway,
             windows_detach_popen_kwargs,
         )

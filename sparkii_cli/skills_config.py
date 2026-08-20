@@ -13,8 +13,8 @@ Config stored in ~/.sparkii/config.yaml under:
 """
 from typing import List, Optional, Set
 
-from sparkii_cli.config import cfg_get, load_config, save_config
-from sparkii_cli.colors import Colors, color
+from core.config import cfg_get, load_config, save_config
+from core.colors import Colors, color
 from sparkii_cli.platforms import PLATFORMS as _PLATFORMS
 
 # Backward-compatible view: {key: label_string} so existing code that

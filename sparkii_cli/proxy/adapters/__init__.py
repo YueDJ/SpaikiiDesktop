@@ -1,22 +1,17 @@
 """Upstream adapter registry for the local proxy server.
 
-Each adapter wraps a provider's OAuth state and exposes a uniform interface
-the proxy server can use to forward requests with a freshly-minted bearer
-token. See :class:`UpstreamAdapter` for the contract.
+All OAuth upstream adapters (Nous Portal, xAI Grok) were removed with their
+providers.  The registry stays empty; the proxy command degrades gracefully
+until a future OAuth provider ships a new adapter.
 """
 
 from typing import Dict, Type
 
 from sparkii_cli.proxy.adapters.base import UpstreamAdapter
-from sparkii_cli.proxy.adapters.nous_portal import NousPortalAdapter
-from sparkii_cli.proxy.adapters.xai import XAIGrokAdapter
 
 # Registry of available adapter classes keyed by provider name as used on
 # the ``sparkii proxy start --provider <name>`` CLI flag.
-ADAPTERS: Dict[str, Type[UpstreamAdapter]] = {
-    "nous": NousPortalAdapter,
-    "xai": XAIGrokAdapter,
-}
+ADAPTERS: Dict[str, Type[UpstreamAdapter]] = {}
 
 
 def get_adapter(name: str) -> UpstreamAdapter:

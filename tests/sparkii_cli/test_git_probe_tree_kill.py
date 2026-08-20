@@ -20,7 +20,7 @@ import time
 import pytest
 
 from sparkii_cli import _subprocess_compat
-from sparkii_cli._subprocess_compat import _kill_git_process_tree, bounded_git_probe
+from core._subprocess_compat import _kill_git_process_tree, bounded_git_probe
 
 pytestmark = pytest.mark.skipif(
     sys.platform == "win32", reason="POSIX process-group semantics"

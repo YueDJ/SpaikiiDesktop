@@ -10,8 +10,8 @@ def homes(tmp_path, monkeypatch):
     managed.mkdir()
     monkeypatch.setenv("SPARKII_HOME", str(home))
     monkeypatch.setenv("SPARKII_MANAGED_DIR", str(managed))
-    import sparkii_cli.config as cfg
-    from sparkii_cli import managed_scope
+    import core.config as cfg
+    from core import managed_scope
 
     cfg._LOAD_CONFIG_CACHE.clear()
     cfg._RAW_CONFIG_CACHE.clear()
@@ -24,7 +24,7 @@ def homes(tmp_path, monkeypatch):
 
 
 def test_config_set_managed_key_rejected(homes, capsys):
-    from sparkii_cli.config import set_config_value
+    from core.config import set_config_value
 
     with pytest.raises(SystemExit) as exc:
         set_config_value("model.default", "user/override")
@@ -49,14 +49,14 @@ def env_homes(tmp_path, monkeypatch):
     (managed / ".env").write_text(
         "OPENAI_API_BASE=https://org.example/v1\n", encoding="utf-8"
     )
-    from sparkii_cli import managed_scope
+    from core import managed_scope
 
     managed_scope.invalidate_managed_cache()
     return home, managed
 
 
 def test_save_env_value_managed_key_rejected(env_homes, capsys):
-    from sparkii_cli.config import save_env_value, get_env_path
+    from core.config import save_env_value, get_env_path
 
     save_env_value("OPENAI_API_BASE", "https://user.example/v1")
     assert "managed" in capsys.readouterr().err.lower()

@@ -34,7 +34,7 @@ from tools.environments.base import (
 def test_regex_matches_bridged_session_vars():
     rx = re.compile(_SNAPSHOT_EXCLUDED_ENV_REGEX)
     # Every var the gateway bridges must be excluded.
-    from gateway.session_context import _VAR_MAP
+    from core.session_context import _VAR_MAP
 
     for name in _VAR_MAP:
         line = f'declare -x {name}="whatever"'
@@ -71,7 +71,7 @@ def test_export_snippet_shape():
 def test_shared_snapshot_no_cross_session_leak(tmp_path):
     import threading
 
-    from gateway.session_context import _VAR_MAP, _UNSET, set_session_vars
+    from core.session_context import _VAR_MAP, _UNSET, set_session_vars
     from tools.environments.local import LocalEnvironment
 
     env = LocalEnvironment(cwd=str(tmp_path), timeout=30)

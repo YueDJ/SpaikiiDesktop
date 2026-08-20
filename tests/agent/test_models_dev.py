@@ -652,7 +652,7 @@ class TestMirrorUrlOverride:
              patch.object(md, "_save_disk_cache"), \
              patch.object(md, "_load_etag", return_value=""), \
              patch.object(md, "_save_etag"), \
-             patch("sparkii_cli.config.load_config_readonly", return_value=fake_config):
+             patch("core.config.load_config_readonly", return_value=fake_config):
             fetch_models_dev()
 
         call_args = mock_get.call_args
@@ -675,7 +675,7 @@ class TestMirrorUrlOverride:
              patch.object(md, "_save_disk_cache"), \
              patch.object(md, "_load_etag", return_value=""), \
              patch.object(md, "_save_etag"), \
-             patch("sparkii_cli.config.load_config_readonly", return_value={}):
+             patch("core.config.load_config_readonly", return_value={}):
             fetch_models_dev()
 
         call_args = mock_get.call_args
@@ -700,7 +700,7 @@ class TestMirrorUrlOverride:
              patch.object(md, "_save_disk_cache"), \
              patch.object(md, "_load_etag", return_value=""), \
              patch.object(md, "_save_etag"), \
-             patch("sparkii_cli.config.load_config_readonly", return_value=fake_config):
+             patch("core.config.load_config_readonly", return_value=fake_config):
             fetch_models_dev()
 
         call_args = mock_get.call_args
@@ -1217,7 +1217,7 @@ class TestModelOverrides:
         import importlib
 
         import agent.models_dev as md
-        import sparkii_cli.config as hc
+        import core.config as hc
 
         home = tmp_path / "sparkii"
         home.mkdir()

@@ -75,7 +75,7 @@ def _redact_reference_text(text: Any) -> Any:
 
 def _moa_privacy_mode(moa_raw: Any) -> str:
     """Resolve the normalized privacy-filter mode from a raw ``moa`` config."""
-    from sparkii_cli.moa_config import coerce_privacy_filter
+    from core.moa_config import coerce_privacy_filter
 
     raw = moa_raw if isinstance(moa_raw, dict) else {}
     return coerce_privacy_filter(raw.get("privacy_filter"))
@@ -320,7 +320,7 @@ def _aggregator_reasoning_config(aggregator: dict[str, Any]) -> dict[str, Any] |
     if cfg is not None:
         return cfg
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         from sparkii_constants import resolve_reasoning_config
 
         return resolve_reasoning_config(
@@ -1287,7 +1287,7 @@ def aggregate_moa_context(
     # runs on the successful outputs only (failed refs are already filtered
     # into the degraded notice).
     try:
-        from sparkii_cli.config import load_config as _load_config
+        from core.config import load_config as _load_config
 
         if _moa_privacy_mode((_load_config() or {}).get("moa")) == "full":
             successful_outputs = _redact_reference_outputs(successful_outputs)
@@ -1904,8 +1904,8 @@ class MoAChatCompletions:
                 raise TypeError("_moa_prepared_request must be a dict")
             return self._call_prepared_aggregator(prepared_request, api_kwargs)
 
-        from sparkii_cli.config import get_config_path, load_config
-        from sparkii_cli.moa_config import resolve_moa_preset
+        from core.config import get_config_path, load_config
+        from core.moa_config import resolve_moa_preset
 
         # Resolve the preset once per (config st_mtime_ns, preset_name).
         # resolve_moa_preset re-normalizes + re-validates the whole moa
@@ -2434,8 +2434,8 @@ def build_moa_facade(agent, preset_name: Any = None) -> MoAClient:
 
     resolved_preset = str(resolved_preset or "default")
     try:
-        from sparkii_cli.config import load_config
-        from sparkii_cli.moa_config import normalize_moa_config
+        from core.config import load_config
+        from core.moa_config import normalize_moa_config
 
         moa_cfg = normalize_moa_config(load_config().get("moa") or {})
         presets = moa_cfg.get("presets") or {}

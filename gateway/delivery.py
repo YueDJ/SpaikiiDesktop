@@ -16,7 +16,7 @@ from datetime import datetime
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Any
 
-from sparkii_cli.config import get_sparkii_home
+from core.config import get_sparkii_home
 
 logger = logging.getLogger(__name__)
 

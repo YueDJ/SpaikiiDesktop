@@ -1046,7 +1046,7 @@ def _(rid, params: dict) -> dict:
             "-f", str(first_page), "-l", str(last_page),
             str(pdf_path), str(out_prefix),
         ]
-        from sparkii_cli._subprocess_compat import windows_hide_flags
+        from core._subprocess_compat import windows_hide_flags
 
         try:
             res = subprocess.run(

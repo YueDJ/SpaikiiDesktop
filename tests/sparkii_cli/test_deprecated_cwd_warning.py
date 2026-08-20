@@ -8,7 +8,7 @@ class TestDeprecatedCwdWarning:
         monkeypatch.setenv("MESSAGING_CWD", "/some/path")
         monkeypatch.delenv("TERMINAL_CWD", raising=False)
 
-        from sparkii_cli.config import warn_deprecated_cwd_env_vars
+        from core.config import warn_deprecated_cwd_env_vars
         warn_deprecated_cwd_env_vars(config={})
 
         captured = capsys.readouterr()
@@ -21,7 +21,7 @@ class TestDeprecatedCwdWarning:
         monkeypatch.setenv("MESSAGING_CWD", "/msg/path")
         monkeypatch.setenv("TERMINAL_CWD", "/term/path")
 
-        from sparkii_cli.config import warn_deprecated_cwd_env_vars
+        from core.config import warn_deprecated_cwd_env_vars
         warn_deprecated_cwd_env_vars(config={})
 
         captured = capsys.readouterr()

@@ -45,10 +45,10 @@ def _personalities_from_cli_config() -> Dict[str, Any]:
     """
     global _personalities_memo
     from cli import load_cli_config
-    from sparkii_cli.personality import available_personalities
+    from core.personality import available_personalities
 
     try:
-        from sparkii_cli.config import get_config_path
+        from core.config import get_config_path
 
         cfg_path = get_config_path()
         st = cfg_path.stat()
@@ -557,7 +557,7 @@ def _resolve_config_gates() -> set[str]:
     if not gated:
         return set()
     try:
-        from sparkii_cli.config import read_raw_config
+        from core.config import read_raw_config
         cfg = read_raw_config()
     except Exception:
         return set()
@@ -743,7 +743,7 @@ def _telegram_command_menu_config() -> dict[str, Any]:
     ``platforms.telegram.extra.command_menu``.
     """
     try:
-        from sparkii_cli.config import read_raw_config
+        from core.config import read_raw_config
         raw_cfg = read_raw_config() or {}
     except Exception:
         raw_cfg = {}
@@ -2003,7 +2003,7 @@ class SlashCommandCompleter(Completer):
         already = set(parts[1:] if trailing_space else parts[1:-1])
 
         try:
-            from sparkii_cli.config import load_config_readonly
+            from core.config import load_config_readonly
             from sparkii_cli.tools_config import (
                 CONFIGURABLE_TOOLSETS,
                 _get_platform_tools,
@@ -2107,7 +2107,7 @@ class SlashCommandCompleter(Completer):
         try:
             # Single owner: built-ins + user overrides from agent.personalities.
             from cli import load_cli_config
-            from sparkii_cli.personality import (
+            from core.personality import (
                 available_personalities,
                 describe_personality,
             )

@@ -782,7 +782,7 @@ class CLICommandsMixin:
 
         # Reset session so the new tool config is picked up from a clean state
         from sparkii_cli.tools_config import _get_platform_tools
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         self.enabled_toolsets = _get_platform_tools(load_config(), "cli")
         self.new_session()
         _cprint(f"{_DIM}Session reset. New tool configuration is active.{_RST}")
@@ -1268,7 +1268,7 @@ class CLICommandsMixin:
                 print("  ❌ /worktree new requires being inside a git repository.")
                 return
             name = parts[2].strip() if len(parts) > 2 else None
-            from sparkii_cli.config import load_config
+            from core.config import load_config
             try:
                 sync_base = bool(load_config().get("worktree_sync", True))
             except Exception:
@@ -1466,7 +1466,7 @@ class CLICommandsMixin:
         All resolution/persistence goes through sparkii_cli.personality —
         the single owner of personality state on every surface.
         """
-        from sparkii_cli.personality import (
+        from core.personality import (
             describe_personality,
             normalize_personality_name,
             persist_personality,
@@ -1492,7 +1492,7 @@ class CLICommandsMixin:
             if not name:
                 # Neutral reset — fall back to the user-owned manual prompt.
                 try:
-                    from sparkii_cli.config import cfg_get, read_raw_config
+                    from core.config import cfg_get, read_raw_config
 
                     self.system_prompt = prompt_text(
                         cfg_get(read_raw_config(), "agent", "system_prompt", default="")
@@ -1516,7 +1516,7 @@ class CLICommandsMixin:
         else:
             # Show available personalities
             try:
-                from sparkii_cli.config import read_raw_config
+                from core.config import read_raw_config
 
                 current = normalize_personality_name(
                     (read_raw_config().get("display") or {}).get("personality", "")
@@ -2317,7 +2317,7 @@ class CLICommandsMixin:
         if sub == "use" or sub.startswith("use "):
             # /browser use [off] — toggle Browser Use mode (browser.backend),
             arg = sub.split(None, 1)[1].strip() if " " in sub else "on"
-            from sparkii_cli.config import load_config, save_config
+            from core.config import load_config, save_config
             from tools.registry import invalidate_check_fn_cache
 
             if arg not in {"on", "off"}:
@@ -3190,7 +3190,7 @@ class CLICommandsMixin:
         request payload — the model sees an identical turn either way.
         """
         from cli import _cprint, save_config_value
-        from sparkii_cli.colors import Colors as _Colors
+        from core.colors import Colors as _Colors
         from sparkii_cli.focus_view import (
             FOCUS_CONFIG_KEY,
             FOCUS_TOOL_PROGRESS_MODE,
@@ -3339,8 +3339,8 @@ class CLICommandsMixin:
             /footer status    → show current state
         """
         from cli import _cprint, save_config_value
-        from sparkii_cli.config import load_config
-        from sparkii_cli.colors import Colors as _Colors
+        from core.config import load_config
+        from core.colors import Colors as _Colors
 
         # Parse arg
         arg = ""
@@ -3396,7 +3396,7 @@ class CLICommandsMixin:
             /timestamps status    → show current state
         """
         from cli import _cprint, save_config_value
-        from sparkii_cli.colors import Colors as _Colors
+        from core.colors import Colors as _Colors
 
         arg = ""
         try:
@@ -3708,7 +3708,7 @@ class CLICommandsMixin:
         prompt_toolkit cleans up terminal modes).  Returns ``False`` / falsy
         when cancelled.
         """
-        from sparkii_cli.config import is_managed, format_managed_message
+        from core.config import is_managed, format_managed_message
 
         if is_managed():
             print(f"  ✗ {format_managed_message('update Sparkii Agent')}")

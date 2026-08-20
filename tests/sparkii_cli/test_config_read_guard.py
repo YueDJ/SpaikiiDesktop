@@ -92,17 +92,17 @@ def test_no_raw_config_yaml_reads_outside_owner_modules():
 
     assert not offenders, (
         "Raw yaml.safe_load of config.yaml outside allowlisted owner modules.\n"
-        "Behavioral reads must use sparkii_cli.config.load_config()/"
+        "Behavioral reads must use core.config.load_config()/"
         "load_config_readonly() (or gateway _load_gateway_config); write-back "
         "round-trips and raw-file diagnostics must use "
-        "sparkii_cli.config.read_user_config_raw().\nOffenders:\n  "
+        "core.config.read_user_config_raw().\nOffenders:\n  "
         + "\n  ".join(offenders)
     )
 
 
 def test_read_user_config_raw_exists_and_documented():
     """The shared raw primitive must exist and carry its legality docstring."""
-    from sparkii_cli.config import read_user_config_raw
+    from core.config import read_user_config_raw
 
     doc = read_user_config_raw.__doc__ or ""
     assert "ONLY legal for write-back round-trips and raw-file diagnostics" in doc

@@ -253,7 +253,7 @@ def _make_agent(tool_progress_mode: str):
     with (
         patch("run_agent.get_tool_definitions", return_value=tool_defs),
         patch("run_agent.check_toolset_requirements", return_value={}),
-        patch("sparkii_cli.config.load_config", return_value={}),
+        patch("core.config.load_config", return_value={}),
         patch("run_agent.OpenAI"),
     ):
         agent = AIAgent(

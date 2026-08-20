@@ -568,7 +568,7 @@ def get_clarify_timeout() -> int:
     is still deciding.
     """
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         return resolve_clarify_timeout(load_config() or {})
     except Exception:
         return 3600

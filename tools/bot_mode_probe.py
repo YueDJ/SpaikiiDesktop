@@ -240,7 +240,7 @@ def capability_fingerprint(home: str | os.PathLike | None = None) -> str:
     try:
         # Canonical loader (managed overlay + env expansion + normalization),
         # scoped to the bot's home via the override the loaders already honor.
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
         from sparkii_constants import reset_sparkii_home_override, set_sparkii_home_override
 
         token = set_sparkii_home_override(str(resolved))

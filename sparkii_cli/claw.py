@@ -18,7 +18,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from sparkii_cli.config import get_sparkii_home, get_config_path, load_config, save_config
+from core.config import get_sparkii_home, get_config_path, load_config, save_config
 from sparkii_constants import get_optional_skills_dir
 from sparkii_cli.setup import (
     Colors,
@@ -81,7 +81,7 @@ def _detect_openclaw_processes() -> list[str]:
         # forever on Windows in post-timeout cleanup when a conhost.exe
         # descendant holds duplicated pipe handles (#87134) — and a hang is
         # not an exception, so the try/except here can't save the caller.
-        from sparkii_cli._subprocess_compat import bounded_probe_run
+        from core._subprocess_compat import bounded_probe_run
 
         try:
             for exe in ("openclaw.exe", "clawd.exe"):

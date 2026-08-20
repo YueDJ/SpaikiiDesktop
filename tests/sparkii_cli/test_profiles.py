@@ -45,7 +45,7 @@ from sparkii_cli.profiles import (
     backfill_profile_envs,
     profiles_to_serve,
 )
-from sparkii_cli.config import DEFAULT_CONFIG
+from core.config import DEFAULT_CONFIG
 
 
 # ---------------------------------------------------------------------------

@@ -729,7 +729,7 @@ class TestEnvConfig:
         # With nothing configured a user must still reach the real plane —
         # otherwise every sync command fails with "no base URL configured".
         monkeypatch.delenv("SPARKII_SYNC_BASE_URL", raising=False)
-        monkeypatch.setattr("sparkii_cli.config.load_config", lambda: {}, raising=False)
+        monkeypatch.setattr("core.config.load_config", lambda: {}, raising=False)
         assert ssc.resolve_sync_base_url() == ssc.DEFAULT_SYNC_BASE_URL
 
     def test_default_is_a_bare_https_origin(self):
@@ -746,7 +746,7 @@ class TestEnvConfig:
     def test_config_overrides_default(self, monkeypatch):
         monkeypatch.delenv("SPARKII_SYNC_BASE_URL", raising=False)
         monkeypatch.setattr(
-            "sparkii_cli.config.load_config",
+            "core.config.load_config",
             lambda: {"sync": {"base_url": "https://cfg.example/"}},
             raising=False,
         )
@@ -755,7 +755,7 @@ class TestEnvConfig:
     def test_feature_enabled_env(self, monkeypatch):
         # Default off.
         monkeypatch.delenv("SPARKII_SYNC_ENABLED", raising=False)
-        monkeypatch.setattr("sparkii_cli.config.load_config", lambda: {}, raising=False)
+        monkeypatch.setattr("core.config.load_config", lambda: {}, raising=False)
         assert ssc.sync_feature_enabled() is False
         for truthy in ("1", "true", "YES", "on"):
             monkeypatch.setenv("SPARKII_SYNC_ENABLED", truthy)
@@ -766,7 +766,7 @@ class TestEnvConfig:
 
     def test_default_opt_in_env(self, monkeypatch):
         monkeypatch.delenv("SPARKII_SYNC_DEFAULT_OPT_IN", raising=False)
-        monkeypatch.setattr("sparkii_cli.config.load_config", lambda: {}, raising=False)
+        monkeypatch.setattr("core.config.load_config", lambda: {}, raising=False)
         assert ssc.sync_default_opt_in() is False
         monkeypatch.setenv("SPARKII_SYNC_DEFAULT_OPT_IN", "true")
         assert ssc.sync_default_opt_in() is True
@@ -774,7 +774,7 @@ class TestEnvConfig:
     def test_config_yaml_fallback_when_no_env(self, monkeypatch):
         monkeypatch.delenv("SPARKII_SYNC_ENABLED", raising=False)
         monkeypatch.setattr(
-            "sparkii_cli.config.load_config",
+            "core.config.load_config",
             lambda: {"sync": {"enabled": True}},
             raising=False,
         )
@@ -784,7 +784,7 @@ class TestEnvConfig:
         # Env wins over config.yaml (operator override precedence).
         monkeypatch.setenv("SPARKII_SYNC_ENABLED", "false")
         monkeypatch.setattr(
-            "sparkii_cli.config.load_config",
+            "core.config.load_config",
             lambda: {"sync": {"enabled": True}},
             raising=False,
         )

@@ -38,7 +38,7 @@ def _make_agent(max_iterations: int = 10, config: dict | None = None) -> AIAgent
     with (
         patch("run_agent.get_tool_definitions", return_value=[]),
         patch("run_agent.check_toolset_requirements", return_value={}),
-        patch("sparkii_cli.config.load_config", return_value=config or {}),
+        patch("core.config.load_config", return_value=config or {}),
         patch("run_agent.OpenAI"),
     ):
         agent = AIAgent(
@@ -320,7 +320,7 @@ def test_explainer_enabled_by_default():
     agent = _make_agent()
     with patch.dict(os.environ, {}, clear=False):
         os.environ.pop("SPARKII_TURN_COMPLETION_EXPLAINER", None)
-        with patch("sparkii_cli.config.load_config", return_value={}):
+        with patch("core.config.load_config", return_value={}):
             assert agent._turn_completion_explainer_enabled() is True
 
 
@@ -351,7 +351,7 @@ def test_explainer_config_read_once_then_cached():
 
     with patch.dict(os.environ, {}, clear=False):
         os.environ.pop("SPARKII_TURN_COMPLETION_EXPLAINER", None)
-        with patch("sparkii_cli.config.load_config", counting_load):
+        with patch("core.config.load_config", counting_load):
             # First call reads config and caches the result.
             assert agent._turn_completion_explainer_enabled() is True
             assert calls["n"] == 1

@@ -149,7 +149,7 @@ def _remove_env_source(provider: str, removed) -> RemovalResult:
          EnvironmentFile, launchd plist) → hint them where to unset it
       3. Var lives in both → clear from .env, hint about shell
     """
-    from sparkii_cli.config import get_env_path, remove_env_value
+    from core.config import get_env_path, remove_env_value
 
     result = RemovalResult()
     env_var = removed.source[len("env:"):]

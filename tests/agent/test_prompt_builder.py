@@ -17,7 +17,6 @@ from agent.prompt_builder import (
     _find_git_root,
     _strip_yaml_frontmatter,
     build_skills_system_prompt,
-    build_nous_subscription_prompt,
     build_context_files_prompt,
     CONTEXT_FILE_MAX_CHARS,
     _dynamic_context_file_max_chars,
@@ -35,7 +34,6 @@ from agent.prompt_builder import (
     PLATFORM_HINTS,
     WSL_ENVIRONMENT_HINT,
 )
-from sparkii_cli.nous_subscription import NousFeatureState, NousSubscriptionFeatures
 
 
 # =========================================================================
@@ -98,8 +96,8 @@ class TestTruncateContent:
         def default_load_config():
             return {}
 
-        monkeypatch.setattr("sparkii_cli.config.load_config", default_load_config)
-        monkeypatch.setattr("sparkii_cli.config.load_config_readonly", default_load_config)
+        monkeypatch.setattr("core.config.load_config", default_load_config)
+        monkeypatch.setattr("core.config.load_config_readonly", default_load_config)
 
 
 
@@ -117,8 +115,8 @@ class TestTruncateContent:
         def fake_load_config():
             return {"context_file_max_chars": 120}
 
-        monkeypatch.setattr("sparkii_cli.config.load_config", fake_load_config)
-        monkeypatch.setattr("sparkii_cli.config.load_config_readonly", fake_load_config)
+        monkeypatch.setattr("core.config.load_config", fake_load_config)
+        monkeypatch.setattr("core.config.load_config_readonly", fake_load_config)
 
         _truncate_content("x" * 180, "warning.md")
 
@@ -135,8 +133,8 @@ class TestTruncateContent:
         def fake_load_config():
             return {"context_file_max_chars": 120}
 
-        monkeypatch.setattr("sparkii_cli.config.load_config", fake_load_config)
-        monkeypatch.setattr("sparkii_cli.config.load_config_readonly", fake_load_config)
+        monkeypatch.setattr("core.config.load_config", fake_load_config)
+        monkeypatch.setattr("core.config.load_config_readonly", fake_load_config)
 
         # Generate a warning in a fresh child context, then assert it did NOT
         # leak into the parent context's accumulator.
@@ -164,8 +162,8 @@ class TestDynamicContextFileCap:
     @pytest.fixture(autouse=True)
     def _no_explicit_config(self, monkeypatch):
         # No explicit context_file_max_chars → dynamic path is eligible.
-        monkeypatch.setattr("sparkii_cli.config.load_config", lambda: {})
-        monkeypatch.setattr("sparkii_cli.config.load_config_readonly", lambda: {})
+        monkeypatch.setattr("core.config.load_config", lambda: {})
+        monkeypatch.setattr("core.config.load_config_readonly", lambda: {})
 
 
     def test_dynamic_scales_above_floor_for_large_window(self):
@@ -181,11 +179,11 @@ class TestDynamicContextFileCap:
     def test_explicit_config_beats_dynamic(self, monkeypatch):
         # An explicit value always wins, even when a big window is available.
         monkeypatch.setattr(
-            "sparkii_cli.config.load_config",
+            "core.config.load_config",
             lambda: {"context_file_max_chars": 1_000},
         )
         monkeypatch.setattr(
-            "sparkii_cli.config.load_config_readonly",
+            "core.config.load_config_readonly",
             lambda: {"context_file_max_chars": 1_000},
         )
         assert _get_context_file_max_chars(200_000) == 1_000
@@ -366,66 +364,6 @@ class TestBuildSkillsSystemPrompt:
 
 
 
-
-
-class TestBuildNousSubscriptionPrompt:
-    def test_includes_active_subscription_features(self, monkeypatch):
-        monkeypatch.setattr("tools.tool_backend_helpers.managed_nous_tools_enabled", lambda: True)
-        monkeypatch.setattr(
-            "sparkii_cli.nous_subscription.get_nous_subscription_features",
-            lambda config=None: NousSubscriptionFeatures(
-                subscribed=True,
-                nous_auth_present=True,
-                provider_is_nous=True,
-                features={
-                    "web": NousFeatureState("web", "Web tools", True, True, True, True, False, True, "firecrawl"),
-                    "image_gen": NousFeatureState("image_gen", "Image generation", True, True, True, True, False, True, "Nous Subscription"),
-                    "video_gen": NousFeatureState("video_gen", "Video generation", False, False, False, False, False, False, ""),
-                    "tts": NousFeatureState("tts", "OpenAI TTS", True, True, True, True, False, True, "OpenAI TTS"),
-                    "stt": NousFeatureState("stt", "Speech-to-text", True, True, True, True, False, True, "OpenAI Whisper"),
-                    "browser": NousFeatureState("browser", "Browser automation", True, True, True, True, False, True, "Browser Use"),
-                    "modal": NousFeatureState("modal", "Modal execution", False, True, False, False, False, True, "local"),
-                },
-            ),
-        )
-
-        prompt = build_nous_subscription_prompt({"web_search", "browser_navigate"})
-
-        assert "Browser Use" in prompt
-        assert "Modal execution is optional" in prompt
-        assert "do not ask the user for Firecrawl, FAL, OpenAI TTS, OpenAI Whisper, or Browser-Use API keys" in prompt
-
-    def test_non_subscriber_prompt_includes_relevant_upgrade_guidance(self, monkeypatch):
-        monkeypatch.setattr("tools.tool_backend_helpers.managed_nous_tools_enabled", lambda: True)
-        monkeypatch.setattr(
-            "sparkii_cli.nous_subscription.get_nous_subscription_features",
-            lambda config=None: NousSubscriptionFeatures(
-                subscribed=False,
-                nous_auth_present=False,
-                provider_is_nous=False,
-                features={
-                    "web": NousFeatureState("web", "Web tools", True, False, False, False, False, True, ""),
-                    "image_gen": NousFeatureState("image_gen", "Image generation", True, False, False, False, False, True, ""),
-                    "video_gen": NousFeatureState("video_gen", "Video generation", False, False, False, False, False, False, ""),
-                    "tts": NousFeatureState("tts", "OpenAI TTS", True, False, False, False, False, True, ""),
-                    "stt": NousFeatureState("stt", "Speech-to-text", True, False, False, False, False, True, ""),
-                    "browser": NousFeatureState("browser", "Browser automation", True, False, False, False, False, True, ""),
-                    "modal": NousFeatureState("modal", "Modal execution", False, False, False, False, False, True, ""),
-                },
-            ),
-        )
-
-        prompt = build_nous_subscription_prompt({"image_generate"})
-
-        assert "suggest Nous subscription as one option" in prompt
-        assert "Do not mention subscription unless" in prompt
-
-    def test_feature_flag_off_returns_empty_prompt(self, monkeypatch):
-        monkeypatch.setattr("tools.tool_backend_helpers.managed_nous_tools_enabled", lambda: False)
-
-        prompt = build_nous_subscription_prompt({"web_search"})
-
-        assert prompt == ""
 
 
 # =========================================================================
@@ -1056,5 +994,4 @@ class TestParallelToolCallGuidance:
 # =========================================================================
 # Budget warning history stripping
 # =========================================================================
-
 

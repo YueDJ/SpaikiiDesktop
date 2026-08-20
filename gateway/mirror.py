@@ -14,7 +14,7 @@ import logging
 from datetime import datetime
 from typing import Optional
 
-from sparkii_cli.config import get_sparkii_home
+from core.config import get_sparkii_home
 
 logger = logging.getLogger(__name__)
 

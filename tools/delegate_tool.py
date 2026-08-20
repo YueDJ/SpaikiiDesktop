@@ -2568,7 +2568,7 @@ def _run_single_child(
     if _subagent_id:
         if owner_session_id is None:
             try:
-                from gateway.session_context import get_session_env
+                from core.session_context import get_session_env
 
                 owner_session_id = get_session_env("SPARKII_UI_SESSION_ID", "") or None
             except Exception:
@@ -3810,7 +3810,7 @@ def delegate_task(
 
     _origin_wake_sid = _current_origin_session_id()
     try:
-        from gateway.session_context import get_session_env
+        from core.session_context import get_session_env
 
         _origin_ui_session_id = get_session_env("SPARKII_UI_SESSION_ID", "")
     except Exception:
@@ -4095,7 +4095,7 @@ def delegate_task(
         # of handing out a handle with no durable consumer. Mirrors the
         # pool-at-capacity inline fallback below.
         try:
-            from gateway.session_context import async_delivery_supported
+            from core.session_context import async_delivery_supported
             _async_ok = async_delivery_supported()
         except Exception:
             _async_ok = True
@@ -4141,7 +4141,7 @@ def delegate_task(
 
         _session_key = get_current_session_key(default="")
         try:
-            from gateway.session_context import get_session_env
+            from core.session_context import get_session_env
 
             _source = get_session_env("SPARKII_SESSION_SOURCE", "")
             # Refresh from the same task-local source when available, but retain
@@ -4578,7 +4578,7 @@ def _load_config() -> dict:
     prefer_legacy = os.environ.get("SPARKII_IGNORE_USER_CONFIG") == "1"
     if not prefer_legacy:
         try:
-            from sparkii_cli.config import load_config_readonly
+            from core.config import load_config_readonly
 
             full = load_config_readonly()
             cfg = full.get("delegation") or {}

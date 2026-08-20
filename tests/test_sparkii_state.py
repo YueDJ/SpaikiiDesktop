@@ -108,7 +108,7 @@ class TestConnectionLifecycle:
         self, tmp_path, monkeypatch
     ):
         """A failed schema init must close the connection opened before it."""
-        from sparkii_cli.sqlite_safe_read import has_live_connection
+        from core.sqlite_safe_read import has_live_connection
 
         db_path = tmp_path / "state.db"
         opened = []
@@ -245,7 +245,7 @@ class TestConnectionLifecycle:
         forensic backup."""
         import sqlite3
 
-        from sparkii_cli.sqlite_safe_read import has_live_connection
+        from core.sqlite_safe_read import has_live_connection
 
         db_path = tmp_path / "state.db"
         writable = SessionDB(db_path=db_path)
@@ -4556,7 +4556,7 @@ class TestApplyDatabasePragmas:
     @staticmethod
     def _patch_cfg(monkeypatch, cfg):
         monkeypatch.setattr(
-            "sparkii_cli.config.load_config_readonly",
+            "core.config.load_config_readonly",
             lambda: cfg,
         )
 

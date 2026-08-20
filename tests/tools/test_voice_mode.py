@@ -1331,11 +1331,11 @@ class TestGetBeepVolume:
         ({"voice": {"beep_volume": True}}, 0.3),           # bool is not a volume
     ])
     def test_config_value_resolution(self, config, expected):
-        with patch("sparkii_cli.config.load_config", return_value=config):
+        with patch("core.config.load_config", return_value=config):
             assert self._get() == expected
 
     def test_load_config_exception_falls_back(self):
-        with patch("sparkii_cli.config.load_config",
+        with patch("core.config.load_config",
                    side_effect=RuntimeError("broken config")):
             assert self._get() == 0.3
 

@@ -14,7 +14,7 @@ import sqlite3
 import pytest
 
 import sparkii_cli.doctor as doctor
-from sparkii_cli.sqlite_safe_read import (
+from core.sqlite_safe_read import (
     connect_tracked,
     has_live_connection,
     track_connection,
@@ -53,7 +53,7 @@ def clean_registry():
     fixture) would otherwise leave the registry dirty and make the *next*
     test's refusal assertion pass for the wrong reason.
     """
-    import sparkii_cli.sqlite_safe_read as mod
+    import core.sqlite_safe_read as mod
 
     def _clear():
         with mod._live_lock:

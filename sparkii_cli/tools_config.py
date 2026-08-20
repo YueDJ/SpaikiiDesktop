@@ -19,18 +19,11 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set
 
 
-from sparkii_cli.config import (
+from core.config import (
     cfg_get,
     load_config, save_config, get_env_value, save_env_value,
 )
-from sparkii_cli.colors import Colors, color
-from sparkii_cli.nous_subscription import (
-    MANAGED_FEATURE_COVERAGE_CATEGORY,
-    NousSubscriptionFeatures,
-    apply_nous_managed_defaults,
-    get_nous_subscription_features,
-)
-from sparkii_cli.nous_account import format_nous_portal_entitlement_message
+from core.colors import Colors, color
 from tools.tool_backend_helpers import fal_key_is_configured
 from utils import base_url_hostname, is_truthy_value
 
@@ -57,7 +50,7 @@ def _post_setup_no_window_flags(*, streams_to_console: bool = False) -> int:
     the current process has no usable console of its own (stdout is a
     pipe/log file — exactly the GUI-spawn case that flashes).
     """
-    from sparkii_cli._subprocess_compat import windows_hide_flags
+    from core._subprocess_compat import windows_hide_flags
 
     flags = windows_hide_flags()
     if not flags:
@@ -327,16 +320,6 @@ TOOL_CATEGORIES = {
                 "tts_provider": "edge",
             },
             {
-                "name": "Nous Subscription",
-                "badge": "subscription",
-                "tag": "Managed OpenAI TTS billed to your subscription",
-                "env_vars": [],
-                "tts_provider": "openai",
-                "requires_nous_auth": True,
-                "managed_nous_feature": "tts",
-                "override_env_vars": ["VOICE_TOOLS_OPENAI_KEY", "OPENAI_API_KEY"],
-            },
-            {
                 "name": "OpenAI TTS",
                 "badge": "paid",
                 "tag": "High quality voices",
@@ -420,16 +403,6 @@ TOOL_CATEGORIES = {
                 "post_setup": "faster_whisper",
             },
             {
-                "name": "Nous Subscription",
-                "badge": "subscription",
-                "tag": "Managed OpenAI transcription billed to your subscription",
-                "env_vars": [],
-                "stt_provider": "openai",
-                "requires_nous_auth": True,
-                "managed_nous_feature": "stt",
-                "override_env_vars": ["VOICE_TOOLS_OPENAI_KEY", "OPENAI_API_KEY"],
-            },
-            {
                 "name": "OpenAI",
                 "badge": "paid",
                 "tag": "whisper-1, gpt-4o-transcribe, gpt-transcribe",
@@ -493,16 +466,6 @@ TOOL_CATEGORIES = {
         # See PR #25182 for the migration rationale.
         "providers": [
             {
-                "name": "Nous Subscription",
-                "badge": "subscription",
-                "tag": "Managed Firecrawl billed to your subscription",
-                "web_backend": "firecrawl",
-                "env_vars": [],
-                "requires_nous_auth": True,
-                "managed_nous_feature": "web",
-                "override_env_vars": ["FIRECRAWL_API_KEY", "FIRECRAWL_API_URL"],
-            },
-            {
                 "name": "Firecrawl Self-Hosted",
                 "badge": "free · self-hosted",
                 "tag": "Run your own Firecrawl instance (Docker)",
@@ -527,17 +490,7 @@ TOOL_CATEGORIES = {
         #     distinct setup UX.
         # Mirrors the shape browser/video_gen ship today.
         "providers": [
-            {
-                "name": "Nous Subscription",
-                "badge": "subscription",
-                "tag": "Managed FAL image generation billed to your subscription",
-                "env_vars": [],
-                "requires_nous_auth": True,
-                "managed_nous_feature": "image_gen",
-                "override_env_vars": ["FAL_KEY"],
-                "imagegen_backend": "fal",
-            },
-        ],
+            ],
     },
     "video_gen": {
         "name": "Video Generation",
@@ -547,21 +500,7 @@ TOOL_CATEGORIES = {
         # provider rows (FAL BYOK, xAI, …) are injected at runtime by
         # ``_plugin_video_gen_providers()`` in ``_visible_providers``.
         "providers": [
-            {
-                "name": "Nous Subscription",
-                "badge": "subscription",
-                "tag": "Managed FAL video generation billed to your subscription",
-                "env_vars": [],
-                "requires_nous_auth": True,
-                "managed_nous_feature": "video_gen",
-                "override_env_vars": ["FAL_KEY"],
-                # The underlying plugin backend — when the user picks
-                # "Nous Subscription" we set video_gen.provider = "fal"
-                # and video_gen.use_gateway = True so the FAL plugin
-                # routes through the managed queue gateway.
-                "video_gen_plugin_name": "fal",
-            },
-        ],
+            ],
     },
     "x_search": {
         "name": "X (Twitter) Search",
@@ -624,22 +563,6 @@ TOOL_CATEGORIES = {
                 "env_vars": [],
                 "browser_provider": "local",
                 "post_setup": "agent_browser",
-            },
-            {
-                "name": "Nous Subscription (Browser Use cloud)",
-                "badge": "subscription",
-                "tag": "Managed Browser Use billed to your subscription",
-                "env_vars": [],
-                "browser_provider": "browser-use",
-                "requires_nous_auth": True,
-                "managed_nous_feature": "browser",
-                "override_env_vars": ["BROWSER_USE_API_KEY"],
-                # Cloud hook: installs the agent-browser CLI only. Browser Use
-                # hosts its own Chromium, so the local-Chromium install (and
-                # the local-Chromium readiness gate) must not apply here —
-                # with "agent_browser" this row read "needs setup" forever on
-                # machines without a local Chromium build.
-                "post_setup": "browserbase",
             },
             {
                 "name": "Camofox",
@@ -1947,7 +1870,7 @@ def _run_post_setup(post_setup_key: str):
                 prompt_choice,
                 prompt as _setup_prompt,
             )
-            from sparkii_cli.config import save_env_value
+            from core.config import save_env_value
         except Exception as exc:
             _print_warning(f"    Could not load setup helpers: {exc}")
             _print_info("    Run later: sparkii auth add xai-oauth   (or set XAI_API_KEY)")
@@ -2611,7 +2534,6 @@ def _toolset_has_keys(
     config: dict = None,
     *,
     force_fresh: bool = False,
-    features: Optional[NousSubscriptionFeatures] = None,
 ) -> bool:
     """Check if a toolset's required API keys are configured."""
     if config is None:
@@ -2625,15 +2547,6 @@ def _toolset_has_keys(
             return client is not None
         except Exception:
             return False
-
-    if ts_key in {"web", "image_gen", "video_gen", "tts", "stt", "browser"}:
-        if features is None:
-            features = get_nous_subscription_features(
-                config, force_fresh=force_fresh
-            )
-        feature = features.features.get(ts_key)
-        if feature and (feature.available or feature.managed_by_nous):
-            return True
 
     # Check TOOL_CATEGORIES first (provider-aware)
     cat = TOOL_CATEGORIES.get(ts_key)
@@ -3078,49 +2991,16 @@ def _visible_providers(
     config: dict,
     *,
     force_fresh: bool = False,
-    features: Optional[NousSubscriptionFeatures] = None,
 ) -> list[dict]:
     """Return provider entries visible for the current auth/config state.
 
-    Nous-managed Tool Gateway rows (``managed_nous_feature``) are always
-    shown — even to logged-out / unentitled users — so the picker advertises
-    that the capability exists.  Selecting one drives an inline Nous Portal
-    login + entitlement check (see ``_configure_provider``); the row only
-    *activates* the gateway once paid access is confirmed.
+    Nous-managed Tool Gateway rows (``managed_nous_feature`` /
+    ``requires_nous_auth``) were removed with the Nous product line and are
+    never shown.
     """
-    if features is None:
-        features = get_nous_subscription_features(config, force_fresh=force_fresh)
-    acct = features.account_info
-    # Pool-only users (entitled to managed tools via the free tool pool but with
-    # no paid access) get image gen but NOT video gen — the pool doesn't fund
-    # `fal-video`. Rather than advertise a managed video row that would be denied
-    # on select, hide it for them. Logged-out users still see it (advertising)
-    # and paid users are entitled to it.
-    pool_only = bool(
-        acct
-        and acct.logged_in
-        and acct.paid_service_access is not True
-        and acct.tool_gateway_entitled
-    )
     visible = []
     for provider in cat.get("providers", []):
-        # Nous-managed Tool Gateway rows stay visible regardless of auth —
-        # selecting one drives an inline Portal login. A `requires_nous_auth`
-        # row that is NOT a managed gateway feature (pure pre-auth UX) is
-        # still hidden until the user is logged in.
-        if (
-            provider.get("requires_nous_auth")
-            and not provider.get("managed_nous_feature")
-            and not features.nous_auth_present
-        ):
-            continue
-        # Hide the managed video-gen row from pool-only users — their free tool
-        # pool doesn't cover video, so showing it would only lead to a denial.
-        if (
-            pool_only
-            and provider.get("managed_nous_feature") == "video_gen"
-            and not (acct and acct.tool_gateway_entitled_for("fal-video"))
-        ):
+        if provider.get("requires_nous_auth") or provider.get("managed_nous_feature"):
             continue
         visible.append(provider)
 
@@ -3225,20 +3105,9 @@ def _agent_browser_installed() -> bool:
     Lightpanda engine, which needs no Chromium). Mirrors the hook so "Run
     setup" flips to an installed state only when re-running it would be a
     no-op."""
-    import sys
+    import shutil
 
-    from sparkii_cli.nous_subscription import _local_browser_runnable
-
-    # The install hook runs in a spawned ``sparkii tools post-setup`` process,
-    # but this probe runs in the long-lived web-server/CLI process, whose
-    # browser_tool module may have cached a stale "Chromium missing" result
-    # from before the install. Drop the cache (when the module is loaded) so
-    # the readiness pill flips to Ready right after a successful setup run.
-    bt = sys.modules.get("tools.browser_tool")
-    if bt is not None:
-        bt._cached_chromium_installed = None
-
-    return _local_browser_runnable()
+    return shutil.which("agent-browser") is not None
 
 
 def _camofox_installed() -> bool:
@@ -3271,9 +3140,9 @@ def _cloud_agent_browser_installed() -> bool:
 
     Cloud providers host their own Chromium, so their hook only installs the
     agent-browser npm package — presence of the CLI is the whole contract."""
-    from sparkii_cli.nous_subscription import _has_agent_browser
+    import shutil
 
-    return _has_agent_browser()
+    return shutil.which("agent-browser") is not None
 
 
 def provider_readiness_status(
@@ -3312,28 +3181,9 @@ def provider_readiness_status(
 
     managed_feature = provider.get("managed_nous_feature")
     if provider.get("requires_nous_auth") or managed_feature:
-        if features is None:
-            features = get_nous_subscription_features(config)
-        if not features.nous_auth_present:
-            return "needs_auth"
-        if managed_feature:
-            # Same per-category entitlement gate the CLI applies at selection
-            # time (free tool-pool users get image gen but not video gen).
-            acct = features.account_info
-            category = MANAGED_FEATURE_COVERAGE_CATEGORY.get(managed_feature)
-            entitled = bool(
-                acct
-                and acct.logged_in
-                and (
-                    acct.tool_gateway_entitled_for(category)
-                    if category
-                    else acct.tool_gateway_entitled
-                )
-            )
-            if not entitled:
-                return "needs_auth"
-        # Signed in and entitled — fall through: a managed row may still
-        # carry a local install hook (e.g. the managed browser row needs
+        # Nous-managed rows were removed with the Nous product line; treat
+        # them as needing auth so nothing activates.
+        return "needs_auth"
         # the agent-browser CLI on this machine).
 
     post_setup = provider.get("post_setup")
@@ -3483,16 +3333,6 @@ def _configure_tool_category(
         # When the user is logged into Nous, surface a marker on providers
         # whose access is included in their subscription so it's visually
         # obvious which options cost extra vs. cost nothing on top of Nous.
-        try:
-            _nous_logged_in = bool(
-                get_nous_subscription_features(
-                    config,
-                    force_fresh=force_fresh,
-                ).nous_auth_present
-            )
-        except Exception:
-            _nous_logged_in = False
-
         provider_choices = []
         for p in providers:
             badge = f" [{p['badge']}]" if p.get("badge") else ""
@@ -3506,17 +3346,7 @@ def _configure_tool_category(
                     configured = ""
                 else:
                     configured = " [configured]"
-            # Mark Nous-managed entries. Logged-in paid subscribers get the
-            # "included" star; everyone else gets a "via Nous Portal" hint so
-            # it's clear selecting the row triggers a Portal login. The rows
-            # are always shown now (see _visible_providers) — selecting one
-            # drives an inline login + entitlement check.
             sub_marker = ""
-            if p.get("managed_nous_feature"):
-                if _nous_logged_in:
-                    sub_marker = "  ★ Included with your Nous subscription"
-                else:
-                    sub_marker = "  ★ via Nous Portal (login on select)"
             provider_choices.append(f"{p['name']}{badge}{tag}{configured}{sub_marker}")
 
         # Add skip option
@@ -3558,48 +3388,8 @@ def _is_provider_active(
 
     managed_feature = provider.get("managed_nous_feature")
     if managed_feature:
-        features = get_nous_subscription_features(config, force_fresh=force_fresh)
-        feature = features.features.get(managed_feature)
-        if feature is None:
-            return False
-        if managed_feature == "image_gen":
-            image_cfg = config.get("image_gen", {})
-            if isinstance(image_cfg, dict):
-                configured_provider = image_cfg.get("provider")
-                if configured_provider not in {None, "", "fal"}:
-                    return False
-                if image_cfg.get("use_gateway") is not None and not is_truthy_value(image_cfg.get("use_gateway"), default=False):
-                    return False
-            return feature.managed_by_nous
-        if managed_feature == "video_gen":
-            video_cfg = config.get("video_gen", {})
-            if isinstance(video_cfg, dict):
-                configured_provider = video_cfg.get("provider")
-                if configured_provider not in {None, "", "fal"}:
-                    return False
-                if video_cfg.get("use_gateway") is not None and not is_truthy_value(video_cfg.get("use_gateway"), default=False):
-                    return False
-            return feature.managed_by_nous
-        if provider.get("tts_provider"):
-            return (
-                feature.managed_by_nous
-                and cfg_get(config, "tts", "provider") == provider["tts_provider"]
-            )
-        if provider.get("stt_provider"):
-            return (
-                feature.managed_by_nous
-                and cfg_get(config, "stt", "provider") == provider["stt_provider"]
-            )
-        if "browser_provider" in provider:
-            # Browser Use mode is a driver on top of the provider (it attaches
-            # to the provider's CDP endpoint), so the provider row stays
-            # active alongside the Browser Use row.
-            current = cfg_get(config, "browser", "cloud_provider")
-            return feature.managed_by_nous and provider["browser_provider"] == current
-        if provider.get("web_backend"):
-            current = cfg_get(config, "web", "backend")
-            return feature.managed_by_nous and current == provider["web_backend"]
-        return feature.managed_by_nous
+        # Nous-managed rows were removed with the Nous product line.
+        return False
 
     if provider.get("tts_provider"):
         return cfg_get(config, "tts", "provider") == provider["tts_provider"]
@@ -4184,43 +3974,11 @@ def _configure_provider(
     env_vars = provider.get("env_vars", [])
     managed_feature = provider.get("managed_nous_feature")
 
-    # Nous-managed Tool Gateway backends are always listed (see
-    # _visible_providers), but only *activate* once the user has paid Nous
-    # Portal access. Selecting one runs an inline Portal login when needed —
-    # auth + entitlement only, no inference-provider switch and no bulk
-    # "enable all tools" prompt (that lives in `sparkii model`).
-    if managed_feature:
-        from sparkii_cli.nous_subscription import (
-            MANAGED_FEATURE_COVERAGE_CATEGORY,
-            ensure_nous_portal_access,
-        )
-
-        if not ensure_nous_portal_access(
-            capability=f"{provider.get('name', 'the Nous Tool Gateway')}",
-            coverage_category=MANAGED_FEATURE_COVERAGE_CATEGORY.get(managed_feature),
-        ):
-            _print_warning(
-                "  Not enabled — Nous Portal access is required for this backend."
-            )
-            return
-
-    # Pure pre-auth UX rows (requires_nous_auth without a managed gateway
-    # feature) keep the old gate. Managed rows are handled by the inline
-    # login above, so don't double-check them here.
-    if provider.get("requires_nous_auth") and not managed_feature:
-        features = get_nous_subscription_features(config, force_fresh=force_fresh)
-        entitled = bool(
-            features.account_info and features.account_info.paid_service_access is True
-        )
-        if not features.nous_auth_present or not entitled:
-            message = format_nous_portal_entitlement_message(
-                features.account_info,
-                capability=f"{provider.get('name', 'Nous Subscription')}",
-            )
-            _print_warning(
-                f"  {message or 'Nous Subscription is only available after logging into Nous Portal.'}"
-            )
-            return
+    # Nous-managed rows (managed_nous_feature / requires_nous_auth) were
+    # removed with the Nous product line; nothing to gate here.
+    if managed_feature or provider.get("requires_nous_auth"):
+        _print_warning("  Not available — the Nous Tool Gateway was removed.")
+        return
 
     # Set TTS provider in config if applicable
     if provider.get("tts_provider"):
@@ -4288,32 +4046,6 @@ def _configure_provider(
 
     # Prompt for each required env var
     all_configured = True
-    # If this BYOK provider lives in a category that ALSO has a
-    # Nous-managed sibling, show a single dim hint so users know
-    # they can avoid the key entirely via a Portal subscription.
-    # Suppressed when the user is already authed to Nous.
-    _show_portal_hint = False
-    if env_vars and not managed_feature and not provider.get("requires_nous_auth"):
-        try:
-            _has_managed_sibling = False
-            for _cat_key, _cat in TOOL_CATEGORIES.items():
-                _providers = _cat.get("providers", [])
-                if provider in _providers and any(
-                    sib.get("managed_nous_feature") for sib in _providers
-                ):
-                    _has_managed_sibling = True
-                    break
-            if _has_managed_sibling:
-                _features = get_nous_subscription_features(
-                    config,
-                    force_fresh=force_fresh,
-                )
-                _show_portal_hint = not _features.nous_auth_present
-        except Exception:
-            _show_portal_hint = False
-
-    if _show_portal_hint:
-        _print_info("  Available through Nous Portal subscription.")
 
     for var in env_vars:
         existing = get_env_value(var["key"])
@@ -4700,39 +4432,10 @@ def _reconfigure_provider(
     env_vars = provider.get("env_vars", [])
     managed_feature = provider.get("managed_nous_feature")
 
-    # Same inline Nous Portal login + entitlement gate as _configure_provider:
-    # managed Tool Gateway backends only activate with paid Portal access.
-    if managed_feature:
-        from sparkii_cli.nous_subscription import (
-            MANAGED_FEATURE_COVERAGE_CATEGORY,
-            ensure_nous_portal_access,
-        )
-
-        if not ensure_nous_portal_access(
-            capability=f"{provider.get('name', 'the Nous Tool Gateway')}",
-            coverage_category=MANAGED_FEATURE_COVERAGE_CATEGORY.get(managed_feature),
-        ):
-            _print_warning(
-                "  Not enabled — Nous Portal access is required for this backend."
-            )
-            return
-
-    # Pure pre-auth UX rows keep the old gate; managed rows already handled
-    # by the inline login above.
-    if provider.get("requires_nous_auth") and not managed_feature:
-        features = get_nous_subscription_features(config, force_fresh=force_fresh)
-        entitled = bool(
-            features.account_info and features.account_info.paid_service_access is True
-        )
-        if not features.nous_auth_present or not entitled:
-            message = format_nous_portal_entitlement_message(
-                features.account_info,
-                capability=f"{provider.get('name', 'Nous Subscription')}",
-            )
-            _print_warning(
-                f"  {message or 'Nous Subscription is only available after logging into Nous Portal.'}"
-            )
-            return
+    # Nous-managed rows were removed with the Nous product line.
+    if managed_feature or provider.get("requires_nous_auth"):
+        _print_warning("  Not available — the Nous Tool Gateway was removed.")
+        return
 
     if provider.get("tts_provider"):
         tts_cfg = config.setdefault("tts", {})
@@ -4962,15 +4665,6 @@ def tools_command(args=None, first_install: bool = False, config: dict = None):
                 for ts in sorted(removed):
                     label = next((l for k, l, _ in _get_effective_configurable_toolsets() if k == ts), ts)
                     print(color(f"  - {label}", Colors.RED))
-
-            auto_configured = apply_nous_managed_defaults(
-                config,
-                enabled_toolsets=new_enabled,
-                force_fresh=True,
-            )
-            for ts_key in sorted(auto_configured):
-                label = next((l for k, l, _ in CONFIGURABLE_TOOLSETS if k == ts_key), ts_key)
-                print(color(f"  ✓ {label}: using your Nous subscription defaults", Colors.GREEN))
 
             # Walk through ALL selected tools that have provider options or
             # need API keys.  This ensures browser (Local vs Browserbase),

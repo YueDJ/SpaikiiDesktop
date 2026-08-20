@@ -195,7 +195,7 @@ def test_inprocess_provider_ticks_and_stops():
 
 def test_default_config_cron_provider_is_empty():
     """The new cron.provider key defaults to empty (= built-in)."""
-    from sparkii_cli.config import DEFAULT_CONFIG
+    from core.config import DEFAULT_CONFIG
 
     assert DEFAULT_CONFIG["cron"]["provider"] == ""
 
@@ -239,7 +239,7 @@ def test_cron_provider_package_does_not_shadow_core_cron_package(monkeypatch):
 
 def test_resolve_defaults_to_builtin(monkeypatch):
     """Empty cron.provider → built-in."""
-    import sparkii_cli.config as cfg
+    import core.config as cfg
     from cron import scheduler_provider as sp
 
     monkeypatch.setattr(cfg, "load_config", lambda: {"cron": {"provider": ""}})
@@ -249,7 +249,7 @@ def test_resolve_defaults_to_builtin(monkeypatch):
 
 def test_resolve_no_cron_section_falls_back_to_builtin(monkeypatch):
     """Config with no cron section at all → built-in (cfg_get returns default)."""
-    import sparkii_cli.config as cfg
+    import core.config as cfg
     from cron import scheduler_provider as sp
 
     monkeypatch.setattr(cfg, "load_config", lambda: {})
@@ -259,7 +259,7 @@ def test_resolve_no_cron_section_falls_back_to_builtin(monkeypatch):
 
 def test_resolve_unknown_provider_falls_back_to_builtin(monkeypatch):
     """A named provider that doesn't exist → built-in (cron never dies)."""
-    import sparkii_cli.config as cfg
+    import core.config as cfg
     from cron import scheduler_provider as sp
 
     monkeypatch.setattr(cfg, "load_config", lambda: {"cron": {"provider": "nope-not-real"}})
@@ -269,7 +269,7 @@ def test_resolve_unknown_provider_falls_back_to_builtin(monkeypatch):
 
 def test_resolve_unavailable_provider_falls_back(monkeypatch):
     """A provider that loads but reports is_available()==False → built-in."""
-    import sparkii_cli.config as cfg
+    import core.config as cfg
     import plugins.cron_providers as pc
     from cron import scheduler_provider as sp
     from cron.scheduler_provider import CronScheduler
@@ -293,7 +293,7 @@ def test_resolve_unavailable_provider_falls_back(monkeypatch):
 
 def test_resolve_available_provider_is_used(monkeypatch):
     """A provider that loads and is available is returned (not the fallback)."""
-    import sparkii_cli.config as cfg
+    import core.config as cfg
     import plugins.cron_providers as pc
     from cron import scheduler_provider as sp
     from cron.scheduler_provider import CronScheduler

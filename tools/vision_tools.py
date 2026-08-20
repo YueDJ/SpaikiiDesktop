@@ -82,7 +82,7 @@ def _resolve_download_timeout() -> float:
         except ValueError:
             pass
     try:
-        from sparkii_cli.config import cfg_get, load_config
+        from core.config import cfg_get, load_config
         cfg = load_config()
         val = cfg_get(cfg, "auxiliary", "vision", "download_timeout")
         if val is not None:
@@ -166,7 +166,7 @@ def _resolve_vision_cpu_workers() -> int:
         except ValueError:
             pass
     try:
-        from sparkii_cli.config import cfg_get, load_config
+        from core.config import cfg_get, load_config
         cfg = load_config()
         val = cfg_get(cfg, "auxiliary", "vision", "max_concurrency")
         if val is not None:
@@ -1050,7 +1050,7 @@ def _should_use_native_vision_fast_path() -> bool:
     try:
         from agent.auxiliary_client import _read_main_provider, _read_main_model
         from agent.image_routing import decide_image_input_mode, _lookup_supports_vision
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         provider = _read_main_provider()
         model = _read_main_model()
@@ -1486,7 +1486,7 @@ async def vision_analyze_tool(
         vision_timeout = 120.0
         vision_temperature = 0.1
         try:
-            from sparkii_cli.config import cfg_get, load_config
+            from core.config import cfg_get, load_config
             _cfg = load_config()
             _vision_cfg = cfg_get(_cfg, "auxiliary", "vision", default={})
             _vt = _vision_cfg.get("timeout")
@@ -1782,7 +1782,7 @@ async def _handle_vision_analyze(args: Dict[str, Any], **kw: Any) -> str:
     # Prefer config.yaml auxiliary.vision.model; env var is a legacy override.
     model = None
     try:
-        from sparkii_cli.config import cfg_get, load_config
+        from core.config import cfg_get, load_config
         _cfg = load_config()
         _vmodel = cfg_get(_cfg, "auxiliary", "vision", "model")
         if _vmodel:
@@ -2056,7 +2056,7 @@ async def video_analyze_tool(
         vision_timeout = 180.0
         vision_temperature = 0.1
         try:
-            from sparkii_cli.config import cfg_get, load_config
+            from core.config import cfg_get, load_config
             _cfg = load_config()
             _vision_cfg = cfg_get(_cfg, "auxiliary", "vision", default={})
             _vt = _vision_cfg.get("timeout")
@@ -2199,7 +2199,7 @@ def _handle_video_analyze(args: Dict[str, Any], **kw: Any) -> Awaitable[str]:
     # env vars are a legacy override.
     model = None
     try:
-        from sparkii_cli.config import cfg_get, load_config
+        from core.config import cfg_get, load_config
         _cfg = load_config()
         _vmodel = cfg_get(_cfg, "auxiliary", "video", "model") or cfg_get(_cfg, "auxiliary", "vision", "model")
         if _vmodel:

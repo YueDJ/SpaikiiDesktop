@@ -79,12 +79,12 @@ def has_xai_credentials() -> bool:
 def get_env_value(name: str, default=None):
     """Read ``name`` from ``~/.sparkii/.env`` first, then ``os.environ``.
 
-    Wraps :func:`sparkii_cli.config.get_env_value` so tests can patch
+    Wraps :func:`core.config.get_env_value` so tests can patch
     ``tools.xai_http.get_env_value`` to inject dotenv-only secrets into the
     xAI credential resolver.
     """
     try:
-        from sparkii_cli.config import get_env_value as _sparkii_get_env_value
+        from core.config import get_env_value as _sparkii_get_env_value
     except ImportError:
         return os.environ.get(name, default)
 
@@ -114,7 +114,7 @@ def sparkii_xai_default_headers() -> Dict[str, str]:
 def _load_config_section(section_name: str) -> Dict[str, Any]:
     """Return a top-level Sparkii config section as a dict, or empty."""
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         cfg = load_config()
         section = cfg.get(section_name) if isinstance(cfg, dict) else None
@@ -302,7 +302,7 @@ def resolve_xai_http_credentials(
     """Resolve bearer credentials for direct xAI HTTP endpoints.
 
     Prefers Sparkii-managed xAI OAuth credentials when available, then falls back
-    to ``XAI_API_KEY`` resolved via ``sparkii_cli.config.get_env_value`` so keys
+    to ``XAI_API_KEY`` resolved via ``core.config.get_env_value`` so keys
     stored in ``~/.sparkii/.env`` (the standard Sparkii location) are honored —
     not just ones already exported into ``os.environ``. This keeps direct xAI
     endpoints (images, TTS, STT, etc.) aligned with the main runtime auth model

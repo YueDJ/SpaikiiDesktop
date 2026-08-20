@@ -180,8 +180,8 @@ def test_oneshot_wires_session_db_for_recall(monkeypatch):
     monkeypatch.setitem(sys.modules, "sparkii_state", mod("sparkii_state", SessionDB=FakeSessionDB))
     monkeypatch.setitem(
         sys.modules,
-        "sparkii_cli.config",
-        mod("sparkii_cli.config", load_config=lambda: {"model": {"default": "m"}}),
+        "core.config",
+        mod("core.config", load_config=lambda: {"model": {"default": "m"}}),
     )
     monkeypatch.setitem(
         sys.modules,

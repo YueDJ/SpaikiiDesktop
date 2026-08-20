@@ -405,7 +405,7 @@ def check_for_updates() -> Optional[int]:
     # `/api/sparkii/update/check` endpoint short-circuits docker the same way
     # (web_server.py); mirror that here so the banner/TUI surfaces agree.
     try:
-        from sparkii_cli.config import detect_install_method, get_project_root
+        from core.config import detect_install_method, get_project_root
         if detect_install_method(get_project_root()) in {"docker", "apt"}:
             return None
     except Exception:
@@ -524,7 +524,7 @@ def _compute_git_banner_state(repo_dir: Optional[Path] = None) -> Optional[dict]
     if repo_dir is None:
         # No git checkout — try the baked build SHA (Docker image path).
         try:
-            from sparkii_cli.build_info import get_build_sha
+            from core.build_info import get_build_sha
             baked = get_build_sha(short=8)
             if baked:
                 return {"upstream": baked, "local": baked, "ahead": 0}
@@ -538,7 +538,7 @@ def _compute_git_banner_state(repo_dir: Optional[Path] = None) -> Optional[dict]
         # Live-git lookup failed (e.g. shallow clone without origin/main).
         # Fall back to the baked build SHA if available.
         try:
-            from sparkii_cli.build_info import get_build_sha
+            from core.build_info import get_build_sha
             baked = get_build_sha(short=8)
             if baked:
                 return {"upstream": baked, "local": baked, "ahead": 0}
@@ -693,7 +693,7 @@ def get_update_result(timeout: float = 0.5) -> Optional[int]:
 
 def _format_update_notice(behind: int) -> str:
     """Render the update warning line for a non-zero ``behind`` result."""
-    from sparkii_cli.config import get_managed_update_command, recommended_update_command
+    from core.config import get_managed_update_command, recommended_update_command
     if behind > 0:
         commits_word = "commit" if behind == 1 else "commits"
         return (
@@ -798,7 +798,7 @@ def banner_snapshot_fingerprint() -> Optional[str]:
     import hashlib
     parts = [f"v{_BANNER_SNAPSHOT_VERSION}"]
     try:
-        from sparkii_cli.config import get_config_path
+        from core.config import get_config_path
         for p in (get_config_path(), get_sparkii_home() / ".env"):
             try:
                 st = p.stat()
@@ -991,8 +991,8 @@ def build_welcome_banner(console: "Console", model: str, cwd: str,
         preset_name = model
         agg_label = ""
         try:
-            from sparkii_cli.config import load_config
-            from sparkii_cli.moa_config import normalize_moa_config
+            from core.config import load_config
+            from core.moa_config import normalize_moa_config
 
             _moa = normalize_moa_config(load_config().get("moa") or {})
             _preset = _moa.get("presets", {}).get(preset_name)
@@ -1098,7 +1098,7 @@ def build_welcome_banner(console: "Console", model: str, cwd: str,
     # key cache mentions any MCP server, skip the section outright.
     mcp_status = []
     try:
-        from sparkii_cli.config import load_config as _load_cfg
+        from core.config import load_config as _load_cfg
         _has_native_mcp = bool((_load_cfg() or {}).get("mcp_servers"))
     except Exception:
         _has_native_mcp = True  # can't tell — take the full path
@@ -1205,7 +1205,7 @@ def build_welcome_banner(console: "Console", model: str, cwd: str,
     # (codex builds its own tool list inside the spawned subprocess).
     try:
         from sparkii_cli.codex_runtime_switch import get_current_runtime
-        from sparkii_cli.config import load_config as _load_cfg
+        from core.config import load_config as _load_cfg
         if get_current_runtime(_load_cfg()) == "codex_app_server":
             right_lines.append(
                 f"[bold {accent}]Runtime:[/] [{text}]codex app-server[/] "

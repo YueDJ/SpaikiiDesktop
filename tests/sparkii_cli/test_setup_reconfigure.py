@@ -57,7 +57,7 @@ def _enter_existing_install_patches(stack, **extra):
     for target, kwargs in [
         ("sparkii_cli.setup.ensure_sparkii_home", {}),
         ("sparkii_cli.setup.is_interactive_stdin", {"return_value": True}),
-        ("sparkii_cli.config.is_managed", {"return_value": False}),
+        ("core.config.is_managed", {"return_value": False}),
         ("sparkii_cli.setup.load_config", {"return_value": {}}),
         ("sparkii_cli.setup.save_config", {}),
         ("sparkii_cli.setup.get_env_value", {"return_value": None}),
@@ -78,7 +78,7 @@ def _enter_fresh_install_patches(stack, **extra):
     for target, kwargs in [
         ("sparkii_cli.setup.ensure_sparkii_home", {}),
         ("sparkii_cli.setup.is_interactive_stdin", {"return_value": True}),
-        ("sparkii_cli.config.is_managed", {"return_value": False}),
+        ("core.config.is_managed", {"return_value": False}),
         ("sparkii_cli.setup.load_config", {"return_value": {}}),
         ("sparkii_cli.setup.save_config", {}),
         ("sparkii_cli.auth.get_active_provider", {"return_value": None}),

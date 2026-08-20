@@ -4,7 +4,7 @@ from argparse import Namespace
 from unittest.mock import patch
 
 import pytest
-from sparkii_cli.config import DEFAULT_CONFIG, load_config, save_config
+from core.config import DEFAULT_CONFIG, load_config, save_config
 
 
 def _make_setup_args(**overrides):

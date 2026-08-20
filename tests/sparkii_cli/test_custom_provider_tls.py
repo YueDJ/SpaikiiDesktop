@@ -1,6 +1,6 @@
 """Tests for per-provider TLS settings in custom_providers config."""
 
-from sparkii_cli.config import (
+from core.config import (
     apply_custom_provider_tls_to_client_kwargs,
     get_custom_provider_tls_settings,
 )

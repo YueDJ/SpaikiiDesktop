@@ -252,7 +252,7 @@ def _copy_source_bundle(source: Path, snapshot_dir: Path) -> tuple[Path, list[st
     offline/quarantined file, so the refusal should never fire; the guard
     keeps this path consistent with ``sparkii_state._backup_db_file``.
     """
-    from sparkii_cli.sqlite_safe_read import LiveConnectionError, offline_file_access
+    from core.sqlite_safe_read import LiveConnectionError, offline_file_access
 
     snapshot_source = snapshot_dir / source.name
     copied: list[str] = []

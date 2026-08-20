@@ -106,7 +106,7 @@ def test_run_daemon_explicit_config_wins(kanban_home, monkeypatch):
 
 
 def test_configured_max_in_progress_parsing(monkeypatch):
-    import sparkii_cli.config as cfgmod
+    import core.config as cfgmod
 
     cases = [
         ({"kanban": {"max_in_progress": 4}}, 4),
@@ -219,7 +219,7 @@ def _park_in_review(conn: sqlite3.Connection, title: str, assignee: str) -> str:
 def test_review_lane_gets_reserved_slot_under_ready_backlog(
     kanban_home, all_assignees_spawnable, monkeypatch,
 ):
-    import sparkii_cli.config as cfgmod
+    import core.config as cfgmod
     monkeypatch.setattr(
         cfgmod, "load_config",
         lambda *a, **k: {"kanban": {"review_dispatch": True}},
@@ -243,7 +243,7 @@ def test_review_lane_gets_reserved_slot_under_ready_backlog(
 def test_review_reservation_released_when_no_review_work(
     kanban_home, all_assignees_spawnable, monkeypatch,
 ):
-    import sparkii_cli.config as cfgmod
+    import core.config as cfgmod
     monkeypatch.setattr(
         cfgmod, "load_config",
         lambda *a, **k: {"kanban": {"review_dispatch": True}},
@@ -265,7 +265,7 @@ def test_nonspawnable_review_does_not_tax_ready_budget(
     kanban_home, monkeypatch,
 ):
     """Review tasks parked for humans (no real profile) release the slot."""
-    import sparkii_cli.config as cfgmod
+    import core.config as cfgmod
     import sparkii_cli.profiles as profmod
 
     monkeypatch.setattr(
@@ -294,7 +294,7 @@ def test_review_budget_still_bounded_by_shared_cap(
     kanban_home, all_assignees_spawnable, monkeypatch,
 ):
     """The reservation caps the ready lane; it grants review no extra slots."""
-    import sparkii_cli.config as cfgmod
+    import core.config as cfgmod
     monkeypatch.setattr(
         cfgmod, "load_config",
         lambda *a, **k: {"kanban": {"review_dispatch": True}},

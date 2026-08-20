@@ -63,7 +63,7 @@ def test_refresh_secret_sources_noop_when_only_builtins(monkeypatch):
     reg._reset_registry_for_tests()
     assert reg.list_plugin_sources() == []
     monkeypatch.setattr(
-        "sparkii_cli.config.load_config",
+        "core.config.load_config",
         lambda: {"secrets": {"bitwarden": {"enabled": True}}},
     )
     monkeypatch.setattr(
@@ -87,7 +87,7 @@ def test_refresh_secret_sources_repulls_when_plugin_enabled(monkeypatch):
 
     monkeypatch.setattr(reg, "list_plugin_sources", lambda: [_StubSource()])
     monkeypatch.setattr(
-        "sparkii_cli.config.load_config",
+        "core.config.load_config",
         lambda: {"secrets": {"myvault": {"enabled": True}}},
     )
     monkeypatch.setattr(
@@ -115,7 +115,7 @@ def test_refresh_respects_custom_is_enabled(monkeypatch):
     )
     # No `enabled` key at all — only the source's custom contract decides.
     monkeypatch.setattr(
-        "sparkii_cli.config.load_config",
+        "core.config.load_config",
         lambda: {"secrets": {"myvault": {"vault_id": "abc123"}}},
     )
     monkeypatch.setattr(
@@ -142,7 +142,7 @@ def test_refresh_skips_custom_source_when_not_activated(monkeypatch):
     )
     # `enabled: true` but the custom contract ignores it and requires vault_id.
     monkeypatch.setattr(
-        "sparkii_cli.config.load_config",
+        "core.config.load_config",
         lambda: {"secrets": {"myvault": {"enabled": True}}},
     )
     monkeypatch.setattr(
@@ -170,7 +170,7 @@ def test_refresh_skips_source_whose_is_enabled_raises(monkeypatch):
 
     monkeypatch.setattr(reg, "list_plugin_sources", lambda: [_Boom()])
     monkeypatch.setattr(
-        "sparkii_cli.config.load_config",
+        "core.config.load_config",
         lambda: {"secrets": {"myvault": {"enabled": True}}},
     )
     monkeypatch.setattr(

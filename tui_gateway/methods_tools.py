@@ -95,7 +95,7 @@ def _(rid, params: dict) -> dict:
         user_confirm = bool(params.get("confirm", False))
         if not user_confirm:
             try:
-                from sparkii_cli.config import load_config as _load_config
+                from core.config import load_config as _load_config
 
                 _cfg = _load_config()
                 _approvals = _cfg.get("approvals") if isinstance(_cfg, dict) else None
@@ -234,7 +234,7 @@ def _(rid, params: dict) -> dict:
 @method("reload.env")
 def _(rid, params: dict) -> dict:
     """Re-read ``~/.sparkii/.env`` into the gateway process via
-    ``sparkii_cli.config.reload_env``, matching classic CLI's ``/reload``
+    ``core.config.reload_env``, matching classic CLI's ``/reload``
     handler.  Newly added API keys take effect on the next agent call
     without restarting the TUI.
 
@@ -244,7 +244,7 @@ def _(rid, params: dict) -> dict:
     should follow with ``/new``.
     """
     try:
-        from sparkii_cli.config import reload_env
+        from core.config import reload_env
 
         count = reload_env()
         return _ok(rid, {"updated": int(count)})
@@ -380,7 +380,7 @@ def _(rid, params: dict) -> dict:
     try:
         # CREATE_NO_WINDOW on Windows — under the desktop GUI's windowless
         # parent, this spawn otherwise flashes a console (#56747).
-        from sparkii_cli._subprocess_compat import windows_hide_flags
+        from core._subprocess_compat import windows_hide_flags
 
         r = subprocess.run(
             [sys.executable, "-m", "sparkii_cli.main", *argv],
@@ -446,7 +446,7 @@ def _(rid, params: dict) -> dict:
             # has all API keys in os.environ.
             from tools.environments.local import build_subprocess_env
             sanitized_env = build_subprocess_env()
-            from sparkii_cli._subprocess_compat import windows_hide_flags
+            from core._subprocess_compat import windows_hide_flags
 
             r = subprocess.run(
                 qc.get("command", ""),
@@ -599,7 +599,7 @@ def _(rid, params: dict) -> dict:
         # for the rest of the session, pick it from the model picker (MoA
         # presets surface as a virtual "Mixture of Agents" provider).
         try:
-            from sparkii_cli.moa_config import moa_usage, normalize_moa_config
+            from core.moa_config import moa_usage, normalize_moa_config
 
             if not arg:
                 return _err(rid, 4004, moa_usage())
@@ -1572,7 +1572,7 @@ def _(rid, params: dict) -> dict:
         return _err(rid, 4018, "names required")
 
     try:
-        from sparkii_cli.config import load_config, save_config
+        from core.config import load_config, save_config
         from sparkii_cli.tools_config import (
             CONFIGURABLE_TOOLSETS,
             _apply_mcp_change,
@@ -2105,7 +2105,7 @@ def _(rid, params: dict) -> dict:
     if err:
         return err
     try:
-        from sparkii_cli.config import load_config, save_config, save_env_value
+        from core.config import load_config, save_config, save_env_value
         from sparkii_cli.mcp_config import (
             _bearer_auth_headers,
             _env_key_for_server,
@@ -2540,7 +2540,7 @@ def _(rid, params: dict) -> dict:
     except ImportError:
         return _err(rid, 5001, "shell.exec unavailable: approval safety module not importable")
     try:
-        from sparkii_cli._subprocess_compat import windows_hide_flags
+        from core._subprocess_compat import windows_hide_flags
 
         r = subprocess.run(
             cmd, shell=True, capture_output=True, text=True, timeout=30, cwd=os.getcwd(),

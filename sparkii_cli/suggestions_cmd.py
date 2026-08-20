@@ -47,7 +47,7 @@ def _resolve_origin() -> Optional[Dict[str, Any]]:
     which case create_job falls back to a configured home channel.
     """
     try:
-        from gateway.session_context import get_session_env
+        from core.session_context import get_session_env
 
         platform = get_session_env("SPARKII_SESSION_PLATFORM")
         chat_id = get_session_env("SPARKII_SESSION_CHAT_ID")

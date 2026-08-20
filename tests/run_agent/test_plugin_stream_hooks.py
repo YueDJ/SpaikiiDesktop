@@ -181,7 +181,7 @@ def test_reasoning_stream_delta_plugin_hook_is_opt_in(monkeypatch):
 
     assert calls == []
 
-    with patch("sparkii_cli.config.cfg_get", return_value=True):
+    with patch("core.config.cfg_get", return_value=True):
         agent._fire_reasoning_delta("visible reasoning")
         _wait_for(lambda: calls)
         shutdown_plugin_stream_hook_dispatcher()
@@ -329,7 +329,7 @@ def test_bedrock_reasoning_delta_reaches_plugin_only_observer(monkeypatch):
         calls.append(kwargs)
 
     monkeypatch.setattr("sparkii_cli.plugins.iter_hook_callbacks", _callbacks({"on_stream_delta": [on_stream_delta]}))
-    monkeypatch.setattr("sparkii_cli.config.cfg_get", lambda *_args, **_kwargs: True)
+    monkeypatch.setattr("core.config.cfg_get", lambda *_args, **_kwargs: True)
     monkeypatch.setattr(
         "agent.bedrock_adapter._get_bedrock_runtime_client",
         lambda _region: SimpleNamespace(converse_stream=lambda **_kwargs: {"stream": []}),

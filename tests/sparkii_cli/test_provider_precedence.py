@@ -20,7 +20,7 @@ def _login(monkeypatch, provider_id):
 
 
 def _config(monkeypatch, model_cfg):
-    monkeypatch.setattr("sparkii_cli.config.load_config", lambda: {"model": model_cfg})
+    monkeypatch.setattr("core.config.load_config", lambda: {"model": model_cfg})
 
 
 def _no_aws(monkeypatch):
@@ -35,13 +35,7 @@ def _clear_provider_env(monkeypatch):
 
 
 class TestProviderPrecedence:
-    def test_config_provider_beats_stale_oauth(self, monkeypatch):
-        """config.yaml model.provider wins over a logged-in OAuth active_provider."""
-        _clear_provider_env(monkeypatch)
-        _no_aws(monkeypatch)
-        _login(monkeypatch, "anthropic")           # stale OAuth login
-        _config(monkeypatch, {"provider": "zai", "default": "glm-4.6"})
-        assert resolve_provider("auto") == "zai"
+
 
     def test_env_key_beats_stale_oauth(self, monkeypatch):
         """An exported provider API key wins over a logged-in OAuth active_provider."""

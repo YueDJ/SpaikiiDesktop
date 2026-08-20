@@ -11,14 +11,14 @@ import shutil
 import importlib.util
 from pathlib import Path
 
-from sparkii_cli.config import (
+from core.config import (
     detect_install_method,
     get_env_path,
     get_sparkii_home,
     get_project_root,
     recommended_update_command_for_method,
 )
-from sparkii_cli.env_loader import load_sparkii_dotenv
+from core.env_loader import load_sparkii_dotenv
 from sparkii_constants import display_sparkii_home
 from sparkii_constants import agent_browser_runnable
 
@@ -30,7 +30,7 @@ _DHH = display_sparkii_home()  # user-facing display path (e.g. ~/.sparkii or ~/
 _env_path = get_env_path()
 load_sparkii_dotenv(sparkii_home=_env_path.parent, project_env=PROJECT_ROOT / ".env")
 
-from sparkii_cli.colors import Colors, color
+from core.colors import Colors, color
 from sparkii_cli.models import _SPARKII_USER_AGENT
 from sparkii_cli.vercel_auth import describe_vercel_auth
 from sparkii_constants import OPENROUTER_MODELS_URL
@@ -38,32 +38,10 @@ from utils import base_url_host_matches
 
 
 _PROVIDER_ENV_HINTS = (
-    "DEEPINFRA_API_KEY",
-    "OPENROUTER_API_KEY",
     "OPENAI_API_KEY",
     "ANTHROPIC_API_KEY",
     "ANTHROPIC_TOKEN",
     "OPENAI_BASE_URL",
-    "NOUS_API_KEY",
-    "GLM_API_KEY",
-    "ZAI_API_KEY",
-    "Z_AI_API_KEY",
-    "KIMI_API_KEY",
-    "KIMI_CN_API_KEY",
-    "GMI_API_KEY",
-    "FIREWORKS_API_KEY",
-    "ACTUAL_API_KEY",
-    "ACTUAL_BASE_URL",
-    "MINIMAX_API_KEY",
-    "MINIMAX_CN_API_KEY",
-    "KILOCODE_API_KEY",
-    "DEEPSEEK_API_KEY",
-    "DASHSCOPE_API_KEY",
-    "HF_TOKEN",
-    "AI_GATEWAY_API_KEY",
-    "OPENCODE_ZEN_API_KEY",
-    "OPENCODE_GO_API_KEY",
-    "XIAOMI_API_KEY",
     "TOKENHUB_API_KEY",
 )
 
@@ -322,7 +300,7 @@ STATE_DB_SIZE_WARN_BYTES = 1 * 1024 * 1024 * 1024   # 1 GiB logical size
 
 # Shared byte formatter, aliased to the name this module's three rendering
 # call sites already use.
-from sparkii_cli.sizefmt import format_bytes as _human_bytes
+from core.sizefmt import format_bytes as _human_bytes
 
 
 def _render_state_db_stats(stats: dict, holders=None) -> list:
@@ -518,7 +496,7 @@ def report_deprecated_config_and_env(
 def _enabled_cli_toolsets_for_doctor() -> set[str] | None:
     """Return toolsets enabled for the CLI, or None if config resolution fails."""
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         from sparkii_cli.tools_config import _get_platform_tools
 
         return {str(toolset) for toolset in _get_platform_tools(load_config() or {}, "cli")}
@@ -784,40 +762,16 @@ def _build_apikey_providers_list() -> list:
     already present — adding plugins/model-providers/<name>/ is sufficient to get into doctor.
     """
     _static = [
-        ("Z.AI / GLM",      ("GLM_API_KEY", "ZAI_API_KEY", "Z_AI_API_KEY"), "https://api.z.ai/api/paas/v4/models", "GLM_BASE_URL", True),
-        ("Kimi / Moonshot",  ("KIMI_API_KEY",),                              "https://api.moonshot.ai/v1/models",   "KIMI_BASE_URL", True),
-        ("StepFun Step Plan", ("STEPFUN_API_KEY",),                          "https://api.stepfun.ai/step_plan/v1/models", "STEPFUN_BASE_URL", True),
-        ("Kimi / Moonshot (China)", ("KIMI_CN_API_KEY",),                    "https://api.moonshot.cn/v1/models",   None, True),
-        ("Arcee AI",         ("ARCEEAI_API_KEY",),                           "https://api.arcee.ai/api/v1/models",  "ARCEE_BASE_URL", True),
-        ("GMI Cloud",        ("GMI_API_KEY",),                               "https://api.gmi-serving.com/v1/models", "GMI_BASE_URL", True),
-        ("DeepSeek",         ("DEEPSEEK_API_KEY",),                          "https://api.deepseek.com/v1/models",  "DEEPSEEK_BASE_URL", True),
-        ("Hugging Face",     ("HF_TOKEN",),                                  "https://router.huggingface.co/v1/models", "HF_BASE_URL", True),
-        ("NVIDIA NIM",       ("NVIDIA_API_KEY",),                            "https://integrate.api.nvidia.com/v1/models", "NVIDIA_BASE_URL", True),
-        ("Alibaba/DashScope", ("DASHSCOPE_API_KEY",),                        "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/models", "DASHSCOPE_BASE_URL", True),
         # MiniMax global: /v1 endpoint supports /models.
-        ("MiniMax",          ("MINIMAX_API_KEY",),                           "https://api.minimax.io/v1/models",    "MINIMAX_BASE_URL", True),
         # MiniMax CN: /v1 endpoint does NOT support /models (returns 404).
-        ("MiniMax (China)",  ("MINIMAX_CN_API_KEY",),                        "https://api.minimaxi.com/v1/models",  "MINIMAX_CN_BASE_URL", False),
-        ("Vercel AI Gateway", ("AI_GATEWAY_API_KEY",),                       "https://ai-gateway.vercel.sh/v1/models", "AI_GATEWAY_BASE_URL", True),
-        ("Kilo Code",        ("KILOCODE_API_KEY",),                          "https://api.kilo.ai/api/gateway/models", "KILOCODE_BASE_URL", True),
-        ("OpenCode Zen",     ("OPENCODE_ZEN_API_KEY",),                      "https://opencode.ai/zen/v1/models",  "OPENCODE_ZEN_BASE_URL", True),
         # OpenCode Go has no shared /models endpoint; skip the health check.
-        ("OpenCode Go",      ("OPENCODE_GO_API_KEY",),                       None,                                  "OPENCODE_GO_BASE_URL", False),
-    ]
+        ]
     _known_names = {t[0] for t in _static}
     # Also index by profile canonical name so profiles without display_name
     # don't create duplicate entries for providers already in the static list.
     _known_canonical: set[str] = set()
     _name_to_canonical = {
-        "Z.AI / GLM": "zai", "Kimi / Moonshot": "kimi-coding",
-        "StepFun Step Plan": "stepfun", "Kimi / Moonshot (China)": "kimi-coding-cn",
-        "Arcee AI": "arcee", "GMI Cloud": "gmi", "DeepSeek": "deepseek",
-        "Hugging Face": "huggingface", "NVIDIA NIM": "nvidia",
-        "Alibaba/DashScope": "alibaba", "MiniMax": "minimax",
-        "MiniMax (China)": "minimax-cn", "Vercel AI Gateway": "ai-gateway",
-        "Kilo Code": "kilocode", "OpenCode Zen": "opencode-zen",
-        "OpenCode Go": "opencode-go",
-    }
+        }
     for _label, _canonical in _name_to_canonical.items():
         _known_canonical.add(_canonical)
     # Providers that already have a dedicated health check above the generic
@@ -878,7 +832,7 @@ def managed_scope_check() -> None:
     foot-gun (see docs/design/managed-scope.md §7) and an operator should see it.
     """
     try:
-        from sparkii_cli import managed_scope
+        from core import managed_scope
         managed_dir = managed_scope.get_managed_dir()
     except Exception:  # noqa: BLE001 — diagnostics must never crash
         return
@@ -991,8 +945,8 @@ def run_doctor(args):
 
     _section("MCP Server Security")
     try:
-        from sparkii_cli.config import load_config
-        from sparkii_cli.mcp_security import validate_mcp_server_entry
+        from core.config import load_config
+        from core.mcp_security import validate_mcp_server_entry
 
         servers = load_config().get("mcp_servers") or {}
         suspicious = 0
@@ -1152,7 +1106,7 @@ def run_doctor(args):
         # Validate model.provider and model.default values
         try:
             # Raw-file diagnostic: inspects what the user actually wrote.
-            from sparkii_cli.config import read_user_config_raw
+            from core.config import read_user_config_raw
             cfg = read_user_config_raw(config_path)
             model_section = cfg.get("model") or {}
             provider_raw = (model_section.get("provider") or "").strip()
@@ -1170,7 +1124,7 @@ def run_doctor(args):
                 _resolve_auth_provider = None
                 pass
             try:
-                from sparkii_cli.config import get_compatible_custom_providers as _compatible_custom_providers
+                from core.config import get_compatible_custom_providers as _compatible_custom_providers
                 from sparkii_cli.providers import (
                     custom_provider_aliases as _custom_provider_aliases,
                     normalize_provider as _normalize_catalog_provider,
@@ -1191,7 +1145,7 @@ def run_doctor(args):
 
             user_providers = cfg.get("providers")
             if isinstance(user_providers, dict):
-                from sparkii_cli.config import is_provider_enabled
+                from core.config import is_provider_enabled
                 known_providers.update(
                     str(name).strip().lower()
                     for name, prov_cfg in user_providers.items()
@@ -1310,7 +1264,7 @@ def run_doctor(args):
             if runtime_provider and runtime_provider not in ("auto", "custom"):
                 try:
                     if runtime_provider == "openrouter":
-                        from sparkii_cli.config import get_env_value
+                        from core.config import get_env_value
 
                         configured = bool(
                             str(get_env_value("OPENROUTER_API_KEY") or "").strip()
@@ -1356,7 +1310,7 @@ def run_doctor(args):
                     shutil.copy2(str(example_config), str(config_path))
                     check_ok(f"Created {_DHH}/config.yaml from cli-config.yaml.example")
                 else:
-                    from sparkii_cli.config import DEFAULT_CONFIG, save_config
+                    from core.config import DEFAULT_CONFIG, save_config
                     save_config(DEFAULT_CONFIG)
                     check_ok(f"Created {_DHH}/config.yaml from defaults")
                 fixed_count += 1
@@ -1367,7 +1321,7 @@ def run_doctor(args):
     config_path = SPARKII_HOME / 'config.yaml'
     if config_path.exists():
         try:
-            from sparkii_cli.config import check_config_version, migrate_config
+            from core.config import check_config_version, migrate_config
             current_ver, latest_ver = check_config_version()
             if current_ver < latest_ver:
                 check_warn(
@@ -1392,7 +1346,7 @@ def run_doctor(args):
         # Detect stale root-level model keys (known bug source — PR #4329)
         try:
             # Raw-file diagnostic: stale-key detection must see the raw file.
-            from sparkii_cli.config import read_user_config_raw
+            from core.config import read_user_config_raw
             raw_config = read_user_config_raw(config_path)
             stale_root_keys = [k for k in ("provider", "base_url") if k in raw_config and isinstance(raw_config[k], str)]
             if stale_root_keys:
@@ -1418,7 +1372,7 @@ def run_doctor(args):
                             model_section[k] = raw_config.pop(k)
                         else:
                             raw_config.pop(k)
-                    from sparkii_cli.config import atomic_config_write
+                    from core.config import atomic_config_write
                     atomic_config_write(config_path, raw_config)
                     check_ok("Migrated stale root-level keys into model section")
                     fixed_count += 1
@@ -1438,7 +1392,7 @@ def run_doctor(args):
         # Read the .env FILE directly (load_env), not get_env_value/os.environ,
         # which the startup bridge may already have overridden.
         try:
-            from sparkii_cli.config import load_env, read_user_config_raw, remove_env_value
+            from core.config import load_env, read_user_config_raw, remove_env_value
             # Raw-file diagnostic: drift check against the raw file.
             raw_config = read_user_config_raw(config_path)
             agent_cfg = raw_config.get("agent")
@@ -1487,8 +1441,8 @@ def run_doctor(args):
         # Migrations may still live in config.py version steps; doctor does
         # not auto-delete here — only tells the user the modern replacement.
         try:
-            from sparkii_cli.config import load_env as _load_env_depr
-            from sparkii_cli.config import read_user_config_raw as _read_raw_depr
+            from core.config import load_env as _load_env_depr
+            from core.config import read_user_config_raw as _read_raw_depr
 
             # Raw-file diagnostic: deprecation sweep inspects the raw file.
             _raw_for_depr = _read_raw_depr(config_path)
@@ -1504,7 +1458,7 @@ def run_doctor(args):
 
         # Validate config structure (catches malformed custom_providers, etc.)
         try:
-            from sparkii_cli.config import validate_config_structure
+            from core.config import validate_config_structure
             config_issues = validate_config_structure()
             if config_issues:
                 _section("Config Structure")
@@ -1523,7 +1477,7 @@ def run_doctor(args):
     if not config_path.exists():
         # No config.yaml — still surface deprecated env vars from .env.
         try:
-            from sparkii_cli.config import load_env as _load_env_depr
+            from core.config import load_env as _load_env_depr
 
             try:
                 _env_for_depr = _load_env_depr()
@@ -1536,7 +1490,7 @@ def run_doctor(args):
     _section("xAI Model Retirement (May 15, 2026)")
 
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         from sparkii_cli.xai_retirement import (
             MIGRATION_GUIDE_URL,
             find_retired_xai_refs,
@@ -2610,7 +2564,7 @@ def run_doctor(args):
         """
         label = "Azure Foundry (Entra ID)".ljust(28)
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
             cfg = load_config()
             model_cfg = cfg.get("model") if isinstance(cfg, dict) else {}
             if not isinstance(model_cfg, dict):
@@ -2790,7 +2744,7 @@ def run_doctor(args):
     else:
         check_warn("Skills Hub directory not initialized", "(run: sparkii skills list)")
 
-    from sparkii_cli.config import get_env_value
+    from core.config import get_env_value
 
     def _gh_authenticated() -> bool:
         """Check if gh CLI is authenticated via token file or device flow."""
@@ -2814,13 +2768,13 @@ def run_doctor(args):
     _section("Memory Provider")
     _active_memory_provider = ""
     try:
-        from sparkii_cli.config import read_user_config_raw as _read_raw_mem
+        from core.config import read_user_config_raw as _read_raw_mem
         _mem_cfg_path = SPARKII_HOME / "config.yaml"
         if _mem_cfg_path.exists():
             # Raw-file diagnostic (+ managed overlay below, unchanged).
             _raw_cfg = _read_raw_mem(_mem_cfg_path)
             try:
-                from sparkii_cli import managed_scope
+                from core import managed_scope
                 _raw_cfg = managed_scope.apply_managed_overlay(_raw_cfg)
             except Exception:
                 pass

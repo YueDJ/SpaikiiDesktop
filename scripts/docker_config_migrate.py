@@ -8,13 +8,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable
 
-from sparkii_cli.config import (
+from core.config import (
     check_config_version,
     get_config_path,
     get_env_path,
     migrate_config,
 )
-from sparkii_cli.config_migrations import (
+from core.config_migrations import (
     SUPPORT_FLOOR_VERSION,
     support_floor_message,
 )

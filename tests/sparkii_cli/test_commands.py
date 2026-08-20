@@ -417,7 +417,7 @@ class TestSubcommandCompletion:
             "sparkii_cli.tools_config._get_platform_tools",
             lambda *_a, **_k: set(),
         )
-        monkeypatch.setattr("sparkii_cli.config.load_config", lambda: {})
+        monkeypatch.setattr("core.config.load_config", lambda: {})
         monkeypatch.setattr(
             "sparkii_cli.tools_config._get_plugin_toolset_keys",
             lambda: set(),

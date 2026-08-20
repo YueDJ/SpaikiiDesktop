@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 import pytest
 
-import sparkii_cli.mem_trim as mem_trim
+import core.mem_trim as mem_trim
 
 
 @pytest.fixture(autouse=True)
@@ -44,7 +44,7 @@ def test_config_kill_switch_overrides_force_from_config_file(monkeypatch, tmp_pa
 
 
 def test_default_config_declares_memory_trim_controls():
-    from sparkii_cli.config import DEFAULT_CONFIG
+    from core.config import DEFAULT_CONFIG
 
     context = DEFAULT_CONFIG["context"]
     assert isinstance(context, dict)
@@ -149,7 +149,7 @@ def test_config_cooldown_controls_rate_limit(monkeypatch):
     monkeypatch.setattr(mem_trim, "_last_trim_monotonic", 1.0)
     monkeypatch.setattr(mem_trim.time, "monotonic", lambda: 100.0)
     monkeypatch.setattr(
-        "sparkii_cli.config.load_config_readonly",
+        "core.config.load_config_readonly",
         lambda: {
             "context": {
                 "memory_trim": {"enabled": True, "cooldown_seconds": 120.0}
@@ -166,7 +166,7 @@ def test_legacy_environment_switch_does_not_control_behavior(monkeypatch):
     monkeypatch.setattr(mem_trim, "_malloc_trim", trim)
     monkeypatch.setenv("SPARKII_DISABLE_MEMORY_TRIM", "1")
     monkeypatch.setattr(
-        "sparkii_cli.config.load_config_readonly",
+        "core.config.load_config_readonly",
         lambda: {"context": {"memory_trim": {"enabled": True}}},
     )
 

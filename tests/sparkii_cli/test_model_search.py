@@ -1,7 +1,7 @@
 """Picker search aliases for brand-less wire model ids."""
 
 from sparkii_cli.curses_ui import _filter_indices
-from sparkii_cli.model_search import model_search_text
+from core.model_search import model_search_text
 
 
 def test_model_search_text_keeps_ordinary_ids():

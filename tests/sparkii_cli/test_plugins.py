@@ -961,7 +961,7 @@ class TestForceReloadSymmetry:
             lambda cfg: recorded.setdefault("cfg", cfg) or [],
         )
         monkeypatch.setattr(
-            "sparkii_cli.config.load_config", lambda: {"hooks": {}}
+            "core.config.load_config", lambda: {"hooks": {}}
         )
         with shell_hooks_mod._registered_lock:
             shell_hooks_mod._registered.add(("post_llm_call", None, "echo hi"))

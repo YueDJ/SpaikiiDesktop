@@ -53,7 +53,7 @@ from utils import base_url_host_matches, base_url_hostname
 # Providers whose picker model list should NOT be capped by max_models.
 # OpenCode Zen / Go are aggregators whose full catalogs (70+ models each) must
 # be visible so users can pick any model they have access to.
-_UNCAPPED_PICKER_PROVIDERS: frozenset[str] = frozenset({"opencode-zen", "opencode-go"})
+_UNCAPPED_PICKER_PROVIDERS: frozenset[str] = frozenset({})
 
 logger = logging.getLogger(__name__)
 
@@ -183,7 +183,7 @@ def _save_discovered_models_to_config(
     if not api_url or not model_ids:
         return
     try:
-        from sparkii_cli.config import load_config, save_config
+        from core.config import load_config, save_config
 
         cfg = load_config()
         providers = cfg.get("custom_providers") or []
@@ -467,40 +467,27 @@ MODEL_ALIASES: dict[str, ModelIdentity] = {
     "o4":        ModelIdentity("openai", "o4"),
 
     # Google
-    "gemini":    ModelIdentity("google", "gemini"),
-
+    
     # DeepSeek
-    "deepseek":  ModelIdentity("deepseek", "deepseek-chat"),
-
+    
     # X.AI
-    "grok":      ModelIdentity("x-ai", "grok"),
-
+    
     # Meta
-    "llama":     ModelIdentity("meta-llama", "llama"),
-
+    
     # Qwen / Alibaba
-    "qwen":      ModelIdentity("qwen", "qwen"),
-
+    
     # MiniMax
-    "minimax":   ModelIdentity("minimax", "minimax"),
-
+    
     # Nvidia
-    "nemotron":  ModelIdentity("nvidia", "nemotron"),
-
+    
     # Moonshot / Kimi
-    "kimi":      ModelIdentity("moonshotai", "kimi"),
-
+    
     # Z.AI / GLM
-    "glm":       ModelIdentity("z-ai", "glm"),
-
+    
     # Step Plan (StepFun)
-    "step":      ModelIdentity("stepfun", "step"),
-
+    
     # Xiaomi
-    "mimo":      ModelIdentity("xiaomi", "mimo"),
-
-    # Arcee
-    "trinity":   ModelIdentity("arcee-ai", "trinity"),
+    
 }
 
 
@@ -548,7 +535,7 @@ def _load_direct_aliases() -> dict[str, DirectAlias]:
     """
     merged = dict(_BUILTIN_DIRECT_ALIASES)
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         cfg = load_config()
 
         # --- model_aliases (dict-based format) ---
@@ -765,7 +752,7 @@ def resolve_persist_behavior(
     if explicit_provider:
         return False
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         model_cfg = load_config().get("model")
         if isinstance(model_cfg, dict):
@@ -1257,7 +1244,7 @@ def resolve_display_context_length(
         configured_model or configured_provider or configured_base_url
     ):
         try:
-            from sparkii_cli.route_identity import should_clear_context_pin
+            from core.route_identity import should_clear_context_pin
 
             if should_clear_context_pin(
                 configured_model,
@@ -1520,7 +1507,7 @@ def switch_model(
             )
             # Check for common config issues that cause provider resolution failures
             try:
-                from sparkii_cli.config import validate_config_structure
+                from core.config import validate_config_structure
                 _cfg_issues = validate_config_structure()
                 if _cfg_issues:
                     _switch_err += "\n\nRun 'sparkii doctor' — config issues detected:"
@@ -1537,8 +1524,8 @@ def switch_model(
         target_provider = pdef.id
         if target_provider == "moa" and not new_model:
             try:
-                from sparkii_cli.config import load_config
-                from sparkii_cli.moa_config import normalize_moa_config
+                from core.config import load_config
+                from core.moa_config import normalize_moa_config
 
                 new_model = normalize_moa_config(load_config().get("moa") or {})["default_preset"]
             except Exception:
@@ -1634,8 +1621,8 @@ def switch_model(
     # =================================================================
     else:
         try:
-            from sparkii_cli.config import load_config
-            from sparkii_cli.moa_config import exact_moa_preset_name, normalize_moa_config
+            from core.config import load_config
+            from core.moa_config import exact_moa_preset_name, normalize_moa_config
 
             _moa_cfg = normalize_moa_config(load_config().get("moa") or {})
             _moa_match = exact_moa_preset_name(_moa_cfg, raw_input)
@@ -2080,7 +2067,7 @@ def switch_model(
     if not validation.get("accepted"):
         override = False
         if user_providers:
-            from sparkii_cli.config import is_provider_enabled
+            from core.config import is_provider_enabled
             # user_providers is a dict: {provider_slug: config_dict}
             for slug, cfg in user_providers.items():
                 if not is_provider_enabled(cfg):
@@ -2234,7 +2221,7 @@ def _credential_pool_is_usable(provider: str, *, raw_pool_present: bool = False)
 def _extra_headers_from_config(entry: Any) -> dict[str, str]:
     if not isinstance(entry, dict):
         return {}
-    from sparkii_cli.config import normalize_extra_headers
+    from core.config import normalize_extra_headers
 
     return normalize_extra_headers(entry.get("extra_headers"))
 
@@ -3209,7 +3196,7 @@ def list_authenticated_providers(
         # the wire protocol differs.
         from collections import OrderedDict as _OD3
 
-        from sparkii_cli.config import is_provider_enabled
+        from core.config import is_provider_enabled
 
         ep_groups: "_OD3[tuple, dict]" = _OD3()
         for ep_name, ep_cfg in user_providers.items():
@@ -3858,7 +3845,7 @@ def list_authenticated_providers(
     # ``provider_id`` so PROVIDER_REGISTRY entries that match user-config
     # blocks are filtered consistently.
     try:
-        from sparkii_cli.config import is_provider_enabled
+        from core.config import is_provider_enabled
         if isinstance(user_providers, dict):
             _disabled_slugs = {
                 str(name).strip().lower()

@@ -78,7 +78,7 @@ def get_terminal_id() -> Optional[str]:
 def is_enabled() -> bool:
     """Config gate: ``session.terminal_continue`` (default true)."""
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         return bool((load_config().get("session") or {}).get("terminal_continue", True))
     except Exception:

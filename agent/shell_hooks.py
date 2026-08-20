@@ -151,7 +151,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterator, List, Optional, Set, Tuple
 
-from sparkii_cli._subprocess_compat import IS_WINDOWS, kill_process_tree, windows_hide_flags
+from core._subprocess_compat import IS_WINDOWS, kill_process_tree, windows_hide_flags
 
 try:
     import fcntl  # POSIX only; Windows falls back to best-effort without flock.
@@ -251,7 +251,7 @@ def register_from_config(
 ) -> List[ShellHookSpec]:
     """Register every configured shell hook on the plugin manager.
 
-    ``cfg`` is the full parsed config dict (``sparkii_cli.config.load_config``
+    ``cfg`` is the full parsed config dict (``core.config.load_config``
     output).  The ``hooks:`` key is read out of it.  Missing, empty, or
     non-dict ``hooks`` is treated as zero configured hooks.
 
@@ -354,7 +354,7 @@ def re_register_config_hooks() -> None:
     """
     with _registered_lock:
         _registered.clear()
-    from sparkii_cli.config import load_config
+    from core.config import load_config
 
     register_from_config(load_config())
 
@@ -550,7 +550,7 @@ def _spawn(spec: ShellHookSpec, stdin_json: str) -> Dict[str, Any]:
     }
     try:
         # Windows-safe: plain shlex.split eats backslashes in paths (#78293).
-        from sparkii_cli._subprocess_compat import split_command_line
+        from core._subprocess_compat import split_command_line
 
         argv = split_command_line(os.path.expanduser(spec.command))
     except ValueError as exc:
@@ -1034,7 +1034,7 @@ def _command_script_path(command: str) -> str:
     common bare-path form.
     """
     try:
-        from sparkii_cli._subprocess_compat import split_command_line
+        from core._subprocess_compat import split_command_line
 
         parts = split_command_line(command)
     except ValueError:
@@ -1123,7 +1123,7 @@ def script_is_executable(command: str) -> bool:
     if not os.path.isfile(expanded):
         return False
     try:
-        from sparkii_cli._subprocess_compat import split_command_line
+        from core._subprocess_compat import split_command_line
 
         argv = split_command_line(command)
     except ValueError:

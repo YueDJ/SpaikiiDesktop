@@ -57,19 +57,19 @@ from pathlib import Path
 from typing import Callable, Dict, Any, Iterator, List, Optional, Tuple
 from urllib.parse import urljoin, urlparse
 
-from sparkii_cli._subprocess_compat import windows_hide_flags
+from core._subprocess_compat import windows_hide_flags
 from sparkii_constants import display_sparkii_home
 
 logger = logging.getLogger(__name__)
 def get_env_value(name, default=None):
     """Read env values through the live config module.
 
-    Tests may monkeypatch and later restore ``sparkii_cli.config.get_env_value``
+    Tests may monkeypatch and later restore ``core.config.get_env_value``
     before this module is imported. Resolve the helper at call time so TTS does
     not keep a stale imported function for the rest of the test process.
     """
     try:
-        from sparkii_cli.config import get_env_value as _get_env_value
+        from core.config import get_env_value as _get_env_value
     except ImportError:
         return os.getenv(name, default)
     value = _get_env_value(name)
@@ -636,11 +636,11 @@ def _load_tts_config() -> Dict[str, Any]:
     for any missing fields.
     """
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         config = load_config()
         return config.get("tts") or {}
     except ImportError:
-        logger.debug("sparkii_cli.config not available, using default TTS config")
+        logger.debug("core.config not available, using default TTS config")
         return {}
     except Exception as e:
         logger.warning("Failed to load TTS config: %s", e, exc_info=True)
@@ -3199,7 +3199,7 @@ def _text_to_speech_single(
     # (Telegram, Matrix, Feishu/Lark, WhatsApp, Signal); OpenAI and
     # ElevenLabs can produce Opus natively (no ffmpeg needed). Edge TTS
     # always outputs MP3 and needs ffmpeg for conversion.
-    from gateway.session_context import get_session_env
+    from core.session_context import get_session_env
     platform = get_session_env("SPARKII_SESSION_PLATFORM", "").lower()
     want_opus = platform in OPUS_VOICE_PLATFORMS
 
@@ -3568,7 +3568,7 @@ def text_to_speech_tool(
             max_len,
         )
 
-    from gateway.session_context import get_session_env
+    from core.session_context import get_session_env
     platform = get_session_env("SPARKII_SESSION_PLATFORM", "").lower()
     want_opus = platform in OPUS_VOICE_PLATFORMS
     delivery_profile = _resolve_audio_delivery_profile(platform, tts_config)

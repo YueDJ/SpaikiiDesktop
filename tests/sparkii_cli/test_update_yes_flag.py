@@ -53,8 +53,8 @@ class TestUpdateYesConfigMigration:
     @patch("sparkii_cli.update_cmd._reload_config_modules")
     @patch("sparkii_cli.update_cmd._run_migrate_config_fresh")
     @patch("sparkii_cli.update_cmd._run_config_check_fresh", return_value=(1, 2))
-    @patch("sparkii_cli.config.get_missing_config_fields", return_value=[])
-    @patch("sparkii_cli.config.get_missing_env_vars", return_value=["NEW_KEY"])
+    @patch("core.config.get_missing_config_fields", return_value=[])
+    @patch("core.config.get_missing_env_vars", return_value=["NEW_KEY"])
     @patch("shutil.which", return_value=None)
     @patch("subprocess.run")
     def test_yes_auto_migrates_without_input(
@@ -94,8 +94,8 @@ class TestUpdateYesConfigMigration:
     @patch("sparkii_cli.update_cmd._reload_config_modules")
     @patch("sparkii_cli.update_cmd._run_migrate_config_fresh")
     @patch("sparkii_cli.update_cmd._run_config_check_fresh", return_value=(1, 2))
-    @patch("sparkii_cli.config.get_missing_config_fields", return_value=[])
-    @patch("sparkii_cli.config.get_missing_env_vars", return_value=["NEW_KEY"])
+    @patch("core.config.get_missing_config_fields", return_value=[])
+    @patch("core.config.get_missing_env_vars", return_value=["NEW_KEY"])
     @patch("shutil.which", return_value=None)
     @patch("subprocess.run")
     def test_no_yes_flag_still_prompts_in_tty(
@@ -154,8 +154,8 @@ class TestUnicodeDecodeErrorInUpdatePrompts:
     @patch("sparkii_cli.update_cmd._reload_config_modules")
     @patch("sparkii_cli.update_cmd._run_migrate_config_fresh")
     @patch("sparkii_cli.update_cmd._run_config_check_fresh", return_value=(1, 2))
-    @patch("sparkii_cli.config.get_missing_config_fields", return_value=[])
-    @patch("sparkii_cli.config.get_missing_env_vars", return_value=["NEW_KEY"])
+    @patch("core.config.get_missing_config_fields", return_value=[])
+    @patch("core.config.get_missing_env_vars", return_value=["NEW_KEY"])
     @patch("shutil.which", return_value=None)
     @patch("subprocess.run")
     def test_unicode_decode_error_in_tty_skips_and_prints_hint(

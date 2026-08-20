@@ -2,9 +2,6 @@
 
 from types import SimpleNamespace
 
-from sparkii_cli.nous_account import NousPaidServiceAccessInfo, NousPortalAccountInfo
-from sparkii_cli.nous_subscription import NousFeatureState, NousSubscriptionFeatures
-
 
 def _patch_common_status_deps(monkeypatch, status_mod, tmp_path, *, openai_base_url=""):
     import sparkii_cli.auth as auth_mod

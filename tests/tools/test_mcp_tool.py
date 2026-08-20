@@ -117,7 +117,7 @@ class TestLoadMCPConfig:
                 "env": {},
             }
         }
-        with patch("sparkii_cli.config.load_config", return_value={"mcp_servers": servers}):
+        with patch("core.config.load_config", return_value={"mcp_servers": servers}):
             from tools.mcp_tool import _load_mcp_config
             result = _load_mcp_config()
             assert "filesystem" in result
@@ -125,7 +125,7 @@ class TestLoadMCPConfig:
 
     def test_mcp_servers_not_dict_returns_empty(self):
         """mcp_servers set to non-dict value -> empty dict."""
-        with patch("sparkii_cli.config.load_config", return_value={"mcp_servers": "invalid"}):
+        with patch("core.config.load_config", return_value={"mcp_servers": "invalid"}):
             from tools.mcp_tool import _load_mcp_config
             result = _load_mcp_config()
             assert result == {}
@@ -141,7 +141,7 @@ class TestLoadMCPConfig:
         }
         manager = SimpleNamespace(get_portable_mcp_servers=lambda: portable)
         with (
-            patch("sparkii_cli.config.load_config", return_value={"mcp_servers": native}),
+            patch("core.config.load_config", return_value={"mcp_servers": native}),
             patch("sparkii_cli.plugins.discover_plugins"),
             patch("sparkii_cli.plugins.get_plugin_manager", return_value=manager),
             patch.dict(os.environ, {"PORT": "3000"}),

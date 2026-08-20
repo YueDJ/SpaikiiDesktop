@@ -70,11 +70,11 @@ def patch_load_config(monkeypatch):
     """Helper to set model_cfg seen by _try_azure_foundry."""
     def _apply(model_cfg):
         monkeypatch.setattr(
-            "sparkii_cli.config.load_config",
+            "core.config.load_config",
             lambda: {"model": model_cfg},
         )
         monkeypatch.setattr(
-            "sparkii_cli.config.load_config_readonly",
+            "core.config.load_config_readonly",
             lambda: {"model": model_cfg},
         )
     return _apply

@@ -48,7 +48,7 @@ def test_pool_only_key_does_not_offer_or_execute_clear(profile_env, monkeypatch,
         return "c"
 
     monkeypatch.setattr("builtins.input", choose_clear)
-    with patch("sparkii_cli.config.save_env_value") as save_env:
+    with patch("core.config.save_env_value") as save_env:
         key, abort = m._prompt_api_key(
             pconfig,
             "pool-secret",
@@ -77,7 +77,7 @@ def test_pool_only_key_does_not_offer_or_execute_clear(profile_env, monkeypatch,
 
 
 def test_clear_wipes_env_and_aborts(profile_env):
-    from sparkii_cli.config import get_env_value, save_env_value
+    from core.config import get_env_value, save_env_value
     save_env_value("DEEPSEEK_API_KEY", "sk-existing")
     save_env_value("OTHER_VAR", "keep-me")
 
@@ -95,7 +95,7 @@ def test_clear_wipes_env_and_aborts(profile_env):
 
 def test_lmstudio_first_time_empty_uses_placeholder(profile_env):
     from sparkii_cli.auth import LMSTUDIO_NOAUTH_PLACEHOLDER
-    from sparkii_cli.config import get_env_value
+    from core.config import get_env_value
 
     key, abort = _run_prompt(
         existing_key="", choice="", new_key="",

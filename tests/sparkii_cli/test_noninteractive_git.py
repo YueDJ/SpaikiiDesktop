@@ -28,7 +28,7 @@ from pathlib import Path
 
 import pytest
 
-from sparkii_cli._subprocess_compat import noninteractive_git_env
+from core._subprocess_compat import noninteractive_git_env
 
 
 # ---------------------------------------------------------------------------

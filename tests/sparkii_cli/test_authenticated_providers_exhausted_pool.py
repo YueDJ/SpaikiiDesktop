@@ -137,7 +137,7 @@ def test_aux_task_picker_requests_exhausted_pool_visibility(monkeypatch):
         "sparkii_cli.model_switch.list_authenticated_providers",
         _spy_list_authenticated(recorded),
     )
-    monkeypatch.setattr("sparkii_cli.config.load_config", lambda: {})
+    monkeypatch.setattr("core.config.load_config", lambda: {})
 
     with pytest.raises(_StopPicker):
         main._aux_select_for_task("compression")

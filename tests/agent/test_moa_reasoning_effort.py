@@ -63,7 +63,7 @@ class TestAggregatorGlobalFallback:
         from agent import moa_loop
 
         monkeypatch.setattr(
-            "sparkii_cli.config.load_config",
+            "core.config.load_config",
             lambda: {"agent": {"reasoning_effort": False}},
         )
         cfg = moa_loop._aggregator_reasoning_config({})
@@ -75,7 +75,7 @@ class TestAggregatorGlobalFallback:
         from agent import moa_loop
 
         monkeypatch.setattr(
-            "sparkii_cli.config.load_config",
+            "core.config.load_config",
             lambda: {"agent": {"reasoning_effort": "xhigh"}},
         )
         assert moa_loop._slot_reasoning_config({"provider": "p", "model": "m"}) is None

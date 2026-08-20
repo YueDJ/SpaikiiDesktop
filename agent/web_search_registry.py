@@ -135,7 +135,7 @@ def restore_registration(
 def _read_config_key(*path: str) -> Optional[str]:
     """Resolve a dotted config key from ``config.yaml``. Returns None on miss."""
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
 
         cfg = load_config_readonly()
         cur = cfg

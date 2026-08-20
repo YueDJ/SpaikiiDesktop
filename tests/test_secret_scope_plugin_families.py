@@ -95,7 +95,7 @@ class TestMemoryFamily:
         multiplex_scope({})
         monkeypatch.delenv("SUPERMEMORY_API_KEY", raising=False)
 
-        import sparkii_cli.config as cli_config
+        import core.config as cli_config
         import sparkii_cli.memory_setup as memory_setup
         import plugins.memory.supermemory as sm
 
@@ -120,7 +120,7 @@ class TestMemoryFamily:
         set_multiplex_active(False)
         monkeypatch.delenv("SUPERMEMORY_API_KEY", raising=False)
 
-        import sparkii_cli.config as cli_config
+        import core.config as cli_config
         import sparkii_cli.memory_setup as memory_setup
         import plugins.memory.supermemory as sm
 

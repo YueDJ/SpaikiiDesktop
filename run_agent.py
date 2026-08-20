@@ -92,7 +92,7 @@ def _launch_cwd_for_session(source: str) -> Optional[str]:
 
 def _session_source_for_agent(platform: Optional[str]) -> str:
     try:
-        from gateway.session_context import get_session_env
+        from core.session_context import get_session_env
 
         source = get_session_env("SPARKII_SESSION_SOURCE", "")
     except Exception:
@@ -118,8 +118,8 @@ from agent.iteration_budget import IterationBudget
 from agent.interrupt_compat import request_hard_interrupt
 
 
-from sparkii_cli.env_loader import load_sparkii_dotenv
-from sparkii_cli.timeouts import (
+from core.env_loader import load_sparkii_dotenv
+from core.timeouts import (
     get_provider_request_timeout,
     get_provider_stale_timeout,
 )
@@ -3652,7 +3652,7 @@ class AIAgent:
             # Read from the persisted config.yaml so gateway and CLI share
             # the same setting.  Import lazily to avoid a startup-time cycle.
             try:
-                from sparkii_cli.config import load_config as _load_config
+                from core.config import load_config as _load_config
                 _cfg = _load_config() or {}
             except Exception:
                 _cfg = {}
@@ -3762,7 +3762,7 @@ class AIAgent:
             # Read from the persisted config.yaml so gateway and CLI share
             # the same setting.  Import lazily to avoid a startup-time cycle.
             try:
-                from sparkii_cli.config import load_config as _load_config
+                from core.config import load_config as _load_config
                 _cfg = _load_config() or {}
             except Exception:
                 _cfg = {}
@@ -4240,7 +4240,7 @@ class AIAgent:
             return cached
         enabled = True
         try:
-            from sparkii_cli.config import load_config as _load_config
+            from core.config import load_config as _load_config
             _cfg = _load_config() or {}
             _display = _cfg.get("display") if isinstance(_cfg, dict) else None
             if isinstance(_display, dict) and "credits_notices" in _display:
@@ -4616,7 +4616,7 @@ class AIAgent:
         # heap pages immediately instead of retaining the process RSS high-water
         # mark until exit.  This helper is a safe no-op on other allocators.
         try:
-            from sparkii_cli.mem_trim import trim_memory
+            from core.mem_trim import trim_memory
             trim_memory(force=True, reason="agent close")
         except Exception:
             pass
@@ -6012,7 +6012,7 @@ class AIAgent:
             self._env_creds_seen = resolved
             return False
 
-        from sparkii_cli.route_identity import normalize_route_base_url
+        from core.route_identity import normalize_route_base_url
 
         route_changed = normalize_route_base_url(self.base_url) != normalize_route_base_url(
             base_url
@@ -6342,7 +6342,7 @@ class AIAgent:
         # SECURITY: values may carry credentials — never log them.
         if self.api_mode not in ("anthropic_messages", "bedrock_converse"):
             try:
-                from sparkii_cli.config import (
+                from core.config import (
                     apply_custom_provider_extra_headers_to_client_kwargs,
                 )
 
@@ -6386,7 +6386,7 @@ class AIAgent:
         runtime_key = getattr(entry, "runtime_api_key", None) or getattr(entry, "access_token", "")
         runtime_base = getattr(entry, "runtime_base_url", None) or getattr(entry, "base_url", None) or self.base_url
         self._credential_pool_entry_id = getattr(entry, "id", None)
-        from sparkii_cli.route_identity import normalize_route_base_url
+        from core.route_identity import normalize_route_base_url
 
         route_changed = normalize_route_base_url(self.base_url) != normalize_route_base_url(
             runtime_base
@@ -6431,7 +6431,7 @@ class AIAgent:
         self._client_kwargs.pop("ssl_verify", None)
         self._client_kwargs.pop("ssl_ca_cert", None)
         try:
-            from sparkii_cli.config import (
+            from core.config import (
                 apply_custom_provider_tls_to_client_kwargs,
                 get_compatible_custom_providers,
                 load_config_readonly,
@@ -7162,7 +7162,7 @@ class AIAgent:
         misclassified as non-vision and have their images stripped.
         """
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
             from agent.image_routing import _lookup_supports_vision
             cfg = load_config()
             provider = (getattr(self, "provider", "") or "").strip()
@@ -7826,7 +7826,7 @@ class AIAgent:
     def _read_reasoning_echo_from_config() -> bool:
         """Read ``model.reasoning_echo`` from config; False on any error."""
         try:
-            from sparkii_cli.config import load_config_readonly
+            from core.config import load_config_readonly
             return bool(
                 (load_config_readonly().get("model") or {}).get("reasoning_echo")
             )
@@ -7980,11 +7980,6 @@ class AIAgent:
             resolve_context_compression_timeouts,
             run_compress_context_with_progress_timeout,
         )
-        from agent.portal_tags import (
-            get_conversation_context,
-            reset_conversation_context,
-            set_conversation_context,
-        )
         # Out-of-turn compaction entry points — ``/compact`` (cli.py), the
         # gateway ``/compress`` command and its hygiene sweep (both of which
         # build a throwaway agent), and partial head compression — call this
@@ -8000,10 +7995,6 @@ class AIAgent:
         # system prompt, so that request is a cold write on any endpoint. What
         # it buys is the turns AFTER compaction reading the cache it wrote.
         token = None
-        if get_conversation_context() is None:
-            root = self._conversation_root_id()
-            if root:
-                token = set_conversation_context(root)
         # Every AIAgent compression has a fence, including ordinary in-turn and
         # manual paths. hard_interrupt() uses this exact instance to serialize
         # cancel admission against begin_commit().
@@ -8178,7 +8169,7 @@ class AIAgent:
             # SPARKII_SESSION_ID to the child id after an out-of-place
             # rotation (idempotent when no rotation happened).
             try:
-                from gateway.session_context import set_current_session_id
+                from core.session_context import set_current_session_id
                 if self.session_id:
                     set_current_session_id(self.session_id)
             except Exception:
@@ -8193,11 +8184,6 @@ class AIAgent:
                     vars(self).pop("_active_compression_commit_fence", None)
                 else:
                     self._active_compression_commit_fence = previous_fence
-            # Restore whatever the caller had, so a compaction never leaks its
-            # tag into the surrounding scope.
-            if token is not None:
-                reset_conversation_context(token)
-
     def _set_tool_guardrail_halt(self, decision: ToolGuardrailDecision) -> None:
         """Record the first guardrail decision that should stop this turn."""
         if decision.should_halt and self._tool_guardrail_halt_decision is None:
@@ -8445,10 +8431,6 @@ class AIAgent:
         )
         from agent import relay_runtime
         from agent.conversation_loop import run_conversation
-        from agent.portal_tags import (
-            reset_conversation_context,
-            set_conversation_context,
-        )
         from sparkii_cli.observability.relay_shared_metrics import (
             finish_task_run,
             start_task_run,
@@ -8765,11 +8747,7 @@ class AIAgent:
                 )
                 task_started = True
             # Publish the conversation id for ambient Nous Portal tagging. Every
-            # LLM call made inside this turn — main loop, compression, vision,
-            # web_extract, session_search, MoA slots, background-review forks
-            # (which copy this Context into their thread) — inherits the
-            # ``conversation=<root>`` tag with zero per-call-site plumbing.
-            token = set_conversation_context(self._conversation_root_id())
+            token = None
             # Publish the session accounting handles the same way so auxiliary
             # calls record their token usage into session_model_usage (task
             # dimension) — the fix for aux spend being invisible in analytics
@@ -8893,9 +8871,6 @@ class AIAgent:
                         self._relay_pending_turn_id = None
                     if acct_token is not None:
                         reset_accounting_context(acct_token)
-                    if token is not None:
-                        reset_conversation_context(token)
-
     def chat(self, message: str, stream_callback: Optional[callable] = None) -> str:
         """
         Simple chat interface that returns just the final response.

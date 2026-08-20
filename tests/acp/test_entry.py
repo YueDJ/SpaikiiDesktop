@@ -83,7 +83,7 @@ def test_main_setup_browser_propagates_browser_failure(monkeypatch):
     def fake_ensure(dep, interactive=True):
         return dep != "browser"  # browser fails
 
-    monkeypatch.setattr("sparkii_cli.dep_ensure.ensure_dependency", fake_ensure)
+    monkeypatch.setattr("core.dep_ensure.ensure_dependency", fake_ensure)
 
     with pytest.raises(SystemExit) as excinfo:
         entry.main(["--setup-browser"])

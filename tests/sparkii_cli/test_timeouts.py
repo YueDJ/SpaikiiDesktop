@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import textwrap
 
-from sparkii_cli.timeouts import (
+from core.timeouts import (
     get_provider_request_timeout,
     get_provider_stale_timeout,
 )
@@ -78,7 +78,7 @@ def test_resolved_api_call_timeout_priority(monkeypatch, tmp_path):
     _write_config(tmp_path, "")
     # Clear the cached config load
     import importlib
-    from sparkii_cli import config as cfg_mod
+    from core import config as cfg_mod
     importlib.reload(cfg_mod)
     from sparkii_cli import timeouts as to_mod
     importlib.reload(to_mod)

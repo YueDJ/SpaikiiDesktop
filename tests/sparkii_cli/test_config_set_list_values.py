@@ -16,8 +16,8 @@ def user_home(tmp_path, monkeypatch):
     home.mkdir()
     monkeypatch.setenv("SPARKII_HOME", str(home))
     monkeypatch.delenv("SPARKII_MANAGED_DIR", raising=False)
-    import sparkii_cli.config as cfg
-    from sparkii_cli import managed_scope
+    import core.config as cfg
+    from core import managed_scope
 
     cfg._LOAD_CONFIG_CACHE.clear()
     cfg._RAW_CONFIG_CACHE.clear()
@@ -26,7 +26,7 @@ def user_home(tmp_path, monkeypatch):
 
 
 def test_list_literal_is_parsed_to_list(user_home):
-    from sparkii_cli.config import set_config_value, read_raw_config
+    from core.config import set_config_value, read_raw_config
 
     set_config_value("platform_toolsets.line", '["clarify", "file", "web"]')
     raw = read_raw_config()
@@ -34,7 +34,7 @@ def test_list_literal_is_parsed_to_list(user_home):
 
 
 def test_mapping_literal_is_parsed_to_dict(user_home):
-    from sparkii_cli.config import set_config_value, read_raw_config
+    from core.config import set_config_value, read_raw_config
 
     set_config_value("display.tool_progress_overrides", '{"terminal": "off"}')
     raw = read_raw_config()
@@ -42,7 +42,7 @@ def test_mapping_literal_is_parsed_to_dict(user_home):
 
 
 def test_yaml_flow_list_is_parsed(user_home):
-    from sparkii_cli.config import set_config_value, read_raw_config
+    from core.config import set_config_value, read_raw_config
 
     set_config_value("plugins.enabled", "[model-providers/gemini]")
     raw = read_raw_config()
@@ -50,7 +50,7 @@ def test_yaml_flow_list_is_parsed(user_home):
 
 
 def test_invalid_list_literal_warns_and_stores_string(user_home, capsys):
-    from sparkii_cli.config import set_config_value, read_raw_config
+    from core.config import set_config_value, read_raw_config
 
     set_config_value("platform_toolsets.line", '["unclosed')
     captured = capsys.readouterr()
@@ -60,7 +60,7 @@ def test_invalid_list_literal_warns_and_stores_string(user_home, capsys):
 
 
 def test_scalar_values_unaffected(user_home):
-    from sparkii_cli.config import set_config_value, read_raw_config
+    from core.config import set_config_value, read_raw_config
 
     set_config_value("agent.max_turns", "300")
     set_config_value("display.compact", "true")
@@ -79,7 +79,7 @@ def test_scalar_values_unaffected(user_home):
 
 def test_multiline_yaml_list_is_parsed(user_home):
     """A multi-line YAML block list must be stored as a real list."""
-    from sparkii_cli.config import set_config_value, read_raw_config
+    from core.config import set_config_value, read_raw_config
 
     set_config_value(
         "custom_providers",
@@ -94,7 +94,7 @@ def test_multiline_yaml_list_is_parsed(user_home):
 
 
 def test_multiline_yaml_mapping_is_parsed(user_home):
-    from sparkii_cli.config import set_config_value, read_raw_config
+    from core.config import set_config_value, read_raw_config
 
     set_config_value(
         "display.tool_progress_overrides",
@@ -110,7 +110,7 @@ def test_multiline_yaml_mapping_is_parsed(user_home):
 def test_string_typed_key_bracket_value_stays_string(user_home):
     """Keys whose DEFAULT_CONFIG type is str must never be coerced —
     even when the value looks like a list literal."""
-    from sparkii_cli.config import set_config_value, read_raw_config
+    from core.config import set_config_value, read_raw_config
 
     set_config_value("approvals.mode", "[off]")
     raw = read_raw_config()
@@ -120,7 +120,7 @@ def test_string_typed_key_bracket_value_stays_string(user_home):
 
 def test_string_typed_key_negative_number_stays_string(user_home):
     """'-5' for a string-typed key must remain the string '-5'."""
-    from sparkii_cli.config import set_config_value, read_raw_config
+    from core.config import set_config_value, read_raw_config
 
     set_config_value("approvals.mode", "-5")
     raw = read_raw_config()
@@ -131,7 +131,7 @@ def test_dash_prefixed_scalar_not_treated_as_list(user_home):
     """Single-line dash-prefixed scalars ('-5', '--flag') must stay strings
     for non-string-typed keys too — the over-broad leading '-' trigger from
     #88066 is deliberately avoided."""
-    from sparkii_cli.config import set_config_value, read_raw_config
+    from core.config import set_config_value, read_raw_config
 
     set_config_value("weird.flag", "--verbose")
     raw = read_raw_config()
@@ -141,7 +141,7 @@ def test_dash_prefixed_scalar_not_treated_as_list(user_home):
 def test_plain_scalar_that_parses_to_scalar_kept_as_string(user_home):
     """If yaml.safe_load of a structured-looking value yields a plain scalar,
     keep the original string."""
-    from sparkii_cli.config import set_config_value, read_raw_config
+    from core.config import set_config_value, read_raw_config
 
     # '{}' parses to an empty dict — that IS structured, so check a value
     # that starts with '[' but parses to a scalar is impossible in YAML;
@@ -154,7 +154,7 @@ def test_plain_scalar_that_parses_to_scalar_kept_as_string(user_home):
 def test_round_trip_through_load_config(user_home):
     """Structured values written by set_config_value must survive
     load_config as real lists/dicts."""
-    from sparkii_cli.config import set_config_value, load_config
+    from core.config import set_config_value, load_config
 
     set_config_value("platform_toolsets.line", '["clarify", "file", "web"]')
     cfg = load_config()

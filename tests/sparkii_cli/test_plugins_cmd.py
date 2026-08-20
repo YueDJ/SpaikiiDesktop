@@ -579,9 +579,9 @@ class TestPromptPluginEnvVars:
             ],
         }
 
-        with patch("sparkii_cli.config.get_env_value", return_value=None), \
+        with patch("core.config.get_env_value", return_value=None), \
              patch("builtins.input", return_value="pk-lf-123"), \
-             patch("sparkii_cli.config.save_env_value") as mock_save:
+             patch("core.config.save_env_value") as mock_save:
             _prompt_plugin_env_vars(manifest, console)
 
         mock_save.assert_called_once_with("LANGFUSE_PUBLIC_KEY", "pk-lf-123")
@@ -599,9 +599,9 @@ class TestPromptPluginEnvVars:
             "requires_env": [{"name": "SECRET_KEY", "secret": True}],
         }
 
-        with patch("sparkii_cli.config.get_env_value", return_value=None), \
+        with patch("core.config.get_env_value", return_value=None), \
              patch("sparkii_cli.plugins_cmd.masked_secret_prompt", return_value="s3cret") as mock_prompt, \
-             patch("sparkii_cli.config.save_env_value"):
+             patch("core.config.save_env_value"):
             _prompt_plugin_env_vars(manifest, console)
 
         mock_prompt.assert_called_once()

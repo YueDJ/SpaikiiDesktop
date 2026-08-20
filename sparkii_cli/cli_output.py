@@ -5,8 +5,8 @@ functions previously duplicated across setup.py, tools_config.py,
 mcp_config.py, and memory_setup.py.
 """
 
-from sparkii_cli.colors import Colors, color
-from sparkii_cli.secret_prompt import masked_secret_prompt
+from core.colors import Colors, color
+from core.secret_prompt import masked_secret_prompt
 
 
 # ─── Print Helpers ────────────────────────────────────────────────────────────

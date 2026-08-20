@@ -1,6 +1,6 @@
 """Unit tests for resolve_ephemeral_system_prompt_from_config."""
 
-from sparkii_cli.config import (
+from core.config import (
     render_personality_prompt,
     resolve_ephemeral_system_prompt_from_config,
 )

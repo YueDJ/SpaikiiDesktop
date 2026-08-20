@@ -93,7 +93,7 @@ class TestProviderPersistsAfterModelSave:
         monkeypatch.setenv("KIMI_API_KEY", "sk-kimi-test-key")
 
         from sparkii_cli.main import _model_flow_api_key_provider
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         # Mock the model selection prompt to return "kimi-k2.5"
         # Also mock input() for the base URL prompt and builtins.input
@@ -139,7 +139,7 @@ class TestBaseUrlValidation:
         monkeypatch.delenv("MINIMAX_BASE_URL", raising=False)
 
         from sparkii_cli.main import _model_flow_api_key_provider
-        from sparkii_cli.config import load_config, get_env_value
+        from core.config import load_config, get_env_value
 
         with patch("sparkii_cli.auth._prompt_model_selection", return_value="MiniMax-M2"), \
              patch("sparkii_cli.auth.deactivate_provider"), \
@@ -158,7 +158,7 @@ class TestZaiEndpointPicker:
     def test_custom_proxy_rejects_invalid_url(self, config_home, monkeypatch, capsys):
         """Custom proxy must start with http:// or https://."""
         from sparkii_cli.main import _model_flow_api_key_provider
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         monkeypatch.setenv("GLM_API_KEY", "test-key")
         monkeypatch.delenv("GLM_BASE_URL", raising=False)

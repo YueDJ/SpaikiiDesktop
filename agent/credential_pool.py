@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 from sparkii_constants import OPENROUTER_BASE_URL
-from sparkii_cli.config import load_env
+from core.config import load_env
 from agent.secret_scope import get_secret as _get_secret
 from agent.credential_persistence import (
     is_borrowed_credential_source,
@@ -23,10 +23,8 @@ from agent.credential_persistence import (
 )
 import sparkii_cli.auth as auth_mod
 from sparkii_cli.auth import (
-    CODEX_ACCESS_TOKEN_REFRESH_SKEW_SECONDS,
     PROVIDER_REGISTRY,
     _auth_store_lock,
-    _codex_access_token_is_expiring,
     _decode_jwt_claims,
     _global_auth_file_path,
     _load_auth_store,
@@ -56,7 +54,7 @@ def _load_config_safe() -> Optional[dict]:
     deep-copied) the full config again.
     """
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
 
         return load_config_readonly()
     except Exception:
@@ -467,7 +465,7 @@ def _iter_custom_providers(config: Optional[dict] = None):
     if not isinstance(custom_providers, list):
         # Fall back to the v12+ providers dict via the compatibility layer
         try:
-            from sparkii_cli.config import get_compatible_custom_providers
+            from core.config import get_compatible_custom_providers
 
             custom_providers = get_compatible_custom_providers(config)
         except Exception:
@@ -2930,7 +2928,7 @@ def _seed_from_env(provider: str, entries: List[PooledCredential]) -> Tuple[bool
 
     def _secret_source_for_env(env_var: str) -> Optional[str]:
         try:
-            from sparkii_cli.env_loader import get_secret_source
+            from core.env_loader import get_secret_source
             source_label = get_secret_source(env_var)
         except Exception:
             source_label = None

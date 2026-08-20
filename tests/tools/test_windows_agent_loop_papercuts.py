@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from sparkii_cli._subprocess_compat import split_command_line
+from core._subprocess_compat import split_command_line
 
 
 class TestSplitCommandLine:

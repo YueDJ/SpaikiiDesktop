@@ -1652,14 +1652,14 @@ def _resolve_default_model_snapshot() -> Optional[str]:
     or resolution fails (fail-open — caller treats ``None`` as "no snapshot").
     """
     try:
-        from sparkii_cli.config import _expand_env_vars, read_user_config_raw
+        from core.config import _expand_env_vars, read_user_config_raw
 
         cfg_path = get_sparkii_home() / "config.yaml"
         if not cfg_path.exists():
             return None
         cfg = read_user_config_raw(cfg_path)
         try:
-            from sparkii_cli import managed_scope
+            from core import managed_scope
             cfg = managed_scope.apply_managed_overlay(cfg)
         except Exception:
             pass
@@ -2911,7 +2911,7 @@ def _completed_oneshot_retention_days() -> float:
     sweep, retaining completed one-shot records indefinitely.
     """
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         cfg = load_config() or {}
         cron_cfg = cfg.get("cron", {}) if isinstance(cfg, dict) else {}
         return float(
@@ -3481,7 +3481,7 @@ _CRON_OUTPUT_DEFAULT_KEEP = 50
 def _cron_output_keep() -> int:
     """Resolve the per-job output-file retention cap from config (``cron.output_retention``)."""
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         cfg = load_config() or {}
         cron_cfg = cfg.get("cron", {}) if isinstance(cfg, dict) else {}
         return int(cron_cfg.get("output_retention", _CRON_OUTPUT_DEFAULT_KEEP))

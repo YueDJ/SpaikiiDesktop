@@ -74,7 +74,7 @@ def _resolve_cli_route():
 
 def test_real_cli_args_keep_transport_and_capability_identities_separate():
     from agent.image_routing import decide_image_input_mode
-    from sparkii_cli.config import load_config
+    from core.config import load_config
 
     cli, route = _resolve_cli_route()
     runtime = route["runtime"]

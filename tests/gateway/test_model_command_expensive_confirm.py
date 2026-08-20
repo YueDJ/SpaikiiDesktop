@@ -84,7 +84,7 @@ def _setup_isolated_home(tmp_path, monkeypatch, *, warn):
         lambda **kw: _fake_switch_result(),
     )
     monkeypatch.setattr("sparkii_constants.get_sparkii_home", lambda: sparkii_home)
-    monkeypatch.setattr("sparkii_cli.config.get_sparkii_home", lambda: sparkii_home)
+    monkeypatch.setattr("core.config.get_sparkii_home", lambda: sparkii_home)
     monkeypatch.setattr(
         "sparkii_cli.model_cost_guard.expensive_model_warning",
         (lambda *a, **kw: _fake_warning()) if warn else (lambda *a, **kw: None),

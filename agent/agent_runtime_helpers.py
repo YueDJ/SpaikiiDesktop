@@ -32,7 +32,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from sparkii_cli.timeouts import get_provider_request_timeout
+from core.timeouts import get_provider_request_timeout
 from agent.message_sanitization import _FULL_ARGS_LOG_BOUND
 from agent.prompt_builder import format_steer_marker
 from agent.tool_dispatch_helpers import _trajectory_normalize_msg, make_tool_result_message
@@ -2003,7 +2003,7 @@ VALID_CACHE_TTLS = ("5m", "1h")
 
 def _raw_cache_ttl_from_config() -> Any:
     """Read the raw ``prompt_caching.cache_ttl`` config value (may raise)."""
-    from sparkii_cli.config import load_config_readonly
+    from core.config import load_config_readonly
 
     pc_cfg = load_config_readonly().get("prompt_caching", {}) or {}
     return pc_cfg.get("cache_ttl", "5m")
@@ -2231,8 +2231,8 @@ def anthropic_prompt_cache_policy(
     # the policy from the preset's real aggregator slot instead.
     if eff_provider.strip().lower() == "moa":
         try:
-            from sparkii_cli.config import load_config as _load_moa_cfg
-            from sparkii_cli.moa_config import resolve_moa_preset
+            from core.config import load_config as _load_moa_cfg
+            from core.moa_config import resolve_moa_preset
             from sparkii_cli.runtime_provider import resolve_runtime_provider
 
             _preset = resolve_moa_preset(
@@ -2315,7 +2315,7 @@ def anthropic_prompt_cache_policy(
     )
     if is_anthropic_wire or _litellm_openai_wire:
         try:
-            from sparkii_cli.config import get_custom_provider_model_capability
+            from core.config import get_custom_provider_model_capability
 
             custom_prompt_caching = get_custom_provider_model_capability(
                 model=eff_model,
@@ -2811,7 +2811,7 @@ def switch_model(agent, new_model, new_provider, api_key='', base_url='', api_mo
                 "base_url": effective_base,
             }
             try:
-                from sparkii_cli.config import (
+                from core.config import (
                     apply_custom_provider_tls_to_client_kwargs,
                     get_compatible_custom_providers,
                     load_config_readonly,
@@ -2855,7 +2855,7 @@ def switch_model(agent, new_model, new_provider, api_key='', base_url='', api_mo
     # ── LM Studio: preload before probing context length ──
     _sm_custom_providers = None
     try:
-        from sparkii_cli.config import (
+        from core.config import (
             get_compatible_custom_providers,
             get_custom_provider_context_length,
             load_config,
@@ -2907,7 +2907,7 @@ def switch_model(agent, new_model, new_provider, api_key='', base_url='', api_mo
         from agent.model_metadata import get_model_context_length
         if _sm_custom_providers is None:
             try:
-                from sparkii_cli.config import get_compatible_custom_providers, load_config
+                from core.config import get_compatible_custom_providers, load_config
                 _sm_custom_providers = get_compatible_custom_providers(load_config())
             except Exception:
                 _sm_custom_providers = None
@@ -2941,7 +2941,7 @@ def switch_model(agent, new_model, new_provider, api_key='', base_url='', api_mo
     # boolean False = disabled).
     try:
         from sparkii_constants import resolve_reasoning_config
-        from sparkii_cli.config import load_config as _sm_load_config
+        from core.config import load_config as _sm_load_config
 
         _reasoning_cfg = _sm_load_config() or {}
         agent.reasoning_config = resolve_reasoning_config(_reasoning_cfg, agent.model)

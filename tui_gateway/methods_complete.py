@@ -502,7 +502,7 @@ def _(rid, params: dict) -> dict:
     """
     try:
         from sparkii_cli.auth import PROVIDER_REGISTRY
-        from sparkii_cli.config import is_managed
+        from core.config import is_managed
         from sparkii_cli.inventory import build_models_payload
 
         slug = (params.get("slug") or "").strip()
@@ -530,7 +530,7 @@ def _(rid, params: dict) -> dict:
         # so any stale config.yaml mirror of the previous key (model.api_key,
         # custom_providers[*].api_key) is rotated in the same action (#62269).
         env_var = pconfig.api_key_env_vars[0]
-        from sparkii_cli.credential_lifecycle import save_provider_env_credential
+        from core.credential_lifecycle import save_provider_env_credential
 
         save_provider_env_credential(env_var, api_key)
         # Also set in current process so the refreshed inventory sees it.
@@ -580,7 +580,7 @@ def _(rid, params: dict) -> dict:
     """
     try:
         from sparkii_cli.auth import PROVIDER_REGISTRY, clear_provider_auth
-        from sparkii_cli.credential_lifecycle import remove_provider_env_credential
+        from core.credential_lifecycle import remove_provider_env_credential
 
         slug = (params.get("slug") or "").strip()
         if not slug:

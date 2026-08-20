@@ -162,7 +162,7 @@ def aux_probe_mode():
 
 from agent.credential_pool import load_pool
 from agent.model_metadata import MINIMUM_CONTEXT_LENGTH, get_model_context_length
-from sparkii_cli.config import get_sparkii_home
+from core.config import get_sparkii_home
 from sparkii_constants import OPENROUTER_BASE_URL
 from utils import base_url_host_matches, base_url_hostname, env_float, is_truthy_value, model_forces_max_completion_tokens, normalize_proxy_env_vars
 
@@ -198,7 +198,7 @@ def _resolve_aux_verify(base_url: Optional[str]) -> Any:
     """
     try:
         from agent.ssl_verify import resolve_httpx_verify
-        from sparkii_cli.config import (
+        from core.config import (
             get_custom_provider_tls_settings,
             load_config_readonly,
         )
@@ -616,12 +616,6 @@ def _is_kimi_model(model: Optional[str]) -> bool:
     return bare.startswith("kimi-") or bare == "kimi"
 
 
-def _is_arcee_trinity_thinking(model: Optional[str]) -> bool:
-    """True for Arcee Trinity Large Thinking (direct or via OpenRouter)."""
-    bare = (model or "").strip().lower().rsplit("/", 1)[-1]
-    return bare == "trinity-large-thinking"
-
-
 # Context window enforced by ChatGPT's Codex OAuth backend for the
 # gpt-5.4 / gpt-5.5 / gpt-5.6 families. The raw OpenAI API and OpenRouter
 # expose 1.05M for the same slugs, but the Codex backend hard-caps at 272K
@@ -707,8 +701,6 @@ def _fixed_temperature_for_model(
     if _is_kimi_model(model):
         logger.debug("Omitting temperature for Kimi model %r (server-managed)", model)
         return OMIT_TEMPERATURE
-    if _is_arcee_trinity_thinking(model):
-        return 0.5
     return None
 
 
@@ -725,7 +717,6 @@ def _compression_threshold_for_model(
     compression and preserve more raw context.
 
     Per-model/route overrides:
-      - Arcee Trinity Large Thinking → 0.75 (preserve reasoning context).
       - gpt-5.4 / gpt-5.5 / gpt-5.6 on the Codex OAuth route → 0.85, because
         Codex caps all three families at 272K and the default 50% trigger
         would compact at ~136K. Gated by ``allow_codex_gpt55_autoraise``
@@ -741,8 +732,6 @@ def _compression_threshold_for_model(
     Returns a float in (0, 1] to override the global ``compression.threshold``
     config value, or ``None`` to leave the user's config value unchanged.
     """
-    if _is_arcee_trinity_thinking(model):
-        return 0.75
     if allow_codex_gpt55_autoraise and _is_codex_gpt54_or_gpt55(model, provider):
         return _CODEX_GPT54_GPT55_COMPACTION_THRESHOLD
     if _is_codex_spark(model, provider):
@@ -1042,7 +1031,7 @@ def _apply_user_default_headers(headers: dict | None) -> dict | None:
     when nothing is configured. No allocation when there are no overrides.
     """
     try:
-        from sparkii_cli.config import cfg_get, load_config
+        from core.config import cfg_get, load_config
         _cfg = load_config()
         user_headers = cfg_get(_cfg, "model", "default_headers")
         # ``model.extra_headers`` is an accepted alias (matches the
@@ -1088,7 +1077,7 @@ def build_or_headers(or_config: dict | None = None) -> dict:
     # Resolve config from disk if not provided.
     if or_config is None:
         try:
-            from sparkii_cli.config import load_config_readonly
+            from core.config import load_config_readonly
             or_config = load_config_readonly().get("openrouter", {})
         except Exception:
             or_config = {}
@@ -1143,32 +1132,6 @@ _AI_GATEWAY_HEADERS = {
     "X-Title": "Sparkii Agent",
     "User-Agent": f"SparkiiAgent/{_SPARKII_VERSION}",
 }
-
-# Nous Portal extra_body for product attribution.
-# Callers should pass this as extra_body in chat.completions.create()
-# when the auxiliary client is backed by Nous Portal.
-#
-# The tags are computed from agent.portal_tags so the client= marker stays
-# in lockstep with sparkii_cli.__version__ across every Portal call site
-# (main loop, aux, compression, web_extract). Do not inline a literal here;
-# see agent/portal_tags.py for the rationale.
-from agent.portal_tags import nous_portal_tags as _nous_portal_tags
-
-
-def _nous_extra_body() -> dict:
-    """Return a fresh Nous Portal ``extra_body`` dict.
-
-    Computed at call time so a hot-reloaded ``sparkii_cli.__version__`` is
-    reflected without restarting long-running processes.
-    """
-    return {"tags": _nous_portal_tags()}
-
-
-# Backwards-compatible module attribute. Some callers (tests, third-party
-# plugins) read ``NOUS_EXTRA_BODY`` directly; keep it as a snapshot of the
-# current tags. Callers that need the freshest value should call
-# ``_nous_extra_body()`` or import ``nous_portal_tags`` directly.
-NOUS_EXTRA_BODY = _nous_extra_body()
 
 # Set at resolve time — True if the auxiliary client points to Nous Portal
 auxiliary_is_nous: bool = False
@@ -2821,7 +2784,7 @@ def _aux_openrouter_settings() -> Tuple[bool, str]:
     config-read failure.
     """
     try:
-        from sparkii_cli.config import cfg_get, load_config_readonly
+        from core.config import cfg_get, load_config_readonly
 
         cfg = load_config_readonly()
         free_only = bool(cfg_get(cfg, "auxiliary", "free_only", default=False))
@@ -3042,7 +3005,7 @@ def _read_main_model() -> str:
     if isinstance(override, str) and override.strip():
         return override.strip()
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
         cfg = load_config_readonly()
         model_cfg = cfg.get("model", {})
         if isinstance(model_cfg, str) and model_cfg.strip():
@@ -3069,7 +3032,7 @@ def _read_main_provider() -> str:
     if isinstance(override, str) and override.strip():
         return override.strip().lower()
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
         cfg = load_config_readonly()
         model_cfg = cfg.get("model", {})
         if isinstance(model_cfg, dict):
@@ -3098,7 +3061,7 @@ def _read_main_api_key() -> str:
     if isinstance(override, str) and override.strip():
         return override.strip()
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         cfg = load_config()
         model_cfg = cfg.get("model", {})
         if isinstance(model_cfg, dict):
@@ -3119,7 +3082,7 @@ def _read_main_base_url() -> str:
     if isinstance(override, str) and override.strip():
         return override.strip()
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         cfg = load_config()
         model_cfg = cfg.get("model", {})
         if isinstance(model_cfg, dict):
@@ -3153,8 +3116,8 @@ def _resolve_moa_aggregator(preset_name: Optional[str]) -> Tuple[Optional[str], 
         or a malformed aggregator slot).
     """
     try:
-        from sparkii_cli.config import load_config
-        from sparkii_cli.moa_config import resolve_moa_preset
+        from core.config import load_config
+        from core.moa_config import resolve_moa_preset
 
         preset = resolve_moa_preset(load_config().get("moa") or {}, preset_name or None)
         agg = preset.get("aggregator") or {}
@@ -3792,7 +3755,7 @@ def _try_azure_foundry(
     try:
         from sparkii_cli.runtime_provider import _resolve_azure_foundry_runtime
         from sparkii_cli.auth import AuthError
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
     except ImportError:
         return None, None
 
@@ -3911,7 +3874,7 @@ def _try_anthropic(explicit_api_key: str = None) -> Tuple[Optional[Any], Optiona
     # see issue #52608.
     base_url = _pool_runtime_base_url(entry, _ANTHROPIC_DEFAULT_BASE_URL) if pool_present else _ANTHROPIC_DEFAULT_BASE_URL
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
         cfg = load_config_readonly()
         model_cfg = cfg.get("model")
         if isinstance(model_cfg, dict):
@@ -4158,15 +4121,8 @@ def _is_payment_error(exc: Exception) -> bool:
 
 
 def _nous_portal_account_has_fresh_paid_access() -> bool:
-    """Return True only when the fresh Nous account API says paid access is allowed."""
-    try:
-        from sparkii_cli.nous_account import get_nous_portal_account_info
-
-        account_info = get_nous_portal_account_info(force_fresh=True)
-        return account_info.paid_service_access is True
-    except Exception as exc:
-        logger.debug("Auxiliary Nous paid-entitlement refresh check failed: %s", exc)
-        return False
+    """Nous Portal paid-access gate - always closed after the product removal."""
+    return False
 
 
 def _is_rate_limit_error(exc: Exception) -> bool:
@@ -4301,7 +4257,7 @@ def _transient_retry_count() -> int:
     Best-effort: any config-read failure falls back to the default.
     """
     try:
-        from sparkii_cli.config import cfg_get, load_config
+        from core.config import cfg_get, load_config
 
         val = cfg_get(load_config(), "auxiliary", "transient_retries")
         if val is None:
@@ -5734,7 +5690,7 @@ def _fallback_entry_api_key(entry: Dict[str, Any]) -> Optional[str]:
     doesn't leak another profile's credential via a raw ``os.getenv`` under
     gateway multiplexing (see ``sparkii_cli.fallback_config.resolve_entry_api_key``).
     """
-    from sparkii_cli.fallback_config import resolve_entry_api_key
+    from core.fallback_config import resolve_entry_api_key
 
     return resolve_entry_api_key(entry)
 
@@ -5779,8 +5735,8 @@ def _try_main_fallback_chain(
     participate in the same order as the main agent.
     """
     try:
-        from sparkii_cli.config import load_config_readonly
-        from sparkii_cli.fallback_config import get_fallback_chain
+        from core.config import load_config_readonly
+        from core.fallback_config import get_fallback_chain
 
         chain = get_fallback_chain(load_config_readonly())
     except Exception as exc:
@@ -7102,7 +7058,7 @@ def _main_model_supports_vision(provider: str, model: Optional[str]) -> bool:
     """
     try:
         from agent.image_routing import _lookup_supports_vision
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
     except ImportError:
         return True
     try:
@@ -7435,11 +7391,11 @@ def resolve_vision_provider_client(
 
 def get_auxiliary_extra_body() -> dict:
     """Return extra_body kwargs for auxiliary API calls.
-    
-    Includes Nous Portal product tags when the auxiliary client is backed
-    by Nous Portal. Returns empty dict otherwise.
+
+    The Nous Portal attribution tags were removed with the Nous product line;
+    kept as a no-op so call sites stay stable.
     """
-    return _nous_extra_body() if auxiliary_is_nous else {}
+    return {}
 
 
 def auxiliary_max_tokens_param(value: int, *, model: Optional[str] = None) -> dict:
@@ -8172,7 +8128,7 @@ def _get_auxiliary_task_config(task: str) -> Dict[str, Any]:
     if not task:
         return {}
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
         config = load_config_readonly()
     except ImportError:
         return {}
@@ -8670,19 +8626,6 @@ def _build_call_kwargs(
     # spellings the profile lookup might miss. session_id keeps aux
     # compression/title/vision calls on the same upstream instance as the
     # main turn (cache warmth) — tags alone are not enough on /v1/messages.
-    _provider_for_portal = str(provider or "").strip().lower()
-    if _provider_for_portal in {"nous", "nous-portal", "nousresearch"}:
-        if "tags" not in merged_extra:
-            merged_extra["tags"] = _nous_portal_tags()
-        if "session_id" not in merged_extra:
-            try:
-                from agent.portal_tags import get_conversation_context
-
-                sticky_key = get_conversation_context()
-            except Exception:
-                sticky_key = None
-            if sticky_key:
-                merged_extra["session_id"] = sticky_key
     if merged_extra:
         kwargs["extra_body"] = merged_extra
 
@@ -8942,7 +8885,7 @@ def _provider_requires_stream(provider: str, base_url: Optional[str]) -> bool:
     if base_url_host_matches(_url, "copilot.tencent.com"):
         return True
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         aux_cfg = (load_config() or {}).get("auxiliary", {})
         markers = aux_cfg.get("stream_only_base_urls") or []
         if isinstance(markers, (list, tuple)):

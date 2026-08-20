@@ -310,7 +310,7 @@ def _misfire_grace_minutes() -> float:
     catch-up sweep entirely.
     """
     try:
-        from sparkii_cli.config import cfg_get, load_config
+        from core.config import cfg_get, load_config
 
         return float(
             cfg_get(
@@ -440,7 +440,7 @@ def resolve_cron_scheduler() -> "CronScheduler":
 
     name = ""
     try:
-        from sparkii_cli.config import cfg_get, load_config
+        from core.config import cfg_get, load_config
         name = (cfg_get(load_config(), "cron", "provider", default="") or "").strip()
     except Exception:
         pass

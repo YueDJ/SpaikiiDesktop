@@ -49,37 +49,10 @@ SPARKII_OVERLAYS: Dict[str, SparkiiOverlay] = {
         auth_type="virtual",
         base_url_override="moa://local",
     ),
-    "openrouter": SparkiiOverlay(
-        transport="openai_chat",
-        is_aggregator=True,
-        base_url_env_var="OPENROUTER_BASE_URL",
-    ),
-    "nous": SparkiiOverlay(
-        transport="openai_chat",
-        auth_type="oauth_device_code",
-        base_url_override="https://inference-api.nousresearch.com/v1",
-    ),
-    "openai-codex": SparkiiOverlay(
-        transport="codex_responses",
-        auth_type="oauth_external",
-        base_url_override="https://chatgpt.com/backend-api/codex",
-    ),
     "openai-api": SparkiiOverlay(
         transport="codex_responses",
         base_url_override="https://api.openai.com/v1",
         base_url_env_var="OPENAI_BASE_URL",
-    ),
-    "xai-oauth": SparkiiOverlay(
-        transport="codex_responses",
-        auth_type="oauth_external",
-        base_url_override="https://api.x.ai/v1",
-        base_url_env_var="XAI_BASE_URL",
-    ),
-    "qwen-oauth": SparkiiOverlay(
-        transport="openai_chat",
-        auth_type="oauth_external",
-        base_url_override="https://portal.qwen.ai/v1",
-        base_url_env_var="SPARKII_QWEN_BASE_URL",
     ),
     "lmstudio": SparkiiOverlay(
         transport="openai_chat",
@@ -88,150 +61,16 @@ SPARKII_OVERLAYS: Dict[str, SparkiiOverlay] = {
         base_url_override="http://127.0.0.1:1234/v1",
         base_url_env_var="LM_BASE_URL",
     ),
-    "copilot-acp": SparkiiOverlay(
-        transport="codex_responses",
-        auth_type="external_process",
-        base_url_override="acp://copilot",
-        base_url_env_var="COPILOT_ACP_BASE_URL",
-    ),
-    "github-copilot": SparkiiOverlay(
-        transport="openai_chat",
-        extra_env_vars=("COPILOT_GITHUB_TOKEN", "GH_TOKEN"),
-    ),
     "anthropic": SparkiiOverlay(
         transport="anthropic_messages",
         extra_env_vars=("ANTHROPIC_TOKEN", "CLAUDE_CODE_OAUTH_TOKEN"),
-    ),
-    "zai": SparkiiOverlay(
-        transport="openai_chat",
-        extra_env_vars=("GLM_API_KEY", "ZAI_API_KEY", "Z_AI_API_KEY"),
-        base_url_env_var="GLM_BASE_URL",
-    ),
-    "kimi-for-coding": SparkiiOverlay(
-        transport="openai_chat",
-        base_url_env_var="KIMI_BASE_URL",
-    ),
-    "stepfun": SparkiiOverlay(
-        transport="openai_chat",
-        extra_env_vars=("STEPFUN_API_KEY",),
-        base_url_override="https://api.stepfun.ai/step_plan/v1",
-        base_url_env_var="STEPFUN_BASE_URL",
-    ),
-    "minimax": SparkiiOverlay(
-        transport="anthropic_messages",
-        base_url_env_var="MINIMAX_BASE_URL",
-    ),
-    "minimax-oauth": SparkiiOverlay(
-        transport="anthropic_messages",
-        auth_type="oauth_external",
-        base_url_override="https://api.minimax.io/anthropic",
-    ),
-    "minimax-cn": SparkiiOverlay(
-        transport="anthropic_messages",
-        base_url_env_var="MINIMAX_CN_BASE_URL",
-    ),
-    "deepseek": SparkiiOverlay(
-        transport="openai_chat",
-        base_url_env_var="DEEPSEEK_BASE_URL",
-    ),
-    "alibaba": SparkiiOverlay(
-        transport="openai_chat",
-        base_url_env_var="DASHSCOPE_BASE_URL",
-    ),
-    "alibaba-coding-plan": SparkiiOverlay(
-        transport="openai_chat",
-        base_url_env_var="ALIBABA_CODING_PLAN_BASE_URL",
-    ),
-    "vercel": SparkiiOverlay(
-        transport="openai_chat",
-        is_aggregator=True,
-    ),
-    "opencode": SparkiiOverlay(
-        transport="openai_chat",
-        is_aggregator=True,
-        base_url_env_var="OPENCODE_ZEN_BASE_URL",
-    ),
-    "opencode-go": SparkiiOverlay(
-        transport="openai_chat",
-        is_aggregator=True,
-        base_url_env_var="OPENCODE_GO_BASE_URL",
-    ),
-    "kilo": SparkiiOverlay(
-        transport="openai_chat",
-        is_aggregator=True,
-        base_url_env_var="KILOCODE_BASE_URL",
-    ),
-    "huggingface": SparkiiOverlay(
-        transport="openai_chat",
-        is_aggregator=True,
-        base_url_env_var="HF_BASE_URL",
-    ),
-    "novita": SparkiiOverlay(
-        transport="openai_chat",
-        is_aggregator=True,
-        base_url_env_var="NOVITA_BASE_URL",
-    ),
-    "xai": SparkiiOverlay(
-        transport="codex_responses",
-        base_url_override="https://api.x.ai/v1",
-        base_url_env_var="XAI_BASE_URL",
-    ),
-    "nvidia": SparkiiOverlay(
-        transport="openai_chat",
-        base_url_override="https://integrate.api.nvidia.com/v1",
-        base_url_env_var="NVIDIA_BASE_URL",
-    ),
-    "xiaomi": SparkiiOverlay(
-        transport="openai_chat",
-        base_url_env_var="XIAOMI_BASE_URL",
     ),
     "tencent-tokenhub": SparkiiOverlay(
         transport="openai_chat",
         base_url_env_var="TOKENHUB_BASE_URL",
     ),
-    "arcee": SparkiiOverlay(
-        transport="openai_chat",
-        base_url_override="https://api.arcee.ai/api/v1",
-        base_url_env_var="ARCEE_BASE_URL",
-    ),
-    "gmi": SparkiiOverlay(
-        transport="openai_chat",
-        extra_env_vars=("GMI_API_KEY",),
-        base_url_override="https://api.gmi-serving.com/v1",
-        base_url_env_var="GMI_BASE_URL",
-    ),
-    "fireworks": SparkiiOverlay(
-        transport="openai_chat",
-        extra_env_vars=("FIREWORKS_API_KEY",),
-        base_url_override="https://api.fireworks.ai/inference/v1",
-    ),
-    "actual": SparkiiOverlay(
-        transport="codex_responses",
-        extra_env_vars=("ACTUAL_API_KEY", "ACTUAL_BASE_URL"),
-        base_url_override="https://api.actual.inc/v1",
-        base_url_env_var="ACTUAL_BASE_URL",
-    ),
-    "upstage": SparkiiOverlay(
-        transport="openai_chat",
-        extra_env_vars=("UPSTAGE_API_KEY",),
-        base_url_override="https://api.upstage.ai/v1",
-        base_url_env_var="UPSTAGE_BASE_URL",
-    ),
-    "ollama-cloud": SparkiiOverlay(
-        transport="openai_chat",
-        base_url_override="https://ollama.com/v1",
-        base_url_env_var="OLLAMA_BASE_URL",
-    ),
     # Azure Foundry: supports both OpenAI-style and Anthropic-style endpoints.
     # The transport is determined at runtime from config.yaml model.api_mode.
-    "azure-foundry": SparkiiOverlay(
-        transport="openai_chat",  # default; overridden by api_mode in config
-        base_url_env_var="AZURE_FOUNDRY_BASE_URL",
-    ),
-    "bedrock": SparkiiOverlay(
-        transport="bedrock_converse",
-        auth_type="aws_sdk",
-    ),
     # Vertex authenticates via OAuth2 (service-account JSON / ADC), not a
     # static API key or models.dev entry — resolved specially by
     # agent/vertex_adapter.py, like bedrock's aws_sdk. Without an overlay
@@ -241,11 +80,7 @@ SPARKII_OVERLAYS: Dict[str, SparkiiOverlay] = {
     # custom endpoint instead of "vertex" — losing the provider identity
     # that _refresh_provider_credentials() needs to re-mint an expired
     # OAuth2 token on a 401.
-    "vertex": SparkiiOverlay(
-        transport="openai_chat",
-        auth_type="vertex",
-    ),
-}
+    }
 
 
 # -- Resolved provider -------------------------------------------------------
@@ -273,95 +108,44 @@ class ProviderDef:
 
 ALIASES: Dict[str, str] = {
     # openrouter
-    "openai": "openrouter",     # bare "openai" → route through aggregator
+    # bare "openai" → route through aggregator
 
     # zai
-    "glm": "zai",
-    "z-ai": "zai",
-    "z.ai": "zai",
-    "zhipu": "zai",
-
+    
     # xai
-    "x-ai": "xai",
-    "x.ai": "xai",
-    "grok": "xai",
-    "grok-oauth": "xai-oauth",
-    "xai-oauth": "xai-oauth",
-    "x-ai-oauth": "xai-oauth",
-    "xai-grok-oauth": "xai-oauth",
-
+    
     # nvidia
-    "nim": "nvidia",
-    "nvidia-nim": "nvidia",
-    "build-nvidia": "nvidia",
-    "nemotron": "nvidia",
-
+    
     # kimi-for-coding (models.dev ID)
-    "kimi": "kimi-for-coding",
-    "kimi-coding": "kimi-for-coding",
-    "kimi-coding-cn": "kimi-for-coding",
-    "moonshot": "kimi-for-coding",
-
+    
     # stepfun
-    "step": "stepfun",
-    "stepfun-coding-plan": "stepfun",
-
+    
     # minimax-cn
-    "minimax-china": "minimax-cn",
-    "minimax_cn": "minimax-cn",
-
+    
     # anthropic
     "claude": "anthropic",
     "claude-code": "anthropic",
 
     # github-copilot (models.dev ID)
-    "copilot": "github-copilot",
-    "github": "github-copilot",
-    "github-copilot-acp": "copilot-acp",
-
+    
     # vercel (models.dev ID for AI Gateway)
-    "ai-gateway": "vercel",
-    "aigateway": "vercel",
-    "vercel-ai-gateway": "vercel",
-
+    
     # opencode (models.dev ID for OpenCode Zen)
-    "opencode-zen": "opencode",
-    "zen": "opencode",
-
+    
     # opencode-go
-    "go": "opencode-go",
-    "opencode-go-sub": "opencode-go",
-
+    
     # kilo (models.dev ID for KiloCode)
-    "kilocode": "kilo",
-    "kilo-code": "kilo",
-    "kilo-gateway": "kilo",
-
+    
     # deepseek
-    "deep-seek": "deepseek",
-
+    
     # alibaba
-    "dashscope": "alibaba",
-    "aliyun": "alibaba",
-    "qwen": "alibaba",
-    "alibaba-cloud": "alibaba",
-    "alibaba_coding": "alibaba-coding-plan",
-    "alibaba-coding": "alibaba-coding-plan",
-    "alibaba_coding_plan": "alibaba-coding-plan",
-
+    
     # huggingface
-    "hf": "huggingface",
-    "hugging-face": "huggingface",
-    "huggingface-hub": "huggingface",
-
+    
     # novita
-    "novita-ai": "novita",
-    "novitaai": "novita",
-
+    
     # xiaomi
-    "mimo": "xiaomi",
-    "xiaomi-mimo": "xiaomi",
-
+    
     # tencent
     "tencent": "tencent-tokenhub",
     "tokenhub": "tencent-tokenhub",
@@ -369,31 +153,15 @@ ALIASES: Dict[str, str] = {
     "tencentmaas": "tencent-tokenhub",
 
     # bedrock
-    "aws": "bedrock",
-    "aws-bedrock": "bedrock",
-    "amazon-bedrock": "bedrock",
-    "amazon": "bedrock",
-
-    # arcee
-    "arcee-ai": "arcee",
-    "arceeai": "arcee",
-
+    
     # gmi
-    "gmi-cloud": "gmi",
-    "gmicloud": "gmi",
-
+    
     # fireworks
-    "fireworks-ai": "fireworks",
-    "fw": "fireworks",
-
+    
     # upstage
-    "solar": "upstage",
-
+    
     # Actual Computer
-    "actual-computer": "actual",
-    "actualcomputer": "actual",
-    "aci": "actual",
-
+    
     # Local server aliases → virtual "local" concept (resolved via user config)
     "lmstudio": "lmstudio",
     "lm-studio": "lmstudio",
@@ -412,22 +180,10 @@ ALIASES: Dict[str, str] = {
 
 _LABEL_OVERRIDES: Dict[str, str] = {
     "moa": "Mixture of Agents",
-    "nous": "Nous Portal",
-    "openai-codex": "ChatGPT or Codex Subscription",
-    "copilot-acp": "GitHub Copilot ACP",
-    "stepfun": "StepFun Step Plan",
-    "xiaomi": "Xiaomi MiMo",
-    "gmi": "GMI Cloud",
-    "upstage": "Upstage Solar",
-    "actual": "Actual Computer",
     "tencent-tokenhub": "Tencent TokenHub",
     "lmstudio": "LM Studio",
     "local": "Local endpoint",
-    "bedrock": "AWS Bedrock",
-    "vertex": "Google Vertex AI",
-    "ollama-cloud": "Ollama Cloud",
-    "xai-oauth": "xAI Grok OAuth (SuperGrok / Premium+)",
-}
+    }
 
 
 # -- Transport → API mode mapping ---------------------------------------------

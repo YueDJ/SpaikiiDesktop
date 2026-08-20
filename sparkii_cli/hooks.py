@@ -49,7 +49,7 @@ def hooks_command(args) -> None:
 # ---------------------------------------------------------------------------
 
 def _cmd_list(_args) -> None:
-    from sparkii_cli.config import load_config
+    from core.config import load_config
     from agent import outbound_webhooks, shell_hooks
 
     cfg = load_config()
@@ -239,7 +239,7 @@ _DEFAULT_PAYLOADS = {
 
 
 def _cmd_test(args) -> None:
-    from sparkii_cli.config import load_config
+    from core.config import load_config
     from sparkii_cli.plugins import VALID_HOOKS
     from agent import shell_hooks
 
@@ -344,7 +344,7 @@ def _cmd_revoke(args) -> None:
 # ---------------------------------------------------------------------------
 
 def _cmd_doctor(_args) -> None:
-    from sparkii_cli.config import load_config
+    from core.config import load_config
     from agent import shell_hooks
 
     specs = shell_hooks.iter_configured_hooks(load_config())

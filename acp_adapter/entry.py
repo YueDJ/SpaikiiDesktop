@@ -103,7 +103,7 @@ def _setup_logging() -> None:
 
 def _load_env() -> None:
     """Load .env from SPARKII_HOME (default ``~/.sparkii``)."""
-    from sparkii_cli.env_loader import load_sparkii_dotenv
+    from core.env_loader import load_sparkii_dotenv
 
     sparkii_home = get_sparkii_home()
     loaded = load_sparkii_dotenv(sparkii_home=sparkii_home)
@@ -197,7 +197,7 @@ def _run_setup_browser(assume_yes: bool = False) -> int:
 
     Returns 0 on success, 1 on failure.
     """
-    from sparkii_cli.dep_ensure import ensure_dependency
+    from core.dep_ensure import ensure_dependency
 
     try:
         node_ok = ensure_dependency("node", interactive=not assume_yes)

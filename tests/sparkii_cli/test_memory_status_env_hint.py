@@ -31,7 +31,7 @@ def test_status_surfaces_env_inheritance_hint_when_unavailable(monkeypatch, caps
         lambda: [("hindsight", "cloud", _UnavailableProvider())],
     )
     monkeypatch.setattr(
-        "sparkii_cli.config.load_config",
+        "core.config.load_config",
         lambda: {"memory": {"provider": "hindsight", "hindsight": {}}},
     )
 

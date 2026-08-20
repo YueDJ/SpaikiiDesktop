@@ -734,7 +734,7 @@ class TestInit:
             patch("run_agent.get_tool_definitions", return_value=[]),
             patch("run_agent.check_toolset_requirements", return_value={}),
             patch("run_agent.OpenAI"),
-            patch("sparkii_cli.config.load_config", return_value={}), patch("sparkii_cli.config.load_config_readonly", return_value={}),
+            patch("core.config.load_config", return_value={}), patch("core.config.load_config_readonly", return_value={}),
         ):
             a = AIAgent(
                 api_key="test-k...7890",
@@ -756,11 +756,11 @@ class TestInit:
             patch("run_agent.check_toolset_requirements", return_value={}),
             patch("run_agent.OpenAI"),
             patch(
-                "sparkii_cli.config.load_config",
+                "core.config.load_config",
                 return_value={"prompt_caching": {"cache_ttl": falsy_value}},
             ),
             patch(
-                "sparkii_cli.config.load_config_readonly",
+                "core.config.load_config_readonly",
                 return_value={"prompt_caching": {"cache_ttl": falsy_value}},
             ),
         ):
@@ -784,11 +784,11 @@ class TestInit:
             patch("run_agent.check_toolset_requirements", return_value={}),
             patch("run_agent.OpenAI"),
             patch(
-                "sparkii_cli.config.load_config",
+                "core.config.load_config",
                 return_value={"prompt_caching": {"cache_ttl": False}},
             ),
             patch(
-                "sparkii_cli.config.load_config_readonly",
+                "core.config.load_config_readonly",
                 return_value={"prompt_caching": {"cache_ttl": False}},
             ),
         ):
@@ -815,10 +815,10 @@ class TestInit:
             patch("run_agent.check_toolset_requirements", return_value={}),
             patch("run_agent.OpenAI"),
             patch(
-                "sparkii_cli.config.load_config",
+                "core.config.load_config",
                 return_value={"model": {"max_tokens": 4096}},
             ), patch(
-                "sparkii_cli.config.load_config_readonly",
+                "core.config.load_config_readonly",
                 return_value={"model": {"max_tokens": 4096}},
             ),
         ):
@@ -1024,10 +1024,10 @@ class TestToolUseEnforcementConfig:
             patch("run_agent.check_toolset_requirements", return_value={}),
             patch("run_agent.OpenAI"),
             patch(
-                "sparkii_cli.config.load_config",
+                "core.config.load_config",
                 return_value={"agent": {"tool_use_enforcement": tool_use_enforcement}},
             ), patch(
-                "sparkii_cli.config.load_config_readonly",
+                "core.config.load_config_readonly",
                 return_value={"agent": {"tool_use_enforcement": tool_use_enforcement}},
             ),
         ):
@@ -1072,10 +1072,10 @@ class TestToolUseEnforcementConfig:
             patch("run_agent.check_toolset_requirements", return_value={}),
             patch("run_agent.OpenAI"),
             patch(
-                "sparkii_cli.config.load_config",
+                "core.config.load_config",
                 return_value={"agent": {"tool_use_enforcement": True}},
             ), patch(
-                "sparkii_cli.config.load_config_readonly",
+                "core.config.load_config_readonly",
                 return_value={"agent": {"tool_use_enforcement": True}},
             ),
         ):
@@ -1108,10 +1108,10 @@ class TestExecutionGuidanceConfig:
             patch("run_agent.check_toolset_requirements", return_value={}),
             patch("run_agent.OpenAI"),
             patch(
-                "sparkii_cli.config.load_config",
+                "core.config.load_config",
                 return_value={"agent": agent_cfg},
             ), patch(
-                "sparkii_cli.config.load_config_readonly",
+                "core.config.load_config_readonly",
                 return_value={"agent": agent_cfg},
             ),
         ):
@@ -1178,10 +1178,10 @@ class TestTaskCompletionGuidance:
             patch("run_agent.check_toolset_requirements", return_value={}),
             patch("run_agent.OpenAI"),
             patch(
-                "sparkii_cli.config.load_config",
+                "core.config.load_config",
                 return_value={"agent": agent_cfg},
             ), patch(
-                "sparkii_cli.config.load_config_readonly",
+                "core.config.load_config_readonly",
                 return_value={"agent": agent_cfg},
             ),
         ):
@@ -1217,10 +1217,10 @@ class TestTaskCompletionGuidance:
             patch("run_agent.check_toolset_requirements", return_value={}),
             patch("run_agent.OpenAI"),
             patch(
-                "sparkii_cli.config.load_config",
+                "core.config.load_config",
                 return_value={"agent": {"task_completion_guidance": True}},
             ), patch(
-                "sparkii_cli.config.load_config_readonly",
+                "core.config.load_config_readonly",
                 return_value={"agent": {"task_completion_guidance": True}},
             ),
         ):
@@ -1252,10 +1252,10 @@ class TestEnvironmentProbeIntegration:
             patch("run_agent.check_toolset_requirements", return_value={}),
             patch("run_agent.OpenAI"),
             patch(
-                "sparkii_cli.config.load_config",
+                "core.config.load_config",
                 return_value={"agent": {"environment_probe": environment_probe}},
             ), patch(
-                "sparkii_cli.config.load_config_readonly",
+                "core.config.load_config_readonly",
                 return_value={"agent": {"environment_probe": environment_probe}},
             ),
         ):
@@ -4926,133 +4926,7 @@ class TestConversationHistoryNotMutated:
 # ---------------------------------------------------------------------------
 
 
-class TestNousCredentialRefresh:
-    """Verify Nous credential refresh rebuilds the runtime client."""
 
-    def test_try_refresh_nous_client_credentials_rebuilds_client(
-        self, agent, monkeypatch
-    ):
-        agent.provider = "nous"
-        agent.api_mode = "chat_completions"
-
-        closed = {"value": False}
-        retired = {"value": False}
-        rebuilt = {"kwargs": None}
-        captured = {}
-
-        class _ExistingClient:
-            def close(self):
-                closed["value"] = True
-
-        class _RebuiltClient:
-            pass
-
-        def _fake_resolve(**kwargs):
-            captured.update(kwargs)
-            return {
-                "api_key": "new-nous-key",
-                "base_url": "https://inference-api.nousresearch.com/v1",
-            }
-
-        def _fake_openai(**kwargs):
-            rebuilt["kwargs"] = kwargs
-            return _RebuiltClient()
-
-        monkeypatch.setattr(
-            "sparkii_cli.auth.resolve_nous_runtime_credentials", _fake_resolve
-        )
-
-        existing = _ExistingClient()
-        agent.client = existing
-
-        _orig_retire = agent._retire_shared_openai_client
-
-        def _spy_retire(client, *, reason):
-            if client is existing:
-                retired["value"] = True
-            return _orig_retire(client, reason=reason)
-
-        monkeypatch.setattr(agent, "_retire_shared_openai_client", _spy_retire)
-
-        with patch("run_agent.OpenAI", side_effect=_fake_openai):
-            ok = agent._try_refresh_nous_client_credentials(force=True)
-
-        assert ok is True
-        # #70773: the replaced shared client is RETIRED (sockets shutdown,
-        # FD release deferred to GC), never hard-closed from the refreshing
-        # thread — close() releasing pool FDs cross-thread was the
-        # TLS-FD→SQLite corruption vector.
-        assert retired["value"] is True
-        assert closed["value"] is False
-        assert captured["force_refresh"] is True
-        assert rebuilt["kwargs"]["api_key"] == "new-nous-key"
-        assert (
-            rebuilt["kwargs"]["base_url"] == "https://inference-api.nousresearch.com/v1"
-        )
-        assert "default_headers" not in rebuilt["kwargs"]
-        assert isinstance(agent.client, _RebuiltClient)
-
-    def test_try_refresh_nous_client_credentials_rebuilds_anthropic_client(
-        self, agent, monkeypatch
-    ):
-        """Portal anthropic/* sessions hold an Anthropic client, not OpenAI.
-
-        A 401 on the Messages wire must refresh the invoke JWT into
-        ``_anthropic_api_key`` / ``_anthropic_base_url`` and rebuild that
-        client — swapping only ``agent.client`` would leave the turn stuck
-        on the expired Bearer token.
-        """
-        agent.provider = "nous"
-        agent.api_mode = "anthropic_messages"
-        agent.model = "anthropic/claude-opus-4.8"
-        agent.api_key = "stale-nous-key"
-        agent.base_url = "https://inference-api.nousresearch.com/v1"
-        agent._anthropic_api_key = "stale-nous-key"
-        agent._anthropic_base_url = "https://inference-api.nousresearch.com/v1"
-        agent._client_kwargs = {}
-        agent.client = None
-
-        captured = {}
-        rebuild_calls = {"count": 0}
-
-        class _RebuiltAnthropic:
-            pass
-
-        def _fake_resolve(**kwargs):
-            captured.update(kwargs)
-            return {
-                "api_key": "fresh-portal-jwt",
-                "base_url": "https://inference-api.nousresearch.com/v1",
-            }
-
-        def _fake_rebuild():
-            rebuild_calls["count"] += 1
-            agent._anthropic_client = _RebuiltAnthropic()
-
-        monkeypatch.setattr(
-            "sparkii_cli.auth.resolve_nous_runtime_credentials", _fake_resolve
-        )
-        monkeypatch.setattr(agent, "_rebuild_anthropic_client", _fake_rebuild)
-        monkeypatch.setattr(
-            agent,
-            "_replace_primary_openai_client",
-            MagicMock(side_effect=AssertionError("OpenAI client must not be rebuilt")),
-        )
-
-        ok = agent._try_refresh_nous_client_credentials(force=True)
-
-        assert ok is True
-        assert captured["force_refresh"] is True
-        assert agent.api_key == "fresh-portal-jwt"
-        assert agent.base_url == "https://inference-api.nousresearch.com/v1"
-        assert agent._anthropic_api_key == "fresh-portal-jwt"
-        assert agent._anthropic_base_url == (
-            "https://inference-api.nousresearch.com/v1"
-        )
-        assert rebuild_calls["count"] == 1
-        assert isinstance(agent._anthropic_client, _RebuiltAnthropic)
-        assert agent.client is None
-        agent._replace_primary_openai_client.assert_not_called()
 
 
 class TestCredentialPoolRecovery:

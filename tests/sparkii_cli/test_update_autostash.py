@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from sparkii_cli import config as sparkii_config
+from core import config as sparkii_config
 from sparkii_cli import main as sparkii_main
 
 
@@ -76,7 +76,7 @@ def test_refresh_active_memory_provider_dependencies_reinstalls_active_provider(
     recorded = []
 
     monkeypatch.setattr(
-        "sparkii_cli.config.load_config",
+        "core.config.load_config",
         lambda: {"memory": {"provider": "mem0"}},
     )
     monkeypatch.setattr(

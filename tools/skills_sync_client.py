@@ -322,7 +322,7 @@ def resolve_sync_base_url() -> Optional[str]:
         # Lazy import: the low-level sync layer must not import the CLI at
         # module load (skills_sync.py:43-50). A function-scoped import avoids
         # the cycle -- same pattern agent/curator.py:141 uses for config.
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         cfg = load_config() or {}
         sync_cfg = cfg.get("sync") or {}
@@ -376,7 +376,7 @@ def _sync_config_bool(env_var: str, config_key: str, *, default: bool) -> bool:
     if env_val is not None:
         return env_val
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         cfg = load_config() or {}
         sync_cfg = cfg.get("sync") or {}

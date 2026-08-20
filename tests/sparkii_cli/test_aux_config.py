@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import pytest
 
-from sparkii_cli.config import DEFAULT_CONFIG, load_config
+from core.config import DEFAULT_CONFIG, load_config
 from sparkii_cli.main import (
     _AUX_TASKS,
     _DELEGATION_TASK_KEY,
@@ -139,7 +139,7 @@ def test_save_delegation_auto_stores_empty_provider(tmp_path, monkeypatch):
 def test_reset_aux_clears_delegation_routing_preserves_settings(tmp_path, monkeypatch):
     """Reset-all clears delegation provider/model/base_url/api_key but leaves
     non-routing delegation settings (max_concurrent_children, etc.) alone."""
-    from sparkii_cli.config import load_config as _lc, save_config
+    from core.config import load_config as _lc, save_config
 
     _isolate_home(tmp_path, monkeypatch)
 

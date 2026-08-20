@@ -446,7 +446,7 @@ class TestBeepsEnabledTruthyStrings:
         import sparkii_cli.voice as voice
 
         monkeypatch.setattr(
-            "sparkii_cli.config.load_config",
+            "core.config.load_config",
             lambda: {"voice": {"beep_enabled": value}},
         )
         return voice._beeps_enabled()

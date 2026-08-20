@@ -13,7 +13,7 @@ import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from sparkii_cli.config import get_sparkii_home
+from core.config import get_sparkii_home
 from utils import atomic_json_write
 
 logger = logging.getLogger(__name__)

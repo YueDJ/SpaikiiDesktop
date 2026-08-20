@@ -951,7 +951,7 @@ def test_config_default_dispatch_in_gateway_is_true():
     """Default config must enable gateway-embedded dispatch out of the box.
     Flipping this default to false is a user-visible behaviour change and
     should require a conscious migration."""
-    from sparkii_cli.config import DEFAULT_CONFIG
+    from core.config import DEFAULT_CONFIG
     kanban = DEFAULT_CONFIG.get("kanban", {})
     assert kanban.get("dispatch_in_gateway") is True, (
         "kanban.dispatch_in_gateway default should be True; got "
@@ -1031,7 +1031,7 @@ def test_gateway_dispatcher_disables_corrupt_board_without_traceback(
     import sqlite3
 
     from gateway.run import GatewayRunner
-    import sparkii_cli.config as _cfg_mod
+    import core.config as _cfg_mod
     import sparkii_cli.kanban_db as _kb
 
     runner = object.__new__(GatewayRunner)

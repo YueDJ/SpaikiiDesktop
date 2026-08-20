@@ -61,14 +61,14 @@ from sparkii_constants import (
 )
 from registration_lifecycle import replacement_coordinator
 from utils import env_var_enabled, fast_safe_load
-from sparkii_cli.config import cfg_get, load_config_readonly
+from core.config import cfg_get, load_config_readonly
 from sparkii_cli.middleware import OBSERVER_SCHEMA_VERSION, VALID_MIDDLEWARE
-from sparkii_cli.plugin_capabilities import (  # noqa: F401 — re-exported
+from core.plugin_capabilities import (  # noqa: F401 — re-exported
     CAPABILITY_REGISTRY,
     VALID_CAPABILITY_IDS,
     plugin_capability_granted,
 )
-from sparkii_cli.plugin_capabilities import (
+from core.plugin_capabilities import (
     parse_declared_capabilities as _parse_declared_capabilities,
 )
 
@@ -567,50 +567,7 @@ def _env_enabled(name: str) -> bool:
     return env_var_enabled(name)
 
 
-def _get_disabled_plugins() -> set:
-    """Read the disabled plugins list from config.yaml.
-
-    Kept for backward compat and explicit deny-list semantics. A plugin
-    name in this set will never load, even if it appears in
-    ``plugins.enabled``.
-    """
-    try:
-        from sparkii_cli.config import load_config
-        config = load_config()
-        disabled = cfg_get(config, "plugins", "disabled", default=[])
-        return set(disabled) if isinstance(disabled, list) else set()
-    except Exception:
-        return set()
-
-
-def _get_enabled_plugins() -> Optional[set]:
-    """Read the enabled-plugins allow-list from config.yaml.
-
-    Plugins are opt-in by default — only plugins whose name appears in
-    this set are loaded. Returns:
-
-    * ``None`` — the key is missing or malformed. Callers should treat
-      this as "nothing enabled yet" (the opt-in default); the first
-      ``migrate_config`` run populates the key with a grandfathered set
-      of currently-installed user plugins so existing setups don't
-      break on upgrade.
-    * ``set()`` — an empty list was explicitly set; nothing loads.
-    * ``set(...)`` — the concrete allow-list.
-    """
-    try:
-        from sparkii_cli.config import load_config
-        config = load_config()
-        plugins_cfg = config.get("plugins")
-        if not isinstance(plugins_cfg, dict):
-            return None
-        if "enabled" not in plugins_cfg:
-            return None
-        enabled = plugins_cfg.get("enabled")
-        if not isinstance(enabled, list):
-            return None
-        return set(enabled)
-    except Exception:
-        return None
+from core.plugin_state import get_disabled_plugins as _get_disabled_plugins, get_enabled_plugins as _get_enabled_plugins
 
 
 # ---------------------------------------------------------------------------
@@ -1433,7 +1390,7 @@ class PluginContext:
                 "Rejected config path %r from plugin %s", key, self.plugin_id
             )
             raise
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
 
         config = load_config_readonly() or {}
         plugins = config.get("plugins") if isinstance(config, Mapping) else None
@@ -1456,13 +1413,13 @@ class PluginContext:
                 "Rejected config path %r from plugin %s", key, self.plugin_id
             )
             raise
-        from sparkii_cli import config as config_mod
+        from core import config as config_mod
 
         if config_mod.is_managed():
             raise PermissionError(
                 "Plugin settings cannot be changed in a managed install"
             )
-        from sparkii_cli import managed_scope
+        from core import managed_scope
 
         dotted_path = ".".join((
             "plugins",
@@ -1919,7 +1876,7 @@ class PluginContext:
         default-deny).
         """
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
             cfg = load_config() or {}
         except Exception:
             return []
@@ -1948,7 +1905,7 @@ class PluginContext:
         if source == "bundled":
             return True
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
 
             with _plugin_home_scope(self._manager.home_path):
                 cfg = load_config() or {}
@@ -3830,7 +3787,7 @@ class PluginManager:
         """
         try:
             from agent.secret_sources.registry import list_plugin_sources
-            from sparkii_cli.env_loader import load_sparkii_dotenv, reset_secret_source_cache
+            from core.env_loader import load_sparkii_dotenv, reset_secret_source_cache
         except Exception:
             return
         try:
@@ -3842,7 +3799,7 @@ class PluginManager:
         # Load the secrets config once; hand each source its own section and
         # let its is_enabled() decide (honours custom activation extensions).
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
 
             cfg = load_config() or {}
             secrets = cfg.get("secrets") or {}
@@ -4693,7 +4650,7 @@ class PluginManager:
         plugin_id = manifest.key or manifest.name
         settings: Mapping[str, Any] = {}
         try:
-            from sparkii_cli.config import load_config
+            from core.config import load_config
 
             cfg = load_config() or {}
             entries = (cfg.get("plugins") or {}).get("entries") or {}

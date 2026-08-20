@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import yaml
 
-from sparkii_cli.plugin_capabilities import (
+from core.plugin_capabilities import (
     CAPABILITY_REGISTRY,
     VALID_CAPABILITY_IDS,
     capability_set_hash,

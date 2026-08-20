@@ -48,9 +48,9 @@ from agent.tool_guardrails import (
     ToolCallGuardrailController,
     ToolGuardrailDecision,
 )
-from sparkii_cli.config import cfg_get
-from sparkii_cli.route_identity import normalize_route_base_url
-from sparkii_cli.timeouts import get_provider_request_timeout
+from core.config import cfg_get
+from core.route_identity import normalize_route_base_url
+from core.timeouts import get_provider_request_timeout
 from sparkii_constants import get_sparkii_home
 from utils import base_url_host_matches, is_truthy_value
 
@@ -178,7 +178,7 @@ def _provider_default_routes(provider: str) -> set[str]:
 
     try:
         from sparkii_cli.auth import PROVIDER_REGISTRY
-        from sparkii_cli.models import normalize_provider as normalize_model_provider
+        from core.model_resolution import normalize_provider as normalize_model_provider
         from sparkii_cli.providers import normalize_provider as normalize_registry_provider
 
         for provider_id, config in PROVIDER_REGISTRY.items():
@@ -226,7 +226,7 @@ def _context_route_mismatch(
     if not configured_provider:
         return False
     try:
-        from sparkii_cli.models import normalize_provider as normalize_model_provider
+        from core.model_resolution import normalize_provider as normalize_model_provider
 
         configured_provider = normalize_model_provider(configured_provider)
         active_provider = normalize_model_provider(active_provider)
@@ -720,13 +720,6 @@ def init_agent(
         # AWS Bedrock — auto-detect from provider name or base URL
         # (bedrock-runtime.<region>.amazonaws.com).
         agent.api_mode = "bedrock_converse"
-    elif agent.provider in {"nous", "nous-portal", "nousresearch"}:
-        # Portal is dual-wire: anthropic/* → Messages, everything else →
-        # chat_completions. Callers that already pass api_mode win above;
-        # this covers direct AIAgent construction without a resolved runtime.
-        from sparkii_cli.providers import nous_api_mode
-
-        agent.api_mode = nous_api_mode(agent.model)
     else:
         # Host-mandated wire check — LAST, so the elif chain's provider-slug
         # rewrites (e.g. api.anthropic.com → provider="anthropic", #63425)
@@ -967,7 +960,7 @@ def init_agent(
     # fallback re-derivation (#33555).
     agent._cache_ttl = "5m"
     try:
-        from sparkii_cli.config import load_config_readonly as _load_pc_cfg
+        from core.config import load_config_readonly as _load_pc_cfg
 
         from agent.agent_runtime_helpers import cache_ttl_means_disabled
 
@@ -1035,9 +1028,7 @@ def init_agent(
     agent._credits_state = None
     agent._credits_session_start_micros = None
     # Threshold-notice latch (L4): active sticky-notice keys + the crossing gates.
-    from agent.credits_tracker import new_credits_latch
-
-    agent._credits_latch = new_credits_latch()
+    agent._credits_latch = None
 
     # OpenRouter response cache hit counter — incremented when
     # X-OpenRouter-Cache-Status: HIT is seen in streaming response headers.
@@ -1240,7 +1231,7 @@ def init_agent(
         # Guardrail config — read from config.yaml at init time.
         agent._bedrock_guardrail_config = None
         try:
-            from sparkii_cli.config import load_config_readonly as _load_br_cfg
+            from core.config import load_config_readonly as _load_br_cfg
             _gr = _load_br_cfg().get("bedrock", {}).get("guardrail", {})
             if _gr.get("guardrail_identifier") and _gr.get("guardrail_version"):
                 agent._bedrock_guardrail_config = {
@@ -1372,7 +1363,7 @@ def init_agent(
                     _fb_resolved = False
                     for _fb in _fb_entries:
                         try:
-                            from sparkii_cli.fallback_config import resolve_entry_api_key
+                            from core.fallback_config import resolve_entry_api_key
                             _fb_explicit_key = resolve_entry_api_key(_fb)
                             _fb_client, _fb_model = resolve_provider_client(
                                 _fb["provider"], model=_fb["model"], raw_codex=True,
@@ -1447,7 +1438,7 @@ def init_agent(
         agent._apply_user_default_headers()
 
         try:
-            from sparkii_cli.config import (
+            from core.config import (
                 apply_custom_provider_extra_headers_to_client_kwargs,
                 apply_custom_provider_tls_to_client_kwargs,
                 get_compatible_custom_providers,
@@ -1625,7 +1616,7 @@ def init_agent(
     # coordination, and logging. Keep the ContextVar and os.environ
     # fallback synchronized because different tool paths still read both.
     try:
-        from gateway.session_context import set_current_session_id
+        from core.session_context import set_current_session_id
 
         set_current_session_id(agent.session_id)
     except Exception:
@@ -1651,7 +1642,7 @@ def init_agent(
     # reads the JSON files directly.  See run_agent._save_session_log.
     agent._session_json_enabled = False
     try:
-        from sparkii_cli.config import load_config_readonly as _load_sess_cfg
+        from core.config import load_config_readonly as _load_sess_cfg
         _sess_cfg = (_load_sess_cfg().get("sessions") or {})
         agent._session_json_enabled = bool(_sess_cfg.get("write_json_snapshots", False))
     except Exception:
@@ -1742,7 +1733,7 @@ def init_agent(
     
     # Load config once for memory, skills, and compression sections
     try:
-        from sparkii_cli.config import load_config_readonly as _load_agent_config
+        from core.config import load_config_readonly as _load_agent_config
         _agent_cfg = _load_agent_config()
     except Exception:
         _agent_cfg = {}
@@ -2355,7 +2346,7 @@ def init_agent(
     # a named custom provider may keep its base URL only in this list rather
     # than repeating it under ``model``.
     try:
-        from sparkii_cli.config import get_compatible_custom_providers
+        from core.config import get_compatible_custom_providers
         _custom_providers = get_compatible_custom_providers(_agent_cfg)
     except Exception:
         _custom_providers = _agent_cfg.get("custom_providers")
@@ -2372,7 +2363,7 @@ def init_agent(
     if _config_context_length is not None and isinstance(_model_cfg, dict):
         _default = _model_cfg.get("default")
         if isinstance(_default, dict):
-            from sparkii_cli.config import split_model_config_default
+            from core.config import split_model_config_default
             _default, _ = split_model_config_default(_default)
         _configured_default_model = str(_default or "").strip()
         _configured_default_runtime_model = _configured_default_model
@@ -2432,7 +2423,7 @@ def init_agent(
             _user_providers = _agent_cfg.get("providers")
             _disabled_custom_provider_ids: set[str] = set()
             if isinstance(_user_providers, dict):
-                from sparkii_cli.config import is_provider_enabled
+                from core.config import is_provider_enabled
 
                 for _provider_key, _provider_entry in _user_providers.items():
                     if not isinstance(_provider_entry, dict):
@@ -2531,7 +2522,7 @@ def init_agent(
     # Check custom_providers per-model context_length
     if _config_context_length is None and _custom_providers:
         try:
-            from sparkii_cli.config import get_custom_provider_context_length
+            from core.config import get_custom_provider_context_length
             _cp_ctx_resolved = get_custom_provider_context_length(
                 model=agent.model,
                 base_url=agent.base_url,

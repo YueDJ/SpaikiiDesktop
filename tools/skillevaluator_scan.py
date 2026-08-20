@@ -127,7 +127,7 @@ def tier1_advisory_enabled() -> bool:
     until a user opts in by installing SkillEvaluator.
     """
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         cfg = load_config()
         skills_cfg = cfg.get("skills") or {}
         if not isinstance(skills_cfg, dict):

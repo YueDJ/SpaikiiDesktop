@@ -566,7 +566,7 @@ def _delivers_as_an_attachment() -> bool:
     the caller.
     """
     try:
-        from gateway.session_context import session_is_messaging_surface
+        from core.session_context import session_is_messaging_surface
 
         return session_is_messaging_surface()
     except Exception:

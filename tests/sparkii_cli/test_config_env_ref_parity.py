@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from sparkii_cli.config import (
+from core.config import (
     _env_ref_snapshot,
     _env_ref_var_name,
     _expand_env_vars,

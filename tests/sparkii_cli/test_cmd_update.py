@@ -257,9 +257,9 @@ class TestCmdUpdateBranchFallback:
         with patch("shutil.which", return_value=None), patch(
             "subprocess.run"
         ) as mock_run, patch("builtins.input") as mock_input, patch(
-            "sparkii_cli.config.get_missing_env_vars", return_value=["MISSING_KEY"]
+            "core.config.get_missing_env_vars", return_value=["MISSING_KEY"]
         ), patch(
-            "sparkii_cli.config.get_missing_config_fields",
+            "core.config.get_missing_config_fields",
             return_value=[{"key": "new.option", "default": True}],
         ), patch(
             "sparkii_cli.update_cmd._reload_config_modules"
@@ -301,9 +301,9 @@ class TestCmdUpdateMigrationPrompt:
         with patch("shutil.which", return_value=None), patch(
             "subprocess.run"
         ) as mock_run, patch("builtins.input") as mock_input, patch(
-            "sparkii_cli.config.get_missing_env_vars", return_value=[]
+            "core.config.get_missing_env_vars", return_value=[]
         ), patch(
-            "sparkii_cli.config.get_missing_config_fields", return_value=[]
+            "core.config.get_missing_config_fields", return_value=[]
         ), patch(
             "sparkii_cli.update_cmd._reload_config_modules"
         ), patch(
@@ -340,9 +340,9 @@ class TestCmdUpdateMigrationPrompt:
         with patch("shutil.which", return_value=None), patch(
             "subprocess.run"
         ) as mock_run, patch("builtins.input") as mock_input, patch(
-            "sparkii_cli.config.get_missing_env_vars", return_value=[]
+            "core.config.get_missing_env_vars", return_value=[]
         ), patch(
-            "sparkii_cli.config.get_missing_config_fields", return_value=[]
+            "core.config.get_missing_config_fields", return_value=[]
         ), patch(
             "sparkii_cli.update_cmd._reload_config_modules"
         ), patch(
@@ -382,9 +382,9 @@ class TestCmdUpdateMigrationPrompt:
         with patch("shutil.which", return_value=None), patch(
             "subprocess.run"
         ) as mock_run, patch("builtins.input", return_value="n"), patch(
-            "sparkii_cli.config.get_missing_env_vars", return_value=env_items
+            "core.config.get_missing_env_vars", return_value=env_items
         ), patch(
-            "sparkii_cli.config.get_missing_config_fields", return_value=cfg_items
+            "core.config.get_missing_config_fields", return_value=cfg_items
         ), patch(
             "sparkii_cli.update_cmd._reload_config_modules"
         ), patch(
@@ -414,7 +414,7 @@ class TestConfigVersionCheckUsesFreshModules:
 
     Before the fix, ``sparkii update`` ran in the PRE-pull Python process.
     After ``git pull`` updated the source on disk, function-level imports
-    returned the OLD cached ``sparkii_cli.config`` module — so
+    returned the OLD cached ``core.config`` module — so
     ``DEFAULT_CONFIG["_config_version"]`` was stale and
     ``check_config_version()`` reported ``(33, 33)`` "up to date" even though
     the freshly-pulled code had v34 with a migration to run. The personality
@@ -426,7 +426,7 @@ class TestConfigVersionCheckUsesFreshModules:
         force-reloads the config modules from disk.
 
         Regression: config migration was silently skipped because
-        sys.modules held the OLD sparkii_cli.config with the OLD
+        sys.modules held the OLD core.config with the OLD
         DEFAULT_CONFIG["_config_version"] after git pull.
         """
         from unittest.mock import patch
@@ -653,7 +653,7 @@ class TestCmdUpdateCheckBranchFlag:
 
         return side_effect
 
-    @patch("sparkii_cli.config.detect_install_method", return_value="git")
+    @patch("core.config.detect_install_method", return_value="git")
     @patch("subprocess.run")
     def test_check_branch_compares_against_named_origin_branch(
         self, mock_run, _mock_method, capsys
@@ -676,7 +676,7 @@ class TestCmdUpdateCheckBranchFlag:
         assert any("origin/bb/gui" in c for c in rev_list_cmds), rev_list_cmds
         assert not any("origin/main" in c for c in rev_list_cmds), rev_list_cmds
 
-    @patch("sparkii_cli.config.detect_install_method", return_value="git")
+    @patch("core.config.detect_install_method", return_value="git")
     @patch("subprocess.run")
     def test_check_branch_missing_on_origin_exits_cleanly(
         self, mock_run, _mock_method, capsys
@@ -707,7 +707,7 @@ class TestCmdUpdateCheckBranchFlag:
         commands = [" ".join(str(a) for a in c.args[0]) for c in mock_run.call_args_list]
         assert not any("rev-list" in c for c in commands), commands
 
-    @patch("sparkii_cli.config.detect_install_method", return_value="git")
+    @patch("core.config.detect_install_method", return_value="git")
     @patch("subprocess.run")
     def test_check_default_main_still_prefers_upstream(
         self, mock_run, _mock_method, capsys
@@ -949,7 +949,7 @@ class TestNodeRuntimeNpmResolution:
         monkeypatch.setattr(update_cmd, "get_sparkii_home", lambda: tmp_path / "sparkii-home")
 
         with (
-            patch("sparkii_cli.config.load_config", return_value={}),
+            patch("core.config.load_config", return_value={}),
             patch("subprocess.run", side_effect=fail_git_fetch),
             patch("urllib.request.urlretrieve", side_effect=write_source_zip),
             patch("sparkii_cli.managed_uv.ensure_uv", return_value="uv"),

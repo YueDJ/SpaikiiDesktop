@@ -38,7 +38,7 @@ logger = logging.getLogger("cron.chronos")
 def _cfg(*keys: str, default: Any = "") -> Any:
     """Read a cron.chronos.* config value (no network)."""
     try:
-        from sparkii_cli.config import cfg_get, load_config
+        from core.config import cfg_get, load_config
         return cfg_get(load_config(), *keys, default=default)
     except Exception:
         return default

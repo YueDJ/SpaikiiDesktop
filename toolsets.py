@@ -33,62 +33,18 @@ _SPARKII_CORE_TOOLS = [
     "web_search", "web_extract",
     # Terminal + process management
     "terminal", "process",
-    # NOTE: the desktop GUI affordances (read_terminal, open_preview, …) are
-    # deliberately NOT here, for the same reason as the `project` tools below:
-    # they only work where a GUI renderer can answer them. They live in the
-    # `desktop_ui` toolset and are enabled solely by the GUI gateway for a
-    # session whose SOURCE is the desktop app (tui_gateway/server.py::
-    # _load_enabled_toolsets) — never keyed on a process env var, which is
-    # blind to a desktop client talking to a remote/cloud backend.
     # File manipulation
     "read_file", "write_file", "patch", "search_files",
-    # Vision + image generation
-    "vision_analyze", "image_generate",
-    # BFL FLUX 3 video generation
-    "bfl_flux3_text_to_video", "bfl_flux3_image_to_video",
-    "bfl_flux3_keyframes_to_video", "bfl_flux3_video_continuation",
-    "bfl_flux3_get_result", "bfl_flux3_prompting_guide",
-    # Skills
-    "skills_list", "skill_view", "skill_manage",
-    # Browser automation
-    "browser_navigate", "browser_snapshot", "browser_click",
-    "browser_type", "browser_scroll", "browser_back",
-    "browser_press", "browser_get_images",
-    "browser_vision", "browser_console", "browser_cdp", "browser_dialog",
-    # replaces other tools when browser.backend is "browser-use"
-    "browser_exec",
-    # Text-to-speech
-    "text_to_speech",
     # Planning & memory
     "todo", "memory",
-    # NOTE: the desktop Project tools (project_list/create/switch) are
-    # deliberately NOT here. They only make sense where a GUI can follow the
-    # move, so they live in the `project` toolset and are enabled solely by the
-    # GUI gateway (tui_gateway/server.py::_load_enabled_toolsets) — keeping them
-    # off every CLI/messaging/cron schema (narrow waist).
     # Session history search
     "session_search",
     # Clarifying questions
     "clarify",
     # Code execution + delegation
     "execute_code", "delegate_task",
-    # Cronjob management
-    "cronjob",
-    # Home Assistant smart home control (gated on HASS_TOKEN via check_fn)
-    "ha_list_entities", "ha_get_state", "ha_list_services", "ha_call_service",
-    # Kanban multi-agent coordination — only in schema when the agent is
-    # spawned as a kanban worker (SPARKII_KANBAN_TASK env set) or the current
-    # profile explicitly enables the kanban toolset. Gated via check_fn in
-    # tools/kanban_tools.py.
-    "kanban_show", "kanban_list",
-    "kanban_complete", "kanban_block", "kanban_request_review",
-    "kanban_request_changes",
-    "kanban_heartbeat",
-    "kanban_comment", "kanban_create", "kanban_link",
-    "kanban_unblock",
-    "kanban_attach", "kanban_attach_url", "kanban_attachments",
-    # Computer use (macOS, gated on cua-driver being installed via check_fn)
-    "computer_use",
+    # Skills (extension mechanism — load-bearing for customization)
+    "skills_list", "skill_view", "skill_manage",
 ]
 
 # Webhook events may originate from untrusted third-party content (for example,

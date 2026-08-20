@@ -142,7 +142,7 @@ def _prepare_cli_with_active_session(tmp_path):
 
 @pytest.fixture(autouse=True)
 def _reset_session_id_context():
-    from gateway.session_context import _UNSET, _VAR_MAP
+    from core.session_context import _UNSET, _VAR_MAP
 
     yield
     os.environ.pop("SPARKII_SESSION_ID", None)

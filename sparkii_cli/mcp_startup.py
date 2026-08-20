@@ -14,7 +14,7 @@ _mcp_discovery_thread: Optional[threading.Thread] = None
 def _has_configured_mcp_servers() -> bool:
     """Cheap config probe so non-MCP users avoid importing the MCP stack."""
     try:
-        from sparkii_cli.config import read_raw_config
+        from core.config import read_raw_config
 
         raw_config = read_raw_config() or {}
         mcp_servers = raw_config.get("mcp_servers")
@@ -146,7 +146,7 @@ def _resolve_discovery_timeout(
     )
     fallback = 15.0 if single_query else 1.5
     try:
-        from sparkii_cli.config import load_config, DEFAULT_CONFIG
+        from core.config import load_config, DEFAULT_CONFIG
 
         default = float(DEFAULT_CONFIG.get(key, fallback))
         try:

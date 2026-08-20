@@ -24,7 +24,7 @@ class TestNoOverlayFlag:
 
 
     def test_explicit_true_overrides(self):
-        with patch("sparkii_cli.config.load_config",
+        with patch("core.config.load_config",
                    return_value={"computer_use": {"no_overlay": True}}):
             assert cua_backend._cua_no_overlay() is True
 
@@ -36,7 +36,7 @@ class TestNoOverlayFlag:
         macOS-only: the auto-detect verdict IS ``sys.platform == "darwin"``,
         so a patched platform would only re-assert the patch.
         """
-        with patch("sparkii_cli.config.load_config",
+        with patch("core.config.load_config",
                    side_effect=RuntimeError("boom")):
             assert cua_backend._cua_no_overlay() is True
 
@@ -48,7 +48,7 @@ class TestNoOverlayFlag:
         ``/proc/version``, neither of which exists to be probed elsewhere.
         """
         monkeypatch.delenv("DISPLAY", raising=False)
-        with patch("sparkii_cli.config.load_config",
+        with patch("core.config.load_config",
                    side_effect=RuntimeError("boom")):
             assert cua_backend._cua_no_overlay() is True
 

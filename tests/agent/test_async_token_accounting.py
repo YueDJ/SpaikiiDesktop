@@ -365,7 +365,7 @@ class TestDurability:
         import time
         import weakref
 
-        from sparkii_cli.sqlite_safe_read import has_live_connection
+        from core.sqlite_safe_read import has_live_connection
 
         db_path = tmp_path / "abandoned.db"
         monkeypatch.setattr(SessionDB, "_TOKEN_WRITER_IDLE_SECONDS", 0.01, raising=False)

@@ -84,7 +84,7 @@ def _scan_dashboard_processes(
             # CREATE_NO_WINDOW: this scan can run from the windowless
             # pythonw.exe desktop/gateway backend during an update, where a
             # bare wmic spawn would pop a console window.
-            from sparkii_cli._subprocess_compat import bounded_probe_run
+            from core._subprocess_compat import bounded_probe_run
 
             result = bounded_probe_run(
                 ["wmic", "process", "get", "ProcessId,CommandLine", "/FORMAT:LIST"],

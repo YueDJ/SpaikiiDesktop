@@ -260,7 +260,7 @@ def _debug(msg: str) -> None:
 def _beeps_enabled() -> bool:
     """CLI parity: voice.beep_enabled in config.yaml (default True)."""
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         from utils import is_truthy_value
 
         voice_cfg = load_config().get("voice", {})

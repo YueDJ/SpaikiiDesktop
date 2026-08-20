@@ -222,7 +222,7 @@ def mark_seen(config_path: Path, flag: str) -> bool:
     """
     try:
         import yaml
-        from sparkii_cli.config import atomic_config_write
+        from core.config import atomic_config_write
     except Exception as e:  # pragma: no cover — dependency issue
         logger.debug("onboarding: failed to import yaml/utils: %s", e)
         return False

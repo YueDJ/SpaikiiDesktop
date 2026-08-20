@@ -7,7 +7,7 @@ render both as separate rows for the same model.
 
 from unittest.mock import patch
 
-from sparkii_cli.model_search import model_alias_canonical
+from core.model_search import model_alias_canonical
 from sparkii_cli.models import provider_model_ids
 
 

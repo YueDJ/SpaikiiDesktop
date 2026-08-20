@@ -212,7 +212,7 @@ class DrainSecretProvider(DashboardAuthProvider):
 def _load_config_drain_auth_section() -> dict:
     """Return ``dashboard.drain_auth`` from config.yaml, or ``{}``."""
     try:
-        from sparkii_cli.config import cfg_get, load_config
+        from core.config import cfg_get, load_config
 
         cfg = load_config()
     except Exception as exc:  # noqa: BLE001 — broad catch is intentional

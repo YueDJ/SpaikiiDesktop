@@ -318,7 +318,7 @@ def test_snapshot_blocks_connections_opened_during_the_copy(
     import threading
 
     from sparkii_cli import session_recovery as recovery_module
-    from sparkii_cli.sqlite_safe_read import connect_tracked
+    from core.sqlite_safe_read import connect_tracked
 
     source = tmp_path / "racy-state.db"
     snapshot_dir = tmp_path / "snapshot"

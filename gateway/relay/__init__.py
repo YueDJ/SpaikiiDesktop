@@ -538,8 +538,10 @@ def _resolve_relay_identity_token() -> str:
          IS the token — either a raw JWT string or a JSON envelope with an
          ``access_token`` field. No client registration involved; possession
          of the (typically loopback) endpoint is the credential.
-      2. **Nous Portal** (default): ``resolve_nous_access_token()`` — existing
-         managed/hosted behaviour.
+      2. **Nous Portal** (removed): the managed/hosted token source was deleted
+         with the Nous product line. Without a configured IdP ``token_url`` the
+         resolver raises so misconfiguration fails loudly instead of returning
+         an empty credential.
 
     Raises on failure; callers decide whether that's fatal (enroll CLI) or a
     graceful boot no-op (self-provision).
@@ -561,10 +563,11 @@ def _resolve_relay_identity_token() -> str:
             token_url = token_url or ""
 
     if not token_url:
-        # Mode 2 — Nous Portal (default, unchanged behaviour).
-        from sparkii_cli.auth import resolve_nous_access_token
-
-        return resolve_nous_access_token()
+        raise RuntimeError(
+            "relay identity token resolution requires gateway.idp.token_url "
+            "(or GATEWAY_RELAY_IDP_TOKEN_URL); the Nous Portal token source "
+            "was removed."
+        )
 
     import json
     import urllib.error

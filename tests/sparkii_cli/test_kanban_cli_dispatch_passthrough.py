@@ -46,7 +46,7 @@ def test_cli_dispatch_passes_max_in_progress_from_config(isolated_kanban_home, m
         }
     }
     monkeypatch.setattr(
-        "sparkii_cli.config.load_config", lambda: fake_config
+        "core.config.load_config", lambda: fake_config
     )
 
     captured = {}
@@ -78,7 +78,7 @@ def test_cli_max_flag_overrides_config_max_spawn(isolated_kanban_home, monkeypat
     from sparkii_cli import kanban_db
 
     fake_config = {"kanban": {"max_spawn": 10}}
-    monkeypatch.setattr("sparkii_cli.config.load_config", lambda: fake_config)
+    monkeypatch.setattr("core.config.load_config", lambda: fake_config)
 
     captured = {}
     monkeypatch.setattr(

@@ -85,7 +85,7 @@ def _allow_setup_validation(monkeypatch, *, root_access: bool = False):
 
 
 def test_openviking_provider_config_loader_uses_readonly_config(monkeypatch):
-    import sparkii_cli.config as config_mod
+    import core.config as config_mod
 
     calls = []
     backing_config = {

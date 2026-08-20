@@ -42,7 +42,7 @@ def test_credential_rotation_replaces_route_scoped_tls_settings():
         ]
     }
 
-    with patch("sparkii_cli.config.load_config_readonly", return_value=config):
+    with patch("core.config.load_config_readonly", return_value=config):
         AIAgent._swap_credential(agent, entry)
 
     assert agent._client_kwargs["ssl_verify"] is True
@@ -98,9 +98,9 @@ def test_credential_rotation_does_not_carry_global_headers_across_routes():
     }
 
     with (
-        patch("sparkii_cli.config.load_config_readonly", return_value=config),
+        patch("core.config.load_config_readonly", return_value=config),
         patch(
-            "sparkii_cli.config.get_compatible_custom_providers",
+            "core.config.get_compatible_custom_providers",
             return_value=config["custom_providers"],
         ),
     ):

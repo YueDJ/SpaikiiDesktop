@@ -386,7 +386,7 @@ class TestPostSetup:
         monkeypatch.setattr("subprocess.run", run)
         monkeypatch.setattr("builtins.input", MagicMock(side_effect=AssertionError("prompt should not run")))
         monkeypatch.setattr("getpass.getpass", MagicMock(side_effect=AssertionError("prompt should not run")))
-        monkeypatch.setattr("sparkii_cli.config.save_config", save_config)
+        monkeypatch.setattr("core.config.save_config", save_config)
 
         provider = HindsightMemoryProvider()
         provider.post_setup(str(sparkii_home), {"memory": {"provider": "builtin"}})
@@ -412,7 +412,7 @@ class TestPostSetup:
         monkeypatch.setattr("sys.stdin.isatty", lambda: True)
         monkeypatch.setattr("getpass.getpass", lambda prompt="": "sk-local-test")
         saved_configs = []
-        monkeypatch.setattr("sparkii_cli.config.save_config", lambda cfg: saved_configs.append(cfg.copy()))
+        monkeypatch.setattr("core.config.save_config", lambda cfg: saved_configs.append(cfg.copy()))
 
         provider = HindsightMemoryProvider()
         provider.post_setup(str(sparkii_home), {"memory": {}})
@@ -1473,7 +1473,7 @@ class TestPostSetupEnvEncoding:
 
         monkeypatch.setattr("sparkii_cli.memory_setup._curses_select",
                             lambda *a, **kw: 0)  # cloud mode
-        monkeypatch.setattr("sparkii_cli.config.save_config", lambda c: None)
+        monkeypatch.setattr("core.config.save_config", lambda c: None)
         # Skip the dependency install (now routed through lazy_deps, NS-605).
         import tools.lazy_deps as lazy_deps_mod
         monkeypatch.setattr(

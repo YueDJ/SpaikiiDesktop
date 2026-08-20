@@ -52,13 +52,13 @@ def _isolate_sparkii_home(tmp_path, monkeypatch):
     hh.mkdir()
     monkeypatch.setenv("SPARKII_HOME", str(hh))
     monkeypatch.setattr(
-        "sparkii_cli.config.get_sparkii_home", lambda: hh
+        "core.config.get_sparkii_home", lambda: hh
     )
     monkeypatch.setattr(
-        "sparkii_cli.config.get_config_path", lambda: hh / "config.yaml"
+        "core.config.get_config_path", lambda: hh / "config.yaml"
     )
     monkeypatch.setattr(
-        "sparkii_cli.config.get_env_path", lambda: hh / ".env"
+        "core.config.get_env_path", lambda: hh / ".env"
     )
     # mcp_catalog grabs get_sparkii_home() lazily through sparkii_constants
     monkeypatch.setattr(
@@ -237,7 +237,7 @@ class TestInstall:
     def test_install_simple_stdio_writes_config(self, catalog_dir):
         _write_manifest(catalog_dir, "demo", _basic_manifest())
         from sparkii_cli.mcp_catalog import install_entry
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         install_entry(_entry("demo"), enable=True)
 
@@ -264,7 +264,7 @@ class TestInstall:
         monkeypatch.setattr(mcp_catalog, "_prompt_input", lambda *a, **kw: "secret-val")
 
         from sparkii_cli.mcp_catalog import install_entry
-        from sparkii_cli.config import get_env_value, load_config
+        from core.config import get_env_value, load_config
 
         install_entry(_entry("demo"), enable=True)
 
@@ -286,7 +286,7 @@ class TestInstall:
         monkeypatch.setattr(mcp_catalog, "_prompt_input", lambda *a, **kw: "secret-val")
 
         from sparkii_cli.mcp_catalog import install_entry
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         install_entry(_entry("demo"), enable=True)
 
@@ -295,7 +295,7 @@ class TestInstall:
         assert server["headers"] == {"Authorization": "Bearer secret-val"}
         # The raw file must carry the ${...} template, never the secret —
         # load_config resolves it; config.yaml itself stays secret-free.
-        from sparkii_cli.config import get_config_path
+        from core.config import get_config_path
 
         raw = get_config_path().read_text()
         assert "${MCP_DEMO_API_KEY}" in raw
@@ -313,7 +313,7 @@ class TestUninstall:
     def test_uninstall_removes_server_block(self, catalog_dir):
         _write_manifest(catalog_dir, "demo", _basic_manifest())
         from sparkii_cli.mcp_catalog import install_entry, uninstall_entry
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         install_entry(_entry("demo"), enable=True)
         assert "demo" in load_config().get("mcp_servers", {})
@@ -344,7 +344,7 @@ class TestPicker:
     def test_install_by_name_success(self, catalog_dir):
         _write_manifest(catalog_dir, "demo", _basic_manifest())
         from sparkii_cli.mcp_picker import install_by_name
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         rc = install_by_name("demo")
         assert rc == 0
@@ -379,7 +379,7 @@ class TestToolSelection:
         )
         _write_manifest(catalog_dir, "demo", body)
         from sparkii_cli.mcp_catalog import install_entry
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         install_entry(_entry("demo"), enable=True)
         server = load_config()["mcp_servers"]["demo"]
@@ -405,7 +405,7 @@ class TestToolSelection:
         monkeypatch.setattr(_sys.stdin, "isatty", lambda: False)
 
         from sparkii_cli.mcp_catalog import install_entry
-        from sparkii_cli.config import load_config, save_config
+        from core.config import load_config, save_config
 
         # First install
         install_entry(_entry("demo"), enable=True)
@@ -471,7 +471,7 @@ class TestCustomMcpRows:
         picker text dump with a 'custom' status."""
         _write_manifest(catalog_dir, "demo", _basic_manifest())
 
-        from sparkii_cli.config import load_config, save_config
+        from core.config import load_config, save_config
         cfg = load_config()
         cfg.setdefault("mcp_servers", {})["my-custom"] = {
             "command": "npx",

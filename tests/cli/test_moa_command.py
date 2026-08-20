@@ -2,7 +2,7 @@ import queue
 from unittest.mock import patch
 
 from cli import SparkiiCLI
-from sparkii_cli.moa_config import decode_moa_turn
+from core.moa_config import decode_moa_turn
 
 
 def _make_cli():

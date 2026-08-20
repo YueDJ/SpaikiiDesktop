@@ -50,7 +50,7 @@ def _install_fake_tools_package(*, credential_mounts=None):
     sparkii_cli = types.ModuleType("sparkii_cli")
     sparkii_cli.__path__ = []  # type: ignore[attr-defined]
     sys.modules["sparkii_cli"] = sparkii_cli
-    sys.modules["sparkii_cli.config"] = types.SimpleNamespace(
+    sys.modules["core.config"] = types.SimpleNamespace(
         get_sparkii_home=lambda: Path(tempfile.gettempdir()) / "sparkii-home",
     )
 

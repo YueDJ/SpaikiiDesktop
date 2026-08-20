@@ -194,7 +194,7 @@ class TestCommandHandler:
         assert "No suggested automations" in out
 
     def test_aux_monitor_config_default(self):
-        from sparkii_cli.config import DEFAULT_CONFIG
+        from core.config import DEFAULT_CONFIG
 
         assert "monitor" in DEFAULT_CONFIG["auxiliary"]
         assert DEFAULT_CONFIG["auxiliary"]["monitor"]["provider"] == "auto"

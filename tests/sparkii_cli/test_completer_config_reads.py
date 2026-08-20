@@ -56,8 +56,8 @@ class TestToolsCompletionsReadonlyConfig:
         # one-time plugin discovery (which legitimately calls load_config
         # during process init) — this test asserts on the completer's own
         # per-keystroke reads, not discovery's one-off startup reads.
-        with patch("sparkii_cli.config.load_config", counting_deepcopy), \
-             patch("sparkii_cli.config.load_config_readonly", counting_readonly), \
+        with patch("core.config.load_config", counting_deepcopy), \
+             patch("core.config.load_config_readonly", counting_readonly), \
              patch("sparkii_cli.plugins.get_portable_mcp_server_names_nowait", lambda: set()), \
              patch("sparkii_cli.tools_config._get_plugin_toolset_keys", lambda: set()), \
              patch("sparkii_cli.tools_config._homeassistant_credentials_present", lambda: False), \
@@ -129,7 +129,7 @@ class TestPersonalityCompletionsMemo:
 
         monkeypatch.setattr(commands_mod, "_personalities_memo", None)
         with patch("cli.load_cli_config", counting_load_cli_config), \
-             patch("sparkii_cli.config.get_config_path", fake_config_path):
+             patch("core.config.get_config_path", fake_config_path):
             list(commands_mod.SlashCommandCompleter._personality_completions("h", "h"))
             assert calls["n"] == 1
 

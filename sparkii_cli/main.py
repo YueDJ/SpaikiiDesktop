@@ -66,7 +66,7 @@ except ModuleNotFoundError:
 # any dependency touching ``platform.uname()`` at import time flashes a
 # visible console when this process is windowless (pythonw gateway + every
 # kanban worker).  No-op on POSIX; never raises.
-from sparkii_cli._subprocess_compat import suppress_platform_ver_console
+from core._subprocess_compat import suppress_platform_ver_console
 
 suppress_platform_ver_console()
 
@@ -85,7 +85,7 @@ from sparkii_cli import _startup_fast  # noqa: E402
 # Early venv self-heal — MUST run before any third-party import below.  When
 # a prior ``sparkii update`` left a recovery marker and a core package's import
 # files were wiped (#57828 — failed lazy backend refresh), the module-level
-# ``from sparkii_cli.env_loader import ...`` / ``from sparkii_cli.config import
+# ``from sparkii_cli.env_loader import ...`` / ``from core.config import
 # ...`` imports further down would crash before ``main()`` ever reaches
 # ``_recover_from_interrupted_install()``.  ``_early_recovery`` is stdlib-only
 # (safe to import on a corrupted venv), repairs just enough for this module to
@@ -271,7 +271,7 @@ def _set_process_title() -> None:
 
 # Cheap, dependency-free read of `display.interface` from config.yaml for the
 # earliest hot-path decisions (mouse-residue suppression, Termux fast launch)
-# that run *before* sparkii_cli.config is importable. Mirrors the explicit
+# that run *before* core.config is importable. Mirrors the explicit
 # precedence used everywhere else: `--cli` always wins, then `--tui`/env, then
 # this config value. Cached so the multiple early callers don't re-parse YAML.
 _EARLY_INTERFACE_CACHE: "list | None" = None
@@ -693,8 +693,8 @@ _apply_profile_override()
 
 # Load .env from ~/.sparkii/.env first, then project root as dev fallback.
 # User-managed env files should override stale shell exports on restart.
-from sparkii_cli.config import get_sparkii_home
-from sparkii_cli.env_loader import load_sparkii_dotenv
+from core.config import get_sparkii_home
+from core.env_loader import load_sparkii_dotenv
 
 # Updating dependencies must not import optional secret-manager libraries into
 # the updater process before ``uv`` replaces the environment.  On Windows,
@@ -723,7 +723,7 @@ try:
     # yaml.load — the SAME parse then serves sparkii_logging's
     # _read_logging_config and any later raw reads in this process, collapsing
     # 3-4 config.yaml parses per invocation into one.
-    from sparkii_cli.config import read_raw_config as _read_raw_early
+    from core.config import read_raw_config as _read_raw_early
 
     _cfg_path = get_sparkii_home() / "config.yaml"
     if _cfg_path.exists():
@@ -734,7 +734,7 @@ try:
         # without the overlay a managed redact_secrets toggle would be ignored.
         # Fail-open via the shared helper.
         try:
-            from sparkii_cli import managed_scope
+            from core import managed_scope
             _early_cfg_raw = managed_scope.apply_managed_overlay(_early_cfg_raw)
         except Exception:
             pass
@@ -794,16 +794,10 @@ from sparkii_cli import __version__, __release_date__
 from sparkii_cli.model_setup_flows import (
     _prompt_auth_credentials_choice,
     _model_flow_openrouter,
-    _model_flow_nous,
-    _model_flow_openai_codex,
-    _model_flow_xai_oauth,
-    _model_flow_qwen_oauth,
-    _model_flow_minimax_oauth,
     _model_flow_custom,
     _model_flow_azure_foundry,
     _model_flow_named_custom,
     _model_flow_copilot,
-    _model_flow_copilot_acp,
     _model_flow_kimi,
     _model_flow_stepfun,
     _model_flow_bedrock_api_key,
@@ -962,21 +956,21 @@ def _relative_time(ts) -> str:
     in :mod:`sparkii_cli.timefmt` so lightweight consumers don't have to
     import the whole CLI surface.
     """
-    from sparkii_cli.timefmt import relative_time
+    from core.timefmt import relative_time
 
     return relative_time(ts)
 
 
 def _has_any_provider_configured() -> bool:
     """Check if at least one inference provider is usable."""
-    from sparkii_cli.config import get_env_path, get_sparkii_home, load_config
+    from core.config import get_env_path, get_sparkii_home, load_config
     from sparkii_cli.auth import get_auth_status
 
     # Determine whether Sparkii itself has been explicitly configured (model
     # in config that isn't the hardcoded default). Used below to gate external
     # tool credentials (Claude Code, Codex CLI) that shouldn't silently skip
     # the setup wizard on a fresh install.
-    from sparkii_cli.config import DEFAULT_CONFIG
+    from core.config import DEFAULT_CONFIG
 
     _DEFAULT_MODEL = DEFAULT_CONFIG.get("model", "")
     cfg = load_config()
@@ -984,7 +978,7 @@ def _has_any_provider_configured() -> bool:
     if isinstance(model_cfg, dict):
         _default = model_cfg.get("default")
         if isinstance(_default, dict):
-            from sparkii_cli.config import split_model_config_default
+            from core.config import split_model_config_default
             _model_name, _ = split_model_config_default(_default)
         else:
             _model_name = (_default or "")
@@ -1101,7 +1095,7 @@ def _confirm_startup_expensive_model_override(args) -> None:
         return
 
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         from sparkii_cli.model_selection_guards import (
             combined_message,
             selection_warnings,
@@ -2337,7 +2331,7 @@ def _make_tui_argv(tui_dir: Path, tui_dev: bool) -> tuple[list[str], Path]:
         path = find_node_executable(bin)
         if not path and bin == "node":
             try:
-                from sparkii_cli.dep_ensure import ensure_dependency
+                from core.dep_ensure import ensure_dependency
                 if ensure_dependency("node"):
                     path = find_node_executable("node")
             except Exception:
@@ -2690,7 +2684,7 @@ def _launch_tui(
     from tools.environments.local import build_subprocess_env
     env = build_subprocess_env(scrub_secrets=False, inherit_profile_home=True)
     try:
-        from sparkii_cli.config import apply_terminal_config_to_env
+        from core.config import apply_terminal_config_to_env
         apply_terminal_config_to_env(env=env)
     except Exception:
         logger.debug("Failed to apply terminal config bridge for TUI launch", exc_info=True)
@@ -2919,7 +2913,7 @@ def _resolve_use_tui(args) -> bool:
     if os.environ.get("SPARKII_TUI") == "1":
         return True
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         iface = (load_config().get("display", {}) or {}).get("interface", "cli")
         return isinstance(iface, str) and iface.strip().lower() == "tui"
@@ -3050,7 +3044,7 @@ def cmd_chat(args):
             find_retired_xai_refs,
             format_issue,
         )
-        from sparkii_cli.config import load_config as _load_config_for_xai_check
+        from core.config import load_config as _load_config_for_xai_check
 
         _retired_xai_refs = find_retired_xai_refs(_load_config_for_xai_check())
         if _retired_xai_refs:
@@ -3258,7 +3252,7 @@ def cmd_proxy(args):
 def cmd_whatsapp(args):
     """Set up WhatsApp: choose mode, configure, install bridge, pair via QR."""
     _require_tty("whatsapp")
-    from sparkii_cli.config import get_env_value, save_env_value
+    from core.config import get_env_value, save_env_value
     from sparkii_constants import find_node_executable, with_sparkii_node_path
 
     print()
@@ -3555,7 +3549,7 @@ def select_provider_and_model(args=None):
         AuthError,
         format_auth_error,
     )
-    from sparkii_cli.config import (
+    from core.config import (
         get_compatible_custom_providers,
         load_config,
         get_env_value,
@@ -3584,7 +3578,7 @@ def select_provider_and_model(args=None):
     )
     compatible_custom_providers = get_compatible_custom_providers(config)
     def _named_custom_provider_map(cfg) -> dict[str, dict[str, str]]:
-        from sparkii_cli.config import read_raw_config
+        from core.config import read_raw_config
 
         # Build lookups of raw (un-expanded) templates keyed by a
         # stable identity. We intentionally bypass
@@ -3917,18 +3911,6 @@ def select_provider_and_model(args=None):
         _model_flow_moa(config, current_model)
     elif selected_provider == "ai-gateway":
         _model_flow_ai_gateway(config, current_model)
-    elif selected_provider == "nous":
-        _model_flow_nous(config, current_model, args=args)
-    elif selected_provider == "openai-codex":
-        _model_flow_openai_codex(config, current_model)
-    elif selected_provider == "xai-oauth":
-        _model_flow_xai_oauth(config, current_model, args=args)
-    elif selected_provider == "qwen-oauth":
-        _model_flow_qwen_oauth(config, current_model)
-    elif selected_provider == "minimax-oauth":
-        _model_flow_minimax_oauth(config, current_model, args=args)
-    elif selected_provider == "copilot-acp":
-        _model_flow_copilot_acp(config, current_model)
     elif selected_provider == "copilot":
         _model_flow_copilot(config, current_model)
     elif selected_provider == "custom":
@@ -3961,23 +3943,6 @@ def select_provider_and_model(args=None):
         _model_flow_azure_foundry(config, current_model)
     elif selected_provider in {
         "openai-api",
-        "gemini",
-        "deepseek",
-        "xai",
-        "zai",
-        "kimi-coding-cn",
-        "minimax",
-        "minimax-cn",
-        "kilocode",
-        "opencode-zen",
-        "opencode-go",
-        "alibaba",
-        "huggingface",
-        "xiaomi",
-        "arcee",
-        "gmi",
-        "nvidia",
-        "ollama-cloud",
         "tencent-tokenhub",
         "lmstudio",
     } or _is_profile_api_key_provider(selected_provider):
@@ -4003,7 +3968,7 @@ def _clear_stale_openai_base_url():
     requests to the old custom endpoint instead of the newly selected
     provider.  See issue #5161.
     """
-    from sparkii_cli.config import get_env_value, save_env_value, load_config
+    from core.config import get_env_value, save_env_value, load_config
 
     cfg = load_config()
     model_cfg = cfg.get("model", {})
@@ -4150,7 +4115,7 @@ def _save_aux_choice(
     There, "auto" (inherit the parent agent) is stored as an empty provider —
     the literal string "auto" would be resolved as a provider name.
     """
-    from sparkii_cli.config import load_config, save_config
+    from core.config import load_config, save_config
 
     cfg = load_config()
 
@@ -4187,7 +4152,7 @@ def _reset_aux_to_auto() -> int:
     Includes plugin-registered tasks (via ``_all_aux_tasks``) so a plugin
     that contributed an auxiliary task gets reset alongside built-ins.
     """
-    from sparkii_cli.config import load_config, save_config
+    from core.config import load_config, save_config
 
     cfg = load_config()
     aux = cfg.setdefault("auxiliary", {})
@@ -4233,7 +4198,7 @@ def _aux_config_menu() -> None:
     Loops until the user picks "Back" so multiple tasks can be configured
     without returning to the main provider menu.
     """
-    from sparkii_cli.config import load_config
+    from core.config import load_config
 
     while True:
         cfg = load_config()
@@ -4304,7 +4269,7 @@ def _aux_select_for_task(task: str) -> None:
     up new ones through the normal ``sparkii model`` flow, then route aux tasks
     to them here.
     """
-    from sparkii_cli.config import load_config
+    from core.config import load_config
     from sparkii_cli.inventory import build_aux_picker_rows, format_aux_picker_entries
 
     cfg = load_config()
@@ -4435,7 +4400,7 @@ def _aux_flow_provider_model(
 
 def _aux_flow_custom_endpoint(task: str, task_cfg: dict) -> None:
     """Prompt for a direct OpenAI-compatible base_url + optional api_key/model."""
-    from sparkii_cli.secret_prompt import masked_secret_prompt
+    from core.secret_prompt import masked_secret_prompt
 
     display_name = _aux_task_display_name(task)
     current_base_url = str(task_cfg.get("base_url") or "").strip()
@@ -4665,7 +4630,7 @@ def _save_custom_provider(
     When *key_env* is set the caller has already written the key to ``.env``,
     so the entry references it instead of inlining the secret (#69449).
     """
-    from sparkii_cli.config import load_config, save_config
+    from core.config import load_config, save_config
 
     cfg = load_config()
     providers = cfg.get("custom_providers") or []
@@ -4730,7 +4695,7 @@ def _save_custom_provider(
 
 def _remove_custom_provider(config):
     """Let the user remove a saved custom provider from config.yaml."""
-    from sparkii_cli.config import load_config, save_config
+    from core.config import load_config, save_config
 
     cfg = load_config()
     providers = cfg.get("custom_providers") or []
@@ -5089,8 +5054,8 @@ def _prompt_api_key(
     cleared the key and is now unconfigured.
     """
     from sparkii_cli.auth import LMSTUDIO_NOAUTH_PLACEHOLDER
-    from sparkii_cli.config import save_env_value
-    from sparkii_cli.secret_prompt import masked_secret_prompt
+    from core.config import save_env_value
+    from core.secret_prompt import masked_secret_prompt
 
     key_env = pconfig.api_key_env_vars[0] if pconfig.api_key_env_vars else ""
 
@@ -5123,7 +5088,7 @@ def _prompt_api_key(
         return new_key, False
 
     # Already configured — offer K / R / C ────────────────────────────────
-    from sparkii_cli.env_loader import format_secret_source_suffix
+    from core.env_loader import format_secret_source_suffix
 
     source_suffix = format_secret_source_suffix(key_env) if key_env else ""
     print(f"  {pconfig.name} API key: {existing_key[:8]}... ✓{source_suffix}")
@@ -5204,7 +5169,7 @@ def _run_anthropic_oauth_flow(save_env_value):
         read_claude_code_credentials,
         is_claude_code_token_valid,
     )
-    from sparkii_cli.config import (
+    from core.config import (
         save_anthropic_oauth_token,
         use_anthropic_claude_code_credentials,
     )
@@ -5244,7 +5209,7 @@ def _run_anthropic_oauth_flow(save_env_value):
         print()
         print("  If the setup-token was displayed above, paste it here:")
         print()
-        from sparkii_cli.secret_prompt import masked_secret_prompt
+        from core.secret_prompt import masked_secret_prompt
 
         try:
             manual_token = masked_secret_prompt(
@@ -5275,7 +5240,7 @@ def _run_anthropic_oauth_flow(save_env_value):
         print()
         print("  Or paste an existing setup-token now (sk-ant-oat-...):")
         print()
-        from sparkii_cli.secret_prompt import masked_secret_prompt
+        from core.secret_prompt import masked_secret_prompt
 
         try:
             token = masked_secret_prompt("  Setup-token (or Enter to cancel): ").strip()
@@ -5637,7 +5602,7 @@ def cmd_debug(args):
 
 def cmd_config(args):
     """Configuration management."""
-    from sparkii_cli.config import config_command
+    from core.config import config_command
 
     config_command(args)
 
@@ -5669,7 +5634,7 @@ def cmd_import(args):
 
 
 def _print_version_info(*, check_updates: bool = True) -> None:
-    from sparkii_cli.config import detect_install_method
+    from core.config import detect_install_method
     from sparkii_cli.slash_exec import CommandContext, execute_command
 
     # Core version line is registry-owned (shared with the gateway /version);
@@ -5700,7 +5665,7 @@ def _print_version_info(*, check_updates: bool = True) -> None:
     # Show update status (synchronous — acceptable since user asked for version info)
     try:
         from sparkii_cli.banner import UPDATE_AVAILABLE_NO_COUNT, check_for_updates
-        from sparkii_cli.config import recommended_update_command
+        from core.config import recommended_update_command
 
         behind = check_for_updates()
         if behind == UPDATE_AVAILABLE_NO_COUNT:
@@ -7385,7 +7350,7 @@ def _desktop_macos_local_signing_identity() -> Optional[str]:
     if sys.platform != "darwin":
         return None
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         desktop = load_config().get("desktop", {})
         if not isinstance(desktop, dict):
@@ -7765,7 +7730,7 @@ def _desktop_launch_options() -> tuple[list[str], str, str]:
     disable_gpu = "auto"
     password_store = "auto"
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
 
         desktop_cfg = (load_config() or {}).get("desktop") or {}
     except Exception:
@@ -9979,8 +9944,8 @@ def _install_hangup_protection(gateway_mode: bool = False):
     # tolerance.  Any failure here is non-fatal; we just skip the wrap.
     try:
         # Late-bound import so tests can monkeypatch
-        # sparkii_cli.config.get_sparkii_home to simulate setup failure.
-        from sparkii_cli.config import get_sparkii_home as _get_sparkii_home
+        # core.config.get_sparkii_home to simulate setup failure.
+        from core.config import get_sparkii_home as _get_sparkii_home
 
         logs_dir = _get_sparkii_home() / "logs"
         logs_dir.mkdir(parents=True, exist_ok=True)
@@ -10059,7 +10024,7 @@ def cmd_update(args):
     runs the update, then restores stdio on the way out (even on
     ``sys.exit`` or unhandled exceptions).
     """
-    from sparkii_cli.config import (
+    from core.config import (
         detect_install_method,
         format_docker_update_message,
         is_managed,
@@ -11041,7 +11006,7 @@ def _maybe_setup_dashboard_auth_interactively(args) -> None:
     secret = secrets.token_urlsafe(32)
 
     try:
-        from sparkii_cli.config import load_config, save_config
+        from core.config import load_config, save_config
         from sparkii_cli.plugins_cmd import ensure_basic_auth_plugin_enabled_in_config
 
         cfg = load_config()
@@ -11390,7 +11355,7 @@ def cmd_dashboard(args):
     # (#63141, #54449, #61115, #65696). PTY chat spawns already bridge their
     # child env copy; this covers the in-process consumers.
     try:
-        from sparkii_cli.config import apply_terminal_config_to_env
+        from core.config import apply_terminal_config_to_env
 
         apply_terminal_config_to_env()
     except Exception:
@@ -11453,12 +11418,12 @@ def cmd_dashboard(args):
         print(f"→ Using web dist from SPARKII_WEB_DIST: {_dist_root}")
 
     # Discover and load plugins so any DashboardAuthProvider plugin
-    # (e.g. plugins/dashboard_auth/nous) registers BEFORE start_server's
-    # fail-closed gate check runs. The top-level argparse setup skips
-    # plugin discovery for built-in subcommands like ``dashboard`` to
-    # save ~500ms startup; we have to trigger it explicitly here because
-    # the dashboard's server-side runtime depends on plugin-registered
-    # providers (image_gen, web, dashboard_auth, …).
+    # registers BEFORE start_server's fail-closed gate check runs. The
+    # top-level argparse setup skips plugin discovery for built-in
+    # subcommands like ``dashboard`` to save ~500ms startup; we have to
+    # trigger it explicitly here because the dashboard's server-side
+    # runtime depends on plugin-registered providers (image_gen, web,
+    # dashboard_auth, …).
     try:
         from sparkii_cli.plugins import discover_plugins
         discover_plugins()
@@ -11582,12 +11547,7 @@ def _build_provider_choices() -> list[str]:
     except Exception:
         # Fallback: static list guarantees the CLI always works
         return [
-            "auto", "openrouter", "nous", "openai-codex", "xai-oauth", "copilot-acp", "copilot",
-            "anthropic", "gemini", "vertex", "xai", "bedrock", "azure-foundry",
-            "ollama-cloud", "huggingface", "zai", "kimi-coding", "kimi-coding-cn",
-            "stepfun", "minimax", "minimax-cn", "kilocode", "novita", "xiaomi", "arcee",
-            "nvidia", "deepseek", "alibaba", "qwen-oauth", "opencode-zen", "opencode-go",
-        ]
+            "auto", "anthropic", ]
 
 
 # Top-level subcommands that argparse knows about WITHOUT running plugin
@@ -11607,7 +11567,7 @@ _BUILTIN_SUBCOMMANDS = frozenset(
         "dump", "egress", "fallback", "gateway", "hooks", "import", "import-agent", "insights",
         "gui", "desktop", "kanban", "login", "logout", "logs", "lsp", "mcp", "memory", "migrate", "moa",
         "journey", "memory-graph", "learning",
-        "model", "monitoring", "pairing", "pause", "peer", "pets", "plugins", "portal", "profile",
+        "model", "monitoring", "pairing", "pause", "peer", "pets", "plugins", "profile",
         "project", "proxy",
         "prompt-size",
         "resume",
@@ -11840,7 +11800,7 @@ def _prepare_agent_startup(args) -> None:
                 exc_info=True,
             )
     try:
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         from agent.shell_hooks import register_from_config
 
         _hooks_cfg = load_config()
@@ -11904,7 +11864,7 @@ def _try_fast_chat_launch() -> bool:
     # Container-aware routing must win: when NixOS container mode is
     # active, EVERY invocation is forwarded into the managed container.
     try:
-        from sparkii_cli.config import get_container_exec_info
+        from core.config import get_container_exec_info
         if get_container_exec_info():
             return False
     except Exception:
@@ -12070,7 +12030,7 @@ def _try_termux_fast_tui_launch() -> bool:
 def cmd_memory(args):
     sub = getattr(args, "memory_command", None)
     if sub == "off":
-        from sparkii_cli.config import load_config, save_config
+        from core.config import load_config, save_config
 
         config = load_config()
         if not isinstance(config.get("memory"), dict):
@@ -12192,7 +12152,7 @@ def cmd_insights(args):
 
 def cmd_monitoring(args):
     """Gateway monitoring status: health & diagnostics export posture."""
-    from sparkii_cli.config import load_config
+    from core.config import load_config
 
     action = getattr(args, "monitoring_action", None) or "status"
     config = load_config()
@@ -12265,7 +12225,7 @@ def _cmd_skills_trust(args):
         find_project_root,
         iter_skill_index_files,
     )
-    from sparkii_cli.config import load_config, save_config
+    from core.config import load_config, save_config
 
     action = args.skills_action
     raw_path = getattr(args, "path", None)
@@ -12649,9 +12609,14 @@ def main():
 
     # =========================================================================
     # send command — pipe shell-script output to any configured platform
+    # (messaging surfaces were removed from this fork; keep the import guarded
+    # so a stale reference cannot break CLI startup)
     # =========================================================================
-    from sparkii_cli.send_cmd import register_send_subparser
-    register_send_subparser(subparsers)
+    try:
+        from sparkii_cli.send_cmd import register_send_subparser
+        register_send_subparser(subparsers)
+    except ImportError:
+        pass
 
     # =========================================================================
     # login command  (parser built in sparkii_cli/subcommands/login.py)
@@ -12696,13 +12661,6 @@ def main():
 
     build_peer_parser(subparsers)
 
-    # =========================================================================
-    # portal command — Nous Portal status + Tool Gateway routing
-    # =========================================================================
-    from sparkii_cli.portal_cli import add_parser as _add_portal_parser
-    _add_portal_parser(subparsers)
-
-    # =========================================================================
     # kanban command — multi-profile collaboration board
     # =========================================================================
     from sparkii_cli.kanban import build_parser as _build_kanban_parser
@@ -13797,7 +13755,7 @@ def main():
     # the managed container.  This MUST run before parse_args() so that
     # --help, unrecognised flags, and every subcommand are forwarded
     # transparently instead of being intercepted by argparse on the host.
-    from sparkii_cli.config import get_container_exec_info
+    from core.config import get_container_exec_info
 
     container_info = get_container_exec_info()
     if container_info:

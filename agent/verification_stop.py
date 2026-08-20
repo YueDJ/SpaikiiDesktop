@@ -83,7 +83,7 @@ def _session_is_messaging_surface() -> bool:
     ``gateway.session_context.session_is_messaging_surface``.
     """
     try:
-        from gateway.session_context import session_is_messaging_surface
+        from core.session_context import session_is_messaging_surface
 
         return session_is_messaging_surface()
     except Exception:
@@ -111,7 +111,7 @@ def verify_on_stop_enabled(config: dict[str, Any] | None = None) -> bool:
         return env.strip().lower() not in {"0", "false", "no", "off"}
     if config is None:
         try:
-            from sparkii_cli.config import load_config_readonly
+            from core.config import load_config_readonly
 
             config = load_config_readonly()
         except Exception:

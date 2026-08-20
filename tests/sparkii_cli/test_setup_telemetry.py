@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 
-from sparkii_cli.config import DEFAULT_CONFIG
+from core.config import DEFAULT_CONFIG
 from sparkii_cli.setup import setup_telemetry
 from sparkii_cli.subcommands.setup import build_setup_parser
 

@@ -218,7 +218,7 @@ def test_wait_returns_instantly_when_no_discovery_thread(monkeypatch):
     from sparkii_cli import mcp_startup
 
     monkeypatch.setattr(mcp_startup, "_mcp_discovery_thread", None)
-    import sparkii_cli.config as cfg
+    import core.config as cfg
     monkeypatch.setattr(cfg, "load_config", lambda: {"mcp_discovery_timeout": 999.0})
 
     t0 = time.time()

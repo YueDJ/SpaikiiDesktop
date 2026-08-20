@@ -274,7 +274,7 @@ def setup_isolated_home(enabled: bool, listing: str = "off",
         # hand — it never materializes the secret in a local variable in
         # this module, which both avoids a hand-rolled parser bug and keeps
         # static analysis from tainting the transcript records with the key.
-        from sparkii_cli.env_loader import load_sparkii_dotenv
+        from core.env_loader import load_sparkii_dotenv
         load_sparkii_dotenv(sparkii_home=str(Path.home() / ".sparkii"))
 
     cfg = {

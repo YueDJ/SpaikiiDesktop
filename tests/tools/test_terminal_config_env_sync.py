@@ -96,7 +96,7 @@ def _save_config_env_sync_keys() -> set[str]:
     source of truth that the config-set path uses, rather than a string
     literal that the consolidation removed.
     """
-    from sparkii_cli import config as hc_config
+    from core import config as hc_config
     # set_config_value bridges every TERMINAL_CONFIG_ENV_MAP key except
     # terminal.cwd (see the ``key != "terminal.cwd"`` guard in
     # set_config_value); mirror that exclusion here.

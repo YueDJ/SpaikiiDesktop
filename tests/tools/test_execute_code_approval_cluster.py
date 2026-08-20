@@ -24,7 +24,7 @@ import pytest
 
 from tools import approval as A
 from tools.thread_context import propagate_context_to_thread
-from gateway.session_context import clear_session_vars, reset_session_vars, set_session_vars
+from core.session_context import clear_session_vars, reset_session_vars, set_session_vars
 
 
 # ---------------------------------------------------------------------------

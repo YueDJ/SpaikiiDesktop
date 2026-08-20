@@ -45,7 +45,7 @@ import urllib.error
 import urllib.parse
 import zipfile
 
-from sparkii_cli._subprocess_compat import windows_detach_flags, windows_hide_flags
+from core._subprocess_compat import windows_detach_flags, windows_hide_flags
 import urllib.request
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Tuple
@@ -57,7 +57,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from sparkii_cli import __version__, __release_date__
-from sparkii_cli.config import (
+from core.config import (
     build_cron_model_impact,
     cfg_get,
     DEFAULT_CONFIG,
@@ -1638,8 +1638,9 @@ def _normalize_main_model_assignment(provider: str, model: str) -> tuple[str, st
        ``normalize_model_for_provider`` (e.g. ``anthropic/claude-opus-4.6``
        on native anthropic → ``claude-opus-4-6``).
     """
-    from sparkii_cli.config import get_compatible_custom_providers
-    from sparkii_cli.models import _KNOWN_PROVIDER_NAMES, normalize_provider
+    from core.config import get_compatible_custom_providers
+    from core.model_resolution import normalize_provider
+    from sparkii_cli.models import _KNOWN_PROVIDER_NAMES
     from sparkii_cli.model_normalize import normalize_model_for_provider
     from sparkii_cli.providers import resolve_custom_provider, resolve_user_provider
 
@@ -3117,7 +3118,7 @@ def _profile_platform_ports(profile_home: Path, runtime: Optional[dict]) -> Dict
     try:
         # Multi-profile probe: load_config() targets the ACTIVE profile's
         # home, so read the probed profile's file via the raw primitive.
-        from sparkii_cli.config import read_user_config_raw
+        from core.config import read_user_config_raw
         cfg = read_user_config_raw(profile_home / "config.yaml")
         gateway_cfg = cfg.get("gateway") if isinstance(cfg.get("gateway"), dict) else {}
         # gateway.platforms first, top-level platforms second — later wins,
@@ -7172,7 +7173,7 @@ def get_auxiliary_models(profile: Optional[str] = None):
 def get_moa_models(profile: Optional[str] = None):
     """Return the configured Mixture-of-Agents provider/model slots."""
     try:
-        from sparkii_cli.moa_config import normalize_moa_config
+        from core.moa_config import normalize_moa_config
 
         with _profile_scope(profile):
             cfg = load_config()
@@ -7188,7 +7189,7 @@ def get_moa_models(profile: Optional[str] = None):
 def set_moa_models(body: MoaConfigPayload, profile: Optional[str] = None):
     """Persist the Mixture-of-Agents provider/model slots."""
     try:
-        from sparkii_cli.moa_config import normalize_moa_config, validate_moa_payload
+        from core.moa_config import normalize_moa_config, validate_moa_payload
 
         def _slot_dict(slot: MoaModelSlot) -> dict:
             # Drop unset optionals so saved slots stay minimal ({provider, model}).
@@ -7753,7 +7754,7 @@ def _catalog_provider_env_metadata() -> dict:
     # promoted into a provider card. Copilot lists GITHUB_TOKEN among its auth
     # aliases, but its provider card uses the provider-owned COPILOT_GITHUB_TOKEN.
     try:
-        from sparkii_cli.config import OPTIONAL_ENV_VARS as _OPT
+        from core.config import OPTIONAL_ENV_VARS as _OPT
     except Exception:
         _OPT = {}
     _non_provider_keys = {
@@ -7914,7 +7915,7 @@ async def set_env_var(body: EnvVarUpdate, profile: Optional[str] = None):
             # (model.api_key / auxiliary.*.api_key / custom_providers[*]),
             # so a rotation can't leave a stale higher-precedence copy that
             # keeps authenticating with the old key (#62269).
-            from sparkii_cli.credential_lifecycle import save_provider_env_credential
+            from core.credential_lifecycle import save_provider_env_credential
 
             return save_provider_env_credential(body.key, body.value)
 
@@ -8396,7 +8397,7 @@ async def remove_env_var(body: EnvVarDelete, profile: Optional[str] = None):
             # #51071/#59761), the affected providers' model-cache rows, and
             # value-matched config.yaml api_key mirrors. OAuth/device-code/
             # manual pool entries for the same provider are preserved.
-            from sparkii_cli.credential_lifecycle import remove_provider_env_credential
+            from core.credential_lifecycle import remove_provider_env_credential
 
             return remove_provider_env_credential(body.key)
 
@@ -10428,11 +10429,11 @@ def _anthropic_oauth_status() -> Dict[str, Any]:
     except (ImportError, KeyError):
         pass
     try:
-        from sparkii_cli.config import get_env_value
+        from core.config import get_env_value
     except ImportError:
         get_env_value = None  # type: ignore
     try:
-        from sparkii_cli.env_loader import format_secret_source_suffix
+        from core.env_loader import format_secret_source_suffix
     except ImportError:
         format_secret_source_suffix = None  # type: ignore
 
@@ -12195,7 +12196,7 @@ def _maybe_auto_archive_for_profile(profile: Optional[str]) -> None:
             return
         _last_auto_archive_check[key] = now
 
-        from sparkii_cli.config import load_config as _load_full_config
+        from core.config import load_config as _load_full_config
         cfg = (_load_full_config().get("sessions") or {})
         if not cfg.get("auto_archive", False):
             return
@@ -13241,7 +13242,7 @@ def _normalize_mcp_server_create(
         _bearer_auth_headers,
         _strip_bearer_prefix,
     )
-    from sparkii_cli.mcp_security import validate_mcp_server_entry
+    from core.mcp_security import validate_mcp_server_entry
 
     name = (body.name or "").strip()
     if not name:
@@ -14250,7 +14251,7 @@ async def list_hooks():
     form can offer them.
     """
     def _run():
-        from sparkii_cli.config import load_config as _load_config
+        from core.config import load_config as _load_config
         from agent import shell_hooks
 
         try:
@@ -15111,7 +15112,7 @@ def _terminal_cfg_value(terminal_cfg: dict, key: str, env_var: str) -> str:
     if value is not None and str(value).strip():
         return str(value).strip()
     try:
-        from sparkii_cli.config import get_env_value
+        from core.config import get_env_value
 
         return (get_env_value(env_var) or "").strip()
     except Exception:
@@ -15179,7 +15180,7 @@ def _probe_modal_backend() -> tuple:
     except Exception:
         pass
     try:
-        from sparkii_cli.config import get_env_value
+        from core.config import get_env_value
 
         if get_env_value("MODAL_TOKEN_ID") and get_env_value("MODAL_TOKEN_SECRET"):
             return ("ready", "")
@@ -15193,7 +15194,7 @@ def _probe_modal_backend() -> tuple:
 
 def _probe_daytona_backend() -> tuple:
     try:
-        from sparkii_cli.config import get_env_value
+        from core.config import get_env_value
 
         if get_env_value("DAYTONA_API_KEY"):
             return ("ready", "")
@@ -16112,7 +16113,7 @@ def _resolve_chat_argv(
     from tools.environments.local import build_subprocess_env
     env = build_subprocess_env(scrub_secrets=False, inherit_profile_home=True)
     try:
-        from sparkii_cli.config import apply_terminal_config_to_env
+        from core.config import apply_terminal_config_to_env
         apply_terminal_config_to_env(env=env)
     except Exception:
         _log.debug("Failed to apply terminal config bridge for dashboard chat", exc_info=True)
@@ -18946,7 +18947,7 @@ def start_server(
             # Hint when credentials exist but the bundled provider is blocked
             # (#54489).
             try:
-                from sparkii_cli.config import load_config as _load_cfg
+                from core.config import load_config as _load_cfg
                 from sparkii_cli.plugins_cmd import _BASIC_AUTH_PLUGIN_KEYS
 
                 _cfg = _load_cfg()

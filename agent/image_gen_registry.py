@@ -128,7 +128,7 @@ def get_active_provider() -> Optional[ImageGenProvider]:
     """
     configured: Optional[str] = None
     try:
-        from sparkii_cli.config import load_config_readonly
+        from core.config import load_config_readonly
 
         cfg = load_config_readonly()
         section = cfg.get("image_gen") if isinstance(cfg, dict) else None

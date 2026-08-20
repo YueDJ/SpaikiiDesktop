@@ -33,7 +33,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable, List, Optional
 
-from sparkii_cli.sqlite_util import add_column_if_missing as _add_column_if_missing, write_txn
+from core.sqlite_util import add_column_if_missing as _add_column_if_missing, write_txn
 from sparkii_constants import get_sparkii_home
 
 # ---------------------------------------------------------------------------

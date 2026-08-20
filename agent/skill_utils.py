@@ -402,7 +402,7 @@ def _raw_config_cache_clear() -> None:
 def _load_raw_config() -> Dict[str, Any]:
     """Read config.yaml with a shared mtime+size keyed cache.
 
-    This module intentionally avoids importing ``sparkii_cli.config`` on the
+    This module intentionally avoids importing ``core.config`` on the
     skill prompt/build path. A tiny local cache gives the same repeated-read
     win without pulling the heavier CLI config stack into startup.
     """
@@ -456,7 +456,7 @@ def get_disabled_skill_names(platform: str | None = None) -> Set[str]:
     if not isinstance(skills_cfg, dict):
         return set()
 
-    from gateway.session_context import get_session_env
+    from core.session_context import get_session_env
     resolved_platform = (
         platform
         or os.getenv("SPARKII_PLATFORM")

@@ -613,7 +613,7 @@ class SessionManager:
             return self._agent_factory()
 
         from run_agent import AIAgent
-        from sparkii_cli.config import load_config
+        from core.config import load_config
         from sparkii_cli.runtime_provider import resolve_runtime_provider
 
         config = load_config()

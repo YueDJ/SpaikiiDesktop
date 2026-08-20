@@ -7714,7 +7714,7 @@ This compaction should PRIORITISE preserving all information related to the focu
         # high-water mark until exit. The helper is glibc-gated, config-gated
         # and rate-limited, so this is a safe no-op elsewhere. (#70782)
         try:
-            from sparkii_cli.mem_trim import trim_memory
+            from core.mem_trim import trim_memory
 
             trim_memory(reason="post-compression")
         except Exception as exc:

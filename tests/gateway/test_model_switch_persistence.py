@@ -212,7 +212,7 @@ class TestOneTurnNeverPersisted:
             ),
         )
         monkeypatch.setattr("sparkii_constants.get_sparkii_home", lambda: sparkii_home)
-        monkeypatch.setattr("sparkii_cli.config.get_sparkii_home", lambda: sparkii_home)
+        monkeypatch.setattr("core.config.get_sparkii_home", lambda: sparkii_home)
 
         runner = object.__new__(GatewayRunner)
         runner.adapters = {}

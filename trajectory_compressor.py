@@ -49,7 +49,7 @@ from sparkii_constants import OPENROUTER_BASE_URL, get_sparkii_home
 from agent.retry_utils import jittered_backoff
 
 # Load .env from SPARKII_HOME first, then project root as a dev fallback.
-from sparkii_cli.env_loader import load_sparkii_dotenv
+from core.env_loader import load_sparkii_dotenv
 
 _sparkii_home = get_sparkii_home()
 _project_env = Path(__file__).parent / ".env"

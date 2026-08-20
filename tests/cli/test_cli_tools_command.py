@@ -55,7 +55,7 @@ class TestToolsSlashDisableWithReset:
                    return_value={"platform_toolsets": {"cli": ["web", "memory"]}}), \
              patch("sparkii_cli.tools_config.save_config"), \
              patch("sparkii_cli.tools_config._get_platform_tools", return_value={"memory"}), \
-             patch("sparkii_cli.config.load_config", return_value={}), \
+             patch("core.config.load_config", return_value={}), \
              patch.object(cli_obj, "new_session") as mock_reset:
             cli_obj._handle_tools_command("/tools disable web")
         mock_reset.assert_called_once()
@@ -69,7 +69,7 @@ class TestToolsSlashDisableWithReset:
                    return_value={"platform_toolsets": {"cli": ["web", "memory"]}}), \
              patch("sparkii_cli.tools_config.save_config"), \
              patch("sparkii_cli.tools_config._get_platform_tools", return_value={"memory"}), \
-             patch("sparkii_cli.config.load_config", return_value={}), \
+             patch("core.config.load_config", return_value={}), \
              patch.object(cli_obj, "new_session") as mock_reset:
             cli_obj._handle_tools_command("/tools disable web")
         mock_reset.assert_called_once()
@@ -88,7 +88,7 @@ class TestToolsSlashEnableWithReset:
                    return_value={"platform_toolsets": {"cli": ["memory"]}}), \
              patch("sparkii_cli.tools_config.save_config"), \
              patch("sparkii_cli.tools_config._get_platform_tools", return_value={"memory", "web"}), \
-             patch("sparkii_cli.config.load_config", return_value={}), \
+             patch("core.config.load_config", return_value={}), \
              patch.object(cli_obj, "new_session") as mock_reset:
             cli_obj._handle_tools_command("/tools enable web")
         mock_reset.assert_called_once()

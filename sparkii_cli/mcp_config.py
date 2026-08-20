@@ -15,7 +15,7 @@ import re
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
-from sparkii_cli.config import (
+from core.config import (
     cfg_get,
     load_config,
     save_config,
@@ -23,9 +23,9 @@ from sparkii_cli.config import (
     save_env_value,
     get_sparkii_home,  # noqa: F401 — used by test mocks
 )
-from sparkii_cli.colors import Colors, color
+from core.colors import Colors, color
 from sparkii_constants import display_sparkii_home
-from sparkii_cli.mcp_security import validate_mcp_server_entry
+from core.mcp_security import validate_mcp_server_entry
 from tools.mcp_tool import _ENV_VAR_PATTERN, _env_ref_name
 
 logger = logging.getLogger(__name__)
@@ -268,7 +268,7 @@ def _resolve_mcp_server_config(config: dict) -> dict:
 
     if current_secret_scope() is None:
         try:
-            from sparkii_cli.env_loader import load_sparkii_dotenv
+            from core.env_loader import load_sparkii_dotenv
             load_sparkii_dotenv()
         except Exception:  # pragma: no cover — defensive
             pass

@@ -157,7 +157,7 @@ def has_reasoning_stream_observer_hooks() -> bool:
 def stream_reasoning_deltas_enabled() -> bool:
     """Return True only when the user opted plugins into reasoning deltas."""
     try:
-        from sparkii_cli import config as config_mod
+        from core import config as config_mod
 
         config = config_mod.load_config()
         return bool(config_mod.cfg_get(config, "plugins", "stream_reasoning_deltas", default=False))

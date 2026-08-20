@@ -35,7 +35,7 @@ from pathlib import Path
 from typing import Callable, Optional
 
 from sparkii_constants import get_sparkii_home
-from sparkii_cli.sqlite_runtime import SQLiteRuntimeInfo, probe_sqlite_runtime
+from core.sqlite_runtime import SQLiteRuntimeInfo, probe_sqlite_runtime
 
 logger = logging.getLogger(__name__)
 

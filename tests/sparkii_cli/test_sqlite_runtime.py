@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from sparkii_cli.sqlite_runtime import (
+from core.sqlite_runtime import (
     is_sqlite_wal_reset_vulnerable,
     probe_sqlite_runtime,
 )
