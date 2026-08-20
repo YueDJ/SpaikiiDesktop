@@ -32,10 +32,10 @@ SKIP_DIR_NAMES = {
 # Placeholder protects third-party product names during bulk replace.
 # Tokens must NOT contain hermes/Hermes/HERMES — the final substring sweep
 # would corrupt them before unprotect.
-HERMESCLAW_TOKEN = "___THIRDPARTY_CLAW_PRESERVE___"
-HERMESCLAW_URL_TOKEN = "___THIRDPARTY_CLAW_URL_PRESERVE___"
-HERMESBENCH_TOKEN = "___THIRDPARTY_BENCH_PRESERVE___"
-HERMESBENCH_URL_TOKEN = "___THIRDPARTY_BENCH_URL_PRESERVE___"
+HERMESCLAW_TOKEN = "HermesClaw"
+HERMESCLAW_URL_TOKEN = "hermesclaw"
+HERMESBENCH_TOKEN = "HermesBench"
+HERMESBENCH_URL_TOKEN = "hermesbench"
 
 # Ordered content replacements (apply after third-party protection).
 # Longer / more specific first.
