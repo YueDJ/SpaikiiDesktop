@@ -137,6 +137,23 @@ cli.py、gateway、ui-tui、apps、website、acp_adapter 迁到独立 repo，消
   注入钩子（gateway/run.py 注册）——按方案 §2.2 独立推进；随后 Step 3
   前端 repo 脚手架。
 
+**Step 2b 完成**（2026-08-20 晚间更新）：
+- `cron/scheduler.py` 的 20 处 gateway 引用全部消除：
+  - 纯函数下沉：`gateway/response_filters.py` → `core/response_filters.py`
+    （cron 与 webhook 共享同一个沉默匹配器，gateway 侧改为转发 shim）；
+  - 新增注入桥 `core/cron_delivery.py`（Platform/PlatformConfig/SessionSource/
+    BasePlatformAdapter/DeliveryRouter/mirror_to_session/resolve_delivery_transport/
+    relay_fronted_platforms/apply_media_policy_env/media 助手/沉默匹配器），
+    `gateway/cron_delivery.py` 在 `gateway/__init__` 时注册（懒加载避免环）；
+  - 配置读取改 `core.config.get_gateway_config()`（沿用 Step 1 的 reader）；
+    平台注册表改 `core.plugins.get_platform_registry()`。
+- 测试：tests/cron 的 `gateway.config.load_gateway_config` 桩点按约定改
+  `core.config.get_gateway_config`；98 通过，剩余失败均为既有
+  （fork Platform 枚举缺消息平台成员且值为 None、Windows 路径双反斜杠）。
+- **验证数字**：phase0 保持 **0**；block4 **6 → 5**（cron/scheduler.py 出列，
+  仅剩 5 个 dev 脚本豁免）。core repo 对前端的运行时依赖彻底清零。
+- **下一步**：Step 3 前端 repo 脚手架（pyproject/package.json 拆分 + 物理迁移）。
+
 ## 节奏
 删/迁一块 → ast.parse 验证 → import 验证 → 跑相关测试 → 红数下降 → 下一块。
 

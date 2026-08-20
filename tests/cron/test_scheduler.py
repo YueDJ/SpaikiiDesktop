@@ -1588,7 +1588,7 @@ class TestDeliverResultLiveAdapterUnconfirmed:
 
         standalone_send = AsyncMock(return_value={"success": True})
 
-        with patch("gateway.config.load_gateway_config", return_value=mock_cfg), \
+        with patch("core.config.get_gateway_config", return_value=mock_cfg), \
              patch("cron.scheduler.load_config", return_value={"cron": {"wrap_response": False}}), \
              patch("asyncio.run_coroutine_threadsafe", side_effect=fake_run_coro), \
              patch("tools.send_message_tool._send_to_platform", new=standalone_send):
@@ -1707,7 +1707,7 @@ class TestCronDeliveryTargets:
                 return [_Platform(n) for n in names]
 
         monkeypatch.setattr(
-            gateway_config, "load_gateway_config", lambda: _GatewayConfig()
+            "core.config.get_gateway_config", lambda: _GatewayConfig()
         )
 
     def test_lists_configured_platforms_flagging_missing_home_channel(self, monkeypatch):
@@ -1844,7 +1844,7 @@ class TestCronContinuableSurfaceInChannel:
             "attach_to_session": True,
         }
 
-        with patch("gateway.config.load_gateway_config", return_value=mock_cfg), \
+        with patch("core.config.get_gateway_config", return_value=mock_cfg), \
              patch("cron.scheduler.load_config", return_value={"cron": {"wrap_response": False}}), \
              patch("cron.scheduler._open_continuable_cron_thread") as open_thread_mock, \
              patch("asyncio.run_coroutine_threadsafe", side_effect=fake_run_coro), \

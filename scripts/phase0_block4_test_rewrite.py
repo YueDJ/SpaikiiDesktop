@@ -26,8 +26,18 @@ MOVED = [
 def main() -> int:
     changed = 0
     for p in sorted((ROOT / "tests").rglob("*.py")):
+        if "tests/cron" not in p.as_posix():
+            continue
         text = p.read_text(encoding="utf-8")
         original = text
+        text = text.replace(
+            "patch(\"gateway.config.load_gateway_config\"",
+            "patch(\"core.config.get_gateway_config\"",
+        )
+        text = text.replace(
+            "gateway_config, \"load_gateway_config\", lambda: _GatewayConfig()",
+            "\"core.config.get_gateway_config\", lambda: _GatewayConfig()",
+        )
         for name in MOVED:
             text = text.replace(f"sparkii_cli.{name}", f"core.{name}")
             text = text.replace(

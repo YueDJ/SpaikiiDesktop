@@ -18,6 +18,10 @@ from .session import (
 )
 from .delivery import DeliveryRouter, DeliveryTarget
 
+# Block 4 Step 2b: register the cron-delivery namespace with the core bridge so
+# the core scheduler can deliver without importing the gateway package.
+from . import cron_delivery  # noqa: F401,E402
+
 __all__ = [
     # Config
     "GatewayConfig",

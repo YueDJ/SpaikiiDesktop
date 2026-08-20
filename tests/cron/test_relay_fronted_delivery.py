@@ -54,20 +54,20 @@ class TestConfigHomeChannelFallback:
     def test_chat_id_falls_back_to_config_home_channel(self, monkeypatch):
         """Env mirror empty → the canonical config.yaml home_channel is used."""
         _clear_home_env(monkeypatch)
-        with patch("gateway.config.load_gateway_config",
+        with patch("core.config.get_gateway_config",
                    return_value=_gateway_config_with_home()):
             assert _get_home_target_chat_id("discord") == "1517373704248758474"
 
     def test_env_mirror_still_wins_over_config(self, monkeypatch):
         """Operator env override keeps precedence over the config block."""
         monkeypatch.setenv("DISCORD_HOME_CHANNEL", "999")
-        with patch("gateway.config.load_gateway_config",
+        with patch("core.config.get_gateway_config",
                    return_value=_gateway_config_with_home()):
             assert _get_home_target_chat_id("discord") == "999"
 
     def test_thread_id_falls_back_to_config_home_channel(self, monkeypatch):
         _clear_home_env(monkeypatch)
-        with patch("gateway.config.load_gateway_config",
+        with patch("core.config.get_gateway_config",
                    return_value=_gateway_config_with_home(thread_id="777")):
             assert _get_home_target_thread_id("discord") == "777"
 
@@ -76,7 +76,7 @@ class TestConfigHomeChannelFallback:
         env-provided chat id (they may point at different conversations)."""
         monkeypatch.setenv("DISCORD_HOME_CHANNEL", "999")
         monkeypatch.delenv("DISCORD_HOME_CHANNEL_THREAD_ID", raising=False)
-        with patch("gateway.config.load_gateway_config",
+        with patch("core.config.get_gateway_config",
                    return_value=_gateway_config_with_home(thread_id="777")):
             assert _get_home_target_thread_id("discord") is None
 
@@ -85,12 +85,12 @@ class TestConfigHomeChannelFallback:
         config = MagicMock()
         config.platforms = {}
         config.get_home_channel = lambda p: None
-        with patch("gateway.config.load_gateway_config", return_value=config):
+        with patch("core.config.get_gateway_config", return_value=config):
             assert _get_home_target_chat_id("discord") == ""
 
     def test_config_load_failure_fails_safe(self, monkeypatch):
         _clear_home_env(monkeypatch)
-        with patch("gateway.config.load_gateway_config",
+        with patch("core.config.get_gateway_config",
                    side_effect=RuntimeError("boom")):
             assert _get_home_target_chat_id("discord") == ""
 
@@ -99,7 +99,7 @@ class TestConfigHomeChannelFallback:
         concrete target from the config.yaml home_channel alone."""
         _clear_home_env(monkeypatch)
         job = {"id": "j1", "deliver": "discord"}
-        with patch("gateway.config.load_gateway_config",
+        with patch("core.config.get_gateway_config",
                    return_value=_gateway_config_with_home()):
             targets = _resolve_delivery_targets(job)
         assert targets == [{
@@ -146,7 +146,7 @@ class TestRelayDeliveryGate:
 
         router._deliver_to_platform = _deliver_to_platform
 
-        with patch("gateway.config.load_gateway_config",
+        with patch("core.config.get_gateway_config",
                    return_value=gateway_config), \
              patch("cron.scheduler.load_config",
                    return_value={"cron": {"wrap_response": False}}), \

@@ -64,6 +64,18 @@ from agent.delegation_context import (
 logger = logging.getLogger(__name__)
 
 
+def _cron_delivery():
+    """Return the gateway-registered cron delivery namespace, or ``None``.
+
+    The gateway registers its delivery machinery with ``core.cron_delivery``
+    at import time (Block 4 Step 2b); core-only processes get ``None`` and
+    every delivery site degrades gracefully.
+    """
+    from core.cron_delivery import get_cron_delivery
+
+    return get_cron_delivery()
+
+
 def _close_late_session_db_result(future: "concurrent.futures.Future") -> None:
     """Done-callback: close a SessionDB whose constructor finished after run_job's timeout.
 
@@ -536,7 +548,7 @@ def _is_cron_silence_response(text: str) -> bool:
     Delegates to the shared autonomous-lane matcher in
     :mod:`gateway.response_filters` (also used by the webhook adapter).
     """
-    from gateway.response_filters import is_autonomous_silence_response
+    from core.response_filters import is_autonomous_silence_response
 
     return is_autonomous_silence_response(text)
 
@@ -1615,7 +1627,10 @@ def _maybe_mirror_cron_delivery(
     if not text:
         return
     try:
-        from gateway.mirror import mirror_to_session
+        delivery = _cron_delivery()
+        if delivery is None:
+            return
+        mirror_to_session = delivery.mirror_to_session
 
         # Mirror as a USER turn with a labelled prefix, NOT an assistant turn.
         # The brief is not the agent speaking; an assistant-role mirror lands as
@@ -1716,8 +1731,11 @@ def _seed_cron_thread_session(
     if not text:
         return
     try:
-        from gateway.config import Platform
-        from gateway.session import SessionSource
+        delivery = _cron_delivery()
+        if delivery is None:
+            return
+        Platform = delivery.Platform
+        SessionSource = delivery.SessionSource
 
         session_store = getattr(adapter, "_session_store", None)
         if session_store is not None:
@@ -1749,7 +1767,7 @@ def _seed_cron_thread_session(
                 # a target and the user's later reply joins the same session.
                 session_store.get_or_create_session(dest_source)
 
-        from gateway.mirror import mirror_to_session
+        mirror_to_session = delivery.mirror_to_session
 
         # User-role + labelled prefix (see _maybe_mirror_cron_delivery): the
         # seeded brief must not read as an assistant turn, or the user's first
@@ -1824,8 +1842,11 @@ def _seed_cron_channel_session(
     if not text:
         return False
     try:
-        from gateway.config import Platform
-        from gateway.session import SessionSource
+        delivery = _cron_delivery()
+        if delivery is None:
+            return False
+        Platform = delivery.Platform
+        SessionSource = delivery.SessionSource
 
         chat_type = "dm" if is_dm else "group"
         session_store = getattr(adapter, "_session_store", None)
@@ -1847,7 +1868,7 @@ def _seed_cron_channel_session(
                 # user's later plain reply joins the SAME session.
                 session_store.get_or_create_session(dest_source)
 
-        from gateway.mirror import mirror_to_session
+        mirror_to_session = delivery.mirror_to_session
 
         ok = mirror_to_session(
             platform_name,
@@ -1906,7 +1927,10 @@ def _plugin_cron_env_var(platform_name: str) -> str:
     try:
         from core.plugins import discover_plugins
         discover_plugins()  # idempotent
-        from gateway.platform_registry import platform_registry
+        from core.plugins import get_platform_registry
+        platform_registry = get_platform_registry()
+        if platform_registry is None:
+            return ""
         entry = platform_registry.get(platform_name.lower())
         if entry and entry.cron_deliver_env_var:
             return entry.cron_deliver_env_var
@@ -1955,9 +1979,15 @@ def _get_config_home_channel(platform_name: str):
     canonical store here fixes that for every relay-fronted platform at once.
     """
     try:
-        from gateway.config import load_gateway_config, Platform
+        from core.config import get_gateway_config
+        delivery = _cron_delivery()
+        if delivery is None:
+            return None
+        Platform = delivery.Platform
 
-        config = load_gateway_config()
+        config = get_gateway_config()
+        if config is None:
+            return None
         platform = Platform(platform_name.lower())
         return config.get_home_channel(platform)
     except Exception:
@@ -2041,7 +2071,10 @@ def _iter_home_target_platforms():
     try:
         from core.plugins import discover_plugins
         discover_plugins()  # idempotent
-        from gateway.platform_registry import platform_registry
+        from core.plugins import get_platform_registry
+        platform_registry = get_platform_registry()
+        if platform_registry is None:
+            return
         for entry in platform_registry.plugin_entries():
             if entry.cron_deliver_env_var and entry.name not in _HOME_TARGET_ENV_VARS:
                 yield entry.name
@@ -2065,9 +2098,11 @@ def _relay_fronted_delivery_platforms(connected: set) -> set:
     if "relay" not in connected:
         return set()
     try:
-        from gateway.relay import relay_fronted_platforms
+        delivery = _cron_delivery()
+        if delivery is None:
+            return set()
 
-        return relay_fronted_platforms()
+        return delivery.relay_fronted_platforms()
     except Exception:
         logger.debug("relay fronted-platform lookup failed", exc_info=True)
         return set()
@@ -2089,11 +2124,14 @@ def cron_delivery_targets() -> list[dict]:
     """
     targets: list[dict] = []
     try:
-        from gateway.config import load_gateway_config
+        from core.config import get_gateway_config
 
-        gateway_config = load_gateway_config()
-        connected = {p.value for p in gateway_config.get_connected_platforms()}
-        connected |= _relay_fronted_delivery_platforms(connected)
+        gateway_config = get_gateway_config()
+        if gateway_config is None:
+            connected = set()
+        else:
+            connected = {p.value for p in gateway_config.get_connected_platforms()}
+            connected |= _relay_fronted_delivery_platforms(connected)
     except Exception:
         logger.debug("cron_delivery_targets: gateway config unavailable", exc_info=True)
         connected = set()
@@ -2327,7 +2365,11 @@ def _send_media_via_adapter(
     """
     from pathlib import Path
 
-    from gateway.platforms.base import BasePlatformAdapter, should_send_media_as_audio
+    delivery = _cron_delivery()
+    if delivery is None:
+        return ["cron media delivery unavailable (gateway not registered)"]
+    BasePlatformAdapter = delivery.BasePlatformAdapter
+    should_send_media_as_audio = delivery.should_send_media_as_audio
 
     errors: list = []
     requested = [(str(p), v) for p, v in (media_files or [])]
@@ -2338,7 +2380,7 @@ def _send_media_via_adapter(
     kept = {p for p, _ in media_files}
     for raw_path, _v in requested:
         try:
-            from gateway.platforms.base import validate_media_delivery_path
+            validate_media_delivery_path = delivery.validate_media_delivery_path
 
             if validate_media_delivery_path(raw_path) not in kept:
                 errors.append(
@@ -2506,7 +2548,11 @@ def _deliver_result(job: dict, content: str, adapters=None, loop=None) -> Option
         logger.warning("Job '%s': %s", job["id"], msg)
         return msg
 
-    from gateway.config import load_gateway_config, Platform
+    delivery = _cron_delivery()
+    if delivery is None:
+        return "cron messaging delivery unavailable (gateway not registered)"
+    Platform = delivery.Platform
+    from core.config import get_gateway_config
 
     def _send_to_platform(*a, **k):
         raise RuntimeError("messaging platforms were removed in this fork")
@@ -2536,7 +2582,7 @@ def _deliver_result(job: dict, content: str, adapters=None, loop=None) -> Option
         delivery_content = content
 
     # Extract MEDIA: tags so attachments are forwarded as files, not raw text
-    from gateway.platforms.base import BasePlatformAdapter
+    BasePlatformAdapter = delivery.BasePlatformAdapter
 
     # Bridge gateway media-policy config (strict / allow_dirs / trust_recent)
     # into the env vars the path validator reads. Gateway startup does this
@@ -2545,7 +2591,7 @@ def _deliver_result(job: dict, content: str, adapters=None, loop=None) -> Option
     # filtered attachment paths under a DIFFERENT policy than scheduled runs
     # and silently dropped files the gateway would deliver. Idempotent,
     # env-wins, never raises.
-    from gateway.media_policy import apply_media_policy_env
+    apply_media_policy_env = delivery.apply_media_policy_env
 
     apply_media_policy_env(user_cfg)
 
@@ -2580,7 +2626,9 @@ def _deliver_result(job: dict, content: str, adapters=None, loop=None) -> Option
         mirror_text = (mirror_text or "").strip()
 
     try:
-        config = load_gateway_config()
+        config = get_gateway_config()
+        if config is None:
+            raise RuntimeError("gateway config unavailable")
     except Exception as e:
         msg = f"failed to load gateway config: {e}"
         logger.error("Job '%s': %s", job["id"], msg)
@@ -2628,7 +2676,7 @@ def _deliver_result(job: dict, content: str, adapters=None, loop=None) -> Option
             delivery_errors.append(msg)
             continue
 
-        from gateway.delivery import resolve_delivery_transport
+        resolve_delivery_transport = delivery.resolve_delivery_transport
 
         transport = resolve_delivery_transport(platform, config, adapters)
         if transport is not None:
@@ -2649,8 +2697,7 @@ def _deliver_result(job: dict, content: str, adapters=None, loop=None) -> Option
             # configured/enabled gate below must not apply — it used to
             # reject exactly the targets the relay was resolved to serve.
             if pconfig is None:
-                from gateway.config import PlatformConfig
-                pconfig = PlatformConfig(enabled=True)
+                pconfig = delivery.PlatformConfig(enabled=True)
         elif not pconfig or not pconfig.enabled:
             msg = f"platform '{platform_name}' not configured/enabled"
             logger.warning("Job '%s': %s", job["id"], msg)
@@ -2795,12 +2842,10 @@ def _deliver_result(job: dict, content: str, adapters=None, loop=None) -> Option
             # anchorless cron send bypasses the DeliveryRouter's private-chat
             # reply-anchor requirement. Compute the routed metadata ONCE so both
             # the text send (via DeliveryRouter) and the media send agree.
-            from gateway.delivery import (
-                DeliveryRouter,
-                DeliveryTarget,
-                _looks_like_int,
-                looks_like_telegram_private_chat_id,
-            )
+            DeliveryRouter = delivery.DeliveryRouter
+            DeliveryTarget = delivery.DeliveryTarget
+            _looks_like_int = delivery._looks_like_int
+            looks_like_telegram_private_chat_id = delivery.looks_like_telegram_private_chat_id
 
             is_ambiguous_telegram_topic = (
                 platform == Platform.TELEGRAM
@@ -4315,13 +4360,16 @@ def _preflight_check_delivery(job: dict) -> Optional[str]:
             )
         if connected is None:
             try:
-                from gateway.config import load_gateway_config
+                from core.config import get_gateway_config
 
-                gateway_config = load_gateway_config()
-                connected = {
-                    p.value for p in gateway_config.get_connected_platforms()
-                }
-                connected |= _relay_fronted_delivery_platforms(connected)
+                gateway_config = get_gateway_config()
+                if gateway_config is None:
+                    connected = set()
+                else:
+                    connected = {
+                        p.value for p in gateway_config.get_connected_platforms()
+                    }
+                    connected |= _relay_fronted_delivery_platforms(connected)
             except Exception:
                 logger.debug(
                     "preflight: gateway config unavailable — skipping "
