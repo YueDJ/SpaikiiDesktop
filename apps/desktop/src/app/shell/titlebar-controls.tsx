@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Tip, TipKeybindLabel } from '@/components/ui/tooltip'
 import { useI18n } from '@/i18n'
 import { triggerHaptic } from '@/lib/haptics'
+import { formatModifierToken } from '@/lib/keybinds/combo'
 import { cn } from '@/lib/utils'
 import { $hapticsMuted, toggleHapticsMuted } from '@/store/haptics'
 import {
@@ -183,7 +184,7 @@ export function TitlebarControls({ leftTools = [], tools = [], onOpenSettings }:
         triggerHaptic('open')
         toggleLayoutEditMode()
       },
-      title: t.titlebar.layoutEditorTitle
+      title: t.titlebar.layoutEditorTitle(formatModifierToken('mod'))
     },
     {
       active: hapticsMuted,

@@ -110,7 +110,7 @@ Good defaults:
 | Provider | What it is | How to set up |
 |----------|-----------|---------------|
 | **Nous Portal** | Subscription-based, zero-config | OAuth login via `sparkii model` |
-| **OpenAI Codex** | ChatGPT OAuth, uses Codex models | Device code auth via `sparkii model` |
+| **OpenAI Codex** | ChatGPT or Codex subscription, uses Codex models | Device code auth via `sparkii model` → **ChatGPT or Codex Subscription** |
 | **Anthropic** | Claude models directly — Max plan + extra usage credits (OAuth), or API key for pay-per-token | `sparkii model` → OAuth login (requires Max + extra credits), or an Anthropic API key |
 | **OpenRouter** | Multi-provider routing across many models | Enter your API key |
 | **Fireworks AI** | Direct OpenAI-compatible model API | Set `FIREWORKS_API_KEY` |

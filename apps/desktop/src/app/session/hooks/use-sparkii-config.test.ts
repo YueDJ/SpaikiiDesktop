@@ -18,6 +18,8 @@ import {
   setDefaultReasoningEffort
 } from '@/store/session'
 
+import { deferred } from '../../../test/deferred'
+
 import { useSparkiiConfig } from './use-sparkii-config'
 
 vi.mock('@/sparkii', () => ({
@@ -26,16 +28,6 @@ vi.mock('@/sparkii', () => ({
 }))
 
 const WORKSPACE_CWD_KEY = 'sparkii.desktop.workspace-cwd'
-
-function deferred<T>() {
-  let resolve!: (value: T | PromiseLike<T>) => void
-
-  const promise = new Promise<T>(done => {
-    resolve = done
-  })
-
-  return { promise, resolve }
-}
 
 const mockConfig = (config: Record<string, unknown>) =>
   vi.mocked(getSparkiiConfig).mockResolvedValue(config as Awaited<ReturnType<typeof getSparkiiConfig>>)

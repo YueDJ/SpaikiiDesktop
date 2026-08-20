@@ -8,7 +8,7 @@ description: "Real-time voice conversations with Sparkii Agent — CLI, Telegram
 
 Sparkii Agent supports full voice interaction across CLI and messaging platforms. Talk to the agent using your microphone, hear spoken replies, and have live voice conversations in Discord voice channels.
 
-If you want a practical setup walkthrough with recommended configurations and real usage patterns, see [Use Voice Mode with Sparkii](/guides/use-voice-mode-with-sparkii).
+If you want a practical setup walkthrough with recommended configurations and real usage patterns, see [Use Voice Mode with Sparkii](../../guides/use-voice-mode-with-sparkii.md).
 
 For hands-free session start — saying "hey sparkii" (or any phrase) to open a fresh voice session on the CLI, TUI, or desktop app — see [Wake Word](/user-guide/features/wake-word).
 

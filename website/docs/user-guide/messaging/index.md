@@ -8,10 +8,6 @@ description: "Chat with Sparkii from Telegram, Discord, Slack, WhatsApp, Signal,
 
 Chat with Sparkii from Telegram, Discord, Slack, WhatsApp, Signal, SMS, Email, Home Assistant, Mattermost, Matrix, DingTalk, Feishu/Lark, WeCom, Weixin, BlueBubbles (iMessage), QQ, Yuanbao, Microsoft Teams, LINE, ntfy, or your browser. The gateway is a single background process that connects to all your configured platforms, handles sessions, runs cron jobs, and delivers voice messages.
 
-:::caution Removed in this fork
-Messaging-platform gateways have been removed from this fork. These pages are kept only as an upstream reference; the supported surfaces are the CLI, TUI, and the desktop app.
-:::
-
 For the full voice feature set — including CLI microphone mode, spoken replies in messaging, and Discord voice-channel conversations — see [Voice Mode](/user-guide/features/voice-mode) and [Use Voice Mode with Sparkii](/guides/use-voice-mode-with-sparkii).
 
 :::tip
@@ -524,14 +520,15 @@ When the agent running a background session uses `terminal(background=true)` to 
 
 ```yaml
 display:
-  background_process_notifications: all    # all | result | error | off
+  background_process_notifications: concise    # concise | all | result | error | off
 ```
 
 | Mode | What you receive |
 |------|-----------------|
-| `all` | Running-output updates **and** the final completion message (default) |
-| `result` | Only the final completion message (regardless of exit code) |
-| `error` | Only the final message when the exit code is non-zero |
+| `concise` | One-line status message on completion; failures append a short output tail (default) |
+| `all` | Running-output updates **and** the final raw-output message |
+| `result` | Only the final raw-output completion message (regardless of exit code) |
+| `error` | Only the final raw-output message when the exit code is non-zero |
 | `off` | No process watcher messages at all |
 
 You can also set this via environment variable:

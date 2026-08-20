@@ -380,7 +380,7 @@ TIPS = [
     "SPARKII_TUI_THEME=light|dark|<hex> forces the TUI theme on terminals that don't set COLORFGBG.",
     'Ctrl+G or Ctrl+X Ctrl+E in the TUI opens the input buffer in $EDITOR for long multi-line prompts.',
     'The TUI renders LaTeX inline — $E=mc^2$ becomes Unicode math instead of raw TeX.',
-    'sparkii dashboard launches a local web UI at 127.0.0.1:9219 — zero data leaves localhost.',
+    'sparkii dashboard launches a local web UI at 127.0.0.1:9119 — zero data leaves localhost.',
     'sparkii dashboard embeds the full Sparkii TUI in your browser via xterm.js and a WebSocket PTY.',
     'Drop a YAML in ~/.sparkii/dashboard-themes/ with two palette colors to reskin the entire dashboard.',
     'Dashboard plugins are drop-in: manifest.json + JS bundle in ~/.sparkii/dashboard-plugins/ — no npm build required.',
@@ -388,7 +388,7 @@ TIPS = [
 
     # --- Env Vars & Config Gates ---
     "display.tool_progress_command: true exposes /verbose on messaging platforms; it's CLI-only by default.",
-    'SPARKII_BACKGROUND_NOTIFICATIONS=result only pings when background tasks finish (vs all/error/off).',
+    'SPARKII_BACKGROUND_NOTIFICATIONS=result only pings when background tasks finish (vs concise/all/error/off).',
     'SPARKII_WRITE_SAFE_ROOT restricts write_file/patch to directory prefixes; multiple paths via os.pathsep (: or ;).',
     'SPARKII_IGNORE_RULES skips auto-injection of AGENTS.md, SOUL.md, .cursorrules, memory, and preloaded skills.',
     'SPARKII_ACCEPT_HOOKS auto-approves unseen shell hooks declared in config.yaml without a TTY prompt.',

@@ -15,6 +15,7 @@ import pytest
 
 from sparkii_cli.main import (
     _for_each_systemd_gateway_unit,
+    _service_unit_supports_graceful_sigusr1_restart,
     _warn_incomplete_gateway_fleet_restart,
 )
 
@@ -89,6 +90,72 @@ class TestFleetRestartTimeoutIsolation:
         )
 
         assert seen == ["sparkii-gateway-coder"]
+
+    def test_sparkii_serve_units_are_included(self):
+        # #83438 — sparkii update restarted sparkii-gateway* units but left
+        # sparkii-serve* (the Desktop app's backend) on stale pre-update code.
+        seen: list[str] = []
+
+        _for_each_systemd_gateway_unit(
+            "\n".join(
+                [
+                    "ssh.service loaded active running",
+                    "sparkii-serve.service loaded active running",
+                    "sparkii-serve-work.service loaded active running",
+                    "sparkii-gateway.service loaded active running",
+                    "",
+                ]
+            ),
+            process_unit=seen.append,
+            on_unit_timeout=lambda *_: pytest.fail("unexpected timeout"),
+        )
+
+        assert seen == ["sparkii-serve", "sparkii-serve-work", "sparkii-gateway"]
+
+    def test_sparkii_server_near_prefix_is_rejected(self):
+        # Review on #83595: a bare ``startswith("sparkii-serve")`` gate also
+        # accepts the unrelated ``sparkii-server.service``. Only the exact
+        # base unit or the hyphenated profile family should pass.
+        seen: list[str] = []
+
+        _for_each_systemd_gateway_unit(
+            _list_units_stdout(["sparkii-server"]),
+            process_unit=seen.append,
+            on_unit_timeout=lambda *_: pytest.fail("unexpected timeout"),
+        )
+
+        assert seen == []
+
+    def test_sparkii_gateway_near_prefix_is_rejected(self):
+        # Same strict shape on the gateway side: profile units are
+        # ``sparkii-gateway-<profile>``, so a hypothetical
+        # ``sparkii-gatewayd.service`` must not enter the restart path.
+        seen: list[str] = []
+
+        _for_each_systemd_gateway_unit(
+            _list_units_stdout(["sparkii-gatewayd", "sparkii-gateway-coder"]),
+            process_unit=seen.append,
+            on_unit_timeout=lambda *_: pytest.fail("unexpected timeout"),
+        )
+
+        assert seen == ["sparkii-gateway-coder"]
+
+
+class TestGracefulSigusr1Eligibility:
+    def test_gateway_units_are_eligible(self):
+        assert _service_unit_supports_graceful_sigusr1_restart("sparkii-gateway")
+        assert _service_unit_supports_graceful_sigusr1_restart(
+            "sparkii-gateway-work"
+        )
+
+    def test_serve_units_are_not_eligible(self):
+        # sparkii-serve doesn't run gateway/run.py, so it never installs the
+        # SIGUSR1 handler — sending it the signal would just terminate the
+        # process (the default action) instead of draining gracefully.
+        assert not _service_unit_supports_graceful_sigusr1_restart("sparkii-serve")
+        assert not _service_unit_supports_graceful_sigusr1_restart(
+            "sparkii-serve-work"
+        )
 
     def test_process_errors_other_than_timeout_still_propagate(self):
         def process_unit(_svc_name: str) -> None:

@@ -49,6 +49,23 @@ Use Sparkii Agent as an interactive terminal assistant for writing, reviewing, a
 Pass files directly into your conversation with context files. Sparkii Agent can read, edit, and run code in your projects.
 :::
 
+### "I want a Telegram/Discord bot"
+
+Deploy Sparkii Agent as a bot on your favorite messaging platform.
+
+1. [Installation](/getting-started/installation)
+2. [Configuration](/user-guide/configuration)
+3. [Messaging Overview](/user-guide/messaging)
+4. [Telegram Setup](/user-guide/messaging/telegram)
+5. [Discord Setup](/user-guide/messaging/discord)
+6. [Voice Mode](/user-guide/features/voice-mode)
+7. [Use Voice Mode with Sparkii](/guides/use-voice-mode-with-sparkii)
+8. [Security](/user-guide/security)
+
+For full project examples, see:
+- [Daily Briefing Bot](/guides/daily-briefing-bot)
+- [Team Telegram Assistant](/guides/team-telegram-assistant)
+
 ### "I want to automate tasks"
 
 Schedule recurring tasks, run batch jobs, or chain agent actions together.
@@ -62,6 +79,16 @@ Schedule recurring tasks, run batch jobs, or chain agent actions together.
 :::tip
 Cron jobs let Sparkii Agent run tasks on a schedule — daily summaries, periodic checks, automated reports — without you being present.
 :::
+
+### "I want a team of specialist Bots"
+
+Create named Bots with their own model, memory, skills, routines, and chats, then bring them together in group chats or through `@mentions`.
+
+1. [Desktop](/user-guide/desktop)
+2. [Profiles](/user-guide/profiles)
+3. [Bot Mode](/user-guide/bot-mode)
+4. [Cron Scheduling](/user-guide/features/cron)
+5. [Multi-connection Desktop](/user-guide/multi-connection-desktop)
 
 ### "I want to build custom tools/skills"
 
@@ -115,6 +142,7 @@ Not sure what's available? Here's a quick directory of major features:
 | **Tools** | Built-in tools the agent can call (file I/O, search, shell, etc.) | [Tools](/user-guide/features/tools) |
 | **Skills** | Installable plugin packages that add new capabilities | [Skills](/user-guide/features/skills) |
 | **Memory** | Persistent memory across sessions | [Memory](/user-guide/features/memory) |
+| **Bot Mode** | Named specialist Bots with persistent chats, routines, group chats, and `@mentions` | [Bot Mode](/user-guide/bot-mode) |
 | **Context Files** | Feed files and directories into conversations | [Context Files](/user-guide/features/context-files) |
 | **MCP** | Connect to external tool servers via Model Context Protocol | [MCP](/user-guide/features/mcp) |
 | **Cron** | Schedule recurring agent tasks | [Cron](/user-guide/features/cron) |

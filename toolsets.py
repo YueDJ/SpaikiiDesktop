@@ -276,7 +276,7 @@ TOOLSETS = {
         "description": "Desktop GUI affordances — in-app terminal/browser panes, pane focus, reactions (GUI sessions only)",
         "tools": [
             "read_terminal", "close_terminal",
-            "open_preview", "read_preview",
+            "open_preview", "close_preview", "read_preview",
             "read_window_below",
             "focus_pane", "react_to_message",
         ],

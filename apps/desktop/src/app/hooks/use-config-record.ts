@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { getSparkiiConfigRecord } from '@/sparkii'
+import { getSparkiiConfigRecord, type ProfileScope, profileScopeKey } from '@/sparkii'
 import { queryClient, writeCache } from '@/lib/query-client'
 import type { SparkiiConfigRecord } from '@/types/sparkii'
 
@@ -13,10 +13,36 @@ import type { SparkiiConfigRecord } from '@/types/sparkii'
 // it pushes personality/cwd/voice/… into the session stores for live chat.
 export const SPARKII_CONFIG_KEY = ['sparkii-config-record'] as const
 
+// Per-scope cache key. The base key (no suffix) is the app-wide active
+// profile, unchanged for every caller that passes nothing. An explicit scope —
+// the Capabilities scope selector configuring ANOTHER profile, possibly on
+// another registered gateway — gets its own suffixed key so switching the
+// selector refetches and never paints stale cross-profile config (the
+// AGENTS.md scope-in-key rule). profileScopeKey folds a remote pin's
+// connection id into the suffix, so two gateways' same-named profiles never
+// share a cache row.
+export const sparkiiConfigKey = (profile?: ProfileScope) =>
+  profile == null ? SPARKII_CONFIG_KEY : ([...SPARKII_CONFIG_KEY, profileScopeKey(profile)] as const)
+
 // staleTime 0 → serve cache instantly, background-revalidate on every mount.
-export const useSparkiiConfigRecord = () =>
-  useQuery({ queryKey: SPARKII_CONFIG_KEY, queryFn: getSparkiiConfigRecord, staleTime: 0 })
+// `profile` scopes both the query key and the fetch; omitting it preserves the
+// exact app-wide behavior (base key, `profileScoped(undefined)` fallback).
+export const useSparkiiConfigRecord = (profile?: ProfileScope) =>
+  useQuery({
+    queryKey: sparkiiConfigKey(profile),
+    // null/undefined both mean "no override" → fetch with undefined so
+    // capabilityScoped falls back to the app-wide active profile (passing null
+    // would wrongly target the primary backend).
+    queryFn: () => getSparkiiConfigRecord(profile ?? undefined),
+    staleTime: 0
+  })
 
+// setSparkiiConfigCache writes the app-wide (base-key) record. Pass a profile to
+// write the suffixed per-profile cache instead — keeps the selector's optimistic
+// write-through landing on the same key its query reads.
 export const setSparkiiConfigCache = writeCache<SparkiiConfigRecord>(SPARKII_CONFIG_KEY)
+export const sparkiiConfigCacheWriter = (profile?: ProfileScope) =>
+  writeCache<SparkiiConfigRecord>(sparkiiConfigKey(profile))
 
-export const invalidateSparkiiConfig = () => queryClient.invalidateQueries({ queryKey: SPARKII_CONFIG_KEY })
+export const invalidateSparkiiConfig = (profile?: ProfileScope) =>
+  queryClient.invalidateQueries({ queryKey: sparkiiConfigKey(profile) })

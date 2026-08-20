@@ -1,5 +1,6 @@
 """Tests for toolsets.py — toolset resolution, validation, and composition."""
 
+import toolsets as toolsets_mod
 from tools.registry import ToolRegistry
 from toolsets import (
     TOOLSETS,
@@ -202,10 +203,11 @@ class TestToolsetConsistency:
     def test_sparkii_platforms_share_core_tools(self):
         """All sparkii-* platform toolsets share the same core tools.
 
-        Platform-specific additions are allowed on top — the invariant is
-        that the core set is identical across platforms.
+        Platform-specific additions (e.g. ``discord`` / ``discord_admin``
+        on sparkii-discord, gated on DISCORD_BOT_TOKEN) are allowed on top —
+        the invariant is that the core set is identical across platforms.
         """
-        platforms = ["sparkii-cli", "sparkii-cron", "sparkii-acp", "sparkii-api-server"]
+        platforms = ["sparkii-cli", "sparkii-telegram", "sparkii-discord", "sparkii-whatsapp", "sparkii-slack", "sparkii-signal", "sparkii-homeassistant"]
         tool_sets = [set(TOOLSETS[p]["tools"]) for p in platforms]
         # All platforms must contain the shared core; platform-specific
         # extras are OK (subset check, not equality).
@@ -235,8 +237,8 @@ class TestPluginToolsets:
 
 
 class TestDefaultPlatformWebSearchCoverage:
-    def test_sparkii_webhook_toolset_includes_web_search(self):
-        assert "web_search" in resolve_toolset("sparkii-webhook")
+    def test_sparkii_whatsapp_toolset_includes_web_search(self):
+        assert "web_search" in resolve_toolset("sparkii-whatsapp")
 
 
 
@@ -280,3 +282,77 @@ class TestResolveToolsetIncludeRegistry:
 
     def test_registry_only_toolset_static_view_is_empty(self):
         assert resolve_toolset("__definitely_not_a_real_toolset__", include_registry=False) == []
+
+
+class TestResolveToolsetMemo:
+    """Measured-work pins for the generation-keyed resolution memo."""
+
+    def test_second_resolution_is_cached(self, monkeypatch):
+        """Repeated resolves of the same toolset must not re-walk the registry.
+
+        resolve_toolset is called dozens of times per _get_platform_tools()
+        (every /tools completion keystroke). The memo keyed on the registry
+        generation makes repeat calls a dict lookup instead of a full
+        includes-walk + registry snapshot.
+        """
+        from tools.registry import registry
+
+        toolsets_mod._resolve_toolset_memo.clear()
+        get_toolset_calls = {"n": 0}
+
+        orig_get_toolset = toolsets_mod.get_toolset
+
+        def counting_get_toolset(name, *, include_registry=True):
+            get_toolset_calls["n"] += 1
+            return orig_get_toolset(name, include_registry=include_registry)
+
+        monkeypatch.setattr(toolsets_mod, "get_toolset", counting_get_toolset)
+
+        registry_id = id(registry)
+        generation = registry._generation
+
+        first = resolve_toolset("sparkii-cli")
+        second = resolve_toolset("sparkii-cli")
+
+        assert first == second
+        assert get_toolset_calls["n"] == 1, (
+            "second resolution must be a memo hit (no get_toolset re-walk), "
+            f"got {get_toolset_calls['n']} calls"
+        )
+        assert (
+            "sparkii-cli", True, registry_id, generation
+        ) in toolsets_mod._resolve_toolset_memo
+
+    def test_generation_bump_invalidates_memo(self, monkeypatch):
+        """A registry mutation (generation bump) must force a fresh resolve."""
+        from tools.registry import registry
+
+        toolsets_mod._resolve_toolset_memo.clear()
+        get_toolset_calls = {"n": 0}
+
+        orig_get_toolset = toolsets_mod.get_toolset
+
+        def counting_get_toolset(name, *, include_registry=True):
+            get_toolset_calls["n"] += 1
+            return orig_get_toolset(name, include_registry=include_registry)
+
+        monkeypatch.setattr(toolsets_mod, "get_toolset", counting_get_toolset)
+
+        resolve_toolset("sparkii-cli")
+        assert get_toolset_calls["n"] == 1
+
+        # Simulate a registry mutation bumping the generation.
+        registry._generation += 1
+        resolve_toolset("sparkii-cli")
+        assert get_toolset_calls["n"] == 2, (
+            "generation bump must invalidate the memo and re-resolve"
+        )
+
+    def test_memo_result_matches_fresh_resolution(self):
+        """The memo must never change the resolved result."""
+        toolsets_mod._resolve_toolset_memo.clear()
+        first = resolve_toolset("sparkii-cli", include_registry=False)
+        second = resolve_toolset("sparkii-cli", include_registry=False)
+        assert first == second
+        assert first  # non-empty sanity
+

@@ -11,7 +11,7 @@ metadata:
     homepage: https://gofastmcp.com
     related_skills: [sparkii-agent, mcporter]
 prerequisites:
-  commands: [python3]
+  commands: [python]
 ---
 
 # FastMCP
