@@ -8,9 +8,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 // a previously burned heal token, not $userPlacedPanes. The invariant is
 // boot-scoped, so an intra-session drag sticks until the next launch.
 
-const TREE_KEY = 'hermes.desktop.layoutTree.v2'
-const USER_PLACED_KEY = 'hermes.desktop.userPlacedPanes.v1'
-const LEGACY_HEAL_KEY = 'hermes.desktop.paneDockHeals.v1'
+const TREE_KEY = 'sparkii.desktop.layoutTree.v2'
+const USER_PLACED_KEY = 'sparkii.desktop.userPlacedPanes.v1'
+const LEGACY_HEAL_KEY = 'sparkii.desktop.paneDockHeals.v1'
 
 // The shipped regression shape: sessions and bots as SIBLING groups in a
 // column (the old `pos: 'bottom'` split), workspace beside them.
@@ -27,7 +27,7 @@ const stackedTree = {
       weights: [1, 1],
       children: [
         { type: 'group', id: 'g-sessions', panes: ['sessions'], active: 'sessions' },
-        { type: 'group', id: 'g-bots', panes: ['hermes-bots:pane'], active: 'hermes-bots:pane' }
+        { type: 'group', id: 'g-bots', panes: ['sparkii-bots:pane'], active: 'sparkii-bots:pane' }
       ]
     },
     { type: 'group', id: 'g-main', panes: ['workspace'], active: 'workspace' }
@@ -66,7 +66,7 @@ describe('enforced dock (stacked Bots pane → sessions-zone tab, every boot)', 
       render: () => null
     })
     registry.register({
-      id: 'hermes-bots:pane',
+      id: 'sparkii-bots:pane',
       area: 'panes',
       title: 'Bots',
       data: {
@@ -78,7 +78,7 @@ describe('enforced dock (stacked Bots pane → sessions-zone tab, every boot)', 
 
     if (options.routines) {
       registry.register({
-        id: 'hermes-bots:routines',
+        id: 'sparkii-bots:routines',
         area: 'panes',
         title: 'Cronjobs',
         data: { placement: 'main', dock: { pane: 'workspace', pos: 'right', enforce: true } },
@@ -98,39 +98,39 @@ describe('enforced dock (stacked Bots pane → sessions-zone tab, every boot)', 
 
     tree.watchContributedPanes()
 
-    const group = model.findGroupOfPane(tree.$layoutTree.get()!, 'hermes-bots:pane')!
+    const group = model.findGroupOfPane(tree.$layoutTree.get()!, 'sparkii-bots:pane')!
 
-    expect(group.panes).toEqual(['sessions', 'hermes-bots:pane'])
+    expect(group.panes).toEqual(['sessions', 'sparkii-bots:pane'])
     // Silent like adoption — the enforce must not steal the sessions tab.
     expect(group.active).toBe('sessions')
     // The persisted tree carries the tabbed shape (survives the next boot).
     const persisted = JSON.parse(window.localStorage.getItem(TREE_KEY)!) as { children?: unknown[] }
 
-    expect(JSON.stringify(persisted)).toContain('"panes":["sessions","hermes-bots:pane"]')
+    expect(JSON.stringify(persisted)).toContain('"panes":["sessions","sparkii-bots:pane"]')
   })
 
   it('re-homes even a USER-PLACED pane — the owner invariant beats the drag record', async () => {
-    window.localStorage.setItem(USER_PLACED_KEY, JSON.stringify(['hermes-bots:pane']))
+    window.localStorage.setItem(USER_PLACED_KEY, JSON.stringify(['sparkii-bots:pane']))
 
     const { model, tree } = await setup()
 
     tree.watchContributedPanes()
 
-    const group = model.findGroupOfPane(tree.$layoutTree.get()!, 'hermes-bots:pane')!
+    const group = model.findGroupOfPane(tree.$layoutTree.get()!, 'sparkii-bots:pane')!
 
-    expect(group.panes).toEqual(['sessions', 'hermes-bots:pane'])
+    expect(group.panes).toEqual(['sessions', 'sparkii-bots:pane'])
   })
 
   it('re-homes even when the retired heal token was already burned, and clears the stale ledger', async () => {
-    window.localStorage.setItem(LEGACY_HEAL_KEY, JSON.stringify(['hermes-bots:pane:sessions-tab-v1']))
+    window.localStorage.setItem(LEGACY_HEAL_KEY, JSON.stringify(['sparkii-bots:pane:sessions-tab-v1']))
 
     const { model, tree } = await setup()
 
     tree.watchContributedPanes()
 
-    const group = model.findGroupOfPane(tree.$layoutTree.get()!, 'hermes-bots:pane')!
+    const group = model.findGroupOfPane(tree.$layoutTree.get()!, 'sparkii-bots:pane')!
 
-    expect(group.panes).toEqual(['sessions', 'hermes-bots:pane'])
+    expect(group.panes).toEqual(['sessions', 'sparkii-bots:pane'])
     // The one-time-heal ledger is dead state now — importing the store drops it.
     expect(window.localStorage.getItem(LEGACY_HEAL_KEY)).toBeNull()
   })
@@ -141,7 +141,7 @@ describe('enforced dock (stacked Bots pane → sessions-zone tab, every boot)', 
     tree.watchContributedPanes()
 
     // Sanity: enforced into the strip.
-    expect(model.findGroupOfPane(tree.$layoutTree.get()!, 'hermes-bots:pane')!.panes).toContain('sessions')
+    expect(model.findGroupOfPane(tree.$layoutTree.get()!, 'sparkii-bots:pane')!.panes).toContain('sessions')
 
     // The user drags the pane back out into its own zone below sessions.
     tree.$layoutTree.set(JSON.parse(JSON.stringify(stackedTree)))
@@ -156,9 +156,9 @@ describe('enforced dock (stacked Bots pane → sessions-zone tab, every boot)', 
       render: () => null
     })
 
-    const group = model.findGroupOfPane(tree.$layoutTree.get()!, 'hermes-bots:pane')!
+    const group = model.findGroupOfPane(tree.$layoutTree.get()!, 'sparkii-bots:pane')!
 
-    expect(group.panes).toEqual(['hermes-bots:pane'])
+    expect(group.panes).toEqual(['sparkii-bots:pane'])
   })
 
   it('re-homes again on the NEXT boot after a drag persisted the stacked shape', async () => {
@@ -175,9 +175,9 @@ describe('enforced dock (stacked Bots pane → sessions-zone tab, every boot)', 
 
     second.tree.watchContributedPanes()
 
-    const group = second.model.findGroupOfPane(second.tree.$layoutTree.get()!, 'hermes-bots:pane')!
+    const group = second.model.findGroupOfPane(second.tree.$layoutTree.get()!, 'sparkii-bots:pane')!
 
-    expect(group.panes).toEqual(['sessions', 'hermes-bots:pane'])
+    expect(group.panes).toEqual(['sessions', 'sparkii-bots:pane'])
   })
 
   it('forces the tab strip visible when already co-located but hidden with bots active (community "only Bots shows" regression)', async () => {
@@ -194,8 +194,8 @@ describe('enforced dock (stacked Bots pane → sessions-zone tab, every boot)', 
         {
           type: 'group',
           id: 'g-left',
-          panes: ['sessions', 'hermes-bots:pane'],
-          active: 'hermes-bots:pane',
+          panes: ['sessions', 'sparkii-bots:pane'],
+          active: 'sparkii-bots:pane',
           headerHidden: true
         },
         { type: 'group', id: 'g-main', panes: ['workspace'], active: 'workspace' }
@@ -206,11 +206,11 @@ describe('enforced dock (stacked Bots pane → sessions-zone tab, every boot)', 
 
     tree.watchContributedPanes()
 
-    const group = model.findGroupOfPane(tree.$layoutTree.get()!, 'hermes-bots:pane')!
+    const group = model.findGroupOfPane(tree.$layoutTree.get()!, 'sparkii-bots:pane')!
 
     // Both panes stay put — but the strip is forced visible so SESSIONS is
     // reachable again. The active tab is NOT stolen mid-boot.
-    expect(group.panes).toEqual(['sessions', 'hermes-bots:pane'])
+    expect(group.panes).toEqual(['sessions', 'sparkii-bots:pane'])
     expect(group.headerHidden).not.toBe(true)
   })
 
@@ -224,8 +224,8 @@ describe('enforced dock (stacked Bots pane → sessions-zone tab, every boot)', 
         {
           type: 'group',
           id: 'g-sessions',
-          panes: ['sessions', 'hermes-bots:pane', 'hermes-bots:routines'],
-          active: 'hermes-bots:pane'
+          panes: ['sessions', 'sparkii-bots:pane', 'sparkii-bots:routines'],
+          active: 'sparkii-bots:pane'
         },
         { type: 'group', id: 'g-main', panes: ['workspace'], active: 'workspace' }
       ]
@@ -235,12 +235,12 @@ describe('enforced dock (stacked Bots pane → sessions-zone tab, every boot)', 
 
     tree.watchContributedPanes()
 
-    const botsGroup = model.findGroupOfPane(tree.$layoutTree.get()!, 'hermes-bots:pane')!
-    const routinesGroup = model.findGroupOfPane(tree.$layoutTree.get()!, 'hermes-bots:routines')!
+    const botsGroup = model.findGroupOfPane(tree.$layoutTree.get()!, 'sparkii-bots:pane')!
+    const routinesGroup = model.findGroupOfPane(tree.$layoutTree.get()!, 'sparkii-bots:routines')!
 
-    expect(botsGroup.panes).toEqual(['sessions', 'hermes-bots:pane'])
-    expect(botsGroup.active).toBe('hermes-bots:pane')
-    expect(routinesGroup.panes).toEqual(['hermes-bots:routines'])
+    expect(botsGroup.panes).toEqual(['sessions', 'sparkii-bots:pane'])
+    expect(botsGroup.active).toBe('sparkii-bots:pane')
+    expect(routinesGroup.panes).toEqual(['sparkii-bots:routines'])
     expect(routinesGroup.id).not.toBe(botsGroup.id)
   })
 
@@ -254,15 +254,15 @@ describe('enforced dock (stacked Bots pane → sessions-zone tab, every boot)', 
         {
           type: 'group',
           id: 'g-sessions',
-          panes: ['sessions', 'hermes-bots:pane'],
-          active: 'hermes-bots:pane'
+          panes: ['sessions', 'sparkii-bots:pane'],
+          active: 'sparkii-bots:pane'
         },
         { type: 'group', id: 'g-main', panes: ['workspace'], active: 'workspace' },
         {
           type: 'group',
           id: 'g-routines',
-          panes: ['hermes-bots:routines'],
-          active: 'hermes-bots:routines'
+          panes: ['sparkii-bots:routines'],
+          active: 'sparkii-bots:routines'
         }
       ]
     }

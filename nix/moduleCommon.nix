@@ -1,6 +1,6 @@
 # nix/moduleCommon.nix — the code that the NixOS and Home Manager modules share
 #
-# `services.hermes-agent` is the same option set on both modules. Both modules
+# `services.sparkii-agent` is the same option set on both modules. Both modules
 # get their options, their renderers for config.yaml, .env and documents, and
 # their state setup from this file. A NixOS example works on Home Manager
 # without a change. An option added here appears on both modules at once.
@@ -10,7 +10,7 @@
 #   nixosModules.nix        the service user and group, stateDir,
 #                           addToSystemPackages, container mode, tmpfiles,
 #                           system.activationScripts, system systemd units
-#   homeManagerModules.nix  hermesHome, installPackage, home.activation,
+#   homeManagerModules.nix  sparkiiHome, installPackage, home.activation,
 #                           systemd.user.services, launchd.agents
 #
 # The split is by scope, not by feature. Code that needs root or a system
@@ -28,8 +28,8 @@ let
   # More than one module can set `settings = { ... }`. recursiveUpdate joins
   # all of the definitions. Without it, only the last definition applies.
   deepConfigType = types.mkOptionType {
-    name = "hermes-config-attrs";
-    description = "Hermes YAML config (attrset), merged deeply via lib.recursiveUpdate.";
+    name = "sparkii-config-attrs";
+    description = "Sparkii YAML config (attrset), merged deeply via lib.recursiveUpdate.";
     check = builtins.isAttrs;
     merge = _loc: defs: lib.foldl' lib.recursiveUpdate { } (map (d: d.value) defs);
   };
@@ -72,7 +72,7 @@ let
         default = null;
         description = ''
           Authentication method. Set to "oauth" for OAuth 2.1 PKCE flow
-          (remote MCP servers). Tokens are stored in $HERMES_HOME/mcp-tokens/.
+          (remote MCP servers). Tokens are stored in $SPARKII_HOME/mcp-tokens/.
         '';
       };
 
@@ -233,14 +233,14 @@ let
       defaultWorkingDirectoryText,
     }:
     {
-      enable = lib.mkEnableOption "Hermes Agent";
+      enable = lib.mkEnableOption "Sparkii Agent";
 
       # ── Package ────────────────────────────────────────────────────────
       package = mkOption {
         type = types.package;
         default = defaultPackage;
         defaultText = defaultPackageText;
-        description = "The hermes-agent package to use.";
+        description = "The sparkii-agent package to use.";
       };
 
       workingDirectory = mkOption {
@@ -270,12 +270,12 @@ let
         type = deepConfigType;
         default = { };
         description = ''
-          The Hermes configuration, as an attribute set. The module joins the
+          The Sparkii configuration, as an attribute set. The module joins the
           definitions from all modules and writes the result to config.yaml.
 
           The merge into the config.yaml on disk is also a deep merge. These
           keys replace the keys on disk. The module keeps all other keys,
-          which includes the keys that `hermes config set` and the settings
+          which includes the keys that `sparkii config set` and the settings
           panes of the TUI and the desktop app write at runtime.
         '';
         example = literalExpression ''
@@ -298,13 +298,13 @@ let
         description = ''
           The paths to environment files that contain secrets, for example
           API keys and tokens. Activation adds the contents of these files to
-          $HERMES_HOME/.env. Hermes reads that file at each start, with
-          load_hermes_dotenv().
+          $SPARKII_HOME/.env. Sparkii reads that file at each start, with
+          load_sparkii_dotenv().
 
           Each activation writes .env again from the start. Thus a secret
           file cannot go into .env two times.
         '';
-        example = literalExpression ''[ config.sops.secrets."hermes/env".path ]'';
+        example = literalExpression ''[ config.sops.secrets."sparkii/env".path ]'';
       };
 
       environment = mkOption {
@@ -312,7 +312,7 @@ let
         default = { };
         description = ''
           Environment variables that are not secret. Activation writes them
-          to $HERMES_HOME/.env.
+          to $SPARKII_HOME/.env.
 
           CAUTION: Do not put secrets in this option. All users can read the
           Nix store. Use environmentFiles for secrets.
@@ -325,7 +325,7 @@ let
         description = ''
           The path to a file that gives the first contents of auth.json, the
           OAuth credentials. The module copies the file only when auth.json
-          does not exist. Thus a token that Hermes refreshes at runtime stays
+          does not exist. Thus a token that Sparkii refreshes at runtime stays
           after an activation.
         '';
       };
@@ -347,8 +347,8 @@ let
 
           Use this option for the project context that the agent reads from
           its working directory, for example AGENTS.md, notes and checklists.
-          Hermes reads SOUL.md and memories/ from HERMES_HOME, so put those
-          files in `hermesHomeFiles`.
+          Sparkii reads SOUL.md and memories/ from SPARKII_HOME, so put those
+          files in `sparkiiHomeFiles`.
 
           If you set this option, you must also set `workingDirectory`. The
           default of that option is different on each module. Thus an unset
@@ -362,16 +362,16 @@ let
         '';
       };
 
-      hermesHomeFiles = mkOption {
+      sparkiiHomeFiles = mkOption {
         type = documentsType;
         default = { };
         description = ''
-          Files that the module installs into HERMES_HOME. Each key is a path
+          Files that the module installs into SPARKII_HOME. Each key is a path
           relative to that directory, and the module makes the necessary
           subdirectories. Each value is a string or a path.
 
-          Hermes reads SOUL.md and the memory files from HERMES_HOME and not
-          from the working directory. Declare those files here, or Hermes
+          Sparkii reads SOUL.md and the memory files from SPARKII_HOME and not
+          from the working directory. Declare those files here, or Sparkii
           does not load them.
         '';
         example = literalExpression ''
@@ -419,16 +419,16 @@ let
         type = types.listOf types.package;
         default = [ ];
         description = ''
-          Directory-based plugin packages to symlink into the hermes plugins
+          Directory-based plugin packages to symlink into the sparkii plugins
           directory. Each package must contain a plugin.yaml and __init__.py
-          at its root. Hermes discovers these automatically on startup.
+          at its root. Sparkii discovers these automatically on startup.
         '';
         example = literalExpression ''
           [
             (pkgs.fetchFromGitHub {
               owner = "stephenschoettler";
-              repo = "hermes-lcm";
-              name = "hermes-lcm";
+              repo = "sparkii-lcm";
+              name = "sparkii-lcm";
               rev = "v0.7.0";
               hash = "sha256-...";
             })
@@ -442,17 +442,17 @@ let
         description = ''
           Python packages to add to PYTHONPATH for entry-point plugin discovery.
           These are pip-packaged plugins that register via the
-          hermes_agent.plugins entry-point group. Each package must be built
-          with the same Python interpreter as hermes (python312).
+          sparkii_agent.plugins entry-point group. Each package must be built
+          with the same Python interpreter as sparkii (python312).
         '';
         example = literalExpression ''
           [
             (pkgs.python312Packages.buildPythonPackage {
-              pname = "rtk-hermes";
+              pname = "rtk-sparkii";
               version = "1.0.0";
               src = pkgs.fetchFromGitHub {
                 owner = "ogallotti";
-                repo = "rtk-hermes";
+                repo = "rtk-sparkii";
                 rev = "main";
                 hash = "sha256-...";
               };
@@ -469,7 +469,7 @@ let
           the sealed Python venv. These are resolved by uv alongside core
           dependencies — no PYTHONPATH patching or collision risk.
 
-          Use this for optional extras already declared in hermes-agent's
+          Use this for optional extras already declared in sparkii-agent's
           pyproject.toml (e.g. "hindsight", "honcho", "voice").
           Use extraPythonPackages for external packages not in pyproject.toml.
         '';
@@ -480,7 +480,7 @@ let
       extraArgs = mkOption {
         type = types.listOf types.str;
         default = [ ];
-        description = "Extra command-line arguments for `hermes gateway`.";
+        description = "Extra command-line arguments for `sparkii gateway`.";
       };
 
       restart = mkOption {
@@ -495,16 +495,16 @@ let
         description = "The systemd RestartSec= value. Darwin does not use this option.";
       };
 
-      # ── The backend: `hermes serve` or `hermes dashboard` ──────────────
-      # `hermes serve` and `hermes dashboard` are the same entry point,
-      # hermes_cli.main:cmd_dashboard, with one flag of difference. serve runs
+      # ── The backend: `sparkii serve` or `sparkii dashboard` ──────────────
+      # `sparkii serve` and `sparkii dashboard` are the same entry point,
+      # sparkii_cli.main:cmd_dashboard, with one flag of difference. serve runs
       # without a user interface. dashboard also serves the web application.
-      # Both give the /api/ws and /api/pty sockets that Hermes Desktop
+      # Both give the /api/ws and /api/pty sockets that Sparkii Desktop
       # connects to. They are one process, and you can run only one of them.
       # Thus this option is an enum and not two booleans.
       #
       # The backend does not run the messaging gateway. web_server.py only
-      # controls an external gateway, with `hermes gateway restart`. It does
+      # controls an external gateway, with `sparkii gateway restart`. It does
       # not contain a gateway.
       backend = {
         mode = mkOption {
@@ -519,7 +519,7 @@ let
 
             - "none"      — no backend
             - "serve"     — the backend without a user interface. It gives
-                            the /api/ws and /api/pty sockets that Hermes
+                            the /api/ws and /api/pty sockets that Sparkii
                             Desktop connects to.
             - "dashboard" — all that "serve" gives, and the browser admin
                             panel on the same port
@@ -577,7 +577,7 @@ let
       workingDirectory,
     }:
     let
-      generated = pkgs.writeText "hermes-config.yaml" (
+      generated = pkgs.writeText "sparkii-config.yaml" (
         builtins.toJSON (lib.recursiveUpdate { terminal.cwd = workingDirectory; } cfg.settings)
       );
     in
@@ -592,7 +592,7 @@ let
   # install loop can copy each entry with `install -D`.
   mkDocumentTree =
     { pkgs, documents }:
-    pkgs.runCommand "hermes-documents" { } (
+    pkgs.runCommand "sparkii-documents" { } (
       ''
         mkdir -p $out
       ''
@@ -606,7 +606,7 @@ let
           if builtins.isPath value || lib.isStorePath value then
             "${mkdir}\ncp ${value} $out/${name}"
           else
-            "${mkdir}\ncat > $out/${name} <<'HERMES_DOC_EOF'\n${value}\nHERMES_DOC_EOF"
+            "${mkdir}\ncat > $out/${name} <<'SPARKII_DOC_EOF'\n${value}\nSPARKII_DOC_EOF"
         ) documents
       )
     );
@@ -619,12 +619,12 @@ let
   mkEnvScript =
     { pkgs, environment }:
     let
-      base = pkgs.writeText "hermes-env-base" (
+      base = pkgs.writeText "sparkii-env-base" (
         lib.concatStringsSep "\n" (lib.mapAttrsToList (k: v: "${k}=${v}") environment)
         + lib.optionalString (environment != { }) "\n"
       );
     in
-    pkgs.writeShellScript "hermes-env-merge" ''
+    pkgs.writeShellScript "sparkii-env-merge" ''
       set -eu
 
       dest="$1"
@@ -637,7 +637,7 @@ let
           printf '\n' >> "$dest"
           cat "$file" >> "$dest"
         else
-          echo "hermes-agent: WARNING cannot read environmentFile $file" >&2
+          echo "sparkii-agent: WARNING cannot read environmentFile $file" >&2
         fi
       done
     '';
@@ -658,7 +658,7 @@ let
     {
       pkgs,
       cfg,
-      hermesHome,
+      sparkiiHome,
       workingDirectory,
       # The value to write as terminal.cwd. It is different from
       # workingDirectory only in the container mode of NixOS. There the agent
@@ -671,7 +671,7 @@ let
       stateDirs ? [ ],
       # The module writes this value into the .managed marker. An
       # interactive shell reads the marker, because it does not see the
-      # HERMES_MANAGED variable of the service. The value tells the shell
+      # SPARKII_MANAGED variable of the service. The value tells the shell
       # which system owns the install and which rebuild command to name.
       managedSystem ? "nixos",
     }:
@@ -696,7 +696,7 @@ let
       };
       homeDocumentTree = mkDocumentTree {
         inherit pkgs;
-        documents = cfg.hermesHomeFiles;
+        documents = cfg.sparkiiHomeFiles;
       };
 
       inst = "${run}install ${installFlags}";
@@ -710,67 +710,67 @@ let
         );
     in
     ''
-      # Directories. The service units and Hermes make most of these
+      # Directories. The service units and Sparkii make most of these
       # directories when they first need them. Activation makes them here so
       # that the first activation sets the correct owner and mode, and does
       # not use the umask.
       ${run}mkdir -p ${
         lib.escapeShellArgs (
           [
-            hermesHome
+            sparkiiHome
             workingDirectory
           ]
-          ++ map (d: "${hermesHome}/${d}") stateDirs
+          ++ map (d: "${sparkiiHome}/${d}") stateDirs
         )
       }
 
-      # config.yaml: merge the Nix settings into the file on disk. Hermes
+      # config.yaml: merge the Nix settings into the file on disk. Sparkii
       # writes this file at runtime. A read-only symlink to the Nix store
       # breaks each save from the application. The Nix keys replace the keys
       # on disk, and the module keeps all other keys.
       ${
         if cfg.configFile != null then
-          "${inst} -m ${modes.config} -D ${configFiles.effective} ${hermesHome}/config.yaml"
+          "${inst} -m ${modes.config} -D ${configFiles.effective} ${sparkiiHome}/config.yaml"
         else
           ''
-            ${run}${configFiles.mergeScript} ${configFiles.generated} ${hermesHome}/config.yaml
-            ${run}chmod ${modes.config} ${hermesHome}/config.yaml
+            ${run}${configFiles.mergeScript} ${configFiles.generated} ${sparkiiHome}/config.yaml
+            ${run}chmod ${modes.config} ${sparkiiHome}/config.yaml
           ''
       }
 
       # The managed-mode marker. It makes an interactive shell also refuse to
       # change the configuration that Nix owns.
-      ${inst} -m ${modes.managed} ${pkgs.writeText "hermes-managed" managedSystem} ${hermesHome}/.managed
+      ${inst} -m ${modes.managed} ${pkgs.writeText "sparkii-managed" managedSystem} ${sparkiiHome}/.managed
 
       ${lib.optionalString (cfg.environment != { } || cfg.environmentFiles != [ ]) ''
-        ${run}${envScript} ${hermesHome}/.env ${modes.env} ${lib.escapeShellArgs cfg.environmentFiles}
-        ${lib.optionalString (owner != null) "${run}chown ${owner} ${hermesHome}/.env"}
+        ${run}${envScript} ${sparkiiHome}/.env ${modes.env} ${lib.escapeShellArgs cfg.environmentFiles}
+        ${lib.optionalString (owner != null) "${run}chown ${owner} ${sparkiiHome}/.env"}
       ''}
 
       ${lib.optionalString (cfg.authFile != null) (
         if cfg.authFileForceOverwrite then
-          "${inst} -m ${modes.auth} ${cfg.authFile} ${hermesHome}/auth.json"
+          "${inst} -m ${modes.auth} ${cfg.authFile} ${sparkiiHome}/auth.json"
         else
           ''
-            if [ ! -e ${hermesHome}/auth.json ]; then
-              ${inst} -m ${modes.auth} ${cfg.authFile} ${hermesHome}/auth.json
+            if [ ! -e ${sparkiiHome}/auth.json ]; then
+              ${inst} -m ${modes.auth} ${cfg.authFile} ${sparkiiHome}/auth.json
             fi
           ''
       )}
 
       ${installDocuments documentTree workingDirectory cfg.documents}
-      ${installDocuments homeDocumentTree hermesHome cfg.hermesHomeFiles}
+      ${installDocuments homeDocumentTree sparkiiHome cfg.sparkiiHomeFiles}
 
       # Declarative plugins. Activation first deletes the old managed
       # symlinks. Thus a plugin that you remove from the configuration also
       # goes away from the plugins directory.
-      ${run}find ${hermesHome}/plugins -maxdepth 1 -type l -name 'nix-managed-*' -delete 2>/dev/null || true
+      ${run}find ${sparkiiHome}/plugins -maxdepth 1 -type l -name 'nix-managed-*' -delete 2>/dev/null || true
       ${lib.concatMapStringsSep "\n" (plugin: ''
         if [ ! -f ${plugin}/plugin.yaml ]; then
-          echo "hermes-agent: ERROR extraPlugins entry '${plugin}' has no plugin.yaml" >&2
+          echo "sparkii-agent: ERROR extraPlugins entry '${plugin}' has no plugin.yaml" >&2
           exit 1
         fi
-        ${run}ln -sfn ${plugin} ${hermesHome}/plugins/nix-managed-${lib.getName plugin}
+        ${run}ln -sfn ${plugin} ${sparkiiHome}/plugins/nix-managed-${lib.getName plugin}
       '') cfg.extraPlugins}
     '';
 
@@ -778,7 +778,7 @@ let
   gatewayArgv =
     cfg:
     [
-      "${effectivePackage cfg}/bin/hermes"
+      "${effectivePackage cfg}/bin/sparkii"
       "gateway"
     ]
     ++ cfg.extraArgs;
@@ -786,7 +786,7 @@ let
   backendArgv =
     cfg:
     [
-      "${effectivePackage cfg}/bin/hermes"
+      "${effectivePackage cfg}/bin/sparkii"
       cfg.backend.mode
       "--host"
       cfg.backend.host
@@ -800,24 +800,24 @@ let
   backendDescription =
     cfg:
     if cfg.backend.mode == "dashboard" then
-      "Hermes Agent web dashboard and desktop backend"
+      "Sparkii Agent web dashboard and desktop backend"
     else
-      "Hermes Agent backend for Hermes Desktop";
+      "Sparkii Agent backend for Sparkii Desktop";
 
-  # The environment that each Hermes process needs, from either module.
+  # The environment that each Sparkii process needs, from either module.
   #
-  # managedSystem gives the value of HERMES_MANAGED. The CLI reads that
+  # managedSystem gives the value of SPARKII_MANAGED. The CLI reads that
   # variable to refuse a configuration change that it cannot keep, and to
   # name the correct rebuild command. The answer is different on each module,
   # so each module gives its own value.
   processEnvironment =
     {
-      hermesHome,
+      sparkiiHome,
       managedSystem ? "true",
     }:
     {
-      HERMES_HOME = hermesHome;
-      HERMES_MANAGED = managedSystem;
+      SPARKII_HOME = sparkiiHome;
+      SPARKII_MANAGED = managedSystem;
     };
 
   processPath =
@@ -862,9 +862,9 @@ let
 
             ${optionPath}.workingDirectory = "/path/you/want";
 
-          To give Hermes an identity and a memory, use
-          ${optionPath}.hermesHomeFiles instead. Those files go to
-          HERMES_HOME. Hermes reads SOUL.md and memories/ only from there.
+          To give Sparkii an identity and a memory, use
+          ${optionPath}.sparkiiHomeFiles instead. Those files go to
+          SPARKII_HOME. Sparkii reads SOUL.md and memories/ only from there.
         '';
       }
     ];
@@ -884,7 +884,7 @@ let
       }
     ];
 
-  # The subdirectories of HERMES_HOME that both modules make.
+  # The subdirectories of SPARKII_HOME that both modules make.
   stateSubdirs = [
     "cron"
     "sessions"

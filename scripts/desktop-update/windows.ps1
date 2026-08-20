@@ -2,14 +2,14 @@
 #
 # WHY THIS EXISTS (the frozen-binary problem): the Desktop's Update button
 # used to hand off exclusively to the staged Tauri binary
-# (%HERMES_HOME%\hermes-setup.exe). That binary has no self-update path --
-# copy_self_to_hermes_home deliberately no-ops during --update -- so every
+# (%SPARKII_HOME%\sparkii-setup.exe). That binary has no self-update path --
+# copy_self_to_sparkii_home deliberately no-ops during --update -- so every
 # updater-side fix (cache refresh #67369, marker self-adopt #74782, straggler
 # handling) only reaches users when a new installer is built, signed, and
 # published. In practice binaries go months stale and users hit long-fixed
 # bugs on every update (the 2026-08-09 incident chain).
 #
-# This script lives in the repo checkout, so EVERY `hermes update` refreshes
+# This script lives in the repo checkout, so EVERY `sparkii update` refreshes
 # the very code that drives the next update. The Desktop spawns it through a
 # `cmd start` wrapper (see wrapHandoffForDetachedConsole in
 # apps/desktop/electron/updater-process.ts -- a bare detached+hidden
@@ -19,24 +19,24 @@
 # CONTRACT (keep in sync with apps/desktop/electron/main.ts):
 #   cmd /d /s /c start "" /min powershell -NoProfile -ExecutionPolicy Bypass
 #     -File scripts\desktop-update\windows.ps1
-#     -InstallRoot <path>   repo checkout (HERMES_HOME\hermes-agent)
+#     -InstallRoot <path>   repo checkout (SPARKII_HOME\sparkii-agent)
 #     -Branch <ref>         branch to update against
 #     -DesktopPid <pid>     the Electron main process to wait out
-#     [-RelaunchExe <path>] Hermes.exe to start when done (omit = no relaunch)
+#     [-RelaunchExe <path>] Sparkii.exe to start when done (omit = no relaunch)
 #     [-NoUi]               headless (tests); default shows a progress window
-#     [-NoMarkerCleanup]    leave .hermes-update-in-progress in place (tests)
+#     [-NoMarkerCleanup]    leave .sparkii-update-in-progress in place (tests)
 #
 # SAFETY POSTURE: both preflight gates FAIL CLOSED. A Desktop that never
 # exits, or a venv shim that never unlocks, aborts the hand-off without
 # mutating the install -- a skipped update is recoverable, a half-updated
 # venv is not. Every exit path (success, abort, crash) writes
-# .hermes-update-result.json for the relaunched Desktop to surface, and
+# .sparkii-update-result.json for the relaunched Desktop to surface, and
 # relaunches the Desktop so the user is never left stranded.
 #
-# Marker: we claim HERMES_HOME\.hermes-update-in-progress with OUR pid as
+# Marker: we claim SPARKII_HOME\.sparkii-update-in-progress with OUR pid as
 # step 0 (the wrapper cmd.exe pid the Desktop saw is useless -- it exits
-# immediately). hermes_cli/update_lock.py's ancestry rule lets our
-# `hermes update` child adopt the claim; electron/update-marker.ts parks a
+# immediately). sparkii_cli/update_lock.py's ancestry rule lets our
+# `sparkii update` child adopt the claim; electron/update-marker.ts parks a
 # relaunched Desktop on it. Cleanup only removes the marker while WE still
 # own it (a handoff partner that rewrote it keeps its claim).
 
@@ -61,9 +61,9 @@ $ErrorActionPreference = "Continue"
 # WinForms window comes up backgrounded unless we explicitly claim focus --
 # and after the update we must hand focus TO the relaunched Desktop (a
 # WMI-spawned process starts unfocused). AllowSetForegroundWindow lets us
-# pass our foreground right on to the new Hermes.exe pid.
+# pass our foreground right on to the new Sparkii.exe pid.
 try {
-    Add-Type -Namespace HermesHandoff -Name Win32 -MemberDefinition @'
+    Add-Type -Namespace SparkiiHandoff -Name Win32 -MemberDefinition @'
 [DllImport("user32.dll")] public static extern bool SetForegroundWindow(System.IntPtr hWnd);
 [DllImport("user32.dll")] public static extern bool AllowSetForegroundWindow(int dwProcessId);
 [DllImport("user32.dll")] public static extern bool ShowWindow(System.IntPtr hWnd, int nCmdShow);
@@ -77,13 +77,13 @@ try {
     $OutputEncoding = [System.Text.Encoding]::UTF8
 } catch {}
 $TempDir = if ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
-$HermesHome = if ($InstallRoot) { Split-Path -Parent $InstallRoot } else { $TempDir }
-$MarkerPath = Join-Path $HermesHome ".hermes-update-in-progress"
-$LogDir = Join-Path $HermesHome "logs"
+$SparkiiHome = if ($InstallRoot) { Split-Path -Parent $InstallRoot } else { $TempDir }
+$MarkerPath = Join-Path $SparkiiHome ".sparkii-update-in-progress"
+$LogDir = Join-Path $SparkiiHome "logs"
 $LogPath = Join-Path $LogDir "desktop-update-handoff.log"
-$ResultPath = Join-Path $HermesHome ".hermes-update-result.json"
+$ResultPath = Join-Path $SparkiiHome ".sparkii-update-result.json"
 $script:Ui = $null
-$script:UiStage = "Hermes will open once done."   # until the first gate; matches ui.html
+$script:UiStage = "Sparkii will open once done."   # until the first gate; matches ui.html
 $script:UiStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
 
 function Write-HandoffLog([string]$Message) {
@@ -229,7 +229,7 @@ function Get-UiProgressLine {
 
 function Publish-UiProgress([string]$Message) {
     # Stages come from the orchestrator's own control flow. Child stdout and
-    # stderr remain asynchronously drained in Invoke-HermesStep and are never
+    # stderr remain asynchronously drained in Invoke-SparkiiStep and are never
     # read or parsed for UI updates.
     $script:UiStage = $Message
     $script:UiState.message = $Message
@@ -268,7 +268,7 @@ function Show-ProgressWindow {
                 # we own (a default-profile launch delegates to an existing
                 # Edge and returns instantly, leaving nothing to close), and
                 # avoids touching the user's real browser profile.
-                $edgeProfile = Join-Path $TempDir ("hermes-update-ui-{0}" -f $PID)
+                $edgeProfile = Join-Path $TempDir ("sparkii-update-ui-{0}" -f $PID)
                 $edgeArgs = @(
                     "--app=http://127.0.0.1:$($server.Port)/",
                     "--user-data-dir=$edgeProfile",
@@ -303,7 +303,7 @@ function Show-ProgressWindow {
             $mute = [System.Drawing.ColorTranslator]::FromHtml("#A8A8A8")
         }
         $form = New-Object System.Windows.Forms.Form
-        $form.Text = "Hermes"
+        $form.Text = "Sparkii"
         $form.FormBorderStyle = "FixedSingle"
         $form.MaximizeBox = $false
         $form.MinimizeBox = $false
@@ -317,7 +317,7 @@ function Show-ProgressWindow {
         $bar.MarqueeAnimationSpeed = 30
         $bar.SetBounds(60, 128, 160, 8)
         $title = New-Object System.Windows.Forms.Label
-        $title.Text = "Updating Hermes"
+        $title.Text = "Updating Sparkii"
         $title.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 12)
         $title.ForeColor = $fore
         $title.TextAlign = "MiddleCenter"
@@ -338,7 +338,7 @@ function Show-ProgressWindow {
         # window is decoration and competes with nothing (no TopMost).
         try {
             $form.Activate()
-            if ($script:Win32) { [HermesHandoff.Win32]::SetForegroundWindow($form.Handle) | Out-Null }
+            if ($script:Win32) { [SparkiiHandoff.Win32]::SetForegroundWindow($form.Handle) | Out-Null }
         } catch {}
         [System.Windows.Forms.Application]::DoEvents()
         $script:Ui = [pscustomobject]@{ Form = $form; Bar = $bar; Title = $title; Sub = $sub; Timer = $null }
@@ -359,7 +359,7 @@ function Show-ProgressWindow {
 
 function Show-ErrorFinale([string]$Message) {
     # Terse by design: a title + the debug-share pointer. No error text, no
-    # log tail -- `hermes debug share` uploads the real evidence and the
+    # log tail -- `sparkii debug share` uploads the real evidence and the
     # relaunched Desktop surfaces the result message.
     if ($script:UiServer) {
         # The shim renders the error state itself; leave the window up for
@@ -375,7 +375,7 @@ function Show-ErrorFinale([string]$Message) {
         if ($ui.Timer) { $ui.Timer.Stop() }
         $ui.Bar.Visible = $false
         $ui.Title.Text = "Failed to update"
-        $ui.Sub.Text = "Run `"hermes debug share`" in a terminal to send a report."
+        $ui.Sub.Text = "Run `"sparkii debug share`" in a terminal to send a report."
         $close = New-Object System.Windows.Forms.Button
         $close.Text = "Close"
         $close.SetBounds(100, 252, 80, 28)
@@ -387,7 +387,7 @@ function Show-ErrorFinale([string]$Message) {
         $ui.Form.AcceptButton = $close
         try {
             $ui.Form.Activate()
-            if ($script:Win32) { [HermesHandoff.Win32]::SetForegroundWindow($ui.Form.Handle) | Out-Null }
+            if ($script:Win32) { [SparkiiHandoff.Win32]::SetForegroundWindow($ui.Form.Handle) | Out-Null }
         } catch {}
         # Hold for dismissal so the failure is actually seen, but never park
         # forever -- the marker is already cleaned up and the relaunched
@@ -405,7 +405,7 @@ function Show-ManualFinale([string]$Message) {
     # shape as the error finale, success glyph semantics: the shim renders
     # `manual` itself; the WinForms card swaps its copy. Held so the user
     # actually sees the instruction — this window is the only surface until
-    # they reopen Hermes themselves.
+    # they reopen Sparkii themselves.
     if ($script:UiServer) {
         Publish-UiEvent "manual" $Message
         Stop-UiServer -LeaveWindow
@@ -429,7 +429,7 @@ function Show-ManualFinale([string]$Message) {
         $ui.Form.AcceptButton = $close
         try {
             $ui.Form.Activate()
-            if ($script:Win32) { [HermesHandoff.Win32]::SetForegroundWindow($ui.Form.Handle) | Out-Null }
+            if ($script:Win32) { [SparkiiHandoff.Win32]::SetForegroundWindow($ui.Form.Handle) | Out-Null }
         } catch {}
         $deadline = (Get-Date).AddMinutes(5)
         while (-not $script:ErrorDismissed -and (Get-Date) -lt $deadline -and $ui.Form.Visible) {
@@ -498,7 +498,7 @@ function Start-DesktopRelaunch {
     # — the sibling truth contract to posix.sh's launch acceptance.
     if (-not $RelaunchExe) { return $false }
     # electron-builder replaces win-unpacked in place. After a successful
-    # update it can remove the old Hermes.exe before writing the replacement,
+    # update it can remove the old Sparkii.exe before writing the replacement,
     # so a one-shot existence check races the rebuild and strands the user.
     $relaunchDeadline = (Get-Date).AddSeconds(120)
     while (-not (Test-Path -LiteralPath $RelaunchExe)) {
@@ -510,7 +510,7 @@ function Start-DesktopRelaunch {
         if ($script:Ui) { [System.Windows.Forms.Application]::DoEvents() }
     }
     Write-HandoffLog "relaunching desktop: $RelaunchExe"
-    # DO NOT spawn Hermes.exe as our child: Electron/Chromium calls
+    # DO NOT spawn Sparkii.exe as our child: Electron/Chromium calls
     # AttachConsole(ATTACH_PARENT_PROCESS) at boot, so a Desktop launched
     # directly from this console PowerShell latches onto OUR console --
     # the console window then outlives the script (it can't close while
@@ -536,7 +536,7 @@ function Start-DesktopRelaunch {
             # takes a couple seconds to create it.
             try {
                 if ($script:Win32) {
-                    [HermesHandoff.Win32]::AllowSetForegroundWindow([int]$r.ProcessId) | Out-Null
+                    [SparkiiHandoff.Win32]::AllowSetForegroundWindow([int]$r.ProcessId) | Out-Null
                     $deadline = (Get-Date).AddSeconds(20)
                     while ((Get-Date) -lt $deadline) {
                         $hwnd = [System.IntPtr]::Zero
@@ -551,8 +551,8 @@ function Start-DesktopRelaunch {
                             break
                         }
                         if ($hwnd -ne [System.IntPtr]::Zero) {
-                            [HermesHandoff.Win32]::ShowWindow($hwnd, 9) | Out-Null  # SW_RESTORE
-                            [HermesHandoff.Win32]::SetForegroundWindow($hwnd) | Out-Null
+                            [SparkiiHandoff.Win32]::ShowWindow($hwnd, 9) | Out-Null  # SW_RESTORE
+                            [SparkiiHandoff.Win32]::SetForegroundWindow($hwnd) | Out-Null
                             Write-HandoffLog "focused relaunched desktop window"
                             break
                         }
@@ -583,24 +583,24 @@ function Start-DesktopRelaunch {
     return $spawned
 }
 
-function Invoke-HermesStep([string]$Exe, [string[]]$HermesArgs, [string]$Tag) {
+function Invoke-SparkiiStep([string]$Exe, [string[]]$SparkiiArgs, [string]$Tag) {
     # The window does not stream child output, so no line-pump: both pipes
     # drain asynchronously (no deadlock however chatty the child) while a small
     # DoEvents loop keeps the marquee animating through long silent
     # stretches (pip installs) -- the old EndOfStream pump blocked on quiet
     # children and froze it. Full output still lands in the hand-off log
-    # afterwards, where `hermes debug share` picks it up.
+    # afterwards, where `sparkii debug share` picks it up.
     # System.Diagnostics.Process directly: Start-Process's .ExitCode is
     # unreliably $null under PS 5.1 even with the Handle-touch workaround.
     $psi = New-Object System.Diagnostics.ProcessStartInfo
     $psi.FileName = $Exe
     # .Arguments string (PS 5.1 / .NET Framework has no ArgumentList).
     # Args here are fixed flags + a branch ref; quote each defensively.
-    $psi.Arguments = ($HermesArgs | ForEach-Object { '"{0}"' -f ($_ -replace '"', '\"') }) -join ' '
+    $psi.Arguments = ($SparkiiArgs | ForEach-Object { '"{0}"' -f ($_ -replace '"', '\"') }) -join ' '
     $psi.UseShellExecute = $false
     $psi.RedirectStandardOutput = $true
     $psi.RedirectStandardError = $true
-    # hermes update prints UTF-8 (checkmarks, arrows, box glyphs). PS 5.1
+    # sparkii update prints UTF-8 (checkmarks, arrows, box glyphs). PS 5.1
     # defaults these readers to the OEM codepage, which mangles every
     # multi-byte glyph into mojibake in the log.
     $psi.StandardOutputEncoding = [System.Text.Encoding]::UTF8
@@ -638,8 +638,8 @@ $finalMsg = "update did not complete"
 # Manual QA for the Edge shell without a checkout or a real update. Exits
 # before the marker/desktop/venv machinery — touches nothing. Off Windows
 # (or without Edge) the loopback server still starts and the URL prints, so
-# the page can be QA'd in any browser; HERMES_SELFTEST_FAIL=1 exercises the
-# error state, HERMES_SELFTEST_HOLD_SECONDS delays the terminal event.
+# the page can be QA'd in any browser; SPARKII_SELFTEST_FAIL=1 exercises the
+# error state, SPARKII_SELFTEST_HOLD_SECONDS delays the terminal event.
 if ($SelfTestUi) {
     New-Item -ItemType Directory -Path $LogDir -Force -ErrorAction SilentlyContinue | Out-Null
     Show-ProgressWindow
@@ -654,10 +654,10 @@ if ($SelfTestUi) {
     }
     Write-HandoffLog "SELF-TEST: shim simulation (no update will run)"
     $hold = 6
-    if ($env:HERMES_SELFTEST_HOLD_SECONDS) { $hold = [int]$env:HERMES_SELFTEST_HOLD_SECONDS }
+    if ($env:SPARKII_SELFTEST_HOLD_SECONDS) { $hold = [int]$env:SPARKII_SELFTEST_HOLD_SECONDS }
     Publish-UiProgress "Testing quiet update"
     Start-Sleep -Seconds $hold
-    if ($env:HERMES_SELFTEST_FAIL) {
+    if ($env:SPARKII_SELFTEST_FAIL) {
         Show-ErrorFinale "self-test error state"
     } else {
         Close-ProgressWindow
@@ -683,7 +683,7 @@ try {
     }
 
     # -- 1. Wait for the Desktop to exit (FAIL CLOSED) ----------------------
-    Publish-UiProgress "Waiting for Hermes to close"
+    Publish-UiProgress "Waiting for Sparkii to close"
     if ($DesktopPid -gt 0) {
         $deadline = (Get-Date).AddSeconds(30)
         while ((Get-Date) -lt $deadline) {
@@ -696,7 +696,7 @@ try {
             # A live Desktop means a live backend re-locking the venv at any
             # moment. Updating under it is how installs brick. Abort.
             $finalCode = 4
-            $finalMsg = "Update aborted: the Hermes window (pid $DesktopPid) did not exit within 30s. Nothing was changed. Close Hermes fully and try again."
+            $finalMsg = "Update aborted: the Sparkii window (pid $DesktopPid) did not exit within 30s. Nothing was changed. Close Sparkii fully and try again."
             Write-HandoffLog $finalMsg
             exit $finalCode
         }
@@ -704,8 +704,8 @@ try {
     }
 
     # -- 2. Wait for the venv shim to unlock (FAIL CLOSED) ------------------
-    Publish-UiProgress "Preparing Hermes files"
-    $shim = Join-Path $InstallRoot "venv\Scripts\hermes.exe"
+    Publish-UiProgress "Preparing Sparkii files"
+    $shim = Join-Path $InstallRoot "venv\Scripts\sparkii.exe"
     if (Test-Path -LiteralPath $shim) {
         $unlocked = $false
         $deadline = (Get-Date).AddSeconds(20)
@@ -724,7 +724,7 @@ try {
             # Something still maps the venv. --force-ing past it guarantees a
             # half-updated venv (the exact 2026-08-09 Access-denied brick).
             $finalCode = 5
-            $finalMsg = "Update aborted: another process is still holding the Hermes install open (venv\Scripts\hermes.exe locked after 20s). Nothing was changed. Close other Hermes windows/terminals and try again."
+            $finalMsg = "Update aborted: another process is still holding the Sparkii install open (venv\Scripts\sparkii.exe locked after 20s). Nothing was changed. Close other Sparkii windows/terminals and try again."
             Write-HandoffLog $finalMsg
             exit $finalCode
         }
@@ -732,18 +732,18 @@ try {
     }
 
     # -- 3. Run the update from the CURRENT checkout ------------------------
-    # --force skips only the hermes.exe shim guard, which step 2 just PROVED
+    # --force skips only the sparkii.exe shim guard, which step 2 just PROVED
     # is unlocked; the venv-python holder guard (orphan reap included) stays
     # active. Our marker claim is adopted by the child via update_lock.py's
     # process-ancestry rule.
     #
-    # DRIVE THE UPDATE THROUGH venv\Scripts\python.exe, NOT venv\Scripts\hermes.exe.
+    # DRIVE THE UPDATE THROUGH venv\Scripts\python.exe, NOT venv\Scripts\sparkii.exe.
     # `uv pip install -e .` has to replace the console-script shims, so
-    # _quarantine_running_hermes_exe must first rename the running hermes.exe
+    # _quarantine_running_sparkii_exe must first rename the running sparkii.exe
     # out of the way. On Windows that rename fails whenever ANY child process
-    # spawned from that hermes.exe is still alive: a child inherits a handle on
+    # spawned from that sparkii.exe is still alive: a child inherits a handle on
     # the parent image, and the resulting sharing violation is indistinguishable
-    # from a user leaving a second Hermes window open. It is the inherited
+    # from a user leaving a second Sparkii window open. It is the inherited
     # handle, not the trampoline itself, that pins the file -- killing the child
     # makes the same rename succeed immediately, and the shim flavour (uv
     # trampoline vs distlib launcher) makes no difference.
@@ -758,12 +758,12 @@ try {
     # When the rename loses that race there is no recovery: `uv pip install -e .`
     # exits 2 and the ZIP fallback repeats the identical sequence, so the desktop
     # build stage is never reached and apps/desktop/release is left missing -- an
-    # install whose Start Menu shortcut points at a Hermes.exe that no longer
+    # install whose Start Menu shortcut points at a Sparkii.exe that no longer
     # exists. (A reboot-deferred rename was the old last resort here; it needed
     # elevation a Desktop-driven update does not have, and freed nothing for the
     # install already in flight.)
     #
-    # Running the same code as `python.exe -m hermes_cli.main update` puts the
+    # Running the same code as `python.exe -m sparkii_cli.main update` puts the
     # inherited handles on python.exe, which uv never has to replace.
     #
     # posix.sh is deliberately left alone: unlinking a running executable is
@@ -771,35 +771,35 @@ try {
     $pythonExe = Join-Path $InstallRoot "venv\Scripts\python.exe"
     if (-not (Test-Path -LiteralPath $pythonExe)) {
         $finalCode = 3
-        $finalMsg = "Update aborted: $pythonExe is missing. The install needs repair (run the Hermes installer or `hermes doctor`)."
+        $finalMsg = "Update aborted: $pythonExe is missing. The install needs repair (run the Sparkii installer or `sparkii doctor`)."
         Write-HandoffLog $finalMsg
         exit $finalCode
     }
-    $updateArgs = @("-m", "hermes_cli.main", "update", "--yes", "--gateway", "--force", "--branch", $Branch)
+    $updateArgs = @("-m", "sparkii_cli.main", "update", "--yes", "--gateway", "--force", "--branch", $Branch)
     Write-HandoffLog ("running: python " + ($updateArgs -join " "))
     Publish-UiProgress "Updating code and dependencies"
-    $res = Invoke-HermesStep $pythonExe $updateArgs "update"
-    Write-HandoffLog "hermes update exit code: $($res.Code)"
+    $res = Invoke-SparkiiStep $pythonExe $updateArgs "update"
+    Write-HandoffLog "sparkii update exit code: $($res.Code)"
 
     if ($res.Code -ne 0 -and $res.Code -ne 2) {
         # One retry for the update-boundary class (fresh code on disk, stale
-        # code in memory). Exit 2 ("close all Hermes windows") is not retryable.
+        # code in memory). Exit 2 ("close all Sparkii windows") is not retryable.
         Write-HandoffLog "first attempt failed; retrying once (freshly pulled fix loads on the second run)"
         Publish-UiProgress "Retrying update"
-        $res = Invoke-HermesStep $pythonExe $updateArgs "update"
+        $res = Invoke-SparkiiStep $pythonExe $updateArgs "update"
         Write-HandoffLog "retry exit code: $($res.Code)"
     }
 
     # -- 4. Truthful completion: don't trust exit 0 -------------------------
-    # `hermes update` treats a Desktop GUI build failure as NON-fatal (prints
+    # `sparkii update` treats a Desktop GUI build failure as NON-fatal (prints
     # a one-line warning, exits 0). For a Desktop-DRIVEN update that warning
     # is fatal: we would relaunch the old exe and call it success. Detect it,
     # retry the build once, and propagate honestly.
     $desktopBuildFailed = $false
     if ($res.Code -eq 0 -and $res.Output -match "Desktop build failed") {
-        Write-HandoffLog "hermes update reported a desktop build failure (non-fatal there, fatal here); retrying build"
+        Write-HandoffLog "sparkii update reported a desktop build failure (non-fatal there, fatal here); retrying build"
         Publish-UiProgress "Rebuilding Desktop"
-        $rebuild = Invoke-HermesStep $pythonExe @("-m", "hermes_cli.main", "desktop", "--force-build", "--build-only") "rebuild"
+        $rebuild = Invoke-SparkiiStep $pythonExe @("-m", "sparkii_cli.main", "desktop", "--force-build", "--build-only") "rebuild"
         Write-HandoffLog "desktop rebuild exit code: $($rebuild.Code)"
         if ($rebuild.Code -ne 0) { $desktopBuildFailed = $true }
     }
@@ -809,10 +809,10 @@ try {
         $finalMsg = "Update complete."
     } elseif ($desktopBuildFailed) {
         $finalCode = 6
-        $finalMsg = "Code and dependencies updated, but the Desktop app REBUILD FAILED - you are running the previous build. Run `hermes desktop --force-build` from a terminal to retry."
+        $finalMsg = "Code and dependencies updated, but the Desktop app REBUILD FAILED - you are running the previous build. Run `sparkii desktop --force-build` from a terminal to retry."
     } else {
         $finalCode = $res.Code
-        $finalMsg = "Update failed (exit $($res.Code)). Run `hermes debug share` in a terminal to send a report."
+        $finalMsg = "Update failed (exit $($res.Code)). Run `sparkii debug share` in a terminal to send a report."
     }
     exit $finalCode
 } finally {
@@ -820,7 +820,7 @@ try {
     #   1. durable result + marker removal (the relaunched Desktop consumes
     #      the result on boot and must not park on our marker);
     #   2. attempt the relaunch and require ACCEPTANCE;
-    #   3. only then the terminal UI state — done means "Hermes is back",
+    #   3. only then the terminal UI state — done means "Sparkii is back",
     #      manual means "it is not, reopen it", error is error (and still
     #      tries to bring the app back after showing itself).
     Write-Result ($finalCode -eq 0) $finalCode $finalMsg
@@ -830,12 +830,12 @@ try {
         Close-ProgressWindow
         [void](Start-DesktopRelaunch)
     } else {
-        Publish-UiProgress "Opening Hermes"
+        Publish-UiProgress "Opening Sparkii"
         $cameBack = Start-DesktopRelaunch
         if (-not $cameBack -and $RelaunchExe) {
             # Launch was due and did not verifiably land: truthful result
             # for the next boot, manual state held on screen now.
-            $finalMsg = "Update complete. Reopen Hermes to finish (it could not restart itself)."
+            $finalMsg = "Update complete. Reopen Sparkii to finish (it could not restart itself)."
             Write-Result $true 0 $finalMsg $true
             Show-ManualFinale $finalMsg
         }

@@ -526,7 +526,7 @@ class ToolCallGuardrailController:
             return None
         ordinal = f"{count}{'th' if 11 <= count % 100 <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(count % 10, 'th')}"
         return (
-            f"[hermes note: this is the {ordinal} consecutive identical call to "
+            f"[sparkii note: this is the {ordinal} consecutive identical call to "
             f"{tool_name} with identical arguments returning the same result. "
             "Do not repeat it — change arguments, use a different tool, or "
             "proceed with what you have.]"

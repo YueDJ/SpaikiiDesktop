@@ -62,9 +62,9 @@ class TestModuleNotFound:
         assert "venv" in hint
 
     def test_dotted_module(self):
-        out = "ImportError: No module named 'hermes_cli.main'"
-        hint = annotate_failure("python3 -m hermes_cli.main", 1, out)
-        assert "hermes_cli" in hint
+        out = "ImportError: No module named 'sparkii_cli.main'"
+        hint = annotate_failure("python3 -m sparkii_cli.main", 1, out)
+        assert "sparkii_cli" in hint
 
 
 class TestGitShapes:

@@ -11,11 +11,11 @@ import {
   transcriptBackfillAvailable
 } from './transcript-backfill'
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/sparkii', () => ({
   getOlderSessionMessages: vi.fn()
 }))
 
-const { getOlderSessionMessages } = await import('@/hermes')
+const { getOlderSessionMessages } = await import('@/sparkii')
 
 const chat = (id: string, rowId?: number): ChatMessage => ({
   id,

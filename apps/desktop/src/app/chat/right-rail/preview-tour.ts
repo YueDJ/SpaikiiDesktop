@@ -1,7 +1,7 @@
 /**
  * PREVIEW TOUR — runs tour actions inside the preview pane's guest page, so a
  * tour can walk through ANY web app open in the in-app browser, not just
- * Hermes itself.
+ * Sparkii itself.
  *
  * The guest page is out-of-process; nothing here can touch its DOM directly.
  * Instead the first action injects a self-contained bundle over
@@ -27,23 +27,23 @@ import { activeTourRunner } from './preview-tour-runner'
 function buildTourScript(action: TourAction): string {
   return `(function () {
   var w = window;
-  if (!w.__hermesTourEngine) {
+  if (!w.__sparkiiTourEngine) {
     ${driverIife}
-    w.__hermesTourHolder = {};
-    w.__hermesTourCollect = (${collectTourTargets.toString()});
-    w.__hermesTourEngine = (${runTourEngine.toString()});
+    w.__sparkiiTourHolder = {};
+    w.__sparkiiTourCollect = (${collectTourTargets.toString()});
+    w.__sparkiiTourEngine = (${runTourEngine.toString()});
   }
-  if (!document.getElementById('__hermes-tour-style')) {
+  if (!document.getElementById('__sparkii-tour-style')) {
     var style = document.createElement('style');
-    style.id = '__hermes-tour-style';
+    style.id = '__sparkii-tour-style';
     style.textContent = ${JSON.stringify(driverCss)};
     (document.head || document.documentElement).appendChild(style);
   }
-  return JSON.stringify(w.__hermesTourEngine(
+  return JSON.stringify(w.__sparkiiTourEngine(
     w.driver.js.driver,
-    w.__hermesTourHolder,
+    w.__sparkiiTourHolder,
     ${JSON.stringify(action)},
-    w.__hermesTourCollect,
+    w.__sparkiiTourCollect,
     document
   ));
 })()`

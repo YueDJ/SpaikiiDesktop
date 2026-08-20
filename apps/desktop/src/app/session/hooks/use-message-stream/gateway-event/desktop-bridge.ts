@@ -62,7 +62,7 @@ export function handleDesktopBridgeEvent(ctx: GatewayEventContext): boolean {
     const requestId = typeof payload?.request_id === 'string' ? payload.request_id : ''
 
     if (requestId) {
-      const read = window.hermesDesktop?.readWindowBelow
+      const read = window.sparkiiDesktop?.readWindowBelow
 
       const answer = (result: unknown) =>
         $gateway.get()?.request('window.read.respond', {

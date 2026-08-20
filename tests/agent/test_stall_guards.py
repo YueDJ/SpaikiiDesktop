@@ -42,7 +42,7 @@ def test_fires_on_third_consecutive_identical_call_and_result():
     assert notices[0] is None
     assert notices[1] is None
     assert notices[2] is not None
-    assert "hermes note" in notices[2]
+    assert "sparkii note" in notices[2]
     assert "3rd" in notices[2]
     assert "web_search" in notices[2]
 
@@ -151,22 +151,22 @@ def _fake_agent(stall_guards=True):
 
 def test_notice_appended_to_third_identical_result():
     agent = _fake_agent()
-    args = {"query": "hermes"}
+    args = {"query": "sparkii"}
     r1 = agent._append("web_search", args, "results")
     r2 = agent._append("web_search", args, "results")
     r3 = agent._append("web_search", args, "results")
-    assert "hermes note" not in r1
-    assert "hermes note" not in r2
-    assert "hermes note" in r3
+    assert "sparkii note" not in r1
+    assert "sparkii note" not in r2
+    assert "sparkii note" in r3
     assert r3.startswith("results")  # notice appended, result preserved
 
 
 def test_config_gate_disables_notice():
     agent = _fake_agent(stall_guards=False)
-    args = {"query": "hermes"}
+    args = {"query": "sparkii"}
     for _ in range(4):
         result = agent._append("web_search", args, "results")
-    assert "hermes note" not in result
+    assert "sparkii note" not in result
 
 
 def test_notice_streak_keys_on_raw_result_not_annotated_result():
@@ -178,7 +178,7 @@ def test_notice_streak_keys_on_raw_result_not_annotated_result():
     agent = _fake_agent()
     args = {"path": "/tmp/x"}
     outs = [agent._append("read_file", args, "contents") for _ in range(3)]
-    assert "hermes note" in outs[2]
+    assert "sparkii note" in outs[2]
 
 
 # ── said-continue-but-stopped detector ─────────────────────────────────────

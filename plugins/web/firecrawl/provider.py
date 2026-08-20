@@ -122,7 +122,7 @@ Firecrawl = _FirecrawlProxy()
 
 def _get_direct_firecrawl_config() -> Optional[tuple]:
     """Return explicit direct Firecrawl kwargs + cache key, or None when unset."""
-    from hermes_cli.config import get_env_value
+    from sparkii_cli.config import get_env_value
 
     api_key = (get_env_value("FIRECRAWL_API_KEY") or "").strip()
     api_url = (get_env_value("FIRECRAWL_API_URL") or "").strip().rstrip("/")
@@ -168,11 +168,11 @@ def _has_direct_firecrawl_config() -> bool:
 
 
 def check_firecrawl_api_key() -> bool:
-    """Return True when the Firecrawl backend selected via `hermes tools`
+    """Return True when the Firecrawl backend selected via `sparkii tools`
     (or, on a never-configured install, either route) is usable.
 
     Re-exported by :mod:`tools.web_tools` for backward compatibility with
-    existing tests and the ``hermes tools`` setup flow.
+    existing tests and the ``sparkii tools`` setup flow.
     """
     from tools.tool_backend_helpers import (
         NOUS_MANAGED_PROVIDER,
@@ -211,7 +211,7 @@ def _raise_web_backend_configuration_error() -> "NoReturn":
     if _wt.managed_nous_tools_enabled():
         message += (
             " With your Nous subscription you can also use the Tool Gateway. "
-            "run `hermes tools` and select Nous Subscription as the web provider."
+            "run `sparkii tools` and select Nous Subscription as the web provider."
         )
     else:
         message += " " + _wt.nous_tool_gateway_unavailable_message(

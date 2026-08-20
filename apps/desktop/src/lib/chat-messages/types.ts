@@ -1,7 +1,7 @@
 import type { ThreadMessageLike } from '@assistant-ui/react'
-import { type BillingBlock } from '@hermes/shared'
+import { type BillingBlock } from '@sparkii/shared'
 
-import type { MessageReaction, SessionMessage, UsageStats } from '@/types/hermes'
+import type { MessageReaction, SessionMessage, UsageStats } from '@/types/sparkii'
 
 export interface TimelinePartMetadata {
   /** Unix seconds when this visible activity segment began. Fractional values
@@ -152,7 +152,7 @@ export type GatewayEventPayload = {
   // backend-side and will replay through session.resume's inflight payload.
   recoverable?: boolean
   // Structured billing wall forwarded on message.complete when a turn fails
-  // with FailoverReason.billing (shape mirrors @hermes/shared BillingBlock).
+  // with FailoverReason.billing (shape mirrors @sparkii/shared BillingBlock).
   billing?: BillingBlock
   failure_reason?: string
 }

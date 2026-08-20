@@ -1,1 +1,1 @@
-# Hermes plugins package
+# Sparkii plugins package

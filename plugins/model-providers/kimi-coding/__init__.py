@@ -10,7 +10,7 @@ This module covers the chat_completions path (/v1 endpoint).
 from typing import Any
 from urllib.parse import urlparse
 
-from hermes_cli import __version__ as _HERMES_VERSION
+from sparkii_cli import __version__ as _SPARKII_VERSION
 from providers import register_provider
 from providers.base import OMIT_TEMPERATURE, ProviderProfile
 
@@ -87,7 +87,7 @@ class KimiProfile(ProviderProfile):
 
         # Enabled: prefer an explicit effort; only fall back to extra_body
         # thinking when no recognized effort is requested.
-        # K3 accepts low/high/max (default high). Map Hermes' wider effort
+        # K3 accepts low/high/max (default high). Map Sparkii' wider effort
         # vocabulary onto K3's set:
         #   low, minimal       → low
         #   medium, high        → high
@@ -120,9 +120,9 @@ kimi = KimiProfile(
     fixed_temperature=OMIT_TEMPERATURE,
     default_max_tokens=32000,
     default_headers={
-        "HTTP-Referer": "https://hermes-agent.nousresearch.com",
-        "X-Title": "Hermes Agent",
-        "User-Agent": f"HermesAgent/{_HERMES_VERSION}",
+        "HTTP-Referer": "https://sparkii-agent.nousresearch.com",
+        "X-Title": "Sparkii Agent",
+        "User-Agent": f"SparkiiAgent/{_SPARKII_VERSION}",
     },
     default_aux_model="kimi-k2-turbo-preview",
 )
@@ -135,9 +135,9 @@ kimi_cn = KimiProfile(
     fixed_temperature=OMIT_TEMPERATURE,
     default_max_tokens=32000,
     default_headers={
-        "HTTP-Referer": "https://hermes-agent.nousresearch.com",
-        "X-Title": "Hermes Agent",
-        "User-Agent": f"HermesAgent/{_HERMES_VERSION}",
+        "HTTP-Referer": "https://sparkii-agent.nousresearch.com",
+        "X-Title": "Sparkii Agent",
+        "User-Agent": f"SparkiiAgent/{_SPARKII_VERSION}",
     },
     default_aux_model="kimi-k2-turbo-preview",
 )

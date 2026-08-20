@@ -2,13 +2,13 @@
  * Window translucency (see-through window).
  *
  * One lever, 0–100. 0 = off (fully opaque, the default). Two modes decide HOW
- * the desktop shows through — see `@hermes/shared/translucency`, which owns the
+ * the desktop shows through — see `@sparkii/shared/translucency`, which owns the
  * mapping both this store and the main process read.
  *
  * The renderer owns the value and mirrors it to the main process over IPC.
  * Glass additionally needs page-level work, which lives here: the field
  * surfaces have to get out of the way for the platform material underneath the
- * web contents to read (see the `[data-hermes-glass]` block in styles.css).
+ * web contents to read (see the `[data-sparkii-glass]` block in styles.css).
  */
 
 import {
@@ -28,7 +28,7 @@ import {
   TRANSLUCENCY_STEP,
   type TranslucencyMode,
   type TranslucencyState
-} from '@hermes/shared/translucency'
+} from '@sparkii/shared/translucency'
 import { atom } from 'nanostores'
 
 import { isMacPlatform, isWindowsPlatform } from '@/lib/platform'
@@ -46,14 +46,14 @@ export {
 
 /**
  * Glass needs a native window material. Electron is authoritative (preload
- * sets `hermesDesktop.glassSupported` from `os.release()` so Win10 cannot
+ * sets `sparkiiDesktop.glassSupported` from `os.release()` so Win10 cannot
  * sneak through). Tests and non-Electron shells fall back to a UA sniff —
  * Mac or Windows — which is why this file pins `navigator.platform` before
  * import.
  */
 export const GLASS_SUPPORTED =
-  typeof window !== 'undefined' && typeof window.hermesDesktop?.glassSupported === 'boolean'
-    ? window.hermesDesktop.glassSupported
+  typeof window !== 'undefined' && typeof window.sparkiiDesktop?.glassSupported === 'boolean'
+    ? window.sparkiiDesktop.glassSupported
     : isMacPlatform() || isWindowsPlatform()
 
 /**
@@ -62,14 +62,14 @@ export const GLASS_SUPPORTED =
  * Settings hides the row rather than offering a lever that does nothing.
  */
 export const TRANSLUCENCY_SUPPORTED =
-  typeof window !== 'undefined' && typeof window.hermesDesktop?.translucencySupported === 'boolean'
-    ? window.hermesDesktop.translucencySupported
+  typeof window !== 'undefined' && typeof window.sparkiiDesktop?.translucencySupported === 'boolean'
+    ? window.sparkiiDesktop.translucencySupported
     : isMacPlatform() || isWindowsPlatform()
 
 /** Windows collapses the frost ladder — see `glassMaterialsFor`. */
 export const GLASS_IS_WINDOWS = GLASS_SUPPORTED && !isMacPlatform()
 
-const KEY = 'hermes.desktop.translucency.v1'
+const KEY = 'sparkii.desktop.translucency.v1'
 
 // The v1 key used to hold a bare intensity (`"23"`). Normalization lives in the
 // shared module so this and the main process resolve the default the same way —
@@ -211,10 +211,10 @@ const stopRailTracking = (): void => {
    overlay they stand in covers the very effect they're tuning — the scrim
    plus a deliberately near-opaque card ([data-glass-raised]). A peek ghosts
    the whole overlay layer so the live window IS the preview (see the
-   [data-hermes-translucency-peek] rules in styles.css). A counter rather
+   [data-sparkii-translucency-peek] rules in styles.css). A counter rather
    than a boolean: a held slider drag and a timed pulse from a picker click
    can overlap. */
-const PEEK_ATTR = 'data-hermes-translucency-peek'
+const PEEK_ATTR = 'data-sparkii-translucency-peek'
 
 export const $translucencyPeek = atom<number>(0)
 
@@ -278,9 +278,9 @@ const applyGlassSurfaces = ({ intensity, mode, scope }: TranslucencyState): void
   // no chat-window gate.
   const clearOn = mode === 'clear' && intensity > 0
 
-  root.toggleAttribute('data-hermes-glass-on', glassLive)
-  root.toggleAttribute('data-hermes-glass', glassOn)
-  root.toggleAttribute('data-hermes-clear', clearOn)
+  root.toggleAttribute('data-sparkii-glass-on', glassLive)
+  root.toggleAttribute('data-sparkii-glass', glassOn)
+  root.toggleAttribute('data-sparkii-clear', clearOn)
 
   if (glassLive) {
     root.style.setProperty('--translucency-glass-keep', `${glassSurfaceKeep(intensity)}%`)
@@ -289,9 +289,9 @@ const applyGlassSurfaces = ({ intensity, mode, scope }: TranslucencyState): void
   }
 
   if (glassOn) {
-    root.setAttribute('data-hermes-glass-scope', scope)
+    root.setAttribute('data-sparkii-glass-scope', scope)
   } else {
-    root.removeAttribute('data-hermes-glass-scope')
+    root.removeAttribute('data-sparkii-glass-scope')
   }
 
   if (glassOn && scope === 'sidebar') {
@@ -318,7 +318,7 @@ if (typeof window !== 'undefined') {
 
   $translucency.subscribe(state => {
     applyGlassSurfaces(state)
-    window.hermesDesktop?.setTranslucency?.(state)
+    window.sparkiiDesktop?.setTranslucency?.(state)
 
     if (storageTimer !== null) {
       window.clearTimeout(storageTimer)

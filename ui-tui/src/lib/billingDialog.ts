@@ -1,4 +1,4 @@
-import type { BillingBlock } from '@hermes/shared/billing'
+import type { BillingBlock } from '@sparkii/shared/billing'
 
 export interface BillingDialogCopy {
   cancelLabel: string

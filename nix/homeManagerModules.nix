@@ -1,11 +1,11 @@
-# nix/homeManagerModules.nix — the Home Manager module for hermes-agent
+# nix/homeManagerModules.nix — the Home Manager module for sparkii-agent
 #
-# This module is the user-level equivalent of nixosModules.default. Hermes is
+# This module is the user-level equivalent of nixosModules.default. Sparkii is
 # an agent for one person. The credentials, the memory, the sessions and the
 # cron jobs all belong to that person. Thus a user-level module is correct on
 # each distribution, and not only on NixOS.
 #
-# `services.hermes-agent` is the same option set on both modules. All of the
+# `services.sparkii-agent` is the same option set on both modules. All of the
 # options except the system-level ones come from nix/moduleCommon.nix, so an
 # example from the NixOS documentation works here without a change. Only the
 # necessary parts are different:
@@ -19,15 +19,15 @@
 #   changed   system.activationScripts -> home.activation
 #   changed   addToSystemPackages      -> installPackage and
 #                                        home.sessionVariables
-#   changed   stateDir (+ "/.hermes")  -> hermesHome, set directly
+#   changed   stateDir (+ "/.sparkii")  -> sparkiiHome, set directly
 #
 # To use the module:
-#   imports = [ hermes-agent.homeManagerModules.default ];
-#   services.hermes-agent = {
+#   imports = [ sparkii-agent.homeManagerModules.default ];
+#   services.sparkii-agent = {
 #     enable = true;
 #     gateway.enable = true;
 #     settings.model.default = "anthropic/claude-sonnet-4";
-#     environmentFiles = [ config.sops.secrets."hermes/env".path ];
+#     environmentFiles = [ config.sops.secrets."sparkii/env".path ];
 #   };
 #
 # CAUTION: Enable linger for the account. Without linger, systemd stops the
@@ -47,16 +47,16 @@
     }:
 
     let
-      cfg = config.services.hermes-agent;
+      cfg = config.services.sparkii-agent;
       common = import ./moduleCommon.nix { inherit lib; };
 
       effectivePackage = common.effectivePackage cfg;
-      hermes-agent = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.default;
+      sparkii-agent = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
       inherit (pkgs.stdenv.hostPlatform) isDarwin isLinux;
 
       processEnvironment = common.processEnvironment {
-        inherit (cfg) hermesHome;
+        inherit (cfg) sparkiiHome;
         # The CLI reads this value and names it when it refuses a
         # configuration change.
         managedSystem = "home-manager";
@@ -124,42 +124,42 @@
 
     in
     {
-      options.services.hermes-agent =
+      options.services.sparkii-agent =
         common.sharedOptions {
-          defaultPackage = hermes-agent;
-          defaultPackageText = lib.literalExpression "hermes-agent.packages.\${system}.default";
+          defaultPackage = sparkii-agent;
+          defaultPackageText = lib.literalExpression "sparkii-agent.packages.\${system}.default";
           defaultWorkingDirectory = config.home.homeDirectory;
           defaultWorkingDirectoryText = lib.literalExpression "config.home.homeDirectory";
         }
         // {
-          hermesHome = lib.mkOption {
+          sparkiiHome = lib.mkOption {
             type = lib.types.str;
-            default = "${config.home.homeDirectory}/.hermes";
-            defaultText = lib.literalExpression ''"''${config.home.homeDirectory}/.hermes"'';
+            default = "${config.home.homeDirectory}/.sparkii";
+            defaultText = lib.literalExpression ''"''${config.home.homeDirectory}/.sparkii"'';
             description = ''
-              The value of HERMES_HOME. This state directory holds
+              The value of SPARKII_HOME. This state directory holds
               config.yaml, .env, auth.json, the sessions, the skills, the
               memory and the cron jobs.
 
-              The NixOS module takes a `stateDir` and adds `/.hermes` to it.
-              This module sets HERMES_HOME directly. Thus an existing
-              ~/.hermes continues to work, and you can give the directory any
+              The NixOS module takes a `stateDir` and adds `/.sparkii` to it.
+              This module sets SPARKII_HOME directly. Thus an existing
+              ~/.sparkii continues to work, and you can give the directory any
               name.
             '';
-            example = "/home/alice/.hermes-work";
+            example = "/home/alice/.sparkii-work";
           };
 
           installPackage = lib.mkOption {
             type = lib.types.bool;
             default = true;
             description = ''
-              Add the hermes CLI to home.packages, and export HERMES_HOME
+              Add the sparkii CLI to home.packages, and export SPARKII_HOME
               with home.sessionVariables. Interactive shells then use the
               same state as the services.
 
               The equivalent NixOS option, `addToSystemPackages`, exports
-              HERMES_HOME with environment.variables. That variable applies
-              to the full system and replaces the HERMES_HOME of each other
+              SPARKII_HOME with environment.variables. That variable applies
+              to the full system and replaces the SPARKII_HOME of each other
               user. This module exports the variable for one user session
               only, which is the reason to use Home Manager.
             '';
@@ -173,26 +173,26 @@
 
           # ── Merge MCP servers into settings ────────────────────────────
           (lib.mkIf (cfg.mcpServers != { }) {
-            services.hermes-agent.settings.mcp_servers = common.mcpServersToConfig cfg.mcpServers;
+            services.sparkii-agent.settings.mcp_servers = common.mcpServersToConfig cfg.mcpServers;
           })
 
           {
             assertions =
               common.pluginNameAssertions {
                 inherit cfg;
-                optionPath = "services.hermes-agent";
+                optionPath = "services.sparkii-agent";
               }
               ++ common.workspaceFilesAssertions {
                 inherit cfg;
-                opt = options.services.hermes-agent.workingDirectory;
-                optionPath = "services.hermes-agent";
+                opt = options.services.sparkii-agent.workingDirectory;
+                optionPath = "services.sparkii-agent";
               };
           }
 
           # ── Packages and interactive-shell environment ─────────────────
           (lib.mkIf cfg.installPackage {
             home.packages = [ effectivePackage ] ++ cfg.extraPackages;
-            home.sessionVariables.HERMES_HOME = cfg.hermesHome;
+            home.sessionVariables.SPARKII_HOME = cfg.sparkiiHome;
           })
 
           # ── Activation: directories, config, secrets, documents ────────
@@ -201,7 +201,7 @@
             # symlinks are in place. It also runs after linkGeneration, when
             # Home Manager completes the switch. A secret that the activation
             # entry of sops-nix writes exists at that point.
-            home.activation.hermesAgentSetup =
+            home.activation.sparkiiAgentSetup =
               lib.hm.dag.entryAfter
                 [
                   "writeBoundary"
@@ -210,7 +210,7 @@
                 (
                   common.mkStateScript {
                     inherit pkgs cfg;
-                    inherit (cfg) hermesHome workingDirectory;
+                    inherit (cfg) sparkiiHome workingDirectory;
                     run = "$DRY_RUN_CMD ";
                     stateDirs = common.stateSubdirs;
                     managedSystem = "home-manager";
@@ -228,14 +228,14 @@
 
           # ── Linux: systemd user services ───────────────────────────────
           (lib.mkIf (isLinux && cfg.gateway.enable) {
-            systemd.user.services.hermes-agent = mkUnit {
-              description = "Hermes Agent Gateway";
+            systemd.user.services.sparkii-agent = mkUnit {
+              description = "Sparkii Agent Gateway";
               argv = common.gatewayArgv cfg;
             };
           })
 
           (lib.mkIf (isLinux && cfg.backend.mode != "none") {
-            systemd.user.services.hermes-backend = mkUnit {
+            systemd.user.services.sparkii-backend = mkUnit {
               description = common.backendDescription cfg;
               argv = common.backendArgv cfg;
             };
@@ -243,16 +243,16 @@
 
           # ── Darwin: launchd agents ─────────────────────────────────────
           (lib.mkIf (isDarwin && cfg.gateway.enable) {
-            launchd.agents.hermes-agent = mkAgent {
+            launchd.agents.sparkii-agent = mkAgent {
               argv = common.gatewayArgv cfg;
-              logName = "hermes-agent";
+              logName = "sparkii-agent";
             };
           })
 
           (lib.mkIf (isDarwin && cfg.backend.mode != "none") {
-            launchd.agents.hermes-backend = mkAgent {
+            launchd.agents.sparkii-backend = mkAgent {
               argv = common.backendArgv cfg;
-              logName = "hermes-backend";
+              logName = "sparkii-backend";
             };
           })
         ]

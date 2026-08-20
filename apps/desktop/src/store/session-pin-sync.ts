@@ -21,12 +21,12 @@
  * fenced out until a later page confirms the value we wrote.
  */
 
-import { setSessionPinnedRemote } from '@/hermes'
+import { setSessionPinnedRemote } from '@/sparkii'
 import { onConnectionScopeChange } from '@/lib/connection-scoped'
 import { $pinnedSessionIds, pinSession, unpinSession } from '@/store/layout'
 import { $activeGatewayProfile, normalizeProfileKey } from '@/store/profile'
 import { $sessions, sessionMatchesStoredId, sessionPinId } from '@/store/session'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/sparkii'
 
 // pin ids we've successfully PATCHed pinned=true this session.
 const mirrored = new Set<string>()
@@ -189,7 +189,7 @@ function reconcile(): void {
 
 function reconcileInner(): void {
   // Config/session REST is only reachable through the Electron bridge.
-  if (!window.hermesDesktop) {
+  if (!window.sparkiiDesktop) {
     return
   }
 

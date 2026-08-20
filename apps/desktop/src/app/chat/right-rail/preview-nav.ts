@@ -6,7 +6,7 @@
  * page, main acts on the focused webContents directly (see
  * `commandFocusedGuest`), because a webview guest is out-of-process and nothing
  * in this renderer can see it. This registry only covers the other half — focus
- * sitting in Hermes' own DOM, where `activeElement` is authoritative.
+ * sitting in Sparkii' own DOM, where `activeElement` is authoritative.
  */
 
 /** Marks a live browser pane so a gesture can find the one holding focus. */
