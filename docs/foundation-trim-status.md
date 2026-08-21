@@ -273,10 +273,13 @@ cli.py、gateway、ui-tui、apps、website、acp_adapter 迁到独立 repo，消
 - **顺带修掉的两个真实 bug**：`.dockerignore` 的 `*.md` 规则把 README.md
   过滤出构建上下文（Dockerfile 又要 COPY 它 → 构建失败）；core 阶段的
   python:3.12-slim 没装 git，pip 无法从 git 安装 core（已补 apt git）。
-- **遗留说明**：前端 flake 本地开发用 git+file 输入时不写 flake.lock
-  （unlocked input），发布期换 github URL 后需生成并提交 flake.lock；
-  前端 messaging extras（discord/telegram/slack 等）依赖由 core venv 的
-  `all` 组直接覆盖（core uv.lock 已验证），nix 侧无需二次安装。
+- **遗留项已清**（2026-08-21）：前端 flake 的 core 输入已改为
+  `github:YueDJ/SparkiiDesktop` 并提交 `flake.lock`（锁定 core
+  `8239fb7d1b`；锁定后 `nix flake show` 与构建干跑复验通过）。
+  本地开发用 `--override-input core git+file://<path>` 覆盖，README
+  已记录用法。前端 messaging extras（discord/telegram/slack 等）依赖
+  由 core venv 的 `all` 组直接覆盖（core uv.lock 已验证），nix 侧无需
+  二次安装。
 
 ## 节奏
 删/迁一块 → ast.parse 验证 → import 验证 → 跑相关测试 → 红数下降 → 下一块。
