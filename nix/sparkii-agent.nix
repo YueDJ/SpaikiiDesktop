@@ -10,7 +10,6 @@
   makeWrapper,
   callPackage,
   python312,
-  electron,
   ripgrep,
   git,
   openssh,
@@ -21,18 +20,10 @@
   wl-clipboard,
   xclip,
 
-  # linux-only dev deps
-  cage,
-
   # Flake inputs — passed explicitly by packages.nix and overlays.nix
   uv2nix,
   pyproject-nix,
   pyproject-build-systems,
-  npm-lockfile-fix,
-  # Locked git revision of the flake source — embedded so banner.py can
-  # check for updates without needing a local .git directory. Null for
-  # impure / dirty builds where flakes can't determine a rev.
-  rev ? null,
   # Overridable parameters
   extraPythonPackages ? [ ],
   extraDependencyGroups ? [ ],
@@ -47,18 +38,6 @@ let
     };
 
   sparkiiVenv = (mkSparkiiVenv extraDependencyGroups).venv;
-
-  sparkiiNpmLib = callPackage ./lib.nix {
-    inherit npm-lockfile-fix;
-  };
-
-  sparkiiTui = callPackage ./tui.nix {
-    inherit sparkiiNpmLib;
-  };
-
-  sparkiiWeb = callPackage ./web.nix {
-    inherit sparkiiNpmLib;
-  };
 
   bundledSkills = lib.cleanSourceWith {
     src = ../skills;
@@ -95,7 +74,6 @@ let
   };
 
   runtimeDeps = [
-    sparkiiNpmLib.nodejs
     ripgrep
     git
     openssh
@@ -178,9 +156,6 @@ stdenv.mkDerivation (finalAttrs: {
     ln -s ${bundledPlugins} $out/share/sparkii-agent/plugins
     ln -s ${bundledLocales} $out/share/sparkii-agent/locales
     ln -s ${bundledOptionalMcps} $out/share/sparkii-agent/optional-mcps
-    ln -s ${sparkiiWeb} $out/share/sparkii-agent/web_dist
-    ln -s ${sparkiiTui}/lib/sparkii-tui $out/ui-tui
-
     ${lib.concatMapStringsSep "\n"
       (name: ''
         makeWrapper ${sparkiiVenv}/bin/${name} $out/bin/${name} \
@@ -190,27 +165,14 @@ stdenv.mkDerivation (finalAttrs: {
           --set SPARKII_BUNDLED_PLUGINS $out/share/sparkii-agent/plugins \
           --set SPARKII_BUNDLED_LOCALES $out/share/sparkii-agent/locales \
           --set SPARKII_OPTIONAL_MCPS $out/share/sparkii-agent/optional-mcps \
-          --set SPARKII_WEB_DIST $out/share/sparkii-agent/web_dist \
-          --set SPARKII_TUI_DIR $out/ui-tui \
           --set-default SPARKII_BIN $out/bin/sparkii \
           --set SPARKII_PYTHON ${sparkiiVenv}/bin/python3 \
-          --set SPARKII_NODE ${lib.getExe sparkiiNpmLib.nodejs}${
-            # Fold the line continuation INTO the optionalString: a bare
-            # `\` on the line above an empty expansion would dangle onto a
-            # blank line, ending the makeWrapper command early and running
-            # the next flag as its own shell command (`--suffix: command
-            # not found`). Only reproduces when rev == null (dirty trees).
-            lib.optionalString (rev != null) " \\\n          --set SPARKII_REVISION ${rev}"
-          }${
-            lib.optionalString (
-              extraPythonPackages != [ ]
-            ) " \\\n          --suffix PYTHONPATH : \"${pythonPath}\""
-          }
+          ${lib.optionalString (
+            extraPythonPackages != [ ]
+          ) "\\\n          --suffix PYTHONPATH : \"${pythonPath}\""}
       '')
       [
-        "sparkii"
         "sparkii-agent"
-        "sparkii-acp"
       ]
     }
 
@@ -229,23 +191,15 @@ stdenv.mkDerivation (finalAttrs: {
     in
     {
       inherit
-        sparkiiTui
-        sparkiiWeb
-        sparkiiNpmLib
         sparkiiVenv
         ;
 
-      # `sparkiiDesktop` references `finalAttrs.finalPackage` (this whole
-      # derivation, after all overrides are applied) so the desktop wrapper
-      # can prepend its `/bin` to PATH.  The desktop's resolver step 4
-      # ("existing sparkii on PATH") then picks up the fully wrapped
-      # `sparkii` binary — venv with all deps, bundled skills/plugins,
-      # runtime PATH (ripgrep/git/ffmpeg/etc).  No re-implementation
-      # of the agent resolution in the desktop wrapper.
-      sparkiiDesktop = callPackage ./desktop.nix {
-        inherit sparkiiNpmLib electron;
-        sparkiiAgent = finalAttrs.finalPackage;
-      };
+      inherit runtimeDeps;
+
+      # PYTHONPATH entries for extraPythonPackages, in the same shape the
+      # wrapper uses. The frontends repo reuses this when it layers the
+      # product packages on top of the kernel venv.
+      inherit pythonPath;
 
       devShellHook = ''
         export SPARKII_PYTHON=${devPython}/bin/python3
@@ -255,16 +209,13 @@ stdenv.mkDerivation (finalAttrs: {
         runtimeDeps
         ++ [
           devPython
-        ]
-        ++ lib.optionals stdenv.isLinux [
-          cage # for running e2e tests without popping windows
         ];
     };
 
   meta = with lib; {
     description = "AI agent with advanced tool-calling capabilities";
     homepage = "https://github.com/NousResearch/sparkii-agent";
-    mainProgram = "sparkii";
+    mainProgram = "sparkii-agent";
     license = licenses.mit;
     platforms = platforms.unix;
   };

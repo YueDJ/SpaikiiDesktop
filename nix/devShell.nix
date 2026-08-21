@@ -1,53 +1,24 @@
-# nix/devShell.nix — Dev shell that delegates setup to each package
+# nix/devShell.nix — Kernel dev shell.
 #
-# Each npm workspace package exposes passthru.packageJsonPath (e.g.
-# "ui-tui/package.json").  This file collects them all and passes the
-# list to mkNpmDevShellHook, which stamps all package.jsons at once,
-# then runs a single `npm i --package-lock-only` if any changed and
-# `npm ci` if the lockfile changed.
+# The frontend surfaces (CLI, gateway, TUI, desktop, website) live in the
+# sparkii-frontends repo and add their own npm machinery on top of this
+# Python kernel dev shell.
 { ... }:
 {
   perSystem =
     { pkgs, self', ... }:
     let
-      packages = builtins.attrValues self'.packages;
-      sparkiiNpmLib = self'.packages.default.passthru.sparkiiNpmLib;
-
-      # Collect all packageJsonPath values from npm workspace packages.
-      npmPackageJsonPaths = builtins.filter (p: p != null) (
-        map (p: p.passthru.packageJsonPath or null) packages
-      );
-
       sparkiiAgentDevShellHook = self'.packages.default.passthru.devShellHook;
     in
     {
       devShells.default = pkgs.mkShell {
         packages = with pkgs; [
-          (pkgs.runCommand "sparkii" { } ''
-            mkdir -p $out/bin
-            install -Dm755 ${../sparkii} $out/bin/sparkii
-          '')
           self'.packages.sandbox
           uv
-          # Headless Wayland compositor for E2E tests (test:e2e:visual).
-          # cage renders a single client with no window management, so
-          # the Electron window opens at a fixed size without tiling.
-          # libglvnd provides libEGL.so.1 that cage needs on NixOS.
-          cage
-          libglvnd
-          # Graphical terminal + Wayland screenshot client for CLI/TUI UI
-          # evidence. `cage -- ghostty ...` keeps captures off the user's
-          # live compositor; grim runs inside that isolated client session.
-          ghostty
-          grim
         ]
         ++ self'.packages.default.passthru.devDeps;
         shellHook = ''
           ${sparkiiAgentDevShellHook}
-          ${sparkiiNpmLib.mkNpmDevShellHook npmPackageJsonPaths}
-
-          # Force Node to use Nix's playwright-test binary instead of node_modules/.bin
-          export PATH="${pkgs.playwright-test}/bin:$PATH"
 
           # for the devshell to pick up the src
           export SPARKII_PYTHON_SRC_ROOT=$(git rev-parse --show-toplevel)
