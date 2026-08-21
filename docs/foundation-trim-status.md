@@ -236,9 +236,41 @@ cli.py、gateway、ui-tui、apps、website、acp_adapter 迁到独立 repo，消
 - Step 6 部分：产品 Docker 部署（Dockerfile/docker-compose/docker/
   .dockerignore/.hadolint）迁前端，前端新增两仓基线 Dockerfile
   （core 从 git 安装，SPARKII_ALLOW_PYPI_BUILD=1）；bug/setup 支持模板迁前端。
-- **待办（需 Nix 环境验证）**：nix/ + flake 产品模块（desktop/home-manager/
-  moduleCommon/tui/web/devShell）需按两仓布局适配 —— 保留在 core，
-  本机无 Nix 无法验证，列入后续。
+
+**Step 6 完成 — nix/Docker 双仓验证**（2026-08-21，WSL 实机验证）：
+- **core 侧 nix 裁剪为内核**：flake 只保留 nixpkgs/flake-parts/pyproject-nix/
+  uv2nix/pyproject-build-systems 输入；`sparkii-agent.nix` 只构建
+  `sparkii-agent` 内核二进制（wrapper 含 bundled skills/plugins/locales/mcps），
+  passthru 暴露 `sparkiiVenv/runtimeDeps/pythonPath`；`packages.nix` 删
+  tui/web/desktop/messaging/update-npm-lockfile 变体；devShell 只留
+  Python venv + uv + sandbox；checks 重写为内核检查（cross-eval/
+  build-package/bundled-*/extra-*）。删除 lib/tui/web/desktop/module
+  文件及 npm 锁文件（迁移到前端仓库）。
+- **前端 nix 落地**（`sparkiidesktop-frontends/flake.nix`）：以 core 为
+  flake input（开发期 `git+file:`，发布期换 `github:YueDJ/SparkiiDesktop`）；
+  新增 `nix/frontends-python.nix`（前端 Python 层 pip --no-deps 叠加到
+  core venv，PYTHONPATH 合并，无需前端 uv.lock）；lib/tui/desktop 恢复
+  到前端仓库（`web` 包删除——`web/` 目录早已移除，web.nix 是死代码）；
+  NixOS/Home-Manager 模块、configMergeScript、产品 checks（20 项：
+  cli-commands/service-argv/config-roundtrip/bundled-tui/managed-guard/
+  module parity 等）随产品迁前端；devShell 叠加 npm workspace + E2E
+  Wayland 工具。
+- **验证结果（WSL Ubuntu 26.04 + Determinate Nix + Docker）**：
+  - core `nix flake show` 通过；前端 `nix flake show` 通过
+    （packages: default/minimal/desktop/sparkiiTui/node-gyp/
+    update-npm-lockfile；checks ×20；modules/overlays/devShells）。
+  - 前端 `nix build .#default` 干跑通过（sparkii-0.20.0 + frontends-
+    python + sparkii-tui + core venv 全部 derivation 正确）。
+  - Docker 镜像构建成功 + 容器冒烟通过（`sparkii --help` 全命令面、
+    `sparkii version`、cli/gateway/sparkii_cli/tui_gateway/acp_adapter/
+    core 全导入 OK）。
+- **顺带修掉的两个真实 bug**：`.dockerignore` 的 `*.md` 规则把 README.md
+  过滤出构建上下文（Dockerfile 又要 COPY 它 → 构建失败）；core 阶段的
+  python:3.12-slim 没装 git，pip 无法从 git 安装 core（已补 apt git）。
+- **遗留说明**：前端 flake 本地开发用 git+file 输入时不写 flake.lock
+  （unlocked input），发布期换 github URL 后需生成并提交 flake.lock；
+  前端 messaging extras（discord/telegram/slack 等）依赖由 core venv 的
+  `all` 组直接覆盖（core uv.lock 已验证），nix 侧无需二次安装。
 
 ## 节奏
 删/迁一块 → ast.parse 验证 → import 验证 → 跑相关测试 → 红数下降 → 下一块。
