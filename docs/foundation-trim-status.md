@@ -218,6 +218,28 @@ cli.py、gateway、ui-tui、apps、website、acp_adapter 迁到独立 repo，消
   optional-mcps/native/contributors。
 - 验证：core 导入正常；phase0/block4 扫描仍为 0。
 
+**Step 5/6（部分完成）**（2026-08-21 更新）：
+- 依赖审计：前端 pyproject 按"惰性依赖拆 extras"重构 —— base 只留
+  import 期必需（prompt_toolkit/fastapi/uvicorn/starlette/python-multipart/
+  pywin32），socks/bedrock/discord/qrcode/mutagen/setproctitle/playwright/
+  daytona/aiohttp 拆入 extras（与 core 的 lazy-install 哲学一致）。
+- 发布接线：core setup.py 新增 `SPARKII_ALLOW_PYPI_BUILD=1` 逃生门
+  （前端以 git URL 依赖时 pip 需构建 core wheel；默认仍禁止）；
+  前端 pyproject 注明发布期把 `sparkii-agent` 换成 git URL。
+- CI：前端 tests.yml/js-tests.yml 可用；docs-site-checks.yml 重写为跨仓
+  checkout（core → ../sparkii-core，`SPARKII_CORE_SKILLS_ROOT`），
+  extract/generate 脚本已支持该 env；retry/get-app-token action 复制到位；
+  6 个随迁部署 workflow（deploy-site/e2e-desktop/infographic-check/
+  js-autofix/skills-index×2）挂起（*.yml.disabled），待重建；
+  npm workspaces 结构校验通过。core 侧删 npm lockfile-diff workflow、
+  osv-scanner 清理、whatsapp-bridge 迁前端。
+- Step 6 部分：产品 Docker 部署（Dockerfile/docker-compose/docker/
+  .dockerignore/.hadolint）迁前端，前端新增两仓基线 Dockerfile
+  （core 从 git 安装，SPARKII_ALLOW_PYPI_BUILD=1）；bug/setup 支持模板迁前端。
+- **待办（需 Nix 环境验证）**：nix/ + flake 产品模块（desktop/home-manager/
+  moduleCommon/tui/web/devShell）需按两仓布局适配 —— 保留在 core，
+  本机无 Nix 无法验证，列入后续。
+
 ## 节奏
 删/迁一块 → ast.parse 验证 → import 验证 → 跑相关测试 → 红数下降 → 下一块。
 

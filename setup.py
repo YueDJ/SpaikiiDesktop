@@ -2,13 +2,14 @@
 setup.py — wheel/sdist build guard.
 
 pip/PyPI and Homebrew are no longer supported distribution methods for
-Sparkii Agent (see website/docs/getting-started/platform-support.md). The
-wheel would ship without bundled assets (locales, skills, optional-mcps,
-web_dist, tui_dist, plugin manifests) since those are resolved at runtime
-via env-var overrides set by the nix wrapper or the source-checkout layout.
+Sparkii Agent. The wheel would ship without bundled assets (locales, skills,
+optional-mcps) since those are resolved at runtime via env-var overrides set
+by the nix wrapper or the source-checkout layout. The frontend surfaces
+(CLI, gateway, desktop) live in the separate sparkii-frontends repo.
 
 This file overrides the ``bdist_wheel`` and ``sdist`` setuptools commands
-to raise an error when run outside a Nix build. The PEP 517
+to raise an error when run outside a Nix build or an explicit release
+build. The PEP 517
 ``build_wheel`` / ``build_sdist`` hooks in
 ``setuptools.build_meta`` call these commands internally, so the guard
 fires for ``uv build``, ``pip wheel``, ``python -m build``, and direct
@@ -18,6 +19,11 @@ The one legitimate consumer of ``build_wheel`` is uv2nix, which calls
 ``setuptools.build_meta.build_wheel`` (→ ``bdist_wheel``) inside a Nix
 build sandbox. ``nix/python.nix`` sets ``SPARKII_NIX_BUILD=1`` on the
 Sparkii package derivation, so only that build may create an artifact.
+
+Since the split, the frontends repo depends on ``sparkii-agent`` as a git
+URL, which pip installs by building a wheel. The release pipeline opts in
+explicitly with ``SPARKII_ALLOW_PYPI_BUILD=1``; everyone else keeps the
+guard (a wheel without the bundled assets is never accidentally published).
 
 Editable installs (``uv sync``, ``pip install -e .``, ``nix develop``)
 use ``build_editable``, which does NOT call ``bdist_wheel`` — it calls
@@ -30,6 +36,9 @@ from setuptools import setup
 from setuptools.command.sdist import sdist
 
 _IN_NIX_BUILD = os.environ.get("SPARKII_NIX_BUILD") == "1"
+_ALLOW_PYPI_BUILD = os.environ.get("SPARKII_ALLOW_PYPI_BUILD") == "1"
+
+_GUARDED = _IN_NIX_BUILD or _ALLOW_PYPI_BUILD
 
 _BLOCK_MESSAGE = (
     "Building wheels or sdists for sparkii-agent is not supported.\n"
@@ -46,7 +55,7 @@ _BLOCK_MESSAGE = (
 
 class _GuardedSdist(sdist):
     def run(self, *args, **kwargs):
-        if not _IN_NIX_BUILD:
+        if not _GUARDED:
             raise RuntimeError(_BLOCK_MESSAGE)
         return super().run(*args, **kwargs)
 
@@ -63,7 +72,7 @@ try:
 
     class _GuardedBdistWheel(bdist_wheel):
         def run(self, *args, **kwargs):
-            if not _IN_NIX_BUILD:
+            if not _GUARDED:
                 raise RuntimeError(_BLOCK_MESSAGE)
             return super().run(*args, **kwargs)
 
