@@ -1,4 +1,2 @@
 [console_scripts]
-sparkii = sparkii_cli.main:main
-sparkii-acp = acp_adapter.entry:main
 sparkii-agent = run_agent:main

@@ -206,7 +206,7 @@ sparkii-frontends/
 | Step 1 | 核心侧解耦（§4.1） | ✅ 已完成：ast.parse 全仓通过；phase0 gateway 9→0、cli 1→0（50→43）；block4 44→30；相关测试无新增失败 |
 | Step 2 | sparkii_cli 共享服务下沉（§4.2） | ✅ 已完成：phase0 50→**0**；block4 30→**6**（cron/scheduler + 5 dev 脚本）；21 模块 + observability 包下沉 core，注入桥就位 |
 | Step 2b | cron/scheduler.py 交付反转（gateway→注入钩子） | ✅ 已完成：20 处 gateway 引用 → core.cron_delivery 命名空间（gateway/__init__ 注册）；response_filters 下沉 core；block4 6→5（仅剩 dev 脚本） |
-| Step 3 | 前端 repo 脚手架（新目录、pyproject、package.json） | `pip install -e` 前端 + path 依赖；`sparkii --help` |
+| Step 3 | 前端 repo 脚手架（新目录、pyproject、package.json） | ✅ 已完成：`C:\Users\YDJ\Desktop\sparkiidesktop-frontends`；双 editable 安装验证 `sparkii --help` / `sparkii-agent --help`；core phase0 0 |
 | Step 4 | 物理迁移（git subtree split + 移动） | 两 repo 各自 `git status` 干净；测试随迁 |
 | Step 5 | 依赖接线 + 测试迁移 + CI 拆分 | 前端 pytest + vitest 绿；core pytest 绿 |
 | Step 6 | Dockerfile/nix/文档/状态文档更新 | `docs/foundation-trim-status.md` 更新 Block 4 状态 |

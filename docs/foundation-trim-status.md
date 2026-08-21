@@ -154,6 +154,33 @@ cli.py、gateway、ui-tui、apps、website、acp_adapter 迁到独立 repo，消
   仅剩 5 个 dev 脚本豁免）。core repo 对前端的运行时依赖彻底清零。
 - **下一步**：Step 3 前端 repo 脚手架（pyproject/package.json 拆分 + 物理迁移）。
 
+**Step 3 完成**（2026-08-21 更新）：
+- 前端独立 repo 落地：`C:\Users\YDJ\Desktop\sparkiidesktop-frontends`
+  （git init，初始提交，README 记录来源 commit `003d48497e`）。
+- 迁出内容（git archive 抽取跟踪文件）：cli.py、gateway/、sparkii_cli/、
+  tui_gateway/、acp_adapter/、ui-tui/、apps/、website/、tests-js/ +
+  6 个前端测试目录（gateway/sparkii_cli/tui_gateway/acp/acp_adapter/cli）+
+  5 个 gateway 依赖的 dev 脚本（scripts/observability 等）。
+- 前端仓库脚手架：`pyproject.toml`（包名 sparkii-frontends，依赖
+  `sparkii-agent` 裸名 + prompt_toolkit/fastapi/uvicorn/starlette/aiohttp 等
+  前端专属依赖；console scripts sparkii/sparkii-acp）、package.json
+  （workspaces: apps/*, ui-tui, ui-tui/packages/*, tests-js）、.gitignore、
+  README。
+- core 仓库瘦身：git rm 迁出目录（4922 文件）；pyproject 移除
+  gateway/sparkii_cli/tui_gateway/acp_adapter 包与 cli py-module、sparkii/
+  sparkii-acp 入口、gateway 资产；packages.find 补 core/core.*；
+  package.json 精简；sparkii_bootstrap 说明更新。
+- 依赖接线（dev）：先 `pip install -e <core>` 再 `pip install -e <frontends>`
+  （setup.py 有 Nix 外 wheel 构建守卫，故不用 file:// wheel 依赖）；
+  发布期换 git 依赖。验证：两仓 ast.parse 全过；跨仓导入
+  （cli/gateway/sparkii_cli/tui_gateway/acp_adapter + core.*）OK；
+  `sparkii --help` 全命令面正常；`sparkii-agent --help` 正常；
+  core phase0 仍为 0。
+- 已知中间态：core repo 的 tests/agent|tools|cron|plugins|e2e 等仍有引用
+  前端包的测试文件（Step 4 按扫描 CSV 逐文件迁移），拆分前这两类测试暂红。
+- **下一步**：Step 4 物理/测试迁移收尾（tests 逐文件判定 + 两仓 CI 拆分），
+  Step 5 依赖审计与发布接线，Step 6 Dockerfile/nix/文档更新。
+
 ## 节奏
 删/迁一块 → ast.parse 验证 → import 验证 → 跑相关测试 → 红数下降 → 下一块。
 

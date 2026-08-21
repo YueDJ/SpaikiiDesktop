@@ -1,16 +1,14 @@
-acp_adapter
 agent
 batch_runner
 cli
+core
 cron
-gateway
 mcp_serve
 model_tools
 plugins
 providers
 run_agent
 sparkii_bootstrap
-sparkii_cli
 sparkii_constants
 sparkii_logging
 sparkii_state
@@ -23,5 +21,4 @@ tools
 toolset_distributions
 toolsets
 trajectory_compressor
-tui_gateway
 utils
