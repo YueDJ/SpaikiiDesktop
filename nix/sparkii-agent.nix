@@ -33,7 +33,7 @@ let
     extraDependencyGroups:
     callPackage ./python.nix {
       inherit uv2nix pyproject-nix pyproject-build-systems;
-      pythonSrc = sparkiiNpmLib.pythonSrc;
+      pythonSrc = ../.;
       dependency-groups = [ "all" ] ++ extraDependencyGroups;
     };
 
