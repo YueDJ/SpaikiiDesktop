@@ -43,7 +43,7 @@ SKIP_DIRS = {
     "build", ".next", ".turbo", ".docusaurus", "sparkii_agent.egg-info",
     ".plans", ".github", ".qoder", ".agents", ".codex", "docker", "nix",
     "mcp-research-data", "optional-mcps", "datagen-config-examples", "evals",
-    "native", "assets", "contributors", "locales", "logo-concepts", "tests-js",
+    "native", "assets", "locales", "logo-concepts", "tests-js",
     "website",  # TS docs site — not a Python package
 }
 

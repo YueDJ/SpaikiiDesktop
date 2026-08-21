@@ -70,7 +70,6 @@ SKIP_DIRS = {
     "evals",
     "native",
     "assets",
-    "contributors",
     "locales",
     "logo-concepts",
     ".plans",

@@ -1,0 +1,171 @@
+#!/usr/bin/env python3
+"""Classify a PR's changed files into CI work lanes.
+
+Reads newline-separated changed paths on stdin and writes ``key=value``
+booleans (one per lane) to ``$GITHUB_OUTPUT`` and stdout. The
+``detect-changes`` composite action consumes them so steps gate on
+``if: steps.changes.outputs.<lane> == 'true'``.
+
+Lanes:
+
+* ``python``      — pytest / ruff / ty / footguns.
+* ``python_prod`` — Python changes OUTSIDE tests/ — gates jobs that ship or
+  run the product (Docker image, nix build) but never import the test suite.
+  A tests-only PR keeps ``python`` (pytest must run) while skipping those
+  product jobs.
+* ``docker_meta`` — Dockerfiles etc.
+* ``docker`` — any product change + docker meta
+* ``nix``         — ``nix flake check``: the flake inputs and any product change.
+* ``scan``        — supply-chain scan (Python files, .pth, setup hooks).
+* ``deps``        — pyproject.toml dependency bounds check.
+* ``uv_lock``     — ``uv lock --check``. Re-resolves the whole graph against
+  PyPI, so a diff that touches neither ``pyproject.toml`` nor ``uv.lock``
+  must not run it.
+* ``installer``   — PowerShell installer tests (Windows runner).
+* ``mcp_catalog`` — bundled MCP catalog / installer review.
+
+Docker is not a lane — it builds on push-to-main and release only,
+never per-PR.
+
+Contract — *fail open, never closed*. We may run a lane we didn't need, but
+must never skip one a change could break:
+
+* An empty diff, or any ``.github/`` change, runs everything.
+* ``python`` is a denylist: skipped only when *every* file is provably prose
+  or a non-Python tree; an unrecognized path keeps it on.
+* ``skills/`` (incl. ``SKILL.md``) is python-relevant — the skill-doc tests
+  read that tree, so a doc-looking edit can still break Python.
+* ``nix/``, ``flake.nix`` and ``flake.lock`` are the exception the other way:
+  only the flake reads them, so they skip the Python lanes and run ``nix``
+  alone. ``pyproject.toml`` and ``uv.lock`` are flake inputs too, but the
+  packaging tests read them, so they keep every Python lane.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import sys
+
+_DOCKER_META = ("docker/", ".hadolint.yml", "Dockerfile")  # docker setup
+_NIX_PATHS = ("nix/",)  # nix files
+_NIX_FILES = {"flake.nix", "flake.lock"}  # base nix files
+# Prose trees that can't touch Python. skills/ is excluded on purpose.
+_PY_SKIP = ("docs/",)
+
+# CI-sensitive files: workflow files, composite actions. Changes here can
+# influence what code CI executes, so they require explicit maintainer
+# review (ci-reviewed label).
+_CI_REVIEW_PATHS = (".github/workflows/", ".github/actions/")
+
+# Supply-chain scan: files that can execute code at install/import time.
+_SCAN_EXTS = (".py", ".pth")
+_SCAN_FILES = {"setup.cfg", "pyproject.toml"}
+
+# MCP catalog files that require explicit security review.
+_MCP_CATALOG_PATHS = ("optional-mcps/",)
+
+# Windows installer + its PowerShell tests. These only run on a Windows runner,
+# so they get their own lane rather than riding along with ``python``.
+_INSTALLER_PATHS = ("scripts/tests/",)
+_INSTALLER_FILES = {"scripts/install.ps1", "scripts/install.cmd"}
+
+
+def _is_docs(p: str) -> bool:
+    if p.startswith(("skills/", "optional-skills/")):
+        return False
+    return p.endswith((".md", ".mdx")) or p.startswith("docs/") or p.startswith("LICENSE")
+
+
+def _is_nix(p: str) -> bool:
+    return p.startswith(_NIX_PATHS) or p in _NIX_FILES
+
+
+def _py_irrelevant(p: str) -> bool:
+    return (
+        _is_docs(p)
+        or p.startswith(_PY_SKIP)
+        or p.startswith(_DOCKER_META)
+        or _is_nix(p)
+    )
+
+
+def _py_test_only(p: str) -> bool:
+    """Is ``p`` inside the test suite (never shipped / imported by the product)?
+
+    Product jobs (the Docker image, the nix build) run installed code —
+    nothing under ``tests/`` is packaged or importable there.
+    scripts/run_tests.sh and run_tests_parallel.py are deliberately
+    NOT test-only: they are runner infrastructure, and a bad edit there can
+    mask real failures, so they stay conservative (python_prod=true).
+    """
+    return p.startswith("tests/")
+
+
+def _is_scan(p: str) -> bool:
+    return p.endswith(_SCAN_EXTS) or p in _SCAN_FILES
+
+
+def _is_mcp_catalog(p: str) -> bool:
+    return p.startswith(_MCP_CATALOG_PATHS)
+
+
+def _is_installer(p: str) -> bool:
+    return p.startswith(_INSTALLER_PATHS) or p in _INSTALLER_FILES
+
+
+def _is_ci_review(p: str) -> bool:
+    return p.startswith(_CI_REVIEW_PATHS)
+
+
+def ci_review_files(files: list[str]) -> list[str]:
+    """Return the CI-sensitive paths that need maintainer review."""
+    return sorted({f.strip() for f in files if f.strip() and _is_ci_review(f.strip())})
+
+
+def classify(files: list[str]) -> dict[str, bool]:
+    """Map changed paths to ``{lane: should_run}``."""
+    files = [f.strip() for f in files if f.strip()]
+    python = any(not _py_irrelevant(f) for f in files)
+    python_prod = any(not _py_irrelevant(f) and not _py_test_only(f) for f in files)
+    deps = any(f == "pyproject.toml" for f in files)
+    docker_meta = any(f.startswith(_DOCKER_META) for f in files)
+
+    ret = {
+        "python": python,
+        "python_prod": python_prod,
+        "docker": docker_meta or python_prod,
+        "docker_meta": docker_meta,
+        "scan": any(_is_scan(f) for f in files),
+        "deps": deps,
+        "uv_lock": any(f in ("pyproject.toml", "uv.lock") for f in files),
+        "installer": any(_is_installer(f) for f in files),
+        "mcp_catalog": any(_is_mcp_catalog(f) for f in files),
+        "ci_review": any(_is_ci_review(f) for f in files),
+        "nix": python_prod or any(_is_nix(f) for f in files),
+    }
+    if not files or any(f.startswith(".github/") for f in files):
+        for lane in ret:
+            ret[lane] = True
+        # explicitly skip mcp catalog here. it's not needed unless those
+        # files are modified.
+        ret["mcp_catalog"] = False
+    return ret
+
+
+def main() -> int:
+    files = sys.stdin.read().splitlines()
+    lanes = classify(files)
+    out = "\n".join([
+        *(f"{key}={str(value).lower()}" for key, value in lanes.items()),
+        f"ci_review_files={json.dumps(ci_review_files(files))}",
+    ])
+    if dest := os.environ.get("GITHUB_OUTPUT"):
+        with open(dest, "a", encoding="utf-8") as fh:
+            fh.write(out + "\n")
+    print(out)  # echo for local runs + CI step logs
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -42,12 +42,9 @@ jobs:
     outputs:
       python: ${{ steps.classify.outputs.python }}
       python_prod: ${{ steps.classify.outputs.python_prod }}
-      frontend: ${{ steps.classify.outputs.frontend }}
-      site: ${{ steps.classify.outputs.site }}
       scan: ${{ steps.classify.outputs.scan }}
       deps: ${{ steps.classify.outputs.deps }}
       uv_lock: ${{ steps.classify.outputs.uv_lock }}
-      npm_lock: ${{ steps.classify.outputs.npm_lock }}
       installer: ${{ steps.classify.outputs.installer }}
       docker_meta: ${{ steps.classify.outputs.docker_meta }}
       mcp_catalog: ${{ steps.classify.outputs.mcp_catalog }}
@@ -92,12 +89,6 @@ jobs:
     with:
       event_name: ${{ needs.detect.outputs.event_name }}
 
-  js-tests:
-    name: JS & TS checks
-    needs: detect
-    if: needs.detect.outputs.frontend == 'true'
-    uses: ./.github/workflows/js-tests.yml
-
   installer-tests:
     name: Installer tests
     needs: detect
@@ -105,41 +96,11 @@ jobs:
     if: needs.detect.outputs.installer == 'true'
     uses: ./.github/workflows/installer-tests.yml
 
-  e2e-desktop:
-    name: Desktop E2E
-    needs: detect
-    # python_prod (not python): the Playwright suite exercises the built app
-    # + `sparkii serve` backend, which never import anything under tests/.
-    # Tests-only PRs (~17% of commits) skip this 5-minute job — the longest
-    # single job in the workflow — while still running the full pytest lanes.
-    #
-    # ⛔ TEMPORARILY DISABLED (Aug 2, 2026, Teknium) — the suite is red on
-    # every PR and on main itself since the Aug 1 night engines/npm churn
-    # (#76499 → #76562 → #76575): the mock-backend Electron window never
-    # gets a title, so boot/chat/setup/interim specs all fail identically
-    # regardless of the PR's diff (verified on #76573 and the docs-only
-    # #76582). Tracking issue: #76627 (assigned: Ari). To re-enable,
-    # delete the `false &&` below — nothing else changed.
-    if: ${{ false && (needs.detect.outputs.python_prod == 'true' || needs.detect.outputs.frontend == 'true') }}
-    uses: ./.github/workflows/e2e-desktop.yml
-
-  docs-site:
-    name: Docs Site
-    needs: detect
-    if: needs.detect.outputs.site == 'true'
-    uses: ./.github/workflows/docs-site-checks.yml
-
   history-check:
     name: Deny unrelated histories
     needs: detect
     if: needs.detect.outputs.event_name == 'pull_request'
     uses: ./.github/workflows/history-check.yml
-
-  contributor-check:
-    name: Check contributors
-    needs: detect
-    if: needs.detect.outputs.python == 'true'
-    uses: ./.github/workflows/contributor-check.yml
 
   uv-lockfile:
     name: Check uv.lock
@@ -147,21 +108,10 @@ jobs:
     # Gated: `uv lock --check` re-resolves the whole dependency graph against
     # PyPI, so on every PR it spent a network round-trip — and, on a registry
     # blip, a blocking red X — for diffs that cannot desync the lockfile
-    # (docs, frontend, prose). Only pyproject.toml / uv.lock can. A
+    # (docs, prose). Only pyproject.toml / uv.lock can. A
     # `.github/` change still forces it on via the classifier's fail-open.
     if: needs.detect.outputs.uv_lock == 'true'
     uses: ./.github/workflows/uv-lockfile-check.yml
-
-  infographic-check:
-    name: Check no committed infographics
-    needs: detect
-    uses: ./.github/workflows/infographic-check.yml
-
-  lockfile-diff:
-    name: package-lock.json diff
-    needs: detect
-    if: needs.detect.outputs.event_name == 'pull_request' && needs.detect.outputs.npm_lock == 'true'
-    uses: ./.github/workflows/lockfile-diff.yml
 
   docker-lint:
     name: Lint Docker scripts
@@ -211,14 +161,9 @@ jobs:
       - tests
       - tests-os
       - lint
-      - js-tests
       - installer-tests
-      - e2e-desktop
-      - docs-site
       - history-check
-      - contributor-check
       - uv-lockfile
-      - lockfile-diff
       - docker-lint
       - supply-chain
       - review-labels

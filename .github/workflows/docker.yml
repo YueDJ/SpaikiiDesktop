@@ -54,8 +54,8 @@ jobs:
         env:
           # The docker lane derives from python_prod (not python: the image
           # copies installed code, never tests/, so tests-only PRs skip the
-          # build), frontend and docker_meta. classify_changes.py owns the
-          # formula so this gate and the nix lane cannot drift apart.
+          # build), and docker_meta. classify_changes.py owns the formula so
+          # this gate and the nix lane cannot drift apart.
           DOCKER: ${{ steps.classify.outputs.docker }}
         run: |
           set -euo pipefail
