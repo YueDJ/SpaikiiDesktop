@@ -45,7 +45,7 @@ operators should reason about them in the same terms.
   Other backends run commands inside a container, cloud sandbox, or
   remote host.
 - **Input surface.** Any channel through which content enters the
-  agent's context: operator input, web fetches, email, gateway
+  agent's context: operator input, web fetches, email, messaging-platform
   messages, file reads, MCP server responses, tool results.
 - **Trust envelope.** The set of resources an operator has implicitly
   granted Sparkii Agent access to by running it — typically, whatever
@@ -122,8 +122,8 @@ outside the supported security posture.
 
 Sparkii Agent filters the environment it passes to its lower-trust
 in-process components: shell subprocesses, MCP subprocesses,
-cron job scripts, and the code-execution child. Credentials like
-provider API keys and gateway tokens are stripped by default;
+  cron job scripts, and the code-execution child. Credentials like
+  provider API keys and platform tokens are stripped by default;
 variables explicitly declared by the operator or by a loaded
 skill are passed through.
 
@@ -175,21 +175,22 @@ process through which a caller can dispatch agent work, resolve
 approvals, or receive agent output. Each surface has its own
 authorization model, but the rules below apply uniformly.
 
-**Surfaces in Sparkii Agent:**
+**Surfaces in Sparkii Agent** (the frontend surfaces — messaging gateway,
+ACP adapter, TUI gateway — live in the separate `sparkii-frontends`
+repository):
 
 - **Gateway platform adapters.** Most messaging integrations ship as
   bundled plugins under `plugins/platforms/<name>/` (Telegram, Discord,
   Slack, email, SMS, etc.). Shared base types and a smaller set of
-  legacy/direct adapters live under `gateway/platforms/`
-  (`base.py`, Signal, API server, webhooks, …), with discovery and
-  deferred loading via `gateway/platform_registry.py`.
+  legacy/direct adapters live in the frontends repo under
+  `gateway/platforms/` (`base.py`, Signal, API server, webhooks, …).
 - **Network-exposed HTTP surfaces.** The API server adapter, the
   dashboard plugin, the kanban plugin's HTTP endpoints, and any
   other plugin that binds a listening socket.
-- **Editor / IDE adapters.** The ACP adapter (`acp_adapter/`) and
+- **Editor / IDE adapters.** The ACP adapter (`acp_adapter/`, frontends repo) and
   equivalent integrations that accept requests from a local client
   process.
-- **The TUI gateway (`tui_gateway/`).** JSON-RPC backend for the
+- **The TUI gateway (`tui_gateway/`, frontends repo).** JSON-RPC backend for the
   Ink terminal UI, reached over local IPC.
 
 **Uniform rules:**

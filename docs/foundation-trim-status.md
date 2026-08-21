@@ -198,6 +198,26 @@ cli.py、gateway、ui-tui、apps、website、acp_adapter 迁到独立 repo，消
 - **下一步**：Step 5 依赖审计与发布接线（frontends 依赖改 git URL、
   CI 跨仓 checkout 正式化）、Step 6 Dockerfile/nix/文档更新。
 
+**Core 仓库清理**（2026-08-21 更新）：
+- 删除前端/产品残留：logo-concepts、mcp-research-data、datagen-config-examples、
+  .qoder（729 文件 repowiki 生成物）、.plans（产品计划）、sparkii 启动器、
+  package-lock.json、cli-config.yaml.example、setup-sparkii.sh、
+  REBRAND_REPORT.md、sparkii-already-has-routines.md、.bytecode-fingerprint、
+  多语言产品 README、sparkii_agent.egg-info（可再生成）。
+- 一次性迁移脚本移除（git 历史保留）：phase0_m1/s1/s2a/s2b/s3d/auth_closure/
+  block4_repair|rewrite|sink|test_rewrite；保留两个可复跑扫描器
+  （phase0_import_scan.py、phase0_block4_scan.py）。
+- 前端 dev 工具脚本与文档移除：discord-voice-doctor、iso-certify、
+  docker_rebootstrap_nous_session、ci/classify_changes、billing/relay/profile-
+  routing/streaming-tts/telegram-plan/kanban-dialogs/multi-gateway 等。
+- 文档重写：README.md、AGENTS.md 改为 core 内核聚焦版（frontend 指向
+  sparkii-frontends）；CONTRIBUTING.md 结构章节与 SECURITY.md 表面清单修剪。
+- JS 工具链（eslint/npmrc/nvmrc/prettier/cli-config 示例）复制到前端仓库。
+- 保留待 Step 6 处理：Dockerfile/docker-compose/docker/nix/flake/.envrc
+  （产品部署，需双仓适配）。保留被 core 引用的 locales/assets/evals/
+  optional-mcps/native/contributors。
+- 验证：core 导入正常；phase0/block4 扫描仍为 0。
+
 ## 节奏
 删/迁一块 → ast.parse 验证 → import 验证 → 跑相关测试 → 红数下降 → 下一块。
 

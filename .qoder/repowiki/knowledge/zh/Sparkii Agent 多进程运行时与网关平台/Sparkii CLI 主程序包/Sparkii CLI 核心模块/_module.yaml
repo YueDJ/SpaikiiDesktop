@@ -1,8 +1,0 @@
-schema_version: 1
-module_path: sparkii_cli/cli_core
-title: Sparkii CLI 核心模块
-scope:
-    - sparkii_cli/
-source_files: []
-depends_on: []
-related_to: []

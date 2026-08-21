@@ -93,7 +93,7 @@ The reason is maintenance load, not quality. Every external product absorbed int
 
 Publish these as a **standalone plugin repo** instead:
 
-- Implement the relevant ABC and use the existing plugin discovery path (`~/.sparkii/plugins/`, project `.sparkii/plugins/`, or a pip entry point) — see [Build a Sparkii Plugin](website/docs/guides/build-a-sparkii-plugin.md)
+- Implement the relevant ABC and use the existing plugin discovery path (`~/.sparkii/plugins/`, project `.sparkii/plugins/`, or a pip entry point) — see the plugin guide in the `sparkii-frontends` repository's website
 - Register lifecycle hooks (`pre_tool_call`, `post_tool_call`, `pre_llm_call`, `post_llm_call`, `on_session_start`, `on_session_end`), tools (`ctx.register_tool`), and CLI subcommands (`ctx.register_cli_command`) through the surface we already expose — no core changes needed
 - If your plugin needs a capability the framework doesn't expose, that's a feature request to **widen the generic plugin surface** (a new hook or `ctx` method) — never special-case your plugin in core
 - Promote it in the [Nous Research Discord](https://discord.gg/NousResearch) `#plugins-skills-and-skins` channel so users can find and install it
@@ -120,8 +120,8 @@ take: run the standard installer, then work inside the repository it cloned.
 The installer creates the Sparkii venv, wires the `sparkii` command, stamps the
 install method for `sparkii update`, and clones the full git project into
 `$SPARKII_HOME/sparkii-agent` (usually `~/.sparkii/sparkii-agent`). That keeps your
-development environment on the same layout the CLI, updater, lazy dependency
-installer, gateway, and docs assume.
+   development environment on the same layout the kernel, lazy dependency
+   installer, and docs assume.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/YueDJ/SparkiiDesktop/main/scripts/install.sh | bash
@@ -143,11 +143,10 @@ scripts/run_tests.sh
 
 ### Manual clone fallback
 
-Use this only if you intentionally do not want Sparkii' managed install layout
+Use this only if you intentionally do not want Sparkii's managed install layout
 (for example, a throwaway clone inside a container or CI job). If you install
-this way, make sure you run the `sparkii` entrypoint from this venv; running the
-system `python3 -m sparkii_cli.main` can pick up unrelated system Python
-packages.
+this way, make sure you run the kernel entrypoints from this venv; running the
+system `python3 -m run_agent` can pick up unrelated system Python packages.
 
 Create the venv **outside** the cloned source tree. A venv that lives inside
 the directory the agent operates from can be wiped by a relative-path command
@@ -217,69 +216,27 @@ pytest tests/ -v
 ```
 sparkii-agent/
 ├── run_agent.py              # AIAgent class — core conversation loop, tool dispatch, session persistence
-├── cli.py                    # SparkiiCLI class — interactive TUI, prompt_toolkit integration
 ├── model_tools.py            # Tool orchestration (thin layer over tools/registry.py)
-├── toolsets.py               # Tool groupings and presets (sparkii-cli, sparkii-webhook, etc.)
-├── sparkii_state.py           # SQLite session database with FTS5 full-text search, session titles
+├── toolsets.py               # Tool groupings and presets
+├── sparkii_state.py          # SQLite session database with FTS5 full-text search, session titles
 ├── batch_runner.py           # Parallel batch processing for trajectory generation
 │
-├── agent/                    # Agent internals (extracted modules)
-│   ├── prompt_builder.py         # System prompt assembly (identity, skills, context files, memory)
-│   ├── context_compressor.py     # Auto-summarization when approaching context limits
-│   ├── auxiliary_client.py       # Resolves auxiliary OpenAI clients (summarization, vision)
-│   ├── display.py                # KawaiiSpinner, tool progress formatting
-│   ├── model_metadata.py         # Model context lengths, token estimation
-│   └── trajectory.py             # Trajectory saving helpers
+├── agent/                    # Agent internals (prompt building, compression, adapters, memory, …)
+├── tools/                    # Tool registry + implementations (tools/registry.py is the hub)
+├── core/                     # Shared kernel services (config, credentials, plugins, models, media, …)
+├── plugins/                  # Extension providers (memory, image-gen, kanban, observability, …)
+├── cron/                     # Cron scheduler
+├── providers/                # Provider abstraction
 │
-├── sparkii_cli/               # CLI command implementations
-│   ├── main.py                   # Entry point, argument parsing, command dispatch
-│   ├── config.py                 # Config management, migration, env var definitions
-│   ├── setup.py                  # Interactive setup wizard
-│   ├── auth.py                   # Provider resolution, OAuth, Nous Portal
-│   ├── models.py                 # OpenRouter model selection lists
-│   ├── banner.py                 # Welcome banner, ASCII art
-│   ├── commands.py               # Central slash command registry (CommandDef), autocomplete, gateway helpers
-│   ├── callbacks.py              # Interactive callbacks (clarify, sudo, approval)
-│   ├── doctor.py                 # Diagnostics
-│   ├── skills_hub.py             # Skills Hub CLI + /skills slash command
-│   └── skin_engine.py            # Skin/theme engine — data-driven CLI visual customization
-│
-├── tools/                    # Tool implementations (self-registering)
-│   ├── registry.py               # Central tool registry (schemas, handlers, dispatch)
-│   ├── approval.py               # Dangerous command detection + per-session approval
-│   ├── terminal_tool.py          # Terminal orchestration (sudo, env lifecycle, backends)
-│   ├── file_operations.py        # read_file, write_file, search, patch, etc.
-│   ├── web_tools.py              # web_search, web_extract (Parallel/Firecrawl + Gemini summarization)
-│   ├── vision_tools.py           # Image analysis via multimodal models
-│   ├── delegate_tool.py          # Subagent spawning and parallel task execution
-│   ├── code_execution_tool.py    # Sandboxed Python with RPC tool access
-│   ├── session_search_tool.py    # Search past conversations with FTS5 + anchored windows
-│   ├── cronjob_tools.py          # Scheduled task management
-│   ├── skill_tools.py            # Skill search, load, manage
-│   └── environments/             # Terminal execution backends
-│       ├── base.py                   # BaseEnvironment ABC
-│       ├── local.py, docker.py, ssh.py, singularity.py, modal.py, daytona.py
-│
-├── gateway/                  # Messaging gateway
-│   ├── run.py                    # GatewayRunner — platform lifecycle, message routing, cron
-│   ├── config.py                 # Platform configuration resolution
-│   ├── session.py                # Session store, context prompts, reset policies
-│   └── platforms/                # Platform adapters
-│       ├── telegram.py, discord_adapter.py, slack.py, whatsapp.py
-│
-├── scripts/                  # Installer and bridge scripts
-│   ├── install.sh                # Linux/macOS installer
-│   ├── install.ps1               # Windows PowerShell installer
-│   └── whatsapp-bridge/          # Node.js WhatsApp bridge (Baileys)
-│
-├── skills/                   # Bundled skills (copied to ~/.sparkii/skills/ on install)
+├── skills/                   # Bundled skills
 ├── optional-skills/          # Official optional skills (discoverable via hub, not activated by default)
 ├── tests/                    # Test suite
-├── website/                  # Documentation site (in-repo Docusaurus)
-│
-├── cli-config.yaml.example   # Example configuration (copied to ~/.sparkii/config.yaml)
 └── AGENTS.md                 # Development guide for AI coding assistants
 ```
+
+The frontend surfaces (CLI, messaging gateway, TUI, desktop, website) live in
+the separate `sparkii-frontends` repository and consume this package as a
+library.
 
 ### User configuration (stored in `~/.sparkii/`)
 
@@ -291,7 +248,7 @@ sparkii-agent/
 | `~/.sparkii/skills/` | All active skills (bundled + hub-installed + agent-created) |
 | `~/.sparkii/memories/` | Persistent memory (MEMORY.md, USER.md) |
 | `~/.sparkii/state.db` | SQLite session database |
-| `~/.sparkii/sessions/` | Gateway routing index (`sessions.json`), request-dump breadcrumbs, gateway `*.jsonl` transcripts, and (optionally) per-session JSON snapshots when `sessions.write_json_snapshots: true` is set. The per-session snapshots are off by default; state.db is canonical. |
+| `~/.sparkii/sessions/` | Session routing index (`sessions.json`), request-dump breadcrumbs, and (optionally) per-session JSON snapshots when `sessions.write_json_snapshots: true` is set. The per-session snapshots are off by default; state.db is canonical. |
 | `~/.sparkii/cron/` | Scheduled job data |
 | `~/.sparkii/whatsapp/session/` | WhatsApp bridge credentials |
 
