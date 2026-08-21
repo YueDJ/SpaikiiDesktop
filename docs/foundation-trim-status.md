@@ -261,6 +261,12 @@ cli.py、gateway、ui-tui、apps、website、acp_adapter 迁到独立 repo，消
     update-npm-lockfile；checks ×20；modules/overlays/devShells）。
   - 前端 `nix build .#default` 干跑通过（sparkii-0.20.0 + frontends-
     python + sparkii-tui + core venv 全部 derivation 正确）。
+  - ⚠️ 完整 `nix build` 因本机网络环境受限未能在本会话跑通：
+    cache.nixos.org 对该 nixpkgs 提交（0954f7e，2026-07-29）覆盖不全，
+    ftpmirror.gnu.org 等源码镜像被网络代理间歇 502/TLS 中断，bash 补丁
+    及 bootstrap 源码下载反复失败（已预取补丁越过 bash，后续仍卡在
+    acl/sed 等 fetchurl）。属环境问题，与配置无关；在缓存完整或镜像
+    可达的机器上可正常构建。
   - Docker 镜像构建成功 + 容器冒烟通过（`sparkii --help` 全命令面、
     `sparkii version`、cli/gateway/sparkii_cli/tui_gateway/acp_adapter/
     core 全导入 OK）。
