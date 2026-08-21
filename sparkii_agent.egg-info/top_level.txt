@@ -4,9 +4,11 @@ cli
 core
 cron
 mcp_serve
+mini_swe_runner
 model_tools
 plugins
 providers
+registration_lifecycle
 run_agent
 sparkii_bootstrap
 sparkii_constants

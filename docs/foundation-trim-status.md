@@ -181,6 +181,23 @@ cli.py、gateway、ui-tui、apps、website、acp_adapter 迁到独立 repo，消
 - **下一步**：Step 4 物理/测试迁移收尾（tests 逐文件判定 + 两仓 CI 拆分），
   Step 5 依赖审计与发布接线，Step 6 Dockerfile/nix/文档更新。
 
+**Step 4 完成**（2026-08-21 更新）：
+- 前端仓库远端就位并推送：`github.com/YueDJ/SparkiiDesktop-Frontends`
+  （初始提交 46df06d → origin/main）。
+- 测试逐文件迁移：core 中 186 个引用前端包的测试文件迁至前端仓库
+  （含根 tests/conftest.py、__init__.py、run_interrupt_test.py 及 6 个子目录
+  conftest 复制；2 个被前端测试依赖的 agent helper 复制到前端）。core
+  剩余 tests 收集无任何前端包 ModuleNotFoundError；前端仓库收集 13999 个
+  测试，剩余 55 个收集错误全部为既有环境缺口（acp/mcp 包未装、
+  plugins.platforms/nous 死引用、e2e conftest 已在 HEAD 删除、AppData 权限）。
+- CI 拆分：core 删除 8 个前端专属 workflow（deploy-site/docs-site-checks/
+  e2e-desktop/infographic-check/js-tests/js-autofix/skills-index×2），
+  osv-scanner 移除 website lockfile 行；前端仓库新增 tests.yml（checkout
+  core + 双 editable 安装 + 前端测试）与 js-tests.yml（npm workspaces），
+  其余 8 个随迁 workflow 待 Step 5/6 适配（跨仓 checkout skills/website）。
+- **下一步**：Step 5 依赖审计与发布接线（frontends 依赖改 git URL、
+  CI 跨仓 checkout 正式化）、Step 6 Dockerfile/nix/文档更新。
+
 ## 节奏
 删/迁一块 → ast.parse 验证 → import 验证 → 跑相关测试 → 红数下降 → 下一块。
 
